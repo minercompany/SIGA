@@ -343,7 +343,8 @@ export default function ReportesPage() {
             },
             bodyStyles: {
                 valign: 'middle',
-                fontSize: 8
+                fontSize: 8,
+                textColor: [0, 0, 0] // NEGRO
             },
             alternateRowStyles: { fillColor: [248, 250, 252] },
             didParseCell: function (cellData: any) {
@@ -351,13 +352,13 @@ export default function ReportesPage() {
                     const row = cellData.row.raw as any;
                     if (row.rawStatus === 'HABILITADO') {
                         cellData.cell.styles.fillColor = [209, 250, 229];
-                        cellData.cell.styles.textColor = [6, 78, 59];
+                        cellData.cell.styles.textColor = [0, 0, 0]; // NEGRO
                     } else if (row.rawStatus === 'OBSERVADO') {
                         cellData.cell.styles.fillColor = [254, 243, 199];
-                        cellData.cell.styles.textColor = [120, 53, 15];
+                        cellData.cell.styles.textColor = [0, 0, 0]; // NEGRO
                     }
                     if (row.rawPresence === 'AUSENTE') {
-                        cellData.cell.styles.textColor = [156, 163, 175];
+                        cellData.cell.styles.textColor = [0, 0, 0]; // NEGRO
                     }
                 }
             }
@@ -700,41 +701,41 @@ export default function ReportesPage() {
                                 <tr><td colSpan={4} className="p-8 text-center text-slate-400">Cargando...</td></tr>
                             ) :
                                 data.map((item) => (
-                                    <tr key={item.id} className={`hover:bg-slate-50 ${item.estado === 'AUSENTE' ? 'bg-red-50/30' : ''}`}>
-                                        <td className="px-6 py-3 text-sm text-slate-600 font-mono">
+                                    <tr key={item.id} className={`hover:bg-slate-50 border-b border-slate-100/50 ${item.estado === 'AUSENTE' ? 'bg-red-50/50' : ''}`}>
+                                        <td className="px-6 py-3 text-sm text-black font-mono">
                                             {item.fechaHora
                                                 ? new Date(item.fechaHora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                                : <span className="text-slate-300">-</span>
+                                                : <span className="text-black">-</span>
                                             }
                                         </td>
                                         <td className="px-6 py-3 text-sm">
-                                            <div className="font-bold text-slate-700">{item.socioNombre}</div>
-                                            <div className="text-xs text-slate-400">CI: {item.cedula}</div>
+                                            <div className="font-bold text-black">{item.socioNombre}</div>
+                                            <div className="text-xs text-black font-semibold">CI: {item.cedula}</div>
                                         </td>
                                         <td className="px-6 py-3">
                                             {reportView === 'PADRON' ? (
                                                 <div className="flex flex-col gap-1">
-                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold w-fit ${item.estado === "PRESENTE" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold w-fit border ${item.estado === "PRESENTE" ? "bg-emerald-100 text-black border-emerald-200" : "bg-red-100 text-black border-red-200"
                                                         }`}>
                                                         {item.estado}
                                                     </span>
-                                                    <span className="text-[10px] text-slate-400 font-medium">
+                                                    <span className="text-[10px] text-black font-bold">
                                                         {item.vozVoto === "OBSERVADO" ? "SOLO VOZ" : item.vozVoto}
                                                     </span>
                                                 </div>
                                             ) : (
-                                                <span className={`px-2 py-1 rounded text-xs font-bold ${item.vozVoto === "HABILITADO"
-                                                    ? "bg-emerald-100 text-emerald-700"
-                                                    : "bg-amber-100 text-amber-700"
+                                                <span className={`px-2 py-1 rounded text-xs font-bold border ${item.vozVoto === "HABILITADO"
+                                                    ? "bg-emerald-100 text-black border-emerald-200"
+                                                    : "bg-amber-100 text-black border-amber-200"
                                                     }`}>
                                                     {item.vozVoto === "OBSERVADO" ? "SOLO VOZ" : item.vozVoto}
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-3 text-sm text-slate-800 font-medium">
+                                        <td className="px-6 py-3 text-sm text-black font-bold">
                                             {item.asignadoPor || '-'}
                                         </td>
-                                        <td className="px-6 py-3 text-sm text-slate-600">
+                                        <td className="px-6 py-3 text-sm text-black font-medium">
                                             {item.operador}
                                         </td>
                                     </tr>
