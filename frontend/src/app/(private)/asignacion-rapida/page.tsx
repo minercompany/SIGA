@@ -1,0 +1,516 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { Search, Users, Loader2, Plus, Shield, CheckCircle2, AlertTriangle, Trash2, Clock, Zap } from "lucide-react";
+import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface Socio {
+    id: number;
+    numeroSocio: string;
+    nombreCompleto: string;
+    cedula: string;
+    aporteAlDia: boolean;
+    solidaridadAlDia: boolean;
+    fondoAlDia: boolean;
+    incoopAlDia: boolean;
+    creditoAlDia: boolean;
+}
+
+interface ListaAsignacion {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    total: number;
+    vyv: number;
+    soloVoz: number;
+}
+
+export default function AsignacionRapidaPage() {
+    const [user, setUser] = useState<any>(null);
+    const [miLista, setMiLista] = useState<ListaAsignacion | null>(null);
+    const [socios, setSocios] = useState<Socio[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [loadingSocios, setLoadingSocios] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [searching, setSearching] = useState(false);
+    const [searchedSocio, setSearchedSocio] = useState<Socio | null>(null);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+
+    // Modal para socio ya asignado
+    const [showAlreadyAssignedModal, setShowAlreadyAssignedModal] = useState(false);
+    const [alreadyAssignedInfo, setAlreadyAssignedInfo] = useState<{
+        socioNombre: string;
+        socioNro: string;
+        listaNombre: string;
+        listaUsuario: string;
+        fechaAsignacion: string;
+    } | null>(null);
+
+    const tieneVozYVoto = (socio: Socio) => {
+        return socio.aporteAlDia && socio.solidaridadAlDia && socio.fondoAlDia && socio.incoopAlDia && socio.creditoAlDia;
+    };
+
+    const fetchData = useCallback(async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const userData = localStorage.getItem("user");
+            if (userData) {
+                const parsedUser = JSON.parse(userData);
+                setUser(parsedUser);
+
+                const headers = { Authorization: `Bearer ${token}` };
+
+                // Obtener mis listas
+                const response = await axios.get("http://192.168.100.123:8081/api/asignaciones/mis-listas", { headers });
+
+                if (response.data.length === 0) {
+                    // AUTO CREAR LISTA si no existe ninguna
+                    const timestamp = new Date().toLocaleString('es-PY', {
+                        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                    });
+                    await axios.post("http://192.168.100.123:8081/api/asignaciones/crear-lista", {
+                        nombre: `Lista de ${parsedUser.nombreCompleto || parsedUser.username}`,
+                        descripcion: `Creada automáticamente el ${timestamp}`
+                    }, { headers });
+
+                    // Recargar
+                    const newResponse = await axios.get("http://192.168.100.123:8081/api/asignaciones/mis-listas", { headers });
+                    if (newResponse.data.length > 0) {
+                        setMiLista(newResponse.data[0]);
+                        await loadSocios(newResponse.data[0].id);
+                    }
+                } else {
+                    // Usar la primera lista
+                    setMiLista(response.data[0]);
+                    await loadSocios(response.data[0].id);
+                }
+            }
+        } catch (error) {
+            console.error("Error al cargar datos:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const loadSocios = async (listaId: number) => {
+        setLoadingSocios(true);
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.get(`http://192.168.100.123:8081/api/asignaciones/${listaId}/socios`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setSocios(response.data);
+        } catch (error) {
+            console.error("Error al cargar socios:", error);
+        } finally {
+            setLoadingSocios(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    // Búsqueda automática con debounce
+    useEffect(() => {
+        if (searchTerm.length >= 3) {
+            const timer = setTimeout(() => {
+                handleSearch();
+            }, 500);
+            return () => clearTimeout(timer);
+        } else {
+            setSearchedSocio(null);
+        }
+    }, [searchTerm]);
+
+    const handleSearch = async () => {
+        if (!searchTerm || searchTerm.length < 3) return;
+        setSearching(true);
+        setErrorMessage("");
+        setSearchedSocio(null);
+
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.get(`http://192.168.100.123:8081/api/socios/buscar?term=${searchTerm}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (response.data && response.data.length > 0) {
+                setSearchedSocio(response.data[0]);
+            } else {
+                setErrorMessage("No se encontró ningún socio con ese dato");
+            }
+        } catch (error: any) {
+            setErrorMessage(error.response?.data?.error || "Error al buscar");
+        } finally {
+            setSearching(false);
+        }
+    };
+
+    const handleAddSocio = async () => {
+        if (!miLista || !searchedSocio) return;
+
+        try {
+            const token = localStorage.getItem("token");
+            await axios.post(`http://192.168.100.123:8081/api/asignaciones/${miLista.id}/agregar-socio`,
+                { term: searchedSocio.cedula },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            setSuccessMessage(`✓ ${searchedSocio.nombreCompleto} agregado exitosamente`);
+            setSearchTerm("");
+            setSearchedSocio(null);
+
+            // Recargar datos
+            await loadSocios(miLista.id);
+            fetchData(); // Actualizar contadores
+
+            // Limpiar mensaje después de 3 segundos
+            setTimeout(() => setSuccessMessage(""), 3000);
+
+        } catch (error: any) {
+            if (error.response?.status === 409 && error.response?.data?.error === 'SOCIO_YA_ASIGNADO') {
+                setAlreadyAssignedInfo({
+                    socioNombre: error.response.data.socioNombre,
+                    socioNro: error.response.data.socioNro,
+                    listaNombre: error.response.data.listaNombre,
+                    listaUsuario: error.response.data.listaUsuario,
+                    fechaAsignacion: error.response.data.fechaAsignacion
+                });
+                setShowAlreadyAssignedModal(true);
+                setSearchedSocio(null);
+                setSearchTerm("");
+            } else if (error.response?.status === 400) {
+                setErrorMessage("Este socio ya está en tu lista");
+            } else {
+                setErrorMessage(error.response?.data?.error || error.response?.data?.message || "Error al agregar");
+            }
+        }
+    };
+
+    const handleRemoveSocio = async (socioId: number) => {
+        if (!miLista) return;
+        if (!confirm("¿Quitar este socio de tu lista?")) return;
+
+        try {
+            const token = localStorage.getItem("token");
+            await axios.delete(`http://192.168.100.123:8081/api/asignaciones/${miLista.id}/socio/${socioId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            await loadSocios(miLista.id);
+            fetchData();
+        } catch (error: any) {
+            alert(error.response?.data?.error || "Error al eliminar");
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-violet-500 animate-spin mx-auto mb-4" />
+                    <p className="text-slate-600 font-medium">Cargando tu espacio de trabajo...</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+            {/* Header con identidad del usuario */}
+            <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 text-white">
+                <div className="max-w-4xl mx-auto px-4 py-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-violet-200 text-sm font-medium">Bienvenido</p>
+                            <h1 className="text-2xl md:text-3xl font-black">{user?.nombreCompleto || user?.username}</h1>
+                        </div>
+
+                        {/* Estadísticas del usuario */}
+                        {miLista && (
+                            <div className="flex gap-3">
+                                <div className="bg-white/15 backdrop-blur rounded-2xl px-5 py-3 text-center">
+                                    <p className="text-3xl font-black">{miLista.total}</p>
+                                    <p className="text-xs text-violet-200">Asignados</p>
+                                </div>
+                                <div className="bg-emerald-500/40 backdrop-blur rounded-2xl px-5 py-3 text-center">
+                                    <p className="text-3xl font-black text-emerald-200">{miLista.vyv}</p>
+                                    <p className="text-xs text-emerald-100">Voz y Voto</p>
+                                </div>
+                                <div className="bg-amber-500/40 backdrop-blur rounded-2xl px-5 py-3 text-center">
+                                    <p className="text-3xl font-black text-amber-200">{miLista.soloVoz}</p>
+                                    <p className="text-xs text-amber-100">Solo Voz</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+                {/* Mensaje de advertencia */}
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-4 flex items-start gap-4"
+                >
+                    <div className="p-2 bg-amber-500 rounded-xl flex-shrink-0">
+                        <Zap className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <p className="font-bold text-amber-800">¡La velocidad importa!</p>
+                        <p className="text-sm text-amber-700 mt-1">
+                            Los socios se asignan por <strong>orden de registro</strong>. Si otro usuario registra un socio antes que tú,
+                            ese socio quedará asignado a su lista. <span className="font-bold">¡Agrega tus socios rápidamente!</span>
+                        </p>
+                    </div>
+                </motion.div>
+
+                {/* Buscador Principal - GRANDE Y PROMINENTE */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-3xl shadow-xl border border-slate-100 p-6"
+                >
+                    <div className="flex items-center gap-3 mb-5">
+                        <div className="p-3 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl shadow-lg shadow-violet-200">
+                            <Plus className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-slate-800">Agregar Socio</h2>
+                            <p className="text-sm text-slate-500">Escribe el número de cédula o número de socio</p>
+                        </div>
+                    </div>
+
+                    <div className="relative">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Ingresa CI o N° de Socio..."
+                            className="w-full pl-14 pr-6 py-5 bg-slate-50 border-2 border-slate-200 rounded-2xl font-bold text-xl text-slate-700 placeholder:text-slate-400 placeholder:font-normal focus:border-violet-500 focus:bg-white outline-none transition-all"
+                            value={searchTerm}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setErrorMessage("");
+                            }}
+                            autoComplete="off"
+                            autoFocus
+                        />
+                        {searching && (
+                            <Loader2 className="absolute right-5 top-1/2 -translate-y-1/2 h-6 w-6 text-violet-500 animate-spin" />
+                        )}
+                    </div>
+
+                    {/* Mensaje de error */}
+                    <AnimatePresence>
+                        {errorMessage && (
+                            <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="mt-3 text-red-600 text-sm font-medium flex items-center gap-2"
+                            >
+                                <AlertTriangle className="w-4 h-4" />
+                                {errorMessage}
+                            </motion.p>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Mensaje de éxito */}
+                    <AnimatePresence>
+                        {successMessage && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className="mt-4 bg-emerald-100 text-emerald-700 px-4 py-3 rounded-xl font-bold flex items-center gap-2"
+                            >
+                                <CheckCircle2 className="w-5 h-5" />
+                                {successMessage}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Resultado de búsqueda */}
+                    <AnimatePresence>
+                        {searchedSocio && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="mt-5 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border-2 border-emerald-300 p-5"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-emerald-500 rounded-xl">
+                                            <CheckCircle2 className="w-7 h-7 text-white" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-emerald-600 font-bold uppercase tracking-wide">Socio Encontrado</p>
+                                            <p className="text-2xl font-black text-slate-800">{searchedSocio.nombreCompleto}</p>
+                                            <div className="flex gap-4 mt-1">
+                                                <span className="text-sm text-slate-600">CI: <span className="font-bold">{searchedSocio.cedula}</span></span>
+                                                <span className="text-sm text-slate-600">Nro: <span className="font-bold">{searchedSocio.numeroSocio}</span></span>
+                                                <span className={`text-sm font-bold ${tieneVozYVoto(searchedSocio) ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                                    {tieneVozYVoto(searchedSocio) ? '✓ VOZ Y VOTO' : '⚠ SOLO VOZ'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={handleAddSocio}
+                                        className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-black text-lg transition-all flex items-center gap-2 shadow-lg shadow-emerald-200"
+                                    >
+                                        <Plus className="w-6 h-6" />
+                                        AGREGAR
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.div>
+
+                {/* Lista de Socios Asignados */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden"
+                >
+                    <div className="p-4 bg-slate-800 text-white flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Users className="w-5 h-5" />
+                            <span className="font-bold">Mis Socios Asignados</span>
+                        </div>
+                        <span className="bg-white/20 px-3 py-1 rounded-lg font-bold">{socios.length}</span>
+                    </div>
+
+                    {loadingSocios ? (
+                        <div className="p-8 text-center">
+                            <Loader2 className="w-8 h-8 text-violet-500 animate-spin mx-auto mb-2" />
+                            <p className="text-slate-500 text-sm">Cargando...</p>
+                        </div>
+                    ) : socios.length > 0 ? (
+                        <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
+                            {socios.map((socio, index) => {
+                                const esVyV = tieneVozYVoto(socio);
+                                return (
+                                    <motion.div
+                                        key={socio.id}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: index * 0.02 }}
+                                        className="p-4 hover:bg-slate-50 transition-colors group flex items-center justify-between"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-sm ${esVyV ? 'bg-emerald-500' : 'bg-amber-500'
+                                                }`}>
+                                                {index + 1}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-800">{socio.nombreCompleto}</p>
+                                                <p className="text-sm text-slate-500">
+                                                    CI: {socio.cedula} | Nro: {socio.numeroSocio}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${esVyV ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                                }`}>
+                                                {esVyV ? 'V&V' : 'SV'}
+                                            </span>
+                                            <button
+                                                onClick={() => handleRemoveSocio(socio.id)}
+                                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="p-12 text-center">
+                            <Users className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+                            <p className="text-slate-500 font-medium">Aún no tienes socios asignados</p>
+                            <p className="text-sm text-slate-400 mt-1">Usa el buscador de arriba para comenzar</p>
+                        </div>
+                    )}
+                </motion.div>
+            </div>
+
+            {/* Modal: Socio Ya Asignado */}
+            <AnimatePresence>
+                {showAlreadyAssignedModal && alreadyAssignedInfo && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md"
+                        >
+                            <div className="flex justify-center mb-6">
+                                <div className="p-4 bg-red-100 rounded-full">
+                                    <AlertTriangle className="w-12 h-12 text-red-500" />
+                                </div>
+                            </div>
+
+                            <h3 className="text-xl font-black text-center text-slate-800 mb-2">
+                                ¡Socio Ya Asignado!
+                            </h3>
+                            <p className="text-slate-500 text-center text-sm mb-6">
+                                Otro usuario registró este socio antes que tú
+                            </p>
+
+                            <div className="bg-slate-50 rounded-2xl p-4 mb-4">
+                                <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Socio</p>
+                                <p className="font-bold text-slate-800">{alreadyAssignedInfo.socioNombre}</p>
+                                <p className="text-sm text-slate-500">Nro: {alreadyAssignedInfo.socioNro}</p>
+                            </div>
+
+                            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-4 border-2 border-red-200">
+                                <p className="text-xs text-red-600 uppercase tracking-wide font-bold mb-2">Fue asignado a:</p>
+                                <p className="font-bold text-slate-800">{alreadyAssignedInfo.listaNombre}</p>
+                                <p className="text-sm text-slate-600">por <span className="font-bold">{alreadyAssignedInfo.listaUsuario}</span></p>
+                                <div className="mt-3 pt-3 border-t border-red-200 flex items-center gap-2">
+                                    <Clock className="w-4 h-4 text-red-500" />
+                                    <p className="text-sm text-red-700 font-medium">
+                                        {alreadyAssignedInfo.fechaAsignacion
+                                            ? new Date(alreadyAssignedInfo.fechaAsignacion).toLocaleString('es-PY', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })
+                                            : 'Fecha no disponible'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    setShowAlreadyAssignedModal(false);
+                                    setAlreadyAssignedInfo(null);
+                                }}
+                                className="w-full mt-6 py-4 bg-slate-800 hover:bg-slate-900 text-white rounded-2xl font-bold transition-all"
+                            >
+                                Entendido
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}

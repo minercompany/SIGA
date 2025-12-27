@@ -1,0 +1,222 @@
+package com.asamblea.controller;
+
+import com.asamblea.dto.AuthResponse;
+import com.asamblea.dto.LoginRequest;
+import com.asamblea.model.Usuario;
+import com.asamblea.repository.*;
+import com.asamblea.security.JwtService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+        private final AuthenticationManager authenticationManager;
+        private final UsuarioRepository usuarioRepository;
+        private final JwtService jwtService;
+        private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+        private final SocioRepository socioRepository;
+        private final SucursalRepository sucursalRepository;
+        private final AsistenciaRepository asistenciaRepository;
+        private final AsignacionRepository asignacionRepository;
+        private final ListaAsignacionRepository listaAsignacionRepository;
+        private final ImportacionHistorialRepository importacionHistorialRepository;
+        private final com.asamblea.service.LogAuditoriaService auditService;
+
+        @PostMapping("/login")
+        public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+                try {
+                        System.out.println("DEBUG: Intento de login para usuario: " + request.getUsername());
+                        authenticationManager.authenticate(
+                                        new UsernamePasswordAuthenticationToken(
+                                                        request.getUsername(),
+                                                        request.getPassword()));
+                        var user = usuarioRepository.findByUsername(request.getUsername())
+                                        .orElseThrow();
+
+                        System.out.println("DEBUG: Usuario autenticado con éxito, generando token...");
+
+                        auditService.registrar(
+                                        "USUARIOS",
+                                        "LOGIN",
+                                        "Inició sesión exitosamente en el sistema.",
+                                        user.getUsername(),
+                                        httpRequest.getRemoteAddr());
+
+                        var jwtToken = jwtService.generateToken(user);
+                        return ResponseEntity.ok(AuthResponse.builder()
+                                        .token(jwtToken)
+                                        .id(user.getId())
+                                        .username(user.getUsername())
+                                        .nombreCompleto(user.getNombreCompleto())
+                                        .rol(user.getRol().name())
+                                        .permisosEspeciales(user.getPermisosEspeciales())
+                                        .requiresPasswordChange(user.getRequiresPasswordChange())
+                                        .fotoPerfil(user.getFotoPerfil())
+                                        .telefono(user.getTelefono())
+                                        .build());
+                } catch (Exception e) {
+                        System.err.println("DEBUG: Error en login: " + e.getMessage());
+                        e.printStackTrace();
+                        return ResponseEntity.status(401).body(null);
+                }
+        }
+
+        // Obtener información del usuario actual
+        @GetMapping("/me")
+        public ResponseEntity<?> getCurrentUser() {
+                try {
+                        var auth = SecurityContextHolder.getContext().getAuthentication();
+                        if (auth == null || !auth.isAuthenticated()) {
+                                return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+                        }
+
+                        String username = auth.getName();
+                        var userOpt = usuarioRepository.findByUsername(username);
+                        if (userOpt.isEmpty()) {
+                                return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
+                        }
+
+                        Usuario user = userOpt.get();
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("id", user.getId());
+                        response.put("username", user.getUsername());
+                        response.put("nombreCompleto", user.getNombreCompleto());
+                        response.put("email", user.getEmail());
+                        response.put("rol", user.getRol().name());
+                        response.put("rolNombre", user.getRol().getNombre());
+                        response.put("sucursal", user.getSucursal() != null ? user.getSucursal().getNombre() : null);
+                        response.put("permisosEspeciales", user.getPermisosEspeciales());
+                        response.put("requiresPasswordChange", user.getRequiresPasswordChange());
+                        response.put("fotoPerfil", user.getFotoPerfil());
+                        response.put("telefono", user.getTelefono());
+
+                        // Permisos basados en rol
+                        response.put("permisos", Map.of(
+                                        "puedeEditar", user.puedeEditar(),
+                                        "puedeCargarPadron", user.puedeCargarPadron(),
+                                        "puedeAsignar", user.puedeAsignar(),
+                                        "puedeVerReportes", user.puedeVerReportes(),
+                                        "puedeHacerCheckin", user.puedeHacerCheckin()));
+
+                        return ResponseEntity.ok(response);
+                } catch (Exception e) {
+                        return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+                }
+        }
+
+        @PostMapping("/change-password")
+        public ResponseEntity<?> changePassword(@RequestBody Map<String, String> request) {
+                try {
+                        var auth = SecurityContextHolder.getContext().getAuthentication();
+                        if (auth == null || !auth.isAuthenticated()) {
+                                return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+                        }
+
+                        String newPassword = request.get("password");
+                        if (newPassword == null || newPassword.length() < 4) {
+                                return ResponseEntity.badRequest().body(
+                                                Map.of("error", "La contraseña debe tener al menos 4 caracteres"));
+                        }
+
+                        String username = auth.getName();
+                        var user = usuarioRepository.findByUsername(username).orElseThrow();
+
+                        user.setPassword(passwordEncoder.encode(newPassword));
+                        user.setRequiresPasswordChange(false);
+                        usuarioRepository.save(user);
+
+                        return ResponseEntity.ok(Map.of("message", "Contraseña actualizada correctamente"));
+                } catch (Exception e) {
+                        return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+                }
+        }
+
+        /**
+         * Reset completo del sistema - PÚBLICO (solo para desarrollo)
+         * Requiere código de autorización 226118
+         */
+        @Transactional
+        @PostMapping("/system-reset")
+        public ResponseEntity<?> systemReset(@RequestBody(required = false) Map<String, String> body,
+                        HttpServletRequest httpRequest) {
+                String code = body != null ? body.get("code") : null;
+                System.out.println("DEBUG system-reset: body=" + body);
+                System.out.println("DEBUG system-reset: code='" + code + "'");
+
+                // Validar código de autorización
+                if (!"226118".equals(code)) {
+                        System.out.println("DEBUG: Código RECHAZADO");
+                        return ResponseEntity.status(403).body(Map.of(
+                                        "success", false,
+                                        "error", "Código de autorización inválido"));
+                }
+
+                try {
+                        System.out.println("========================================");
+                        System.out.println("🔴 SYSTEM-RESET EJECUTANDO...");
+                        System.out.println("========================================");
+
+                        // Eliminar en orden correcto para evitar FK constraints
+                        long asistencias = asistenciaRepository.count();
+                        asistenciaRepository.deleteAll();
+
+                        long asignaciones = asignacionRepository.count();
+                        asignacionRepository.deleteAll();
+
+                        long listas = listaAsignacionRepository.count();
+                        listaAsignacionRepository.deleteAll();
+
+                        long historial = importacionHistorialRepository.count();
+                        importacionHistorialRepository.deleteAll();
+
+                        long socios = socioRepository.count();
+                        socioRepository.deleteAll();
+
+                        long sucursales = sucursalRepository.count();
+                        sucursalRepository.deleteAll();
+
+                        System.out.println("✅ RESET COMPLETADO!");
+
+                        auditService.registrar(
+                                        "CONFIGURACION",
+                                        "SYSTEM_RESET_CODE",
+                                        "Ejecutó un reinicio total de datos usando código de autorización 226118.",
+                                        "ADMIN_BY_CODE",
+                                        httpRequest.getRemoteAddr());
+                        System.out.println("   - Socios: " + socios);
+                        System.out.println("   - Asistencias: " + asistencias);
+                        System.out.println("   - Asignaciones: " + asignaciones);
+
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("success", true);
+                        result.put("message", "Sistema reiniciado correctamente");
+                        result.put("eliminados", Map.of(
+                                        "socios", socios,
+                                        "sucursales", sucursales,
+                                        "asistencias", asistencias,
+                                        "asignaciones", asignaciones,
+                                        "listas", listas,
+                                        "historial", historial));
+
+                        return ResponseEntity.ok(result);
+                } catch (Exception e) {
+                        System.err.println("❌ Error en reset: " + e.getMessage());
+                        e.printStackTrace();
+                        return ResponseEntity.internalServerError().body(Map.of(
+                                        "success", false,
+                                        "error", e.getMessage()));
+                }
+        }
+}
