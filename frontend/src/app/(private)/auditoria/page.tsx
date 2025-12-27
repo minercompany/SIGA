@@ -39,7 +39,7 @@ export default function AuditoriaPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get(`http://192.168.100.123:8081/api/auditoria?page=${pageNum}&size=20`, {
+            const res = await axios.get(`http://localhost:8081/api/auditoria?page=${pageNum}&size=20`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setLogs(res.data.content);

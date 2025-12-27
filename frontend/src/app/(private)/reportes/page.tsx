@@ -74,7 +74,7 @@ export default function ReportesPage() {
         if (usuario.rol === "SUPER_ADMIN") {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get("http://192.168.100.123:8081/api/usuarios", {
+                const res = await axios.get("http://localhost:8081/api/usuarios", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 // Filtramos para mostrar usuarios relevantes
@@ -86,7 +86,7 @@ export default function ReportesPage() {
             // Cargar sucursales para el filtro
             try {
                 const token = localStorage.getItem("token");
-                const resSuc = await axios.get("http://192.168.100.123:8081/api/reportes/sucursales-lista", {
+                const resSuc = await axios.get("http://localhost:8081/api/reportes/sucursales-lista", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setSucursales(resSuc.data);
@@ -100,7 +100,7 @@ export default function ReportesPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
-            let url = "http://192.168.100.123:8081/api/reportes";
+            let url = "http://localhost:8081/api/reportes";
 
             switch (view) {
                 case 'PADRON':

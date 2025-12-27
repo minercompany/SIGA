@@ -32,9 +32,9 @@ export default function ImprimirCarnetsPage() {
             const token = localStorage.getItem("token");
             const headers = { Authorization: `Bearer ${token}` };
 
-            let url = "http://192.168.100.123:8081/api/socios";
+            let url = "http://localhost:8081/api/socios";
             if (term && term.length > 0) {
-                url = `http://192.168.100.123:8081/api/socios/buscar?term=${encodeURIComponent(term)}`;
+                url = `http://localhost:8081/api/socios/buscar?term=${encodeURIComponent(term)}`;
             }
 
             const response = await axios.get(url, { headers });

@@ -175,7 +175,7 @@ export default function ConfiguracionPage() {
         setSavingPersonal(true);
         try {
             const token = localStorage.getItem("token");
-            await axios.put(`http://192.168.100.123:8081/api/usuarios/${user.id}`, {
+            await axios.put(`http://localhost:8081/api/usuarios/${user.id}`, {
                 email,
                 telefono,
                 fotoPerfil
@@ -211,7 +211,7 @@ export default function ConfiguracionPage() {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://192.168.100.123:8081/api/usuarios/cambiar-password-actual", {
+            await axios.post("http://localhost:8081/api/usuarios/cambiar-password-actual", {
                 currentPassword,
                 newPassword
             }, {
@@ -246,7 +246,7 @@ export default function ConfiguracionPage() {
                 setMessage({ type: "error", text: "No hay sesión activa. Por favor, cierra sesión e inicia de nuevo." });
                 return;
             }
-            const response = await axios.post(`http://192.168.100.123:8081/api/socios/reset-${type}`, {}, {
+            const response = await axios.post(`http://localhost:8081/api/socios/reset-${type}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             console.log("Reset response:", response.data);
@@ -270,7 +270,7 @@ export default function ConfiguracionPage() {
             if (!token) throw new Error("No hay sesión activa. Recarga la página.");
 
             // Usar el endpoint oficial que borra todo (incluyendo usuarios)
-            const response = await axios.post("http://192.168.100.123:8081/api/socios/reset-padron", {}, {
+            const response = await axios.post("http://localhost:8081/api/socios/reset-padron", {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -303,7 +303,7 @@ export default function ConfiguracionPage() {
         setIsSearching(true);
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`http://192.168.100.123:8081/api/socios/buscar?term=${query}`, {
+            const response = await axios.get(`http://localhost:8081/api/socios/buscar?term=${query}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setFoundSocios(response.data);
@@ -325,7 +325,7 @@ export default function ConfiguracionPage() {
         setUpdatingSocioId(socioId);
         try {
             const token = localStorage.getItem("token");
-            await axios.patch(`http://192.168.100.123:8081/api/socios/${socioId}/estado`,
+            await axios.patch(`http://localhost:8081/api/socios/${socioId}/estado`,
                 { [field]: !currentValue },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

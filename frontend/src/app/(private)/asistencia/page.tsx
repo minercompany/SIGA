@@ -39,7 +39,7 @@ export default function AsistenciaPage() {
     const fetchAsistenciasHoy = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://192.168.100.123:8081/api/asistencia/hoy", {
+            const response = await axios.get("http://localhost:8081/api/asistencia/hoy", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setAsistenciasHoy(response.data);
@@ -56,7 +56,7 @@ export default function AsistenciaPage() {
         try {
             const token = localStorage.getItem("token");
             const response = await axios.get(
-                `http://192.168.100.123:8081/api/socios/buscar-exacto?term=${searchTerm}`,
+                `http://localhost:8081/api/socios/buscar-exacto?term=${searchTerm}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
@@ -90,7 +90,7 @@ export default function AsistenciaPage() {
         try {
             const token = localStorage.getItem("token");
             const response = await axios.post(
-                "http://192.168.100.123:8081/api/asistencia/marcar",
+                "http://localhost:8081/api/asistencia/marcar",
                 { socioId: socioEncontrado.id },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

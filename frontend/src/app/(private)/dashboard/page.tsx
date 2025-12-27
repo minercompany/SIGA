@@ -61,7 +61,7 @@ export default function DashboardPage() {
 
                 if (isSocio) {
                     try {
-                        const listasRes = await axios.get("http://192.168.100.123:8081/api/asignaciones/mis-listas", { headers });
+                        const listasRes = await axios.get("http://localhost:8081/api/asignaciones/mis-listas", { headers });
                         setMisListas(listasRes.data);
                     } catch (err) {
                         console.error("Error cargando listas del socio:", err);
@@ -69,9 +69,9 @@ export default function DashboardPage() {
                     }
                 } else {
                     const [statsRes, desempenoRes, rankingRes] = await Promise.all([
-                        axios.get("http://192.168.100.123:8081/api/socios/estadisticas", { headers }),
-                        axios.get("http://192.168.100.123:8081/api/socios/estadisticas/por-sucursal", { headers }),
-                        axios.get("http://192.168.100.123:8081/api/asistencia/ranking-operadores", { headers })
+                        axios.get("http://localhost:8081/api/socios/estadisticas", { headers }),
+                        axios.get("http://localhost:8081/api/socios/estadisticas/por-sucursal", { headers }),
+                        axios.get("http://localhost:8081/api/asistencia/ranking-operadores", { headers })
                     ]);
                     setStats(statsRes.data);
                     setDesempeno(desempenoRes.data);

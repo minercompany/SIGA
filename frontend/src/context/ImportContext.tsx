@@ -68,7 +68,7 @@ export function ImportProvider({ children }: { children: React.ReactNode }) {
         formData.append("file", file);
 
         try {
-            const response = await axios.post("http://192.168.100.123:8081/api/socios/import", formData, {
+            const response = await axios.post("http://localhost:8081/api/socios/import", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                     Authorization: `Bearer ${token}`,
@@ -103,7 +103,7 @@ export function ImportProvider({ children }: { children: React.ReactNode }) {
             if (!token) return;
 
             try {
-                const res = await axios.get(`http://192.168.100.123:8081/api/socios/import-progress/${id}`, {
+                const res = await axios.get(`http://localhost:8081/api/socios/import-progress/${id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
@@ -147,7 +147,7 @@ export function ImportProvider({ children }: { children: React.ReactNode }) {
         if (!processId) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.post(`http://192.168.100.123:8081/api/socios/import/cancel/${processId}`, {}, {
+            await axios.post(`http://localhost:8081/api/socios/import/cancel/${processId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setError("Importación cancelada.");

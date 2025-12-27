@@ -41,7 +41,7 @@ export default function ReportePorSucursalPage() {
     const cargarSucursales = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get("http://192.168.100.123:8081/api/reportes/sucursales-lista", {
+            const res = await axios.get("http://localhost:8081/api/reportes/sucursales-lista", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSucursales(res.data);
@@ -57,7 +57,7 @@ export default function ReportePorSucursalPage() {
         try {
             const token = localStorage.getItem("token");
             const response = await axios.get(
-                `http://192.168.100.123:8081/api/reportes/por-sucursal/${sucursalId}`,
+                `http://localhost:8081/api/reportes/por-sucursal/${sucursalId}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setData(response.data.data);
