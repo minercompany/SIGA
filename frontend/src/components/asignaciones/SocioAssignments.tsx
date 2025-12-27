@@ -258,7 +258,7 @@ export function SocioAssignments({
                                 const esVyV = tieneVozYVoto(socio);
                                 return (
                                     <motion.div
-                                        key={socio.id}
+                                        key={`${socio.id}-${index}`}
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: index * 0.03 }}
@@ -280,8 +280,8 @@ export function SocioAssignments({
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${esVyV
-                                                        ? 'bg-emerald-100 text-emerald-700'
-                                                        : 'bg-amber-100 text-amber-700'
+                                                    ? 'bg-emerald-100 text-emerald-700'
+                                                    : 'bg-amber-100 text-amber-700'
                                                     }`}>
                                                     {esVyV ? 'VOZ Y VOTO' : 'SOLO VOZ'}
                                                 </span>

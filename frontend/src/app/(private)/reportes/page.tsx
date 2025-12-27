@@ -27,6 +27,7 @@ interface ReporteItem {
     operador: string;
     estado?: string; // Para reporte de padrón (PRESENTE/AUSENTE)
     fechaAsignacion?: string;
+    asignadoPor?: string;
     operadorId?: string | number;
 }
 
@@ -39,7 +40,7 @@ const reportConfig: Record<ReportType, { title: string; description: string; adm
     'POR_SUCURSAL': { title: 'Por Sucursal', description: 'Asistencia filtrada por sucursal', adminOnly: true },
     'SIN_ASIGNAR': { title: 'Socios Sin Asignar', description: 'Socios que no están en ninguna lista', adminOnly: true },
     'SUCURSALES': { title: 'Estadísticas por Sucursal', description: 'Resumen agrupado por sucursal', adminOnly: true },
-    'OBSERVADOS': { title: 'Socios Observados', description: 'Socios con Solo Voz y motivos', adminOnly: true },
+    'OBSERVADOS': { title: 'Socios Solo Voz', description: 'Socios con Solo Voz y motivos', adminOnly: true },
 };
 
 export default function ReportesPage() {
@@ -211,7 +212,7 @@ export default function ReportesPage() {
             'POR_SUCURSAL': `REPORTE DE ASISTENCIA - ${stats.sucursalNombre || 'SUCURSAL'}`,
             'SIN_ASIGNAR': 'REPORTE DE SOCIOS SIN ASIGNAR',
             'SUCURSALES': 'ESTADÍSTICAS DE ASISTENCIA POR SUCURSAL',
-            'OBSERVADOS': 'REPORTE DE SOCIOS OBSERVADOS (SOLO VOZ)'
+            'OBSERVADOS': 'REPORTE DE SOCIOS (SOLO VOZ)'
         };
 
         doc.setFontSize(16);
@@ -307,9 +308,10 @@ export default function ReportesPage() {
                 { header: 'CÉDULA', dataKey: 'cedula' },
                 { header: 'SOCIO', dataKey: 'socio' },
                 { header: 'NRO', dataKey: 'nro' },
-                { header: 'FECHA/HORA REGISTRO LISTA', dataKey: 'fechaAsig' },
-                { header: 'FECHA/HORA INGRESO ASAMBLEA', dataKey: 'fechaIngreso' },
-                { header: 'REGISTRADO POR', dataKey: 'operador' },
+                { header: 'ASIGNADO EL', dataKey: 'fechaAsig' },
+                { header: 'ASIGNADO POR', dataKey: 'asignadoPor' },
+                { header: 'INGRESO ASAMBLEA', dataKey: 'fechaIngreso' },
+                { header: 'REGISTRADO EN ASAMBLEA POR', dataKey: 'operador' },
                 { header: 'CONDICIÓN', dataKey: 'condicion' },
             ];
             rows = data.map(item => {
@@ -319,6 +321,7 @@ export default function ReportesPage() {
                     socio: item.socioNombre,
                     nro: item.socioNro,
                     fechaAsig: item.fechaAsignacion ? new Date(item.fechaAsignacion).toLocaleString() : '-',
+                    asignadoPor: item.asignadoPor || '-',
                     fechaIngreso: item.fechaHora ? new Date(item.fechaHora).toLocaleString() : '-',
                     operador: item.operador,
                     condicion: esHabilitado ? 'VOZ Y VOTO' : 'SOLO VOZ',
@@ -670,7 +673,7 @@ export default function ReportesPage() {
                 </div>
                 <div className={`p-5 rounded-2xl border text-center ${reportView === 'PADRON' ? 'bg-red-50 border-red-100' : 'bg-amber-50 border-amber-100'}`}>
                     <p className={`text-sm font-medium uppercase tracking-wider mb-1 ${reportView === 'PADRON' ? 'text-red-600' : 'text-amber-600'}`}>
-                        {reportView === 'PADRON' ? 'Ausentes' : 'Observados'}
+                        {reportView === 'PADRON' ? 'Ausentes' : 'Solo Voz'}
                     </p>
                     <p className={`text-4xl font-black ${reportView === 'PADRON' ? 'text-red-700' : 'text-amber-700'}`}>{stats.observados}</p>
                 </div>
@@ -685,10 +688,11 @@ export default function ReportesPage() {
                     <table className="w-full">
                         <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">Hora</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">Socio</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">Estado</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">Operador</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Hora Ingreso</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Socio</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Estado</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Asignado Por</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Registrado (Asistencia)</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -715,7 +719,7 @@ export default function ReportesPage() {
                                                         {item.estado}
                                                     </span>
                                                     <span className="text-[10px] text-slate-400 font-medium">
-                                                        {item.vozVoto}
+                                                        {item.vozVoto === "OBSERVADO" ? "SOLO VOZ" : item.vozVoto}
                                                     </span>
                                                 </div>
                                             ) : (
@@ -723,11 +727,14 @@ export default function ReportesPage() {
                                                     ? "bg-emerald-100 text-emerald-700"
                                                     : "bg-amber-100 text-amber-700"
                                                     }`}>
-                                                    {item.vozVoto}
+                                                    {item.vozVoto === "OBSERVADO" ? "SOLO VOZ" : item.vozVoto}
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-3 text-sm text-slate-500">
+                                        <td className="px-6 py-3 text-sm text-slate-800 font-medium">
+                                            {item.asignadoPor || '-'}
+                                        </td>
+                                        <td className="px-6 py-3 text-sm text-slate-600">
                                             {item.operador}
                                         </td>
                                     </tr>

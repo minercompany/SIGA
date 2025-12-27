@@ -23,4 +23,10 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long> {
     java.util.Optional<Asignacion> findBySocioId(Long socioId);
 
     java.util.Optional<Asignacion> findByListaAsignacionIdAndSocioId(Long listaId, Long socioId);
+
+    // Consulta optimizada para evitar LazyInitializationException y cargar toda la
+    // jerarquía
+    @Query("SELECT a FROM Asignacion a JOIN FETCH a.listaAsignacion l LEFT JOIN FETCH l.usuario WHERE a.socio.id = :socioId")
+    java.util.Optional<Asignacion> findBySocioIdWithDetails(
+            @org.springframework.data.repository.query.Param("socioId") Long socioId);
 }

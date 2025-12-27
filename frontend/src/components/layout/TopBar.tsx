@@ -436,7 +436,7 @@ export function TopBar() {
                 </div>
             )}
             {/* MODAL ONBOARDING */}
-            <WelcomeModal user={user} onUpdateUser={setUser} />
+            {/* <WelcomeModal user={user} onUpdateUser={setUser} /> MOVED TO LAYOUT */}
         </>
     );
 }

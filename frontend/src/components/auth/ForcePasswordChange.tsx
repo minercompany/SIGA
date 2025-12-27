@@ -38,16 +38,19 @@ export default function ForcePasswordChange({ onSuccess }: ForcePasswordChangePr
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            // Update user in localStorage
-            const userData = localStorage.getItem("user");
-            if (userData) {
-                const user = JSON.parse(userData);
-                user.requiresPasswordChange = false;
-                localStorage.setItem("user", JSON.stringify(user));
-            }
+            // 1. Force refresh of user data from server to ensure state is synced
+            const userRes = await axios.get("http://192.168.100.123:8081/api/auth/me", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
+            const freshUser = userRes.data;
+
+            // 2. Persist fresh user (where requiresPasswordChange is now false)
+            localStorage.setItem("user", JSON.stringify(freshUser));
+
+            // 3. Notify parent (onSuccess will trigger setUser in layout)
             setSuccess(true);
-            setTimeout(onSuccess, 1500);
+            setTimeout(() => onSuccess(), 1000); // Call onSuccess directly to update state immediately
         } catch (err: any) {
             setError(err.response?.data?.error || "Error al cambiar la contraseña");
         } finally {

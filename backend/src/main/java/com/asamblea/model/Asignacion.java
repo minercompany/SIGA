@@ -27,6 +27,10 @@ public class Asignacion {
     @Column(name = "fecha_asignacion")
     private java.time.LocalDateTime fechaAsignacion;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "asignado_por_id")
+    private Usuario asignadoPor;
+
     @PrePersist
     protected void onCreate() {
         if (fechaAsignacion == null) {

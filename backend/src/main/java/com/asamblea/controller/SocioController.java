@@ -79,24 +79,73 @@ public class SocioController {
         return ResponseEntity.ok(socioRepository.findAllWithSucursal(pageable));
     }
 
-    // Buscar socios - primero exacto, luego parcial
+    // Buscar socios - ahora incluye estado de asignación
     @GetMapping("/buscar")
-    public ResponseEntity<List<Socio>> buscar(@RequestParam String term) {
+    public ResponseEntity<List<Map<String, Object>>> buscar(@RequestParam String term) {
         // Limpiar término de búsqueda
         String cleanTerm = term.trim();
+        List<Socio> sociosEncontrados;
 
         // Primero buscar coincidencia exacta
         List<Socio> exactos = socioRepository.buscarExacto(cleanTerm);
         if (!exactos.isEmpty()) {
-            return ResponseEntity.ok(exactos);
+            sociosEncontrados = exactos;
+        } else {
+            // Si no hay exacto, buscar parcial (limitado a 50 resultados)
+            sociosEncontrados = socioRepository.buscarParcial(cleanTerm);
+            if (sociosEncontrados.size() > 50) {
+                sociosEncontrados = sociosEncontrados.subList(0, 50);
+            }
         }
 
-        // Si no hay exacto, buscar parcial (limitado a 50 resultados)
-        List<Socio> parciales = socioRepository.buscarParcial(cleanTerm);
-        if (parciales.size() > 50) {
-            parciales = parciales.subList(0, 50);
+        // Construir respuesta enriquecida
+        List<Map<String, Object>> response = new ArrayList<>();
+        for (Socio socio : sociosEncontrados) {
+            Map<String, Object> dto = new HashMap<>();
+            dto.put("id", socio.getId());
+            dto.put("nombreCompleto", socio.getNombreCompleto());
+            dto.put("numeroSocio", socio.getNumeroSocio());
+            dto.put("cedula", socio.getCedula());
+            dto.put("vozYVoto", socio.isEstadoVozVoto());
+
+            try {
+                // Verificar si ya está asignado (Usando consulta optimizada con JOIN FETCH)
+                var asignacionOpt = asignacionRepository.findBySocioIdWithDetails(socio.getId());
+                if (asignacionOpt.isPresent()) {
+                    var asignacion = asignacionOpt.get();
+                    dto.put("yaAsignado", true);
+
+                    // Protección contra NullPointerException
+                    var lista = asignacion.getListaAsignacion();
+                    if (lista != null) {
+                        dto.put("asignadoA", lista.getNombre() != null ? lista.getNombre() : "Sin nombre");
+
+                        if (lista.getUsuario() != null) {
+                            dto.put("asignadoAUsuario", lista.getUsuario().getNombreCompleto());
+                        } else {
+                            dto.put("asignadoAUsuario", "Usuario eliminado");
+                        }
+                    } else {
+                        dto.put("asignadoA", "Lista desconocida");
+                        dto.put("asignadoAUsuario", "N/A");
+                    }
+
+                    dto.put("fechaAsignacion", asignacion.getFechaAsignacion());
+                } else {
+                    dto.put("yaAsignado", false);
+                }
+            } catch (Exception e) {
+                System.err.println("ERROR BUSCANDO ASIGNACION PARA SOCIO ID " + socio.getId());
+                e.printStackTrace();
+                // En caso de error, asumimos no asignado para no romper la UI
+                dto.put("yaAsignado", false);
+                dto.put("errorCarga", true);
+            }
+
+            response.add(dto);
         }
-        return ResponseEntity.ok(parciales);
+
+        return ResponseEntity.ok(response);
     }
 
     // Obtener un socio por ID

@@ -343,13 +343,34 @@ public class AsignacionController {
                     return listaRepository.save(nueva);
                 });
 
-        if (asignacionRepository.existsByListaAsignacionIdAndSocioId(listaActiva.getId(), socioOpt.get().getId())) {
-            return ResponseEntity.status(400).body(Map.of("error", "El socio ya está asignado a esta lista"));
+        // NUEVA VALIDACIÓN GLOBAL: Un socio solo puede estar en UNA lista (copiado de
+        // agregarSocio)
+        Optional<Asignacion> existingAssignment = asignacionRepository.findBySocioId(socioOpt.get().getId());
+        if (existingAssignment.isPresent()) {
+            Asignacion existing = existingAssignment.get();
+            // Si es la misma lista, es un 400 (ya está aquí). Si es otra, es un 409
+            // (conflicto).
+            // Para simplificar y dar buen feedback, devolvemos siempre 409 con detalles.
+
+            String listaExistente = existing.getListaAsignacion().getNombre();
+            String usuarioLista = existing.getListaAsignacion().getUsuario().getNombreCompleto();
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "SOCIO_YA_ASIGNADO");
+            errorResponse.put("message", "Este socio ya fue asignado a otra lista");
+            errorResponse.put("listaNombre", listaExistente);
+            errorResponse.put("listaUsuario", usuarioLista);
+            errorResponse.put("socioNombre", socioOpt.get().getNombreCompleto());
+            errorResponse.put("socioNro", socioOpt.get().getNumeroSocio());
+            errorResponse.put("fechaAsignacion", existing.getFechaAsignacion());
+
+            return ResponseEntity.status(409).body(errorResponse);
         }
 
         Asignacion asignacion = new Asignacion();
         asignacion.setListaAsignacion(listaActiva);
         asignacion.setSocio(socioOpt.get());
+        asignacion.setAsignadoPor(admin); // Guardar quién hizo la asignación
         asignacionRepository.save(asignacion);
 
         pushService.sendToSuperAdmins(
@@ -411,6 +432,7 @@ public class AsignacionController {
         Asignacion asignacion = new Asignacion();
         asignacion.setListaAsignacion(lista);
         asignacion.setSocio(socio);
+        asignacion.setAsignadoPor(currentUser); // Guardar quién hizo la asignación
         asignacionRepository.save(asignacion);
 
         // Notificar a Admins (solo si no es el mismo admin quien asigna, para reducir
@@ -454,6 +476,7 @@ public class AsignacionController {
         List<Socio> socios = asignacionRepository.findByListaAsignacionId(listaId)
                 .stream()
                 .map(Asignacion::getSocio)
+                .distinct()
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(socios);

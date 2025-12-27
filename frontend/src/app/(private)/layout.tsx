@@ -8,6 +8,7 @@ import { RefreshCcw } from "lucide-react";
 import { ImportProvider } from "@/context/ImportContext";
 import ImportStatusFloating from "@/components/ImportStatusFloating";
 import ForcePasswordChange from "@/components/auth/ForcePasswordChange";
+import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
 
 export default function PrivateLayout({
     children,
@@ -48,8 +49,12 @@ export default function PrivateLayout({
         <ImportProvider>
             <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-teal-50/30">
                 {user?.requiresPasswordChange && (
-                    <ForcePasswordChange onSuccess={() => setUser({ ...user, requiresPasswordChange: false })} />
+                    <ForcePasswordChange onSuccess={() => {
+                        const newUser = JSON.parse(localStorage.getItem("user") || "{}");
+                        setUser(newUser);
+                    }} />
                 )}
+                {user && <WelcomeModal user={user} onUpdateUser={setUser} />}
                 <Sidebar />
                 <div className="flex flex-1 flex-col overflow-hidden">
                     <TopBar />

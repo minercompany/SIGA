@@ -145,7 +145,7 @@ export default function AdminAssignments() {
                                         </thead>
                                         <tbody>
                                             {sociosLista.map((socio, idx) => (
-                                                <tr key={socio.id} className="border-b hover:bg-slate-50 transition-colors">
+                                                <tr key={`${socio.id}-${idx}`} className="border-b hover:bg-slate-50 transition-colors">
                                                     <td className="px-6 py-4 font-medium text-slate-900">{socio.nombreCompleto}</td>
                                                     <td className="px-6 py-4 font-mono text-slate-500">{socio.cedula}</td>
                                                     <td className="px-6 py-4 font-mono text-slate-500">{socio.numeroSocio}</td>

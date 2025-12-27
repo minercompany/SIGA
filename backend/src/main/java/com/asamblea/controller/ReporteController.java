@@ -152,6 +152,13 @@ public class ReporteController {
                                 fila.put("vozVoto", s.isEstadoVozVoto() ? "HABILITADO" : "OBSERVADO"); // Estado socio
                                 fila.put("fechaAsignacion", asignacion.getFechaAsignacion());
 
+                                if (asignacion.getAsignadoPor() != null) {
+                                        fila.put("asignadoPor", asignacion.getAsignadoPor().getNombreCompleto());
+                                } else {
+                                        // Si es nulo, es probable que haya sido auto-asignado o migración anterior
+                                        fila.put("asignadoPor", "Sistema / Anterior");
+                                }
+
                                 if (asistenciaOpt.isPresent()) {
                                         fila.put("estado", "PRESENTE"); // Estado asistencia
                                         fila.put("fechaHora", asistenciaOpt.get().getFechaHora());
