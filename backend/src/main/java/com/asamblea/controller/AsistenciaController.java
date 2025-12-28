@@ -122,7 +122,8 @@ public class AsistenciaController {
                 if (!operadoresMap.containsKey(operadorId)) {
                     Map<String, Object> operadorData = new HashMap<>();
                     operadorData.put("id", operadorId);
-                    operadorData.put("nombre", a.getOperador().getNombreCompleto());
+                    String nombreOp = a.getOperador().getNombreCompleto();
+                    operadorData.put("nombre", nombreOp != null ? nombreOp : "Sin Nombre");
                     operadorData.put("username", a.getOperador().getUsername());
                     operadorData.put("rol", a.getOperador().getRol());
                     operadorData.put("totalRegistros", 0);

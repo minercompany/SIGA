@@ -39,21 +39,74 @@ public class AsignacionController {
 
     @GetMapping("/mis-listas")
     public ResponseEntity<List<Map<String, Object>>> listarMisListas(Authentication auth) {
-        Usuario user = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
-        List<ListaAsignacion> listas = listaRepository.findByUsuarioId(user.getId());
+        if (auth == null) {
+            System.out.println("DEBUG: Auth is null in /mis-listas");
+            return ResponseEntity.status(401).build();
+        }
 
-        List<Map<String, Object>> result = listas.stream().map(lista -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", lista.getId());
-            map.put("nombre", lista.getNombre());
-            map.put("descripcion", lista.getDescripcion());
-            map.put("total", asignacionRepository.findByListaAsignacionId(lista.getId()).size());
-            map.put("vyv", asignacionRepository.countVyVByListaId(lista.getId()));
-            map.put("soloVoz", asignacionRepository.countSoloVozByListaId(lista.getId()));
-            return map;
-        }).collect(Collectors.toList());
+        String username = auth.getName();
+        System.out.println("DEBUG: Requesting lists for user: " + username);
 
-        return ResponseEntity.ok(result);
+        try {
+            Optional<Usuario> userOpt = usuarioRepository.findByUsername(username);
+
+            if (userOpt.isEmpty()) {
+                System.out.println("DEBUG: User not found in DB: " + username);
+                // Return empty list instead of crashing, so frontend can handle it (e.g. by
+                // creating a list)
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
+            Usuario user = userOpt.get();
+            List<ListaAsignacion> listas = listaRepository.findByUsuarioId(user.getId());
+
+            if (listas == null) {
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (ListaAsignacion lista : listas) {
+                try {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", lista.getId());
+                    map.put("nombre", lista.getNombre() != null ? lista.getNombre() : "Lista sin nombre");
+                    map.put("descripcion", lista.getDescripcion() != null ? lista.getDescripcion() : "");
+
+                    // Safe counts with try-catch
+                    try {
+                        List<?> asignados = asignacionRepository.findByListaAsignacionId(lista.getId());
+                        map.put("total", asignados != null ? asignados.size() : 0);
+                    } catch (Exception ex) {
+                        System.err.println("ERROR counting total for list " + lista.getId() + ": " + ex.getMessage());
+                        ex.printStackTrace();
+                        map.put("total", 0);
+                    }
+
+                    try {
+                        map.put("vyv", asignacionRepository.countVyVByListaId(lista.getId()));
+                    } catch (Exception ex) {
+                        map.put("vyv", 0);
+                    }
+
+                    try {
+                        map.put("soloVoz", asignacionRepository.countSoloVozByListaId(lista.getId()));
+                    } catch (Exception ex) {
+                        map.put("soloVoz", 0);
+                    }
+
+                    result.add(map);
+                } catch (Exception ex) {
+                    System.err.println("Error processing list " + lista.getId() + ": " + ex.getMessage());
+                }
+            }
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.err.println("CRITICAL ERROR in /mis-listas: " + e.getMessage());
+            e.printStackTrace();
+            // Return empty list to prevent frontend crash
+            return ResponseEntity.ok(new ArrayList<>());
+        }
     }
 
     @GetMapping("/ranking-usuarios")
@@ -466,49 +519,104 @@ public class AsignacionController {
 
     @GetMapping("/{listaId}/socios")
     public ResponseEntity<List<Socio>> verSocios(@PathVariable Long listaId, Authentication auth) {
-        ListaAsignacion lista = listaRepository.findById(listaId).orElseThrow();
-
-        // Verificar propiedad
-        if (!lista.getUsuario().getUsername().equals(auth.getName())) {
-            return ResponseEntity.status(403).build();
+        if (auth == null) {
+            return ResponseEntity.status(401).build();
         }
 
-        List<Socio> socios = asignacionRepository.findByListaAsignacionId(listaId)
-                .stream()
-                .map(Asignacion::getSocio)
-                .distinct()
-                .collect(Collectors.toList());
+        try {
+            Optional<ListaAsignacion> listaOpt = listaRepository.findById(listaId);
+            if (listaOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
 
-        return ResponseEntity.ok(socios);
+            ListaAsignacion lista = listaOpt.get();
+
+            // Verificar propiedad
+            if (lista.getUsuario() == null || !lista.getUsuario().getUsername().equals(auth.getName())) {
+                return ResponseEntity.status(403).build();
+            }
+
+            List<Asignacion> asignaciones = asignacionRepository.findByListaAsignacionId(listaId);
+            if (asignaciones == null) {
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
+            List<Socio> socios = asignaciones.stream()
+                    .filter(a -> a.getSocio() != null)
+                    .map(Asignacion::getSocio)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(socios);
+        } catch (Exception e) {
+            System.err.println("CRITICAL ERROR in /" + listaId + "/socios: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(new ArrayList<>());
+        }
     }
 
     @GetMapping("/mis-socios-detalle")
     public ResponseEntity<List<Map<String, Object>>> getMisSociosDetalle(Authentication auth) {
-        Usuario user = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
-        List<ListaAsignacion> listas = listaRepository.findByUsuarioId(user.getId());
-
-        List<Map<String, Object>> sociosDetalle = new ArrayList<>();
-
-        for (ListaAsignacion lista : listas) {
-            List<Asignacion> asignaciones = asignacionRepository.findByListaAsignacionId(lista.getId());
-
-            for (Asignacion asignacion : asignaciones) {
-                Socio socio = asignacion.getSocio();
-                // Si existe un registro de asistencia, el socio está presente
-                boolean presente = asistenciaRepository.existsBySocioId(socio.getId());
-
-                Map<String, Object> socioMap = new HashMap<>();
-                socioMap.put("id", socio.getId());
-                socioMap.put("nombreCompleto", socio.getNombreCompleto());
-                socioMap.put("numeroSocio", socio.getNumeroSocio());
-                socioMap.put("cedula", socio.getCedula());
-                socioMap.put("presente", presente);
-                socioMap.put("lista", lista.getNombre());
-
-                sociosDetalle.add(socioMap);
-            }
+        if (auth == null) {
+            return ResponseEntity.status(401).build();
         }
 
-        return ResponseEntity.ok(sociosDetalle);
+        try {
+            Optional<Usuario> userOpt = usuarioRepository.findByUsername(auth.getName());
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
+            Usuario user = userOpt.get();
+            List<ListaAsignacion> listas = listaRepository.findByUsuarioId(user.getId());
+
+            if (listas == null) {
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
+            List<Map<String, Object>> sociosDetalle = new ArrayList<>();
+
+            for (ListaAsignacion lista : listas) {
+                try {
+                    List<Asignacion> asignaciones = asignacionRepository.findByListaAsignacionId(lista.getId());
+                    if (asignaciones != null) {
+                        for (Asignacion asignacion : asignaciones) {
+                            try {
+                                Socio socio = asignacion.getSocio();
+                                if (socio != null) {
+                                    // Si existe un registro de asistencia, el socio está presente
+                                    boolean presente = asistenciaRepository.existsBySocioId(socio.getId());
+
+                                    Map<String, Object> socioMap = new HashMap<>();
+                                    socioMap.put("id", socio.getId());
+                                    socioMap.put("nombreCompleto",
+                                            socio.getNombreCompleto() != null ? socio.getNombreCompleto()
+                                                    : "Sin Nombre");
+                                    socioMap.put("numeroSocio",
+                                            socio.getNumeroSocio() != null ? socio.getNumeroSocio() : "N/A");
+                                    socioMap.put("cedula", socio.getCedula() != null ? socio.getCedula() : "N/A");
+                                    socioMap.put("presente", presente);
+                                    socioMap.put("lista",
+                                            lista.getNombre() != null ? lista.getNombre() : "Lista sin nombre");
+
+                                    sociosDetalle.add(socioMap);
+                                }
+                            } catch (Exception ex) {
+                                System.err.println(
+                                        "Error processing assignment " + asignacion.getId() + ": " + ex.getMessage());
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    System.err.println("Error processing list " + lista.getId() + " in details: " + ex.getMessage());
+                }
+            }
+
+            return ResponseEntity.ok(sociosDetalle);
+        } catch (Exception e) {
+            System.err.println("CRITICAL ERROR in /mis-socios-detalle: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(new ArrayList<>());
+        }
     }
 }

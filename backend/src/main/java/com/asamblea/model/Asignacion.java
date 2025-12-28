@@ -16,18 +16,18 @@ public class Asignacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lista_id", nullable = false)
     private ListaAsignacion listaAsignacion;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "socio_id", nullable = false)
     private Socio socio;
 
     @Column(name = "fecha_asignacion")
     private java.time.LocalDateTime fechaAsignacion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "asignado_por_id")
     private Usuario asignadoPor;
 

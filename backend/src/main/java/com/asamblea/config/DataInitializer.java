@@ -1,9 +1,13 @@
 package com.asamblea.config;
 
-import com.asamblea.model.Asamblea;
-import com.asamblea.model.Usuario;
-import com.asamblea.repository.AsambleaRepository;
 import com.asamblea.model.Sucursal;
+import com.asamblea.model.Usuario;
+import com.asamblea.model.Asamblea;
+import com.asamblea.repository.AsambleaRepository;
+<<<<<<< HEAD
+import com.asamblea.model.Sucursal;
+=======
+>>>>>>> b2237071a1b0d14036c273f7f3041461a5439a52
 import com.asamblea.repository.SucursalRepository;
 import com.asamblea.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -80,11 +84,22 @@ public class DataInitializer {
                 asamblea.setHorarios("08:00 Hs - Primer Llamado");
                 asamblea.setActivo(true);
                 asambleaRepository.save(asamblea);
-                System.out.println("✅ Asamblea inicial creada automáticamente para evitar errores de datos faltantes.");
+                System.out.println("✅ Asamblea inicial creada automáticamente.");
+            }
+
+            // Inicializar Sucursales si no existen
+            if (sucursalRepository.count() == 0) {
+                crearSucursal("001", "CASA MATRIZ", "San Lorenzo");
+                crearSucursal("002", "SUCURSAL 1", "Capiatá");
+                crearSucursal("003", "SUCURSAL 2", "Itauguá");
+                crearSucursal("004", "SUCURSAL 3", "Fernando de la Mora");
+                crearSucursal("005", "AGENCIA 1", "Abasto");
+                System.out.println("✅ Sucursales iniciales creadas exitosamente.");
             }
         };
     }
 
+<<<<<<< HEAD
     private void updateOrCreateSucursal(String codigo, String nombre, String ciudad) {
         var existing = sucursalRepository.findByCodigo(codigo);
         if (existing.isPresent()) {
@@ -99,5 +114,14 @@ public class DataInitializer {
             suc.setCiudad(ciudad);
             sucursalRepository.save(suc);
         }
+=======
+    private void crearSucursal(String codigo, String nombre, String ciudad) {
+        Sucursal s = new Sucursal();
+        s.setCodigo(codigo);
+        s.setNombre(nombre);
+        s.setCiudad(ciudad);
+        s.setActivo(true);
+        sucursalRepository.save(s);
+>>>>>>> b2237071a1b0d14036c273f7f3041461a5439a52
     }
 }

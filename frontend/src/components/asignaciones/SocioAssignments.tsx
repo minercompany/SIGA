@@ -67,8 +67,9 @@ export function SocioAssignments({
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
 
-    // Usar siempre la primera (y única) lista
-    const miLista = misListas.length > 0 ? misListas[0] : null;
+    // Usar selectedLista para estadísticas (el padre selecciona la lista con más socios)
+    // Fallback a la primera lista solo si no hay ninguna seleccionada
+    const miLista = selectedLista || (misListas.length > 0 ? misListas[0] : null);
 
     // Mensajes amables rotativos
     const mensajesAmables = [
@@ -119,12 +120,16 @@ export function SocioAssignments({
         return () => clearTimeout(timer);
     }, [socioSearchTerm]);
 
-    // Auto-selección de la única lista
+    // Auto-selección de la primera lista solo si no hay una seleccionada
     useEffect(() => {
-        if (miLista && !selectedLista) {
-            onSelectLista(miLista);
+        if (misListas.length > 0 && !selectedLista) {
+            // Seleccionar la lista con más socios
+            const listaConMasSocios = misListas.reduce((prev, curr) =>
+                (curr.total || 0) > (prev.total || 0) ? curr : prev
+            );
+            onSelectLista(listaConMasSocios);
         }
-    }, [miLista, selectedLista]);
+    }, [misListas, selectedLista]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

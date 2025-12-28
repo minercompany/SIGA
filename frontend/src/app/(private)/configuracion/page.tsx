@@ -114,6 +114,126 @@ const ConfiguracionEvento = () => {
     );
 };
 
+// Subcomponente para Opciones de Reset
+const ResetOptionsPanel = ({ isAdminMode, accessCode, setAccessCode, checkAccess, setIsAdminMode, loading, handleReset }: any) => {
+    const [options, setOptions] = useState({
+        socios: true,
+        asignaciones: true,
+        listas: true,
+        usuarios: true,
+        asistencias: true,
+        importaciones: true
+    });
+
+    // Validar dependencias visualmente
+    useEffect(() => {
+        const newOptions = { ...options };
+        // Si borras listas, borras asignaciones
+        if (newOptions.listas && !newOptions.asignaciones) setOptions(prev => ({ ...prev, asignaciones: true }));
+    }, [options.listas]);
+
+    const toggleOption = (key: keyof typeof options) => {
+        setOptions(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const onResetClick = () => {
+        handleReset(options);
+    };
+
+    return (
+        <div className="rounded-2xl border-2 border-red-100 bg-gradient-to-br from-red-50/50 to-orange-50/30 p-8 space-y-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-100/50 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="flex items-center gap-3 text-red-700 relative">
+                <div className="p-2 bg-red-100 rounded-xl">
+                    <ShieldAlert className="h-6 w-6" />
+                </div>
+                <h2 className="text-xl font-black uppercase tracking-tight">Zona de Peligro / Reset</h2>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 border border-red-100 shadow-lg relative">
+                {!isAdminMode ? (
+                    <div className="space-y-6">
+                        <div className="flex items-start gap-4">
+                            <div className="bg-amber-100 p-3 rounded-xl">
+                                <Key className="h-6 w-6 text-amber-600" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-bold text-slate-800 text-lg">Acceso Protegido</h3>
+                                <p className="text-sm text-slate-500 mt-1">
+                                    Ingresa el código maestro (226118) para desbloquear las opciones de limpieza.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl p-5 flex gap-3">
+                            <input
+                                type="password"
+                                value={accessCode}
+                                onChange={(e) => setAccessCode(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && checkAccess()}
+                                placeholder="••••••"
+                                className="flex-1 rounded-xl border-2 border-slate-200 px-4 py-3 text-center text-lg font-mono tracking-[0.5em] outline-none focus:border-amber-500 transition-all"
+                                maxLength={6}
+                            />
+                            <button
+                                onClick={checkAccess}
+                                className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all"
+                            >
+                                Desbloquear
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex justify-between items-center">
+                            <span className="text-sm font-bold text-emerald-700 flex items-center gap-2">
+                                <Check className="h-4 w-4" /> Modo Administrador
+                            </span>
+                            <button onClick={() => setIsAdminMode(false)} className="text-xs text-emerald-600 font-bold hover:underline">Bloquear</button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <p className="text-sm font-bold text-slate-700 uppercase tracking-wide">Selecciona qué datos eliminar:</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {[
+                                    { key: "socios", label: "Padrón de Socios", desc: "Borra todos los socios (CUIDADO)" },
+                                    { key: "asignaciones", label: "Asignaciones", desc: "Borra las distribuciones de socios en listas" },
+                                    { key: "listas", label: "Listas Creadas", desc: "Borra las listas vacías o llenas de los operadores" },
+                                    { key: "usuarios", label: "Cuentas de Operadores", desc: "Borra los usuarios (Login)" },
+                                    { key: "asistencias", label: "Control de Asistencia", desc: "Borra registros de check-in" },
+                                    { key: "importaciones", label: "Historial de Importación", desc: "Limpia el log de importaciones" },
+                                ].map((opt) => (
+                                    <label key={opt.key} className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${(options as any)[opt.key] ? 'border-red-200 bg-red-50/50' : 'border-slate-100 hover:border-slate-200'
+                                        }`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={(options as any)[opt.key]}
+                                            onChange={() => toggleOption(opt.key as any)}
+                                            className="mt-1 w-4 h-4 accent-red-600"
+                                        />
+                                        <div>
+                                            <span className="block font-bold text-slate-800 text-sm">{opt.label}</span>
+                                            <span className="block text-[10px] text-slate-500 leading-tight">{opt.desc}</span>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={onResetClick}
+                            disabled={loading}
+                            className="w-full py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black rounded-xl shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-2"
+                        >
+                            {loading ? <Loader2 className="animate-spin" /> : <Trash2 />}
+                            EJECUTAR LIMPIEZA SELECCIONADA
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 export default function ConfiguracionPage() {
     const [user, setUser] = useState<any>(null);
     const [confirmText, setConfirmText] = useState("");
@@ -294,22 +414,22 @@ export default function ConfiguracionPage() {
     };
 
     // Función simplificada de reset - usando endpoint principal
-    const handleSimpleReset = async () => {
+    const handleSimpleReset = async (options: any = {}) => {
         setLoading(true);
         setMessage(null);
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("No hay sesión activa. Recarga la página.");
 
-            // Usar el endpoint oficial que borra todo (incluyendo usuarios)
-            const response = await axios.post("http://localhost:8081/api/socios/reset-padron", {}, {
+            // Usar el endpoint oficial que borra todo con opciones
+            const response = await axios.post("http://localhost:8081/api/socios/reset-padron", options, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             console.log("Reset response:", response.data);
             setMessage({
                 type: "success",
-                text: `¡Sistema a CERO! Eliminados: ${response.data.eliminados?.socios || 0} socios, ${response.data.eliminados?.usuarios || 0} usuarios.`
+                text: `¡Limpieza completada! ${response.data.message}`
             });
             setIsAdminMode(false);
         } catch (error: any) {
@@ -531,127 +651,14 @@ export default function ConfiguracionPage() {
                 <>
                     <div className="h-px bg-slate-100 my-8"></div>
 
-                    {/* Zona de Peligro - Reset de Datos con Protección */}
-                    <div className="rounded-2xl border-2 border-red-100 bg-gradient-to-br from-red-50/50 to-orange-50/30 p-8 space-y-6 relative overflow-hidden">
-                        {/* Decoración de fondo */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-100/50 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
-
-                        <div className="flex items-center gap-3 text-red-700 relative">
-                            <div className="p-2 bg-red-100 rounded-xl">
-                                <ShieldAlert className="h-6 w-6" />
-                            </div>
-                            <h2 className="text-xl font-black uppercase tracking-tight">Zona de Peligro</h2>
-                        </div>
-
-                        <div className="bg-white rounded-2xl p-6 border border-red-100 shadow-lg relative">
-                            {/* Estado: Bloqueado */}
-                            {!isAdminMode ? (
-                                <div className="space-y-6">
-                                    <div className="flex items-start gap-4">
-                                        <div className="bg-amber-100 p-3 rounded-xl">
-                                            <Key className="h-6 w-6 text-amber-600" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-slate-800 text-lg">Acceso Protegido</h3>
-                                            <p className="text-sm text-slate-500 mt-1">
-                                                Esta sección está protegida por una <strong className="text-red-600">clave de administrador</strong>.
-                                                Ingresa el código para desbloquear las opciones de reinicio.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-slate-50 rounded-xl p-5 space-y-4">
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                                            Código de Autorización
-                                        </label>
-                                        <div className="flex flex-col sm:flex-row gap-3">
-                                            <input
-                                                type="password"
-                                                value={accessCode}
-                                                onChange={(e) => setAccessCode(e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && checkAccess()}
-                                                placeholder="••••••"
-                                                className="flex-1 rounded-xl border-2 border-slate-200 px-4 py-3 text-center text-lg font-mono tracking-[0.5em] focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
-                                                maxLength={6}
-                                            />
-                                            <button
-                                                onClick={checkAccess}
-                                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-3 text-sm font-bold text-white hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg shadow-amber-500/30 whitespace-nowrap"
-                                            >
-                                                <Key className="h-4 w-4" />
-                                                Desbloquear
-                                            </button>
-                                        </div>
-                                        <p className="text-xs text-slate-400 text-center">
-                                            Solo personal autorizado tiene acceso a esta clave.
-                                        </p>
-                                    </div>
-                                </div>
-                            ) : (
-                                /* Estado: Desbloqueado - UI Simplificada */
-                                <div className="space-y-6">
-                                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
-                                        <Check className="h-5 w-5 text-emerald-600" />
-                                        <span className="text-sm font-bold text-emerald-700">Modo Administrador Activado</span>
-                                        <button
-                                            onClick={() => setIsAdminMode(false)}
-                                            className="ml-auto text-xs text-emerald-600 hover:text-emerald-800 font-medium"
-                                        >
-                                            Bloquear
-                                        </button>
-                                    </div>
-
-                                    <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 text-center space-y-4">
-                                        <div className="flex justify-center">
-                                            <div className="bg-red-100 p-4 rounded-full">
-                                                <Database className="h-8 w-8 text-red-600" />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-black text-slate-800 text-lg">¿Restablecer Todo a Cero?</h3>
-                                            <p className="text-sm text-slate-500 mt-2">
-                                                Se eliminarán <strong className="text-red-600">TODOS</strong> los socios, asignaciones,
-                                                asistencias, importaciones y auditorías del sistema.
-                                            </p>
-                                            <p className="text-xs text-red-500 mt-2 font-bold">
-                                                ⚠️ Esta acción NO se puede deshacer
-                                            </p>
-                                        </div>
-
-                                        <button
-                                            onClick={handleSimpleReset}
-                                            disabled={loading}
-                                            className="w-full inline-flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 px-8 py-4 text-sm font-black text-white uppercase tracking-wider hover:from-red-700 hover:to-red-800 transition-all shadow-xl shadow-red-500/30 disabled:opacity-50"
-                                        >
-                                            {loading ? (
-                                                <>
-                                                    <RefreshCcw className="h-5 w-5 animate-spin" />
-                                                    Procesando...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Trash2 className="h-5 w-5" />
-                                                    Restablecer Datos a Cero
-                                                </>
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {message && !message.text.includes("Contraseña") && (
-                            <div className={`p-4 rounded-xl text-sm font-bold animate-in fade-in slide-in-from-top-2 duration-300 ${message.type === 'success' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                                }`}>
-                                {message.text}
-                            </div>
-                        )}
-                    </div>
 
                     {/* Otras Configuraciones de Asamblea */}
                     <div className="rounded-2xl bg-white p-8 shadow-sm border border-slate-100 space-y-6">
                         <ConfiguracionEvento />
                     </div>
+
+                    <ResetOptionsPanel isAdminMode={isAdminMode} accessCode={accessCode} setAccessCode={setAccessCode} checkAccess={checkAccess} setIsAdminMode={setIsAdminMode} loading={loading} handleReset={handleSimpleReset} />
+
 
                     {/* Hidden Master Override Section */}
                     <div className="pt-20 pb-10 border-t border-slate-100 mt-12">
@@ -765,3 +772,4 @@ export default function ConfiguracionPage() {
         </div>
     );
 }
+
