@@ -308,28 +308,28 @@ export function SocioAssignments({
                     className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden"
                     data-tour="socios-list"
                 >
-                    {/* Header */}
+                    {/* Header Compacto Movil */}
                     <div className="p-3 md:p-5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
-                        <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 md:gap-3">
-                                <Users className="w-5 h-5 md:w-6 md:h-6" />
-                                <div>
-                                    <h2 className="text-base md:text-xl font-bold leading-tight">Mis Socios<br className="md:hidden" /> Asignados</h2>
-                                    <p className="text-[10px] md:text-sm text-emerald-100 hidden md:block">{miLista?.nombre}</p>
+                        <div className="flex items-center justify-between gap-1">
+                            <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                                <Users className="w-5 h-5 flex-shrink-0" />
+                                <div className="min-w-0">
+                                    <h2 className="text-sm md:text-xl font-bold leading-tight truncate">Mis Socios</h2>
+                                    <p className="text-[10px] md:text-sm text-emerald-100 truncate hidden md:block">{miLista?.nombre}</p>
                                 </div>
                             </div>
-                            <div className="flex gap-1 md:gap-3">
-                                <div className="bg-white/20 backdrop-blur rounded-lg md:rounded-xl px-2 py-1 md:px-4 md:py-2 text-center min-w-[45px] md:min-w-0">
+                            <div className="flex gap-1.5 md:gap-3 flex-shrink-0">
+                                <div className="bg-white/20 backdrop-blur rounded-lg px-2 py-1 text-center min-w-[36px] md:min-w-[50px]">
                                     <p className="text-sm md:text-xl font-black">{miLista?.total || 0}</p>
-                                    <p className="text-[8px] md:text-[10px] text-white/70 uppercase">Total</p>
+                                    <p className="text-[7px] md:text-[10px] text-white/80 uppercase">Total</p>
                                 </div>
-                                <div className="bg-emerald-400/30 backdrop-blur rounded-lg md:rounded-xl px-2 py-1 md:px-4 md:py-2 text-center min-w-[45px] md:min-w-0">
-                                    <p className="text-sm md:text-xl font-black text-emerald-200">{miLista?.vyv || 0}</p>
-                                    <p className="text-[8px] md:text-[10px] text-emerald-100/70 uppercase">V&V</p>
+                                <div className="bg-emerald-400/30 backdrop-blur rounded-lg px-2 py-1 text-center min-w-[36px] md:min-w-[50px]">
+                                    <p className="text-sm md:text-xl font-black text-emerald-100">{miLista?.vyv || 0}</p>
+                                    <p className="text-[7px] md:text-[10px] text-emerald-100/80 uppercase">V&V</p>
                                 </div>
-                                <div className="bg-amber-400/30 backdrop-blur rounded-lg md:rounded-xl px-2 py-1 md:px-4 md:py-2 text-center min-w-[45px] md:min-w-0">
-                                    <p className="text-sm md:text-xl font-black text-amber-200">{miLista?.soloVoz || 0}</p>
-                                    <p className="text-[8px] md:text-[10px] text-amber-100/70 uppercase">SV</p>
+                                <div className="bg-amber-400/30 backdrop-blur rounded-lg px-2 py-1 text-center min-w-[36px] md:min-w-[50px]">
+                                    <p className="text-sm md:text-xl font-black text-amber-100">{miLista?.soloVoz || 0}</p>
+                                    <p className="text-[7px] md:text-[10px] text-amber-100/80 uppercase">SV</p>
                                 </div>
                             </div>
                         </div>
@@ -348,39 +348,50 @@ export function SocioAssignments({
                                 return (
                                     <motion.div
                                         key={`${socio.id}-${index}`}
-                                        initial={{ opacity: 0, x: -20 }}
+                                        initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: index * 0.03 }}
-                                        className="p-4 hover:bg-slate-50 transition-colors group"
+                                        transition={{ delay: index * 0.02 }}
+                                        className="p-3 md:p-4 hover:bg-slate-50 transition-colors group relative"
                                     >
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-sm ${esVyV ? 'bg-gradient-to-br from-emerald-500 to-teal-500' : 'bg-gradient-to-br from-amber-500 to-orange-500'
-                                                    }`}>
-                                                    {index + 1}
+                                        <div className="flex items-start gap-3">
+                                            {/* Número / Avatar */}
+                                            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex-shrink-0 flex items-center justify-center font-bold text-white text-xs md:text-sm shadow-sm mt-0.5 ${esVyV ? 'bg-gradient-to-br from-emerald-500 to-teal-500' : 'bg-gradient-to-br from-amber-500 to-orange-500'
+                                                }`}>
+                                                {index + 1}
+                                            </div>
+
+                                            {/* Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <p className="font-bold text-slate-800 text-sm md:text-base leading-tight">
+                                                        {socio.nombreCompleto}
+                                                    </p>
+                                                    {/* Badge Desktop / Mobile Compact */}
+                                                    <span className={`flex-shrink-0 px-1.5 py-0.5 md:px-3 md:py-1 roundedmd md:rounded-lg text-[9px] md:text-xs font-bold border ${esVyV
+                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                                        : 'bg-amber-50 text-amber-700 border-amber-100'
+                                                        }`}>
+                                                        {esVyV ? 'V&V' : 'SOLO VOZ'}
+                                                    </span>
                                                 </div>
-                                                <div>
-                                                    <p className="font-bold text-slate-800">{socio.nombreCompleto}</p>
-                                                    <div className="flex gap-3 text-sm text-slate-500">
-                                                        <span>CI: <span className="font-medium text-slate-700">{socio.cedula}</span></span>
-                                                        <span>Nro: <span className="font-medium text-slate-700">{socio.numeroSocio}</span></span>
-                                                    </div>
+
+                                                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-[11px] md:text-sm text-slate-500">
+                                                    <span className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded">
+                                                        CI: <span className="font-bold text-slate-700">{socio.cedula}</span>
+                                                    </span>
+                                                    <span className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded">
+                                                        N°: <span className="font-bold text-slate-700">{socio.numeroSocio}</span>
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${esVyV
-                                                    ? 'bg-emerald-100 text-emerald-700'
-                                                    : 'bg-amber-100 text-amber-700'
-                                                    }`}>
-                                                    {esVyV ? 'VOZ Y VOTO' : 'SOLO VOZ'}
-                                                </span>
-                                                <button
-                                                    onClick={() => onRemoveSocio(socio.id)}
-                                                    className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
+
+                                            {/* Botón Eliminar (Visible en hover o swipe en touch - mejor dejar botón siempre visible en móvil si hay espacio, o solo desktop) */}
+                                            <button
+                                                onClick={() => onRemoveSocio(socio.id)}
+                                                className="p-1.5 text-slate-300 hover:text-red-500 transition-colors md:opacity-0 md:group-hover:opacity-100"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     </motion.div>
                                 );
