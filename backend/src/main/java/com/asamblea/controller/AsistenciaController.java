@@ -40,6 +40,9 @@ public class AsistenciaController {
             item.put("socioNumero", a.getSocio().getNumeroSocio());
             item.put("vozVoto", a.getEstadoVozVoto() != null ? a.getEstadoVozVoto() : false);
             item.put("fechaHora", a.getFechaHora());
+            // Añadir sucursal del socio para estadísticas por sucursal
+            item.put("sucursal",
+                    a.getSocio().getSucursal() != null ? a.getSocio().getSucursal().getNombre() : "Sin Sucursal");
             resultado.add(item);
         }
 

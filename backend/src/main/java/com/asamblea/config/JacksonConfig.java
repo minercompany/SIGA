@@ -1,6 +1,9 @@
 package com.asamblea.config;
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> c5e7885099708c3b8c1031c5cb0713c0154381cb
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

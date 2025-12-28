@@ -47,6 +47,7 @@ interface SucursalStats {
     padron: number;
     presentes: number;
     vozVoto: number;
+    soloVoz: number;
 }
 
 // Tooltip personalizado premium
@@ -66,6 +67,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
+// Interface para registros por sucursal (desde asistencias, NO padrón)
+interface RegistrosPorSucursal {
+    sucursal: string;
+    totalRegistros: number;
+    conVozYVoto: number;
+    soloVoz: number;
+}
+
 export default function DashboardEnVivoPage() {
     const [stats, setStats] = useState<Stats | null>(null);
     const [ultimasLlegadas, setUltimasLlegadas] = useState<Asistencia[]>([]);
@@ -76,6 +85,12 @@ export default function DashboardEnVivoPage() {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [quorumReached, setQuorumReached] = useState(false);
     const [accessDenied, setAccessDenied] = useState(false);
+
+    // REGISTROS (desde asistencias, NO del padrón)
+    const [registrosTotales, setRegistrosTotales] = useState(0);
+    const [registrosVyV, setRegistrosVyV] = useState(0);
+    const [registrosSoloVoz, setRegistrosSoloVoz] = useState(0);
+    const [registrosPorSucursal, setRegistrosPorSucursal] = useState<RegistrosPorSucursal[]>([]);
 
     // Verificar permisos de acceso - redirigir USUARIO_SOCIO a su dashboard
     useEffect(() => {
@@ -129,6 +144,35 @@ export default function DashboardEnVivoPage() {
                 evolucion.push({ hora: `${h}:00`, presentes: asistenciasHastaHora });
             }
             setEvolucionHora(evolucion);
+
+            // =====================================================
+            // CÁLCULO DE REGISTROS (desde asistencias, NO padrón)
+            // =====================================================
+            const totalRegs = asistencias.length;
+            const regsVyV = asistencias.filter((a: Asistencia) => a.vozVoto === true).length;
+            const regsSoloVoz = asistencias.filter((a: Asistencia) => a.vozVoto === false).length;
+
+            setRegistrosTotales(totalRegs);
+            setRegistrosVyV(regsVyV);
+            setRegistrosSoloVoz(regsSoloVoz);
+
+            // Calcular registros agrupados por sucursal (desde asistencias)
+            const sucursalMap: { [key: string]: RegistrosPorSucursal } = {};
+            asistencias.forEach((a: Asistencia) => {
+                const suc = a.sucursal || 'Sin Sucursal';
+                if (!sucursalMap[suc]) {
+                    sucursalMap[suc] = { sucursal: suc, totalRegistros: 0, conVozYVoto: 0, soloVoz: 0 };
+                }
+                sucursalMap[suc].totalRegistros++;
+                if (a.vozVoto) {
+                    sucursalMap[suc].conVozYVoto++;
+                } else {
+                    sucursalMap[suc].soloVoz++;
+                }
+            });
+            const regsPorSuc = Object.values(sucursalMap).sort((a, b) => b.totalRegistros - a.totalRegistros);
+            setRegistrosPorSucursal(regsPorSuc);
+            // =====================================================
 
             const quorum = Math.floor(statsRes.data.totalPadron / 2) + 1;
             if (statsRes.data.presentes >= quorum && !quorumReached) {
@@ -184,6 +228,7 @@ export default function DashboardEnVivoPage() {
             name: s.sucursal?.substring(0, 12) || 'N/A',
             padron: s.padron,
             vyv: s.vozVoto,
+            soloVoz: s.soloVoz || (s.presentes - s.vozVoto),
             presentes: s.presentes || 0,
         }));
 
@@ -262,89 +307,122 @@ export default function DashboardEnVivoPage() {
                     </div>
                 </motion.header>
 
-                {/* KPIs Premium Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                {/* KPIs Premium Grid - 6 Tarjetas */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+                    {/* 1. Total Padrón */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        whileHover={{ y: -5, scale: 1.02 }}
-                        className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-3xl p-6 text-white relative overflow-hidden shadow-xl shadow-blue-500/30 border border-white/10"
+                        whileHover={{ y: -8, scale: 1.03 }}
+                        className="bg-gradient-to-br from-violet-500 via-purple-600 to-fuchsia-600 rounded-3xl p-5 text-white relative overflow-hidden shadow-xl shadow-violet-500/30 border border-white/10 cursor-pointer"
                     >
-                        <div className="absolute inset-0 bg-[url('data:image/svg+xml,...')] opacity-5" />
+                        <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
                         <div className="relative">
-                            <div className="p-3 bg-white/20 backdrop-blur rounded-2xl w-fit mb-4">
-                                <UserCheck className="h-6 w-6" />
+                            <div className="p-2.5 bg-white/20 backdrop-blur rounded-xl w-fit mb-3">
+                                <Users className="h-5 w-5" />
                             </div>
-                            <div className="text-5xl font-black tracking-tight">{stats.presentes}</div>
-                            <p className="text-blue-100 text-sm font-semibold mt-1">Presentes Hoy</p>
-                            <div className="mt-3 pt-3 border-t border-white/20">
-                                <p className="text-blue-200 text-xs font-bold">{porcentajeAsistencia.toFixed(2)}% del padrón</p>
-                            </div>
+                            <div className="text-3xl lg:text-4xl font-black tracking-tight">{stats.totalPadron.toLocaleString()}</div>
+                            <p className="text-violet-100 text-xs font-bold mt-1 uppercase tracking-wider">Total Padrón</p>
                         </div>
                     </motion.div>
 
+                    {/* 2. Habilitados Voz y Voto (Padrón) */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15 }}
+                        whileHover={{ y: -8, scale: 1.03 }}
+                        className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-3xl p-5 text-white relative overflow-hidden shadow-xl shadow-emerald-500/30 border border-white/10 cursor-pointer"
+                    >
+                        <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
+                        <div className="relative">
+                            <div className="p-2.5 bg-white/20 backdrop-blur rounded-xl w-fit mb-3">
+                                <Shield className="h-5 w-5" />
+                            </div>
+                            <div className="text-3xl lg:text-4xl font-black tracking-tight">{stats.conVozYVoto.toLocaleString()}</div>
+                            <p className="text-emerald-100 text-xs font-bold mt-1 uppercase tracking-wider">Con Voz y Voto</p>
+                        </div>
+                    </motion.div>
+
+                    {/* 3. Solo Voz (Padrón) */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        whileHover={{ y: -5, scale: 1.02 }}
-                        className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-3xl p-6 text-white relative overflow-hidden shadow-xl shadow-emerald-500/30 border border-white/10"
+                        whileHover={{ y: -8, scale: 1.03 }}
+                        className="bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 rounded-3xl p-5 text-white relative overflow-hidden shadow-xl shadow-amber-500/30 border border-white/10 cursor-pointer"
                     >
+                        <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
                         <div className="relative">
-                            <div className="p-3 bg-white/20 backdrop-blur rounded-2xl w-fit mb-4">
-                                <Shield className="h-6 w-6" />
+                            <div className="p-2.5 bg-white/20 backdrop-blur rounded-xl w-fit mb-3">
+                                <AlertTriangle className="h-5 w-5" />
                             </div>
-                            <div className="text-5xl font-black tracking-tight">{stats.presentesVyV}</div>
-                            <p className="text-emerald-100 text-sm font-semibold mt-1">Con V&V Presentes</p>
-                            <div className="mt-3 pt-3 border-t border-white/20">
-                                <p className="text-emerald-200 text-xs font-bold">{presentesSoloVoz} solo voz</p>
-                            </div>
+                            <div className="text-3xl lg:text-4xl font-black tracking-tight">{stats.soloVoz.toLocaleString()}</div>
+                            <p className="text-amber-100 text-xs font-bold mt-1 uppercase tracking-wider">Solo Voz</p>
                         </div>
                     </motion.div>
 
+                    {/* 4. Presentes Ahora */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.25 }}
+                        whileHover={{ y: -8, scale: 1.03 }}
+                        className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-3xl p-5 text-white relative overflow-hidden shadow-xl shadow-blue-500/30 border border-white/10 cursor-pointer"
+                    >
+                        <span className="absolute top-3 right-3 flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                        </span>
+                        <div className="relative">
+                            <div className="p-2.5 bg-white/20 backdrop-blur rounded-xl w-fit mb-3">
+                                <UserCheck className="h-5 w-5" />
+                            </div>
+                            <div className="text-3xl lg:text-4xl font-black tracking-tight">{stats.presentes}</div>
+                            <p className="text-blue-100 text-xs font-bold mt-1 uppercase tracking-wider">Presentes Ahora</p>
+                        </div>
+                    </motion.div>
+
+                    {/* 5. Presentes con Voz y Voto */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        whileHover={{ y: -5, scale: 1.02 }}
-                        className={`rounded-3xl p-6 text-white relative overflow-hidden shadow-xl border border-white/10 ${stats.presentes >= quorumNecesario
-                            ? 'bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 shadow-green-500/30'
-                            : 'bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 shadow-amber-500/30'
-                            }`}
+                        whileHover={{ y: -8, scale: 1.03 }}
+                        className="bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 rounded-3xl p-5 text-white relative overflow-hidden shadow-xl shadow-green-500/30 border border-white/10 cursor-pointer"
                     >
+                        <span className="absolute top-3 right-3 flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                        </span>
                         <div className="relative">
-                            <div className="p-3 bg-white/20 backdrop-blur rounded-2xl w-fit mb-4">
-                                <Target className="h-6 w-6" />
+                            <div className="p-2.5 bg-white/20 backdrop-blur rounded-xl w-fit mb-3">
+                                <Shield className="h-5 w-5" />
                             </div>
-                            <div className="text-5xl font-black tracking-tight">
-                                {stats.presentes >= quorumNecesario ? '✓' : faltanParaQuorum}
-                            </div>
-                            <p className="text-white/90 text-sm font-semibold mt-1">
-                                {stats.presentes >= quorumNecesario ? 'Quórum Logrado' : 'Faltan Quórum'}
-                            </p>
-                            <div className="mt-3 pt-3 border-t border-white/20">
-                                <p className="text-white/70 text-xs font-bold">Req: {quorumNecesario} (50%+1)</p>
-                            </div>
+                            <div className="text-3xl lg:text-4xl font-black tracking-tight">{stats.presentesVyV}</div>
+                            <p className="text-green-100 text-xs font-bold mt-1 uppercase tracking-wider">Presentes V&V</p>
                         </div>
                     </motion.div>
 
+                    {/* 6. Presentes Solo Voz */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        whileHover={{ y: -5, scale: 1.02 }}
-                        className="bg-gradient-to-br from-violet-500 via-purple-600 to-fuchsia-600 rounded-3xl p-6 text-white relative overflow-hidden shadow-xl shadow-violet-500/30 border border-white/10"
+                        transition={{ delay: 0.35 }}
+                        whileHover={{ y: -8, scale: 1.03 }}
+                        className="bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-500 rounded-3xl p-5 text-white relative overflow-hidden shadow-xl shadow-orange-500/30 border border-white/10 cursor-pointer"
                     >
+                        <span className="absolute top-3 right-3 flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                        </span>
                         <div className="relative">
-                            <div className="p-3 bg-white/20 backdrop-blur rounded-2xl w-fit mb-4">
-                                <Users className="h-6 w-6" />
+                            <div className="p-2.5 bg-white/20 backdrop-blur rounded-xl w-fit mb-3">
+                                <AlertTriangle className="h-5 w-5" />
                             </div>
-                            <div className="text-5xl font-black tracking-tight">{stats.totalPadron.toLocaleString()}</div>
-                            <p className="text-violet-100 text-sm font-semibold mt-1">Total Padrón</p>
-                            <div className="mt-3 pt-3 border-t border-white/20">
-                                <p className="text-violet-200 text-xs font-bold">{stats.conVozYVoto.toLocaleString()} con V&V</p>
-                            </div>
+                            <div className="text-3xl lg:text-4xl font-black tracking-tight">{presentesSoloVoz}</div>
+                            <p className="text-orange-100 text-xs font-bold mt-1 uppercase tracking-wider">Presentes Solo Voz</p>
                         </div>
                     </motion.div>
                 </div>
@@ -520,6 +598,133 @@ export default function DashboardEnVivoPage() {
                         </div>
                     </motion.div>
                 </div>
+
+                {/* =============================================================== */}
+                {/* REGISTROS POR USUARIOS (desde asistencias, NO del padrón)       */}
+                {/* =============================================================== */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`${darkCardStyle} p-6 mb-8`}
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg">
+                                <UserCheck className="h-6 w-6 text-white" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-white">Registros por Usuarios</h2>
+                                <p className="text-xs text-slate-400">Check-ins cargados por funcionarios/directivos • NO es el padrón</p>
+                            </div>
+                        </div>
+                        {/* Totales premium */}
+                        <div className="flex gap-3">
+                            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl px-5 py-3 text-center shadow-lg">
+                                <div className="text-2xl font-black text-white">{registrosVyV}</div>
+                                <div className="text-[10px] font-bold text-emerald-100 uppercase">Voz y Voto</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl px-5 py-3 text-center shadow-lg">
+                                <div className="text-2xl font-black text-white">{registrosSoloVoz}</div>
+                                <div className="text-[10px] font-bold text-amber-100 uppercase">Solo Voz</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl px-5 py-3 text-center shadow-lg">
+                                <div className="text-2xl font-black text-white">{registrosTotales}</div>
+                                <div className="text-[10px] font-bold text-blue-100 uppercase">Total Reg.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Tabla de Registros por Sucursal */}
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-slate-700">
+                                    <th className="pb-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Sucursal</th>
+                                    <th className="pb-3 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Total Registros</th>
+                                    <th className="pb-3 text-xs font-bold text-emerald-400 uppercase tracking-wider text-center">Con Voz y Voto</th>
+                                    <th className="pb-3 text-xs font-bold text-amber-400 uppercase tracking-wider text-center">Solo Voz</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-700/50">
+                                {registrosPorSucursal.length > 0 ? (
+                                    registrosPorSucursal.slice(0, 10).map((reg, idx) => (
+                                        <motion.tr
+                                            key={reg.sucursal}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: idx * 0.03 }}
+                                            whileHover={{ scale: 1.01, x: 5 }}
+                                            className="hover:bg-white/5 transition-all duration-300 cursor-pointer"
+                                        >
+                                            <td className="py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/30 to-purple-500/30 flex items-center justify-center text-xs font-bold text-violet-300 border border-violet-500/30">
+                                                        {idx + 1}
+                                                    </div>
+                                                    <span className="font-semibold text-sm text-white">{reg.sucursal}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 text-center">
+                                                <span className="inline-flex items-center px-3 py-1.5 rounded-xl bg-blue-500/20 text-blue-300 font-bold text-sm border border-blue-500/30">
+                                                    {reg.totalRegistros}
+                                                </span>
+                                            </td>
+                                            <td className="py-3 text-center">
+                                                <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-sm border border-emerald-500/30">
+                                                    <Shield className="h-3 w-3" />
+                                                    {reg.conVozYVoto}
+                                                </span>
+                                            </td>
+                                            <td className="py-3 text-center">
+                                                <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 font-bold text-sm border border-amber-500/30">
+                                                    <AlertTriangle className="h-3 w-3" />
+                                                    {reg.soloVoz}
+                                                </span>
+                                            </td>
+                                        </motion.tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={4} className="py-10 text-center text-slate-500">
+                                            <UserCheck className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                                            <p className="text-sm">Sin registros cargados hoy</p>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                            {registrosPorSucursal.length > 0 && (
+                                <tfoot className="border-t-2 border-slate-600 bg-slate-800/50">
+                                    <tr>
+                                        <td className="py-3 font-black text-white">TOTAL REGISTROS</td>
+                                        <td className="py-3 text-center">
+                                            <span className="inline-flex items-center px-4 py-1.5 rounded-xl bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-500/30">
+                                                {registrosTotales}
+                                            </span>
+                                        </td>
+                                        <td className="py-3 text-center">
+                                            <span className="inline-flex items-center px-4 py-1.5 rounded-xl bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/30">
+                                                {registrosVyV}
+                                            </span>
+                                        </td>
+                                        <td className="py-3 text-center">
+                                            <span className="inline-flex items-center px-4 py-1.5 rounded-xl bg-amber-500 text-white font-bold text-sm shadow-lg shadow-amber-500/30">
+                                                {registrosSoloVoz}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            )}
+                        </table>
+                    </div>
+
+                    {/* Nota de aclaración */}
+                    <div className="mt-4 pt-4 border-t border-slate-700">
+                        <p className="text-xs text-slate-500 flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4 text-amber-500" />
+                            <span>Estos datos son registros operativos cargados por usuarios. <strong className="text-slate-400">No representan el padrón oficial.</strong></span>
+                        </p>
+                    </div>
+                </motion.div>
 
                 {/* Tercera fila: Llegadas + Ranking */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
