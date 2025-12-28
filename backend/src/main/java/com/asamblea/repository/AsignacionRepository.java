@@ -6,7 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface AsignacionRepository extends JpaRepository<Asignacion, Long> {
-    List<Asignacion> findByListaAsignacionId(Long listaId);
+
+    // Explicitly define the query to avoid potential naming convention issues
+    @Query("SELECT a FROM Asignacion a WHERE a.listaAsignacion.id = :listaId")
+    List<Asignacion> findByListaAsignacionId(@org.springframework.data.repository.query.Param("listaId") Long listaId);
 
     @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.listaAsignacion.id = :listaId AND a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true")
     Long countVyVByListaId(Long listaId);

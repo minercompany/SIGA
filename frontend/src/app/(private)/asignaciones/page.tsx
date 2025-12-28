@@ -120,9 +120,12 @@ export default function AsignacionesPage() {
                             setSelectedLista(nuevaLista);
                         } else {
                             setMisListas(response.data);
-                            // Auto-select first list if none selected
+                            // Auto-select the list with the most socios (not just the first one)
                             if (response.data.length > 0 && !selectedLista) {
-                                handleSelectLista(response.data[0]);
+                                const listaConMasSocios = response.data.reduce((prev: ListaAsignacion, curr: ListaAsignacion) =>
+                                    (curr.total || 0) > (prev.total || 0) ? curr : prev
+                                );
+                                handleSelectLista(listaConMasSocios);
                             }
                         }
                     } catch (err: any) {
