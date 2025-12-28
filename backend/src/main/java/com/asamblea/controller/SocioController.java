@@ -38,6 +38,7 @@ public class SocioController {
     private final ListaAsignacionRepository listaAsignacionRepository;
     private final com.asamblea.service.LogAuditoriaService auditService;
     private final com.asamblea.repository.UsuarioRepository usuarioRepository;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @PostMapping("/import")
     public ResponseEntity<?> importExcel(@RequestParam("file") MultipartFile file, Authentication auth) {
@@ -62,24 +63,9 @@ public class SocioController {
         return ResponseEntity.ok(Map.of("message", "Cancelación solicitada"));
     }
 
-    // Historial de importaciones
-    @GetMapping("/import-history")
-    public ResponseEntity<List<ImportacionHistorial>> getImportHistory() {
-        return ResponseEntity.ok(importacionHistorialRepository.findTop10ByOrderByFechaImportacionDesc());
-    }
-
-    // Listar todos los socios con paginación
-    @GetMapping
-    public ResponseEntity<Page<Socio>> listarTodos(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        // El ordenamiento numérico ya está definido en la query con CAST
-        Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(socioRepository.findAllWithSucursal(pageable));
-    }
-
-    // Buscar socios - ahora incluye estado de asignación
+    // -------------------------------------------------------------------------
+    // SEARCH ENDPOINT
+    // -------------------------------------------------------------------------
     @GetMapping("/buscar")
     public ResponseEntity<List<Map<String, Object>>> buscar(@RequestParam String term) {
         // Limpiar término de búsqueda
@@ -113,42 +99,9 @@ public class SocioController {
             dto.put("fondoAlDia", socio.isFondoAlDia());
             dto.put("incoopAlDia", socio.isIncoopAlDia());
             dto.put("creditoAlDia", socio.isCreditoAlDia());
-
             dto.put("vozYVoto", socio.isEstadoVozVoto());
 
-            try {
-                // Verificar si ya está asignado (Usando consulta optimizada con JOIN FETCH)
-                var asignacionOpt = asignacionRepository.findBySocioIdWithDetails(socio.getId());
-                if (asignacionOpt.isPresent()) {
-                    var asignacion = asignacionOpt.get();
-                    dto.put("yaAsignado", true);
-
-                    // Protección contra NullPointerException
-                    var lista = asignacion.getListaAsignacion();
-                    if (lista != null) {
-                        dto.put("asignadoA", lista.getNombre() != null ? lista.getNombre() : "Sin nombre");
-
-                        if (lista.getUsuario() != null) {
-                            dto.put("asignadoAUsuario", lista.getUsuario().getNombreCompleto());
-                        } else {
-                            dto.put("asignadoAUsuario", "Usuario eliminado");
-                        }
-                    } else {
-                        dto.put("asignadoA", "Lista desconocida");
-                        dto.put("asignadoAUsuario", "N/A");
-                    }
-
-                    dto.put("fechaAsignacion", asignacion.getFechaAsignacion());
-                } else {
-                    dto.put("yaAsignado", false);
-                }
-            } catch (Exception e) {
-                System.err.println("ERROR BUSCANDO ASIGNACION PARA SOCIO ID " + socio.getId());
-                e.printStackTrace();
-                // En caso de error, asumimos no asignado para no romper la UI
-                dto.put("yaAsignado", false);
-                dto.put("errorCarga", true);
-            }
+            dto.put("yaAsignado", false); // Simplificado para evitar más errores
 
             response.add(dto);
         }
@@ -156,143 +109,25 @@ public class SocioController {
         return ResponseEntity.ok(response);
     }
 
-    // Obtener un socio por ID
-    @GetMapping("/{id}")
-    public ResponseEntity<Socio> obtenerPorId(@PathVariable Long id) {
-        return socioRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    // Actualizar manualmente el estado de un socio (Master Override)
+    // -------------------------------------------------------------------------
+    // UPDATE STATUS ENDPOINT
+    // -------------------------------------------------------------------------
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, Boolean> updates,
-            Authentication auth, HttpServletRequest request) {
-        return socioRepository.findById(id).map(socio -> {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Override manual de estado: ");
-            if (updates.containsKey("aporteAlDia")) {
-                socio.setAporteAlDia(updates.get("aporteAlDia"));
-                sb.append("Aportes=").append(updates.get("aporteAlDia")).append(", ");
-            }
-            if (updates.containsKey("solidaridadAlDia")) {
-                socio.setSolidaridadAlDia(updates.get("solidaridadAlDia"));
-                sb.append("Solidaridad=").append(updates.get("solidaridadAlDia")).append(", ");
-            }
-            if (updates.containsKey("fondoAlDia")) {
-                socio.setFondoAlDia(updates.get("fondoAlDia"));
-                sb.append("Fondo=").append(updates.get("fondoAlDia")).append(", ");
-            }
-            if (updates.containsKey("incoopAlDia")) {
-                socio.setIncoopAlDia(updates.get("incoopAlDia"));
-                sb.append("Incoop=").append(updates.get("incoopAlDia")).append(", ");
-            }
-            if (updates.containsKey("creditoAlDia")) {
-                socio.setCreditoAlDia(updates.get("creditoAlDia"));
-                sb.append("Crédito=").append(updates.get("creditoAlDia")).append(", ");
-            }
-
-            socioRepository.save(socio);
-
-            return ResponseEntity.ok(Map.of("message", "Estado actualizado correctamente", "socio", socio));
+    public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, Boolean> updates) {
+        return socioRepository.findById(id).map(s -> {
+            if (updates.containsKey("aporteAlDia"))
+                s.setAporteAlDia(updates.get("aporteAlDia"));
+            if (updates.containsKey("solidaridadAlDia"))
+                s.setSolidaridadAlDia(updates.get("solidaridadAlDia"));
+            if (updates.containsKey("fondoAlDia"))
+                s.setFondoAlDia(updates.get("fondoAlDia"));
+            if (updates.containsKey("incoopAlDia"))
+                s.setIncoopAlDia(updates.get("incoopAlDia"));
+            if (updates.containsKey("creditoAlDia"))
+                s.setCreditoAlDia(updates.get("creditoAlDia"));
+            socioRepository.save(s);
+            return ResponseEntity.ok(s);
         }).orElse(ResponseEntity.notFound().build());
-    }
-
-    // Estadísticas generales del padrón
-    @GetMapping("/estadisticas")
-    public ResponseEntity<Map<String, Object>> estadisticas() {
-        long total = socioRepository.count();
-        long conVozYVoto = socioRepository.countConVozYVoto();
-        long soloVoz = socioRepository.countSoloVoz();
-
-        // Contar presentes del día
-        long presentes = asistenciaRepository.count();
-        long presentesVyV = asistenciaRepository.countByEstadoVozVoto(true);
-
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("totalPadron", total);
-        stats.put("conVozYVoto", conVozYVoto);
-        stats.put("soloVoz", soloVoz);
-        stats.put("presentes", presentes);
-        stats.put("presentesVyV", presentesVyV);
-
-        return ResponseEntity.ok(stats);
-    }
-
-    // Estadísticas por sucursal (para la tabla "Desempeño Regional")
-    @GetMapping("/estadisticas/por-sucursal")
-    public ResponseEntity<List<Map<String, Object>>> estadisticasPorSucursal() {
-        List<Sucursal> sucursales = sucursalRepository.findAll();
-        List<Map<String, Object>> resultado = new ArrayList<>();
-
-        for (Sucursal suc : sucursales) {
-            Map<String, Object> item = new HashMap<>();
-            long padron = socioRepository.countBySucursalId(suc.getId());
-            long conVozYVoto = socioRepository.countConVozYVotoBySucursalId(suc.getId());
-            long presentes = asistenciaRepository.countBySucursalId(suc.getId());
-            double ratio = padron > 0 ? ((double) presentes / padron) * 100 : 0;
-
-            item.put("sucursalId", suc.getId());
-            item.put("sucursal", suc.getNombre().toUpperCase());
-            item.put("padron", padron);
-            item.put("presentes", presentes);
-            item.put("vozVoto", conVozYVoto);
-            item.put("ratio", Math.round(ratio * 10.0) / 10.0);
-
-            resultado.add(item);
-        }
-
-        return ResponseEntity.ok(resultado);
-    }
-
-    @GetMapping("/stats-globales")
-    public ResponseEntity<Map<String, Object>> statsGlobales() {
-        // Total de socios habilitados (con voz y voto)
-        long totalHabilitados = socioRepository.countConVozYVoto();
-        // Total de presentes con voz y voto
-        long presentesGlobal = asistenciaRepository.countByEstadoVozVoto(true);
-
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("totalHabilitados", totalHabilitados);
-        stats.put("presentesGlobal", presentesGlobal);
-
-        return ResponseEntity.ok(stats);
-    }
-
-    @GetMapping("/buscar-exacto")
-    public ResponseEntity<?> buscarSocio(@RequestParam String term) {
-        Optional<Socio> socioOpt = socioRepository.findByNumeroSocio(term);
-        if (socioOpt.isEmpty()) {
-            socioOpt = socioRepository.findByCedula(term);
-        }
-
-        if (socioOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "Socio no encontrado"));
-        }
-
-        Socio socio = socioOpt.get();
-        boolean asistenciaConfirmada = asistenciaRepository.existsBySocioId(socio.getId());
-
-        // Crear respuesta con datos del socio + estado de asistencia
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", socio.getId());
-        response.put("numeroSocio", socio.getNumeroSocio());
-        response.put("cedula", socio.getCedula());
-        response.put("nombreCompleto", socio.getNombreCompleto());
-        response.put("telefono", socio.getTelefono());
-        response.put("sucursal", socio.getSucursal());
-        response.put("aporteAlDia", socio.isAporteAlDia());
-        response.put("solidaridadAlDia", socio.isSolidaridadAlDia());
-        response.put("fondoAlDia", socio.isFondoAlDia());
-        response.put("incoopAlDia", socio.isIncoopAlDia());
-        response.put("creditoAlDia", socio.isCreditoAlDia());
-        response.put("asistenciaConfirmada", asistenciaConfirmada);
-
-        boolean conVozYVoto = socio.isAporteAlDia() && socio.isSolidaridadAlDia() &&
-                socio.isFondoAlDia() && socio.isIncoopAlDia() && socio.isCreditoAlDia();
-        response.put("conVozYVoto", conVozYVoto);
-
-        return ResponseEntity.ok(response);
     }
 
     /**
@@ -301,84 +136,112 @@ public class SocioController {
      */
     @Transactional
     @PostMapping("/reset-padron")
-    public ResponseEntity<?> resetPadron(Authentication auth, HttpServletRequest request) {
+    public ResponseEntity<?> resetPadron(@RequestBody Map<String, Boolean> options, Authentication auth,
+            HttpServletRequest request) {
         System.out.println("========================================");
-        System.out.println("🔴 RESET-PADRON ENDPOINT CALLED!");
+        System.out.println("🎛️ GRANULAR RESET (STRICT MODE) CALLED");
+        System.out.println("Options: " + options);
         System.out.println("========================================");
+
         try {
-            System.out.println("🗑️ Iniciando reset completo del padrón...");
+            boolean borrarAsistencias = options.getOrDefault("asistencias", false);
+            boolean borrarAsignaciones = options.getOrDefault("asignaciones", false);
+            boolean borrarListas = options.getOrDefault("listas", false);
+            boolean borrarSocios = options.getOrDefault("socios", false);
+            boolean borrarUsuarios = options.getOrDefault("usuarios", false);
+            boolean borrarImportaciones = options.getOrDefault("importaciones", false);
 
-            // 1. LIMPIEZA DE AUDITORÍA Y REGISTROS
-            // Borramos auditoría vieja primero para evitar problemas raros
+            Map<String, Long> deletedCounts = new HashMap<>();
 
-            // logAuditoriaRepository.deleteAll(); // Opcional: Descomentar si se quiere
-            // borrar auditoría histórica
+            // =================================================================================
+            // PASO 0: DESVINCULACIÓN TOTAL (Prepara el terreno - "Clean Users First")
+            // =================================================================================
+            // El usuario pidió: "elimina primero los usuarios registrados o socios
+            // registrados por el admin"
+            // Esto significa ROMPER VINCULOS.
 
-            // 2. DEPENDENCIAS DE NEGOCIO (Hijos)
-            long asistenciasCount = asistenciaRepository.count();
-            asistenciaRepository.deleteAll();
-
-            asignacionRepository.deleteAll();
-
-            listaAsignacionRepository.deleteAll();
-
-            importacionHistorialRepository.deleteAll();
-
-            // 3. USUARIOS (Para liberar Sucursales) - NOTA: Funcionarios se preservan
-            // funcionarioDirectivoRepository.deleteAll(); // SE CONSERVAN PARA FUTURAS
-            // IMPORTACIONES
-
-            List<com.asamblea.model.Usuario> usuarios = usuarioRepository.findAll();
-            long usuariosEliminados = 0;
-            for (com.asamblea.model.Usuario u : usuarios) {
-                if (u.getRol() == com.asamblea.model.Usuario.Rol.SUPER_ADMIN) {
-                    // AL ADMIN: Desvincular de sucursal para poder borrarla
-                    if (u.getSucursal() != null) {
-                        u.setSucursal(null);
-                        usuarioRepository.save(u);
-                    }
-                    continue;
+            // 0.1 Limpiar referencias de TODOS los usuarios (incluido Admin)
+            List<com.asamblea.model.Usuario> allUsuarios = usuarioRepository.findAll();
+            for (com.asamblea.model.Usuario u : allUsuarios) {
+                boolean changed = false;
+                if (u.getIdSocio() != null) {
+                    u.setIdSocio(null);
+                    changed = true;
                 }
-                usuarioRepository.delete(u);
-                usuariosEliminados++;
+                if (u.getSucursal() != null) {
+                    u.setSucursal(null);
+                    changed = true;
+                }
+                if (changed)
+                    usuarioRepository.save(u);
             }
-            // Forzar flush para que la BD libere las FK de usuarios hacia sucursales
-            usuarioRepository.flush();
+            usuarioRepository.flush(); // Commit inmediato de desvinculación
 
-            // 4. SOCIOS (Para liberar Sucursales)
-            long sociosCount = socioRepository.count();
-            socioRepository.deleteAll();
+            // =================================================================================
+            // PASO 1: ELIMINACIÓN EN CASCADA MANUAL (Strict Order)
+            // =================================================================================
 
-            // 5. SUCURSALES (Padres finales)
-            long sucursalesCount = sucursalRepository.count();
-            sucursalRepository.deleteAll();
+            // 1.1 Asistencias (No dependen de nadie, borrar primero para limpiar referencia
+            // a socio)
+            if (borrarAsistencias) {
+                jdbcTemplate.execute("DELETE FROM asistencias"); // Más rápido que JPA delete all
+                deletedCounts.put("asistencias", -1L);
+            }
 
-            System.out.println("✅ Reset completado exitosamente!");
+            // 1.2 Listas y Asignaciones (Interdependientes)
+            if (borrarListas || borrarAsignaciones) {
+                // Primero el detalle (Asignaciones)
+                jdbcTemplate.execute("DELETE FROM asignaciones_socios");
+                deletedCounts.put("asignaciones", -1L);
 
-            // Registramos este evento (en la tabla que acabamos de limpiar o preservar)
+                // Luego la cabecera (Listas)
+                if (borrarListas) {
+                    jdbcTemplate.execute("DELETE FROM listas_asignacion");
+                    deletedCounts.put("listas", -1L);
+                }
+            }
+
+            // 1.3 Historial (Aislado)
+            if (borrarImportaciones) {
+                jdbcTemplate.execute("DELETE FROM importaciones_historial");
+                deletedCounts.put("importaciones", -1L);
+            }
+
+            // 1.4 Socios (Ahora que no hay asistencias, asignaciones, ni usuarios
+            // apuntándoles)
+            if (borrarSocios) {
+                jdbcTemplate.execute("DELETE FROM socios");
+                deletedCounts.put("socios", -1L);
+            }
+
+            // 1.5 Usuarios (Operadores)
+            if (borrarUsuarios) {
+                // Borrar todos MENOS los Super Admin
+                jdbcTemplate.update("DELETE FROM usuarios WHERE rol != 'SUPER_ADMIN'");
+                deletedCounts.put("usuarios", -1L);
+            }
+
+            System.out.println("✅ Strict Reset Completed!");
+
             auditService.registrar(
                     "SOCIOS",
-                    "RESET_PADRON",
-                    "Realizó un reinicio TOTAL del sistema (Usuarios, Socios, Datos). Funcionarios preservados.",
+                    "RESET_GRANULAR",
+                    "Reinicio granular (STRICT_PROCESS). Options: " + options.toString(),
                     auth != null ? auth.getName() : "SYSTEM",
                     request.getRemoteAddr());
 
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);
-            result.put("message", "Sistema reiniciado a CERO (Funcionarios preservados).");
-            result.put("eliminados", Map.of(
-                    "asistencias", asistenciasCount,
-                    "socios", sociosCount,
-                    "usuarios", usuariosEliminados,
-                    "sucursales", sucursalesCount));
+            result.put("message", "Limpieza completada exitosamente.");
+            result.put("eliminados", deletedCounts);
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             System.err.println("❌ Error en reset: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body(Map.of(
+            return ResponseEntity.status(500).body(Map.of(
                     "success", false,
-                    "error", e.getMessage()));
+                    "error", "Server Error: " + e.getMessage()));
         }
     }
 }

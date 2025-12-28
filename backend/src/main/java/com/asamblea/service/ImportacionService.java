@@ -123,14 +123,25 @@ public class ImportacionService {
             // Set para control de duplicados dentro del mismo archivo
             Set<String> cedulasProcesadas = new HashSet<>();
 
-            // 2. Limpiar tabla (Truncate es mas rápido que Delete pero requiere permisos,
-            // Delete es standard)
-            jdbcTemplate.execute("DELETE FROM socios");
+            // 2. Limpiar tabla - SE ELIMINA PARA SOPORTAR UPSERT (No borrar datos
+            // existentes)
+            // jdbcTemplate.execute("DELETE FROM socios");
 
-            // 3. Preparar inserción Batch
+            // 3. Preparar inserción Batch con UPSERT (ON DUPLICATE KEY UPDATE)
+            // Esto permite actualizar datos de socios existentes sin perder sus IDs ni
+            // asignaciones
             String sql = "INSERT INTO socios (numero_socio, cedula, nombre_completo, telefono, id_sucursal, " +
                     "aporte_al_dia, solidaridad_al_dia, fondo_al_dia, incoop_al_dia, credito_al_dia, created_at) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                    "ON DUPLICATE KEY UPDATE " +
+                    "nombre_completo = VALUES(nombre_completo), " +
+                    "telefono = VALUES(telefono), " +
+                    "id_sucursal = VALUES(id_sucursal), " +
+                    "aporte_al_dia = VALUES(aporte_al_dia), " +
+                    "solidaridad_al_dia = VALUES(solidaridad_al_dia), " +
+                    "fondo_al_dia = VALUES(fondo_al_dia), " +
+                    "incoop_al_dia = VALUES(incoop_al_dia), " +
+                    "credito_al_dia = VALUES(credito_al_dia)";
 
             int imported = 0;
             int errors = 0;
@@ -319,8 +330,8 @@ public class ImportacionService {
 
                 Map<String, Object> stats = new HashMap<>();
                 stats.put("totalRows", rowIndex);
-                stats.put("imported", imported);
-                stats.put("updated", 0); // En modo delete-insert todo es nuevo técnicamente
+                stats.put("imported", imported); // Total processed (Inserted + Updated)
+                stats.put("mode", "UPSERT"); // Informative flag
                 stats.put("errors", errors);
                 stats.put("timeMs", ms);
                 stats.put("rowsPerSecond", (int) speed);

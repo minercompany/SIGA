@@ -1,8 +1,10 @@
 package com.asamblea.config;
 
-import com.asamblea.model.Asamblea;
+import com.asamblea.model.Sucursal;
 import com.asamblea.model.Usuario;
+import com.asamblea.model.Asamblea;
 import com.asamblea.repository.AsambleaRepository;
+import com.asamblea.repository.SucursalRepository;
 import com.asamblea.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -17,6 +19,7 @@ public class DataInitializer {
 
     private final UsuarioRepository usuarioRepository;
     private final AsambleaRepository asambleaRepository;
+    private final SucursalRepository sucursalRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Bean
@@ -54,8 +57,27 @@ public class DataInitializer {
                 asamblea.setHorarios("08:00 Hs - Primer Llamado");
                 asamblea.setActivo(true);
                 asambleaRepository.save(asamblea);
-                System.out.println("✅ Asamblea inicial creada automáticamente para evitar errores de datos faltantes.");
+                System.out.println("✅ Asamblea inicial creada automáticamente.");
+            }
+
+            // Inicializar Sucursales si no existen
+            if (sucursalRepository.count() == 0) {
+                crearSucursal("001", "CASA MATRIZ", "San Lorenzo");
+                crearSucursal("002", "SUCURSAL 1", "Capiatá");
+                crearSucursal("003", "SUCURSAL 2", "Itauguá");
+                crearSucursal("004", "SUCURSAL 3", "Fernando de la Mora");
+                crearSucursal("005", "AGENCIA 1", "Abasto");
+                System.out.println("✅ Sucursales iniciales creadas exitosamente.");
             }
         };
+    }
+
+    private void crearSucursal(String codigo, String nombre, String ciudad) {
+        Sucursal s = new Sucursal();
+        s.setCodigo(codigo);
+        s.setNombre(nombre);
+        s.setCiudad(ciudad);
+        s.setActivo(true);
+        sucursalRepository.save(s);
     }
 }

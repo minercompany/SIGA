@@ -120,6 +120,10 @@ export default function AsignacionesPage() {
                             setSelectedLista(nuevaLista);
                         } else {
                             setMisListas(response.data);
+                            // Auto-select first list if none selected
+                            if (response.data.length > 0 && !selectedLista) {
+                                handleSelectLista(response.data[0]);
+                            }
                         }
                     } catch (err: any) {
                         console.error("Error cargando listas:", err);
@@ -224,13 +228,32 @@ export default function AsignacionesPage() {
             );
             setSocioSearchTerm("");
             setSearchedSocio(null);
+
+            // Refresh socios list and counts
             const responseSocios = await axios.get(`http://localhost:8081/api/asignaciones/${selectedLista.id}/socios`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSocios(responseSocios.data);
             fetchData(); // actualizar contadores
         } catch (error: any) {
-            // Verificar si es error de socio ya asignado (código 409)
+            // Force refresh list even on error if it might be an inconsistency
+            if (error.response?.status === 400 && error.response.data.error === "El socio ya está en esta lista") {
+                // Refresh anyway to show the invisible socio
+                try {
+                    const token = localStorage.getItem("token");
+                    const responseSocios = await axios.get(`http://localhost:8081/api/asignaciones/${selectedLista.id}/socios`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    setSocios(responseSocios.data);
+                } catch (e) { console.error("Error refreshing list", e); }
+
+                alert("El socio ya figura en tu lista (actualizando visualización...)");
+                setSearchedSocio(null);
+                setSocioSearchTerm("");
+                return;
+            }
+
+            // Verificar si es error de socio ya asignado a OTRA lista (código 409)
             if (error.response?.status === 409 && error.response?.data?.error === 'SOCIO_YA_ASIGNADO') {
                 setAlreadyAssignedInfo({
                     socioNombre: error.response.data.socioNombre,
