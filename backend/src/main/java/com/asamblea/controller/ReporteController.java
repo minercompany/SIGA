@@ -411,8 +411,8 @@ public class ReporteController {
                 stats.put("habilitados", habilitados);
                 stats.put("observados", result.size() - habilitados);
                 stats.put("sucursalNombre",
-                                sucursalRepository.findById(sucursalId).map(s -> s.getNombre())
-                                                .orElse("Desconocida"));
+                                sucursalId != null ? sucursalRepository.findById(sucursalId).map(s -> s.getNombre())
+                                                .orElse("Desconocida") : "Todas");
 
                 return ResponseEntity.ok(Map.of("data", result, "stats", stats));
         }

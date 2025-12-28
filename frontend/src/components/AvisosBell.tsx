@@ -232,7 +232,7 @@ export default function AvisosBell() {
                                             >
                                                 <div className="flex items-start gap-4">
                                                     <div className={`p-2.5 rounded-xl flex-shrink-0 ${aviso.prioridad === 'CRITICA' ? 'bg-red-100' :
-                                                            aviso.prioridad === 'ALTA' ? 'bg-amber-100' : 'bg-teal-100'
+                                                        aviso.prioridad === 'ALTA' ? 'bg-amber-100' : 'bg-teal-100'
                                                         }`}>
                                                         {getPrioridadIcon(aviso.prioridad)}
                                                     </div>
@@ -275,127 +275,140 @@ export default function AvisosBell() {
                 </AnimatePresence>
             </div>
 
-            {/* Modal para aviso detallado - ESTILO PREMIUM CLARO */}
+            {/* Modal para aviso detallado - ESTILO PREMIUM CENTRADO */}
             <AnimatePresence>
                 {showModal && selectedAviso && (
                     <>
+                        {/* Backdrop con blur fuerte */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
                             onClick={() => !selectedAviso.requiereConfirmacion && setShowModal(false)}
-                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100]"
+                            className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[100]"
                         />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="fixed inset-4 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-lg bg-white rounded-[2rem] shadow-2xl shadow-slate-300/50 z-[101] overflow-hidden flex flex-col max-h-[90vh] border border-slate-100"
-                        >
-                            {/* Modal Header - Premium Light */}
-                            <div className={`px-6 py-5 flex items-center gap-4 ${selectedAviso.prioridad === 'CRITICA' ? 'bg-gradient-to-r from-red-500 to-rose-500' :
+
+                        {/* Modal Container - CENTRADO ABSOLUTO */}
+                        <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.8, y: 50 }}
+                                transition={{
+                                    type: "spring",
+                                    damping: 25,
+                                    stiffness: 300
+                                }}
+                                className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto border-4 border-white/50"
+                                style={{ boxShadow: '0 25px 80px -20px rgba(0, 0, 0, 0.4)' }}
+                            >
+
+                                {/* Modal Header - Premium Light */}
+                                <div className={`px-6 py-5 flex items-center gap-4 ${selectedAviso.prioridad === 'CRITICA' ? 'bg-gradient-to-r from-red-500 to-rose-500' :
                                     selectedAviso.prioridad === 'ALTA' ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
                                         'bg-gradient-to-r from-teal-500 to-emerald-500'
-                                }`}>
-                                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                                    {selectedAviso.prioridad === 'CRITICA' ? <AlertCircle className="h-6 w-6 text-white" /> :
-                                        selectedAviso.prioridad === 'ALTA' ? <AlertTriangle className="h-6 w-6 text-white" /> :
-                                            <Megaphone className="h-6 w-6 text-white" />}
+                                    }`}>
+                                    <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
+                                        {selectedAviso.prioridad === 'CRITICA' ? <AlertCircle className="h-6 w-6 text-white" /> :
+                                            selectedAviso.prioridad === 'ALTA' ? <AlertTriangle className="h-6 w-6 text-white" /> :
+                                                <Megaphone className="h-6 w-6 text-white" />}
+                                    </div>
+                                    <div className="flex-1">
+                                        <h2 className="text-white font-black text-lg tracking-tight">
+                                            {selectedAviso.titulo || 'Aviso del Sistema'}
+                                        </h2>
+                                        <p className="text-white/80 text-sm font-medium">De: {selectedAviso.emisorNombre}</p>
+                                    </div>
+                                    {!selectedAviso.requiereConfirmacion && (
+                                        <button
+                                            onClick={() => setShowModal(false)}
+                                            className="p-2 hover:bg-white/20 rounded-xl transition-colors"
+                                        >
+                                            <X className="h-6 w-6 text-white" />
+                                        </button>
+                                    )}
                                 </div>
-                                <div className="flex-1">
-                                    <h2 className="text-white font-black text-lg tracking-tight">
-                                        {selectedAviso.titulo || 'Aviso del Sistema'}
-                                    </h2>
-                                    <p className="text-white/80 text-sm font-medium">De: {selectedAviso.emisorNombre}</p>
-                                </div>
-                                {!selectedAviso.requiereConfirmacion && (
-                                    <button
-                                        onClick={() => setShowModal(false)}
-                                        className="p-2 hover:bg-white/20 rounded-xl transition-colors"
-                                    >
-                                        <X className="h-6 w-6 text-white" />
-                                    </button>
-                                )}
-                            </div>
 
-                            {/* Modal Body */}
-                            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-                                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                                    <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-[15px]">
-                                        {selectedAviso.contenido}
+                                {/* Modal Body */}
+                                <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+                                    <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                                        <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-[15px]">
+                                            {selectedAviso.contenido}
+                                        </p>
+                                    </div>
+
+                                    <p className="text-xs text-slate-400 mt-4 text-center font-medium">
+                                        Enviado: {formatDate(selectedAviso.enviadoAt)}
                                     </p>
                                 </div>
 
-                                <p className="text-xs text-slate-400 mt-4 text-center font-medium">
-                                    Enviado: {formatDate(selectedAviso.enviadoAt)}
-                                </p>
-                            </div>
-
-                            {/* Modal Actions - Premium Styling */}
-                            <div className="px-6 py-5 border-t border-slate-100 bg-white space-y-4">
-                                {selectedAviso.requiereRespuesta && !selectedAviso.respondidoAt && (
-                                    <>
-                                        <p className="text-sm font-bold text-slate-700">
-                                            Respondé el mensaje:
-                                        </p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {RESPUESTAS_RAPIDAS.map((resp) => (
+                                {/* Modal Actions - Premium Styling */}
+                                <div className="px-6 py-5 border-t border-slate-100 bg-white space-y-4">
+                                    {selectedAviso.requiereRespuesta && !selectedAviso.respondidoAt && (
+                                        <>
+                                            <p className="text-sm font-bold text-slate-700">
+                                                Respondé el mensaje:
+                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {RESPUESTAS_RAPIDAS.map((resp) => (
+                                                    <motion.button
+                                                        key={resp}
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        onClick={() => responderAviso(selectedAviso.id, resp)}
+                                                        className="px-4 py-2 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 rounded-xl text-sm font-semibold text-slate-600 transition-colors border border-transparent hover:border-teal-200"
+                                                    >
+                                                        {resp}
+                                                    </motion.button>
+                                                ))}
+                                            </div>
+                                            <div className="flex gap-2 mt-3">
+                                                <input
+                                                    type="text"
+                                                    value={respuestaTexto}
+                                                    onChange={(e) => setRespuestaTexto(e.target.value)}
+                                                    placeholder="O escribí una respuesta..."
+                                                    className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder:text-slate-400 font-medium"
+                                                />
                                                 <motion.button
-                                                    key={resp}
                                                     whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
-                                                    onClick={() => responderAviso(selectedAviso.id, resp)}
-                                                    className="px-4 py-2 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 rounded-xl text-sm font-semibold text-slate-600 transition-colors border border-transparent hover:border-teal-200"
+                                                    onClick={() => responderAviso(selectedAviso.id, 'texto_libre', respuestaTexto)}
+                                                    disabled={!respuestaTexto.trim()}
+                                                    className="px-5 py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-teal-200 transition-all"
                                                 >
-                                                    {resp}
+                                                    Enviar
                                                 </motion.button>
-                                            ))}
-                                        </div>
-                                        <div className="flex gap-2 mt-3">
-                                            <input
-                                                type="text"
-                                                value={respuestaTexto}
-                                                onChange={(e) => setRespuestaTexto(e.target.value)}
-                                                placeholder="O escribí una respuesta..."
-                                                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder:text-slate-400 font-medium"
-                                            />
-                                            <motion.button
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => responderAviso(selectedAviso.id, 'texto_libre', respuestaTexto)}
-                                                disabled={!respuestaTexto.trim()}
-                                                className="px-5 py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-teal-200 transition-all"
-                                            >
-                                                Enviar
-                                            </motion.button>
-                                        </div>
-                                    </>
-                                )}
+                                            </div>
+                                        </>
+                                    )}
 
-                                {selectedAviso.requiereConfirmacion && !selectedAviso.confirmadoAt && (
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={() => confirmarAviso(selectedAviso.id)}
-                                        className="w-full py-4 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-2xl font-black text-lg shadow-xl shadow-teal-200 hover:shadow-2xl hover:shadow-teal-300 transition-all"
-                                    >
-                                        <Check className="h-5 w-5 inline mr-2" />
-                                        Cerrar
-                                    </motion.button>
-                                )}
+                                    {selectedAviso.requiereConfirmacion && !selectedAviso.confirmadoAt && (
+                                        <motion.button
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => confirmarAviso(selectedAviso.id)}
+                                            className="w-full py-4 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-2xl font-black text-lg shadow-xl shadow-teal-200 hover:shadow-2xl hover:shadow-teal-300 transition-all"
+                                        >
+                                            <Check className="h-5 w-5 inline mr-2" />
+                                            Cerrar
+                                        </motion.button>
+                                    )}
 
-                                {!selectedAviso.requiereConfirmacion && !selectedAviso.requiereRespuesta && (
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={() => setShowModal(false)}
-                                        className="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold transition-colors"
-                                    >
-                                        Cerrar
-                                    </motion.button>
-                                )}
-                            </div>
-                        </motion.div>
+                                    {!selectedAviso.requiereConfirmacion && !selectedAviso.requiereRespuesta && (
+                                        <motion.button
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => setShowModal(false)}
+                                            className="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold transition-colors"
+                                        >
+                                            Cerrar
+                                        </motion.button>
+                                    )}
+                                </div>
+                            </motion.div>
+                        </div>
                     </>
                 )}
             </AnimatePresence>

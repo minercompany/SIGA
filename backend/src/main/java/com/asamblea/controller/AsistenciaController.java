@@ -77,8 +77,8 @@ public class AsistenciaController {
                 // Verificar si es de la misma asamblea (si la lógica de negocio lo requiere)
                 // Por ahora asumimos que si ya marcó, ya marcó.
                 Asistencia yaRegistrada = asistenciaExistente.get();
-                // Si es de otra asamblea vieja, permitir marcar de nuevo? -> TODO
-                // Por simplicidad del fix actual: Bloquear si ya existe.
+                // Verificar si ya tiene asistencia registrada (independiente de la asamblea)
+                // Política actual: Bloquear registro duplicado.
 
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("error", "SOCIO_YA_INGRESO");
