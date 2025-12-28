@@ -106,6 +106,14 @@ public class SocioController {
             dto.put("nombreCompleto", socio.getNombreCompleto());
             dto.put("numeroSocio", socio.getNumeroSocio());
             dto.put("cedula", socio.getCedula());
+
+            // Campos de estado individuales para el frontend
+            dto.put("aporteAlDia", socio.isAporteAlDia());
+            dto.put("solidaridadAlDia", socio.isSolidaridadAlDia());
+            dto.put("fondoAlDia", socio.isFondoAlDia());
+            dto.put("incoopAlDia", socio.isIncoopAlDia());
+            dto.put("creditoAlDia", socio.isCreditoAlDia());
+
             dto.put("vozYVoto", socio.isEstadoVozVoto());
 
             try {
