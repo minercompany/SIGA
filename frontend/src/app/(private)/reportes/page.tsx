@@ -16,6 +16,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
+import { Toaster, toast } from "sonner";
 
 interface ReporteItem {
     id: number;
@@ -101,6 +102,8 @@ export default function ReportesPage() {
 
     const fetchReporte = async (currentUser: any, opId: string, view: ReportType = reportView) => {
         setLoading(true);
+        // Reset data to avoid showing old data while loading or on error
+        setData([]);
         try {
             const token = localStorage.getItem("token");
             let url = "http://localhost:8081/api/reportes";
@@ -143,7 +146,9 @@ export default function ReportesPage() {
         } catch (error: any) {
             console.error("Error al obtener reporte", error);
             if (error.response?.status === 403) {
-                console.warn("No tienes permisos para este reporte o hubo un error.");
+                toast.error("No tienes permisos para ver este reporte.");
+            } else {
+                toast.error("Error al cargar los datos del reporte.");
             }
         } finally {
             setLoading(false);
@@ -168,7 +173,7 @@ export default function ReportesPage() {
 
     const handleExportPDF = async () => {
         if (!data || data.length === 0) {
-            alert("No hay datos para exportar.");
+            toast.error("No hay datos para exportar en este reporte.");
             return;
         }
 
@@ -401,7 +406,7 @@ export default function ReportesPage() {
 
         } catch (error) {
             console.error("Error generando PDF:", error);
-            alert("Ocurrió un error al generar el reporte. Por favor intente nuevamente.");
+            toast.error("Ocurrió un error al generar el PDF.");
         } finally {
             setGenerating(false);
             setProgress(0);
@@ -460,6 +465,7 @@ export default function ReportesPage() {
             )}
 
             {/* Header Premium */}
+            <Toaster position="top-center" richColors />
             <div className="text-center space-y-3 py-6">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-full mb-2">
                     <span className="text-emerald-600 font-bold text-xs uppercase tracking-wider">SIGA Premium</span>
@@ -759,50 +765,62 @@ export default function ReportesPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {loading ? (
-                                <tr><td colSpan={4} className="p-8 text-center text-slate-400">Cargando...</td></tr>
-                            ) :
-                                data.map((item) => (
-                                    <tr key={item.id} className={`hover:bg-slate-50 border-b border-slate-100/50 ${item.estado === 'AUSENTE' ? 'bg-red-50/50' : ''}`}>
-                                        <td className="px-6 py-3 text-sm text-black font-mono">
-                                            {item.fechaHora
-                                                ? new Date(item.fechaHora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                                : <span className="text-black">-</span>
-                                            }
-                                        </td>
-                                        <td className="px-6 py-3 text-sm">
-                                            <div className="font-bold text-black">{item.socioNombre}</div>
-                                            <div className="text-xs text-black font-semibold">CI: {item.cedula}</div>
-                                        </td>
-                                        <td className="px-6 py-3">
-                                            {reportView === 'PADRON' ? (
-                                                <div className="flex flex-col gap-1">
-                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold w-fit border ${item.estado === "PRESENTE" ? "bg-emerald-100 text-black border-emerald-200" : "bg-red-100 text-black border-red-200"
-                                                        }`}>
-                                                        {item.estado}
-                                                    </span>
-                                                    <span className="text-[10px] text-black font-bold">
-                                                        {item.vozVoto === "OBSERVADO" ? "SOLO VOZ" : item.vozVoto}
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <span className={`px-2 py-1 rounded text-xs font-bold border ${item.vozVoto === "HABILITADO"
-                                                    ? "bg-emerald-100 text-black border-emerald-200"
-                                                    : "bg-amber-100 text-black border-amber-200"
+                            {loading && (
+                                <tr><td colSpan={5} className="p-8 text-center text-slate-400">Cargando...</td></tr>
+                            )}
+
+                            {!loading && data.length > 0 && data.map((item) => (
+                                <tr key={item.id} className={`hover:bg-slate-50 border-b border-slate-100/50 ${item.estado === 'AUSENTE' ? 'bg-red-50/50' : ''}`}>
+                                    <td className="px-6 py-3 text-sm text-black font-mono">
+                                        {item.fechaHora
+                                            ? new Date(item.fechaHora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                            : <span className="text-black">-</span>
+                                        }
+                                    </td>
+                                    <td className="px-6 py-3 text-sm">
+                                        <div className="font-bold text-black">{item.socioNombre}</div>
+                                        <div className="text-xs text-black font-semibold">CI: {item.cedula}</div>
+                                    </td>
+                                    <td className="px-6 py-3">
+                                        {reportView === 'PADRON' ? (
+                                            <div className="flex flex-col gap-1">
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold w-fit border ${item.estado === "PRESENTE" ? "bg-emerald-100 text-black border-emerald-200" : "bg-red-100 text-black border-red-200"
                                                     }`}>
+                                                    {item.estado}
+                                                </span>
+                                                <span className="text-[10px] text-black font-bold">
                                                     {item.vozVoto === "OBSERVADO" ? "SOLO VOZ" : item.vozVoto}
                                                 </span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-3 text-sm text-black font-bold">
-                                            {item.asignadoPor || '-'}
-                                        </td>
-                                        <td className="px-6 py-3 text-sm text-black font-medium">
-                                            {item.operador}
-                                        </td>
-                                    </tr>
-                                ))
-                            }
+                                            </div>
+                                        ) : (
+                                            <span className={`px-2 py-1 rounded text-xs font-bold border ${item.vozVoto === "HABILITADO"
+                                                ? "bg-emerald-100 text-black border-emerald-200"
+                                                : "bg-amber-100 text-black border-amber-200"
+                                                }`}>
+                                                {item.vozVoto === "OBSERVADO" ? "SOLO VOZ" : item.vozVoto}
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-3 text-sm text-black font-bold">
+                                        {item.asignadoPor || '-'}
+                                    </td>
+                                    <td className="px-6 py-3 text-sm text-black font-medium">
+                                        {item.operador}
+                                    </td>
+                                </tr>
+                            ))}
+
+                            {!loading && data.length === 0 && (
+                                <tr>
+                                    <td colSpan={5} className="py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center text-slate-400">
+                                            <FileSpreadsheet className="w-12 h-12 mb-3 opacity-20" />
+                                            <p className="font-medium">No hay registros para mostrar</p>
+                                            <p className="text-xs mt-1">Intenta cambiar los filtros o el tipo de reporte</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
