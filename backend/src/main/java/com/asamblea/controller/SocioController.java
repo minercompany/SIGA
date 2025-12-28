@@ -9,6 +9,10 @@ import com.asamblea.repository.SocioRepository;
 import com.asamblea.repository.SucursalRepository;
 import com.asamblea.service.ImportacionService;
 import lombok.RequiredArgsConstructor;
+<<<<<<< HEAD
+=======
+
+>>>>>>> c5e7885099708c3b8c1031c5cb0713c0154381cb
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +35,10 @@ public class SocioController {
     private final SucursalRepository sucursalRepository;
     private final AsistenciaRepository asistenciaRepository;
     private final ImportacionHistorialRepository importacionHistorialRepository;
+<<<<<<< HEAD
+=======
+
+>>>>>>> c5e7885099708c3b8c1031c5cb0713c0154381cb
     private final com.asamblea.service.LogAuditoriaService auditService;
     private final com.asamblea.repository.UsuarioRepository usuarioRepository;
     private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
