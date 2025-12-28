@@ -3,6 +3,8 @@ package com.asamblea.config;
 import com.asamblea.model.Asamblea;
 import com.asamblea.model.Usuario;
 import com.asamblea.repository.AsambleaRepository;
+import com.asamblea.model.Sucursal;
+import com.asamblea.repository.SucursalRepository;
 import com.asamblea.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -10,6 +12,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -17,6 +21,7 @@ public class DataInitializer {
 
     private final UsuarioRepository usuarioRepository;
     private final AsambleaRepository asambleaRepository;
+    private final SucursalRepository sucursalRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Bean
@@ -46,6 +51,27 @@ public class DataInitializer {
                 System.out.println("✅ Contraseña del usuario ADMIN actualizada (user: admin / pass: admin)");
             }
 
+            // LIMPIAR sucursales incorrectas/duplicadas
+            List<String> codigosValidos = Arrays.asList("1", "2", "3", "5", "6", "7");
+            List<Sucursal> todasSucursales = sucursalRepository.findAll();
+            for (Sucursal suc : todasSucursales) {
+                if (!codigosValidos.contains(suc.getCodigo())) {
+                    // Esta sucursal no debería existir, eliminarla
+                    sucursalRepository.delete(suc);
+                    System.out
+                            .println("🗑️ Eliminada sucursal incorrecta: " + suc.getCodigo() + " - " + suc.getNombre());
+                }
+            }
+
+            // Inicializar/Actualizar sucursales con nombres correctos
+            updateOrCreateSucursal("1", "Casa Central", "Asunción");
+            updateOrCreateSucursal("2", "Ciudad del Este", "Ciudad del Este");
+            updateOrCreateSucursal("3", "Villarrica", "Villarrica");
+            updateOrCreateSucursal("5", "Sucursal 5", null);
+            updateOrCreateSucursal("6", "Hernandarias", "Hernandarias");
+            updateOrCreateSucursal("7", "San Lorenzo", "San Lorenzo");
+            System.out.println("✅ Sucursales inicializadas con nombres correctos");
+
             // Verificar e inicializar Asamblea si no existe
             if (asambleaRepository.count() == 0) {
                 Asamblea asamblea = new Asamblea();
@@ -57,5 +83,21 @@ public class DataInitializer {
                 System.out.println("✅ Asamblea inicial creada automáticamente para evitar errores de datos faltantes.");
             }
         };
+    }
+
+    private void updateOrCreateSucursal(String codigo, String nombre, String ciudad) {
+        var existing = sucursalRepository.findByCodigo(codigo);
+        if (existing.isPresent()) {
+            Sucursal suc = existing.get();
+            suc.setNombre(nombre);
+            suc.setCiudad(ciudad);
+            sucursalRepository.save(suc);
+        } else {
+            Sucursal suc = new Sucursal();
+            suc.setCodigo(codigo);
+            suc.setNombre(nombre);
+            suc.setCiudad(ciudad);
+            sucursalRepository.save(suc);
+        }
     }
 }

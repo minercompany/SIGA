@@ -9,9 +9,12 @@ import {
     Loader2,
     Building2,
     ChevronRight,
-    ClipboardList
+    ClipboardList,
+    HelpCircle
 } from "lucide-react";
 import axios from "axios";
+import { useTour } from "@/components/tour/TourContext";
+import { asignacionesTour } from "@/components/tour/tourSteps";
 
 // interfaces locales adicionales
 interface Sucursal {
@@ -87,6 +90,12 @@ export default function AsignacionesPage() {
         listaNombre: string;
         listaUsuario: string;
     } | null>(null);
+
+    // Modal para socio no encontrado
+    const [showNotFoundModal, setShowNotFoundModal] = useState(false);
+    const [notFoundTerm, setNotFoundTerm] = useState("");
+
+    const { startTour, hasSeenTour } = useTour();
 
     const fetchData = useCallback(async () => {
         try {
@@ -192,6 +201,24 @@ export default function AsignacionesPage() {
         }
     };
 
+    // Iniciar tour automáticamente cuando haya una lista seleccionada (UI visible)
+    useEffect(() => {
+        if (!loading && selectedLista) {
+            const timer = setTimeout(() => {
+                if (!hasSeenTour('asignaciones')) {
+                    console.log("Iniciando tour de asignaciones...");
+                    startTour(asignacionesTour, 'asignaciones');
+                }
+            }, 1000); // 1s delay para asegurar renderizado completo del componente hijo
+            return () => clearTimeout(timer);
+        }
+    }, [loading, selectedLista, hasSeenTour, startTour]);
+
+    // Botón flotante de ayuda manual
+    const handleManualTour = () => {
+        startTour(asignacionesTour, 'asignaciones');
+    };
+
     const handleSearchSocio = async () => {
         if (!selectedLista || !socioSearchTerm) return;
         setAddingSocio(true);
@@ -205,10 +232,20 @@ export default function AsignacionesPage() {
                 setSearchedSocio(response.data);
                 // No mostramos modal, se muestra inline
             } else {
-                alert("Socio no encontrado");
+                setNotFoundTerm(socioSearchTerm);
+                setShowNotFoundModal(true);
+                setSocioSearchTerm("");
             }
         } catch (error: any) {
-            alert(error.response?.data?.error || "Error al buscar socio");
+            // Si hay error 404, es socio no encontrado
+            if (error.response?.status === 404) {
+                setNotFoundTerm(socioSearchTerm);
+                setShowNotFoundModal(true);
+                setSocioSearchTerm("");
+            } else {
+                setNotFoundTerm(error.response?.data?.error || "Error al buscar socio");
+                setShowNotFoundModal(true);
+            }
         } finally {
             setAddingSocio(false);
         }
@@ -230,7 +267,7 @@ export default function AsignacionesPage() {
             setSocios(responseSocios.data);
             fetchData(); // actualizar contadores
         } catch (error: any) {
-            // Verificar si es error de socio ya asignado (código 409)
+            // Verificar si es error de socio ya asignado a OTRA lista (código 409)
             if (error.response?.status === 409 && error.response?.data?.error === 'SOCIO_YA_ASIGNADO') {
                 setAlreadyAssignedInfo({
                     socioNombre: error.response.data.socioNombre,
@@ -241,7 +278,20 @@ export default function AsignacionesPage() {
                 setShowAlreadyAssignedModal(true);
                 setSearchedSocio(null);
                 setSocioSearchTerm("");
-            } else {
+            }
+            // Error de socio ya en la MISMA lista (código 400)
+            else if (error.response?.status === 400 && error.response?.data?.error?.includes('ya está')) {
+                setAlreadyAssignedInfo({
+                    socioNombre: searchedSocio?.nombreCompleto || 'Socio',
+                    socioNro: searchedSocio?.numeroSocio || '',
+                    listaNombre: selectedLista?.nombre || 'esta lista',
+                    listaUsuario: 'TÚ MISMO'
+                });
+                setShowAlreadyAssignedModal(true);
+                setSearchedSocio(null);
+                setSocioSearchTerm("");
+            }
+            else {
                 alert(error.response?.data?.error || error.response?.data?.message || "Error al agregar socio");
             }
         }
@@ -432,6 +482,206 @@ export default function AsignacionesPage() {
                     </div>
                 </div>
             )}
+
+            {/* MODAL: SOCIO YA ASIGNADO - Premium Animated */}
+            {showAlreadyAssignedModal && alreadyAssignedInfo && (
+                <div
+                    className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+                    onClick={() => setShowAlreadyAssignedModal(false)}
+                >
+                    <div
+                        className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header con Gradiente */}
+                        <div className="relative bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 p-8 text-white overflow-hidden">
+                            {/* Decorative Circles */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
+                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl -ml-8 -mb-8" />
+
+                            <div className="relative z-10">
+                                {/* Icon */}
+                                <div className="inline-flex p-4 bg-white/20 backdrop-blur rounded-2xl mb-4 shadow-lg">
+                                    <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+
+                                {/* Title */}
+                                <h2 className="text-2xl md:text-3xl font-black leading-tight mb-2">
+                                    ¡Socio Ya Asignado!
+                                </h2>
+                                <p className="text-red-100 text-sm font-medium">
+                                    Este socio ya pertenece a otra lista
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-8 space-y-6">
+                            {/* Socio Info Card */}
+                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6 border-2 border-slate-200">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                                    Información del Socio
+                                </p>
+                                <p className="text-xl font-black text-slate-800 mb-1">
+                                    {alreadyAssignedInfo.socioNombre}
+                                </p>
+                                <div className="flex items-center gap-2 text-slate-500">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                    </svg>
+                                    <span className="text-sm font-bold">N° {alreadyAssignedInfo.socioNro}</span>
+                                </div>
+                            </div>
+
+                            {/* Assignment Info */}
+                            <div className="space-y-3">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                    Detalles de Asignación
+                                </p>
+
+                                {/* Lista */}
+                                <div className="flex items-start gap-3 p-4 bg-orange-50 rounded-xl border border-orange-200">
+                                    <div className="p-2 bg-orange-500 rounded-lg shadow-lg">
+                                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-xs text-orange-600 font-bold uppercase tracking-wide">Lista de Asignación</p>
+                                        <p className="text-sm font-black text-slate-800 mt-1">{alreadyAssignedInfo.listaNombre}</p>
+                                    </div>
+                                </div>
+
+                                {/* Usuario */}
+                                <div className="flex items-start gap-3 p-4 bg-violet-50 rounded-xl border border-violet-200">
+                                    <div className="p-2 bg-violet-500 rounded-lg shadow-lg">
+                                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-xs text-violet-600 font-bold uppercase tracking-wide">Asignado Por</p>
+                                        <p className="text-sm font-black text-slate-800 mt-1">{alreadyAssignedInfo.listaUsuario}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Info Message */}
+                            <div className="flex gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                                <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p className="text-xs text-blue-700 leading-relaxed">
+                                    Un socio solo puede estar asignado a una lista a la vez. Para agregarlo a tu lista, el usuario responsable debe quitarlo de su lista actual primero.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-6 bg-slate-50 border-t border-slate-100">
+                            <button
+                                onClick={() => setShowAlreadyAssignedModal(false)}
+                                className="w-full py-4 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-2xl font-bold text-sm hover:from-slate-800 hover:to-slate-900 transition-all shadow-lg shadow-slate-300 active:scale-95"
+                            >
+                                Entendido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* MODAL: SOCIO NO ENCONTRADO - Premium Animated */}
+            {showNotFoundModal && (
+                <div
+                    className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+                    onClick={() => setShowNotFoundModal(false)}
+                >
+                    <div
+                        className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header con Gradiente Azul */}
+                        <div className="relative bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 p-8 text-white overflow-hidden">
+                            {/* Decorative Circles */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
+                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl -ml-8 -mb-8" />
+
+                            <div className="relative z-10 text-center">
+                                {/* Animated Icon */}
+                                <div className="inline-flex p-5 bg-white/20 backdrop-blur rounded-full mb-4 shadow-lg">
+                                    <svg className="w-12 h-12 text-white animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 10l4 4" />
+                                    </svg>
+                                </div>
+
+                                {/* Title */}
+                                <h2 className="text-2xl md:text-3xl font-black leading-tight mb-2">
+                                    Socio No Encontrado
+                                </h2>
+                                <p className="text-blue-100 text-sm font-medium">
+                                    No pudimos localizar al socio buscado
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-8 space-y-5">
+                            {/* Término buscado */}
+                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-5 border-2 border-slate-200 text-center">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                                    Término buscado
+                                </p>
+                                <p className="text-2xl font-black text-slate-800 font-mono">
+                                    "{notFoundTerm}"
+                                </p>
+                            </div>
+
+                            {/* Sugerencias */}
+                            <div className="space-y-3">
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                    ¿Qué puedes hacer?
+                                </p>
+                                <ul className="space-y-2 text-sm text-slate-600">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-blue-500 mt-0.5">✓</span>
+                                        Verifica que el número de cédula sea correcto
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-blue-500 mt-0.5">✓</span>
+                                        Intenta con el número de socio en su lugar
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-blue-500 mt-0.5">✓</span>
+                                        Confirma que el socio esté en el padrón actual
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-6 bg-slate-50 border-t border-slate-100">
+                            <button
+                                onClick={() => setShowNotFoundModal(false)}
+                                className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-2xl font-bold text-sm hover:from-blue-700 hover:to-cyan-700 transition-all shadow-lg shadow-blue-200 active:scale-95"
+                            >
+                                Intentar de nuevo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Botón Flotante de Ayuda */}
+            <div className="fixed bottom-6 right-6 z-40">
+                <button
+                    onClick={handleManualTour}
+                    className="p-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-full shadow-lg shadow-violet-300 hover:scale-110 transition-transform group"
+                    title="Reiniciar Guía"
+                >
+                    <HelpCircle className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                </button>
+            </div>
         </div>
     );
 }

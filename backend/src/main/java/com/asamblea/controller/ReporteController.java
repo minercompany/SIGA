@@ -341,7 +341,7 @@ public class ReporteController {
         // Listar todas las sucursales disponibles
         @GetMapping("/sucursales-lista")
         public ResponseEntity<?> listarSucursales(Authentication auth) {
-                var sucursales = sucursalRepository.findAll();
+                var sucursales = sucursalRepository.findAllByOrderByCodigoAsc();
                 List<Map<String, Object>> result = new ArrayList<>();
 
                 for (var suc : sucursales) {

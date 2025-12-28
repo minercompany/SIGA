@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Users, Loader2, ClipboardList, Trash2, Plus, Shield, CheckCircle2, UserPlus } from "lucide-react";
+import { Search, Users, Loader2, ClipboardList, Trash2, Plus, Shield, CheckCircle2, UserPlus, Bell, X } from "lucide-react";
 
 interface Socio {
     id: number;
@@ -63,8 +63,51 @@ export function SocioAssignments({
     tieneVozYVoto,
 }: SocioAssignmentsProps) {
 
+    // Estado para notificación toast
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
+
     // Usar siempre la primera (y única) lista
     const miLista = misListas.length > 0 ? misListas[0] : null;
+
+    // Mensajes amables rotativos
+    const mensajesAmables = [
+        "¡Hola! 👋 Te faltan {n} socios para alcanzar tu meta de 10. ¡Tú puedes!",
+        "📊 Recordatorio amable: Con {n} socios más llegarás a la meta recomendada.",
+        "🎯 ¡Sigue así! Solo necesitas agregar {n} socios más a tu lista.",
+        "💪 ¡Casi llegas! Agrega {n} socios más para una distribución óptima.",
+        "✨ ¡Excelente trabajo! Solo faltan {n} socios para completar tu meta."
+    ];
+
+    // Notificación periódica amable (cada 2 minutos)
+    useEffect(() => {
+        if (!miLista || miLista.total >= 10) return;
+
+        const interval = setInterval(() => {
+            const faltantes = 10 - miLista.total;
+            const mensajeRandom = mensajesAmables[Math.floor(Math.random() * mensajesAmables.length)];
+            setToastMessage(mensajeRandom.replace("{n}", faltantes.toString()));
+            setShowToast(true);
+
+            // Auto-ocultar después de 8 segundos
+            setTimeout(() => setShowToast(false), 8000);
+        }, 120000); // 2 minutos
+
+        // Mostrar primera notificación después de 30 segundos
+        const initialTimeout = setTimeout(() => {
+            if (miLista.total < 10) {
+                const faltantes = 10 - miLista.total;
+                setToastMessage(`¡Hola! 👋 Te recomendamos agregar ${faltantes} socios más para llegar a 10. ¡Tú puedes!`);
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 8000);
+            }
+        }, 30000);
+
+        return () => {
+            clearInterval(interval);
+            clearTimeout(initialTimeout);
+        };
+    }, [miLista?.total]);
 
     // Búsqueda automática (Debounce)
     useEffect(() => {
@@ -89,7 +132,7 @@ export function SocioAssignments({
             <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white">
                 <div className="max-w-5xl mx-auto px-4 py-6">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        <div>
+                        <div data-tour="asignaciones-header">
                             <h1 className="text-2xl md:text-3xl font-black">
                                 Mi Lista de Asignaciones
                             </h1>
@@ -120,12 +163,51 @@ export function SocioAssignments({
             </div>
 
             <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+                {/* Mensaje Amable: Mínimo 5 Socios */}
+                {miLista && miLista.total < 10 && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-gradient-to-r from-blue-50 via-indigo-50 to-violet-50 rounded-3xl border-2 border-indigo-200 p-6 shadow-lg shadow-indigo-100"
+                        data-tour="meta-indicator"
+                    >
+                        <div className="flex items-start gap-4">
+                            <div className="p-3 bg-indigo-500 rounded-xl shadow-lg">
+                                <ClipboardList className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-black text-indigo-900 mb-1">
+                                    ¡Estás comenzando bien! 🎯
+                                </h3>
+                                <p className="text-sm text-indigo-700 mb-3 leading-relaxed">
+                                    Para asegurar una distribución efectiva del trabajo, <span className="font-bold">te recomendamos agregar al menos 10 socios</span> a tu lista.
+                                    Actualmente tienes <span className="font-bold text-indigo-900">{miLista.total}</span> {miLista.total === 1 ? 'socio' : 'socios'}.
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1 bg-white/50 rounded-full h-3 overflow-hidden">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${Math.min((miLista.total / 10) * 100, 100)}%` }}
+                                            transition={{ duration: 0.5, ease: "easeOut" }}
+                                            className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full"
+                                        />
+                                    </div>
+                                    <span className="text-xs font-bold text-indigo-600 min-w-[60px] text-right">
+                                        {miLista.total} / 10
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
                 {/* Buscador Principal */}
                 {miLista && (
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="bg-white rounded-3xl shadow-xl border border-slate-100 p-6"
+                        data-tour="search-socio"
                     >
                         <div className="flex items-center gap-3 mb-4">
                             <div className="p-3 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl shadow-lg shadow-violet-200">
@@ -218,6 +300,7 @@ export function SocioAssignments({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                     className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden"
+                    data-tour="socios-list"
                 >
                     {/* Header */}
                     <div className="p-5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
@@ -306,6 +389,29 @@ export function SocioAssignments({
                     )}
                 </motion.div>
             </div>
+
+            {/* Toast Notification Premium */}
+            {showToast && (
+                <motion.div
+                    initial={{ opacity: 0, y: 100, x: "-50%" }}
+                    animate={{ opacity: 1, y: 0, x: "-50%" }}
+                    exit={{ opacity: 0, y: 100 }}
+                    className="fixed bottom-6 left-1/2 transform z-50"
+                >
+                    <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 max-w-lg">
+                        <div className="p-2 bg-white/20 rounded-xl backdrop-blur">
+                            <Bell className="w-6 h-6 text-white animate-pulse" />
+                        </div>
+                        <p className="text-sm font-medium flex-1">{toastMessage}</p>
+                        <button
+                            onClick={() => setShowToast(false)}
+                            className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                </motion.div>
+            )}
         </div>
     );
 }

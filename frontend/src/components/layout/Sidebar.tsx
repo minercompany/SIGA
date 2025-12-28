@@ -166,7 +166,7 @@ export function Sidebar() {
             </div>
 
             {/* Navegación */}
-            <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+            <nav data-tour="sidebar" className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
                 {menuItems.filter(item => hasPermission(item.id)).map((item) => {
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     const hasSubmenu = item.submenu && item.submenu.length > 0;
@@ -183,6 +183,7 @@ export function Sidebar() {
                                 key={item.id}
                                 href={item.href}
                                 title={effectiveCollapsed ? item.name : undefined}
+                                data-tour={item.id === 'asignaciones' ? 'nav-mis-listas' : item.id === 'configuracion' ? 'nav-config' : undefined}
                                 className={cn(
                                     "group flex items-center rounded-xl font-medium transition-all duration-200",
                                     effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
@@ -264,6 +265,7 @@ export function Sidebar() {
                             key={item.id}
                             href={item.href}
                             title={effectiveCollapsed ? item.name : undefined}
+                            data-tour={item.id === 'asignaciones' ? 'nav-mis-listas' : item.id === 'configuracion' ? 'nav-config' : undefined}
                             className={cn(
                                 "group flex items-center rounded-xl font-medium transition-all duration-200",
                                 effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",

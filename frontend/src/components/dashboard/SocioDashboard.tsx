@@ -7,6 +7,7 @@ import { motion, Variants } from 'framer-motion';
 import PushNotificationManager from '../notifications/PushNotificationManager';
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useTour, dashboardSocioTour, dashboardAdminTour } from '../tour';
 
 interface SocioDashboardProps {
     misListas: any[];
@@ -116,6 +117,26 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
         fetchRanking();
     }, [misListas]);
 
+    // Tour: Iniciar automáticamente la primera vez
+    const { startTour, hasSeenTour } = useTour();
+
+    useEffect(() => {
+        // Esperar a que carguen los datos antes de iniciar tour
+        if (loading) return;
+
+        const tourId = userRole === 'SUPER_ADMIN' ? 'dashboard-admin' : 'dashboard';
+
+        // Solo mostrar si no lo ha visto
+        if (!hasSeenTour(tourId)) {
+            // Pequeño delay para que se rendericen los elementos
+            const timer = setTimeout(() => {
+                const tourSteps = userRole === 'SUPER_ADMIN' ? dashboardAdminTour : dashboardSocioTour;
+                startTour(tourSteps, tourId);
+            }, 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [loading, userRole, hasSeenTour, startTour]);
+
     // Función para obtener saludo dinámico según la hora del día
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -168,6 +189,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
             {/* Header Premium - Compacto */}
             <motion.div
                 variants={itemVariants}
+                data-tour="header"
                 className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 p-4 md:p-5 text-white"
             >
                 <div className="absolute top-0 right-0 h-48 w-48 bg-white/10 rounded-full blur-[80px]" />
@@ -195,7 +217,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
             </motion.div>
 
             {/* Métricas Principales con Glassmorphism */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+            <div data-tour="stats-cards" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 {[
                     { label: "Socios Asignados", value: stats.total, icon: Users, gradient: "from-blue-500 to-cyan-500", glow: "shadow-blue-500/50" },
                     { label: "Con Voz y Voto", value: stats.vyv, icon: UserCheck, gradient: "from-emerald-500 to-teal-500", glow: "shadow-emerald-500/50" },
@@ -394,9 +416,10 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                         </div>
                     </motion.div>
                 ) : (
-                    /* Card de Progreso hacia el Quórum - Para usuarios SOCIO */
+                    /* Card de Ratio de Asistencia de Mi Lista - Para usuarios SOCIO */
                     <motion.div
                         variants={itemVariants}
+                        data-tour="ratio-card"
                         className="relative overflow-hidden rounded-3xl md:rounded-[3rem] min-h-[300px] md:min-h-[400px] group"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
@@ -413,10 +436,10 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                     <TrendingUp className="h-7 w-7 md:h-8 md:w-8 text-white" />
                                 </motion.div>
                                 <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-2 bg-gradient-to-r from-white to-emerald-100 bg-clip-text text-transparent">
-                                    Progreso hacia el Quórum
+                                    Asistencia de Mi Lista
                                 </h3>
                                 <p className="text-slate-400 text-xs md:text-sm font-medium">
-                                    {statsGlobales.presentesGlobal} de {statsGlobales.totalHabilitados} habilitados
+                                    {stats.presentes} presentes de {stats.total} socios asignados
                                 </p>
 
                                 <div className="mt-6 md:mt-8 flex items-end gap-3">
@@ -425,14 +448,14 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                         animate={{ opacity: 1, y: 0 }}
                                         className="text-5xl md:text-7xl font-black bg-gradient-to-br from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent"
                                     >
-                                        {presencePercentage}%
+                                        {stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0}%
                                     </motion.span>
                                     <span className="text-emerald-400 font-black mb-2 md:mb-3 uppercase text-xs tracking-wider">
                                         <motion.span
                                             animate={{ opacity: [1, 0.5, 1] }}
                                             transition={{ duration: 2, repeat: Infinity }}
                                         >
-                                            ● Activo
+                                            ● En Vivo
                                         </motion.span>
                                     </span>
                                 </div>
@@ -442,7 +465,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                 <div className="h-3 bg-white/10 backdrop-blur-sm rounded-full overflow-hidden shadow-inner">
                                     <motion.div
                                         initial={{ width: 0 }}
-                                        animate={{ width: `${presencePercentage}% ` }}
+                                        animate={{ width: `${stats.total > 0 ? (stats.presentes / stats.total) * 100 : 0}%` }}
                                         transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
                                         className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.6)] relative overflow-hidden"
                                     >
@@ -453,6 +476,10 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                         />
                                     </motion.div>
                                 </div>
+                                <div className="flex justify-between mt-3 text-xs text-slate-400">
+                                    <span>{stats.presentes} presentes</span>
+                                    <span>{stats.ausentes} pendientes</span>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
@@ -462,6 +489,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
             {/* Mis Listas con diseño premium */}
             <motion.div
                 variants={itemVariants}
+                data-tour="mis-listas"
                 className="relative group"
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-purple-500/10 rounded-3xl md:rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

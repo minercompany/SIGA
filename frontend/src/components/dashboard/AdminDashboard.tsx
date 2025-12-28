@@ -343,50 +343,79 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                 </motion.div>
 
                 {/* Ranking de Operadores */}
+                {/* Ranking de Operadores - DISEÑO PREMIUM */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[2rem] p-6 shadow-xl text-white"
+                    className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/60 border border-slate-100 flex flex-col justify-between overflow-hidden relative"
                 >
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl shadow-lg">
-                            <Award className="h-5 w-5 text-white" />
+                    {/* Decorative Background Elements */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-amber-100/40 to-orange-100/40 blur-3xl -mr-16 -mt-16 rounded-full pointer-events-none" />
+
+                    <div className="flex items-center justify-between mb-8 relative z-10">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl shadow-lg shadow-amber-200">
+                                <Award className="h-6 w-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-slate-800 uppercase tracking-wider text-base">Top Operadores</h3>
+                                <p className="text-slate-400 text-xs font-bold">Líderes en asignaciones</p>
+                            </div>
                         </div>
-                        <h3 className="font-black uppercase tracking-wider text-sm">Top Operadores</h3>
+                        <div className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100">
+                            En Tiempo Real
+                        </div>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-4 relative z-10 flex-1">
                         {ranking && ranking.length > 0 ? (
                             ranking.slice(0, 5).map((op, i) => (
                                 <motion.div
                                     key={i}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.1 }}
-                                    className="flex items-center gap-3 p-3 bg-white/5 rounded-xl backdrop-blur border border-white/10 hover:bg-white/10 transition-all"
+                                    transition={{ delay: i * 0.1 + 0.3 }}
+                                    className={`group flex items-center gap-4 p-4 rounded-2xl transition-all border ${i === 0
+                                        ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-100 hover:shadow-md hover:shadow-amber-100/50'
+                                        : 'bg-white border-slate-100 hover:border-slate-200 hover:bg-slate-50 hover:shadow-sm'
+                                        }`}
                                 >
-                                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-black text-sm ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-white shadow-lg shadow-amber-500/30' :
-                                        i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-slate-700' :
-                                            i === 2 ? 'bg-gradient-to-br from-orange-400 to-amber-600 text-white' :
-                                                'bg-white/10 text-white/60'
+                                    {/* Ranking Badge - NÚMERO GRANDE */}
+                                    <div className={`h-14 w-14 rounded-2xl flex flex-col items-center justify-center transition-transform group-hover:scale-110 shadow-lg shrink-0 ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-orange-200' :
+                                            i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-slate-200' :
+                                                i === 2 ? 'bg-gradient-to-br from-orange-400 to-amber-700 text-white shadow-orange-200' :
+                                                    'bg-slate-100 text-slate-400'
                                         }`}>
-                                        {i === 0 ? <Crown className="h-5 w-5" /> : i === 1 ? <Medal className="h-5 w-5" /> : i === 2 ? <Star className="h-5 w-5" /> : i + 1}
+                                        <span className="text-[9px] font-bold uppercase tracking-widest opacity-90">TOP</span>
+                                        <span className="text-2xl font-black leading-none -mt-0.5">{i + 1}</span>
                                     </div>
+
+                                    {/* User Info */}
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-bold text-sm truncate">{op.nombre || op.username}</p>
-                                        <p className="text-white/40 text-xs">@{op.username}</p>
+                                        <div className="flex flex-col">
+                                            <p className={`font-bold text-sm truncate ${i === 0 ? 'text-slate-800' : 'text-slate-700'}`}>
+                                                {op.nombre || op.username}
+                                            </p>
+                                            <p className="text-slate-400 text-xs font-medium">@{op.username}</p>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="font-black text-lg text-emerald-400">{op.totalRegistros}</p>
-                                        <p className="text-white/40 text-xs uppercase">Registros</p>
+
+                                    {/* Stats */}
+                                    <div className="text-right pl-4 border-l border-slate-100">
+                                        <p className={`font-black text-xl ${i === 0 ? 'text-orange-500' : 'text-slate-700'}`}>
+                                            {op.totalRegistros}
+                                        </p>
+                                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Socios</p>
                                     </div>
                                 </motion.div>
                             ))
                         ) : (
-                            <div className="flex flex-col items-center justify-center py-10 text-white/30">
-                                <Clock className="h-12 w-12 mb-3" />
-                                <p className="text-sm font-bold uppercase tracking-widest">Sin actividad</p>
+                            <div className="flex flex-col items-center justify-center py-12 text-slate-300">
+                                <div className="p-4 bg-slate-50 rounded-full mb-3">
+                                    <Clock className="h-8 w-8 text-slate-300" />
+                                </div>
+                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Sin actividad registrada</p>
                             </div>
                         )}
                     </div>

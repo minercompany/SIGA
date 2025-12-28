@@ -240,31 +240,119 @@ export default function ImportarPage() {
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="bg-slate-900 rounded-[2rem] p-12 min-h-[500px] flex flex-col items-center justify-center text-center relative overflow-hidden shadow-2xl shadow-slate-900/40"
                                 >
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/20 rounded-full blur-[100px] animate-pulse" />
-
-                                    <div className="relative z-10 w-72 h-72 mb-10">
-                                        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                                            <circle cx="50" cy="50" r="45" fill="none" stroke="#334155" strokeWidth="6" className="opacity-30" />
-                                            <motion.circle
-                                                cx="50" cy="50" r="45" fill="none" stroke="#34d399" strokeWidth="6" strokeLinecap="round"
-                                                initial={{ pathLength: 0 }}
-                                                animate={{ pathLength: progress / 100 }}
-                                                transition={{ duration: 0.5 }}
-                                                style={{ filter: "drop-shadow(0 0 10px rgba(52, 211, 153, 0.5))" }}
+                                    {/* Step 2: Processing (Clean White Theme) */}
+                                    {isImporting && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white via-emerald-50/30 to-white p-12 shadow-2xl shadow-emerald-500/20 border-2 border-emerald-100"
+                                        >
+                                            {/* Subtle Animated Background Pattern */}
+                                            <div className="absolute inset-0 opacity-30"
+                                                style={{
+                                                    backgroundImage: `radial-gradient(circle at 20% 50%, ${`hsla(${Math.round((progress / 100) * 120)}, 70%, 85%, 0.4)`} 0%, transparent 50%),
+                                                   radial-gradient(circle at 80% 80%, ${`hsla(${Math.round((progress / 100) * 120)}, 70%, 90%, 0.3)`} 0%, transparent 50%)`
+                                                }}
                                             />
-                                        </svg>
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-                                            <span className="text-7xl font-black tracking-tighter">{Math.round(progress)}<span className="text-4xl text-emerald-400">%</span></span>
-                                            <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest mt-2 bg-emerald-400/10 px-3 py-1 rounded-full">
-                                                {isUploading ? "Subiendo Datos" : "Procesando"}
-                                            </span>
-                                        </div>
-                                    </div>
 
-                                    <h3 className="text-2xl font-bold text-white mb-2">Procesando Padrón</h3>
-                                    <p className="text-slate-400 font-medium animate-pulse">Por favor mantén esta ventana abierta...</p>
+                                            {/* Content Container */}
+                                            <div className="relative z-10 flex flex-col items-center space-y-8">
+                                                {/* Circular Progress Animation */}
+                                                <div className="relative">
+                                                    {/* Outer Decorative Ring */}
+                                                    <svg className="w-64 h-64 transform -rotate-90">
+                                                        <circle
+                                                            cx="128"
+                                                            cy="128"
+                                                            r="120"
+                                                            stroke="currentColor"
+                                                            strokeWidth="3"
+                                                            fill="none"
+                                                            className="text-slate-100"
+                                                        />
+                                                        {/* Progress Ring - Dynamic Color */}
+                                                        <motion.circle
+                                                            cx="128"
+                                                            cy="128"
+                                                            r="120"
+                                                            stroke={`hsl(${Math.round((progress / 100) * 120)}, 75%, 50%)`}
+                                                            strokeWidth="12"
+                                                            fill="none"
+                                                            strokeLinecap="round"
+                                                            strokeDasharray="754"
+                                                            initial={{ strokeDashoffset: 754 }}
+                                                            animate={{ strokeDashoffset: 754 - (754 * progress) / 100 }}
+                                                            transition={{ duration: 0.8, ease: "easeInOut" }}
+                                                            style={{
+                                                                filter: `drop-shadow(0 0 12px hsla(${Math.round((progress / 100) * 120)}, 75%, 55%, 0.5))`
+                                                            }}
+                                                        />
+                                                    </svg>
+
+                                                    {/* Center Content */}
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                        <motion.div
+                                                            key={progress}
+                                                            initial={{ scale: 0.9, opacity: 0 }}
+                                                            animate={{ scale: 1, opacity: 1 }}
+                                                            className="text-center"
+                                                        >
+                                                            <div
+                                                                className="text-7xl font-black mb-3 tracking-tight"
+                                                                style={{
+                                                                    color: `hsl(${Math.round((progress / 100) * 120)}, 70%, 45%)`,
+                                                                }}
+                                                            >
+                                                                {progress}%
+                                                            </div>
+                                                            <div
+                                                                className="px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest border-2"
+                                                                style={{
+                                                                    backgroundColor: `hsla(${Math.round((progress / 100) * 120)}, 70%, 95%, 1)`,
+                                                                    color: `hsl(${Math.round((progress / 100) * 120)}, 70%, 40%)`,
+                                                                    borderColor: `hsla(${Math.round((progress / 100) * 120)}, 70%, 60%, 0.3)`
+                                                                }}
+                                                            >
+                                                                {progress === 100 ? 'Completado' : 'Procesando'}
+                                                            </div>
+                                                        </motion.div>
+                                                    </div>
+
+                                                    {/* Orbiting Indicator */}
+                                                    <motion.div
+                                                        className="absolute w-5 h-5 rounded-full shadow-lg"
+                                                        style={{
+                                                            backgroundColor: `hsl(${Math.round((progress / 100) * 120)}, 75%, 55%)`,
+                                                            top: '50%',
+                                                            left: '50%',
+                                                        }}
+                                                        animate={{
+                                                            rotate: 360,
+                                                        }}
+                                                        transition={{
+                                                            duration: 2,
+                                                            repeat: Infinity,
+                                                            ease: "linear"
+                                                        }}
+                                                    />
+                                                </div>
+
+                                                {/* Title & Subtitle */}
+                                                <div className="text-center space-y-3">
+                                                    <h2 className="text-4xl font-black text-slate-800 tracking-tight">
+                                                        Procesando Padrón
+                                                    </h2>
+                                                    <div className="flex items-center justify-center gap-3 text-slate-500">
+                                                        <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                                                        <p className="text-sm font-medium">
+                                                            Por favor mantén esta ventana abierta...
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
                                 </motion.div>
                             )}
 
@@ -273,6 +361,7 @@ export default function ImportarPage() {
                                     key="step3"
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0 }}
                                     className="bg-white rounded-[2rem] overflow-hidden shadow-2xl shadow-emerald-500/10"
                                 >
                                     <div className="bg-emerald-600 p-8 text-white relative overflow-hidden">

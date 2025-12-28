@@ -17,12 +17,16 @@ import {
     Camera,
     Mail,
     Phone,
-    Upload
+    Upload,
+    HelpCircle,
+    RotateCcw
 } from "lucide-react";
 import axios from "axios";
 import { useEffect, useCallback } from "react";
 import { useConfig } from "@/context/ConfigContext";
 import Swal from 'sweetalert2';
+import { useTour } from "@/components/tour";
+import { configuracionTour } from "@/components/tour/tourSteps";
 
 const ConfiguracionEvento = () => {
     const { nombreAsamblea, fechaAsamblea, updateConfig } = useConfig();
@@ -116,6 +120,18 @@ export default function ConfiguracionPage() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null);
 
+    // Tour hook
+    const { resetAllTours, startTour, hasSeenTour } = useTour();
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (!hasSeenTour('configuracion')) {
+                startTour(configuracionTour, 'configuracion');
+            }
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, [hasSeenTour, startTour]);
+
     // Perfil / Password States
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -135,6 +151,22 @@ export default function ConfiguracionPage() {
     const [telefono, setTelefono] = useState("");
     const [fotoPerfil, setFotoPerfil] = useState("");
     const [savingPersonal, setSavingPersonal] = useState(false);
+
+    // Handler para reiniciar guía
+    const handleResetTour = () => {
+        resetAllTours();
+        Swal.fire({
+            title: '¡Guía Reiniciada!',
+            text: 'La próxima vez que entres al Dashboard verás el tutorial de nuevo.',
+            icon: 'success',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#10b981',
+            padding: '2em',
+            customClass: {
+                popup: 'rounded-[2rem] shadow-2xl'
+            }
+        });
+    };
 
     useEffect(() => {
         const userData = localStorage.getItem("user");
@@ -345,13 +377,13 @@ export default function ConfiguracionPage() {
 
     return (
         <div className="max-w-4xl space-y-8 pb-20">
-            <div>
+            <div data-tour="config-header">
                 <h1 className="text-2xl font-black text-slate-800 italic uppercase tracking-tight">Mi Perfil y Configuración</h1>
                 <p className="text-slate-500">Gestiona tu cuenta y parámetros del sistema</p>
             </div>
 
             {/* SECCIÓN PERFIL (VISIBLE PARA TODOS) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6" data-tour="config-profile">
                 <div className="md:col-span-1 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm text-center flex flex-col items-center justify-center">
                     <div className="relative group">
                         <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-4 border-4 border-white shadow-xl overflow-hidden">
@@ -468,6 +500,30 @@ export default function ConfiguracionPage() {
                             {savingPass ? "Guardando..." : "Actualizar Contraseña"}
                         </button>
                     </form>
+                </div>
+            </div>
+
+            {/* Sección Guía de Principiante */}
+            <div className="rounded-2xl bg-white p-6 border border-slate-100 shadow-sm" data-tour="config-guide">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl shadow-lg shadow-indigo-200">
+                            <HelpCircle className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-800">Guía de Principiante</h2>
+                            <p className="text-sm text-slate-500">
+                                ¿Necesitas ver el tutorial de nuevo? Reinícialo aquí.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleResetTour}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-bold text-sm hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg shadow-indigo-200"
+                    >
+                        <RotateCcw className="h-4 w-4" />
+                        Reiniciar Guía
+                    </button>
                 </div>
             </div>
 

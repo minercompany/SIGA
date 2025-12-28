@@ -209,9 +209,8 @@ public class ImportacionService {
                         cedulasProcesadas.add(cedula);
 
                         // F: Teléfono
-                        String tel = getRawValue(row, COL_TELEFONO);
-                        if (tel != null)
-                            tel = tel.replaceAll("[^0-9]", "");
+                        String rawTel = getRawValue(row, COL_TELEFONO);
+                        String tel = procesarTelefonoParaguayo(rawTel); // Nueva lógica avanzada
 
                         // G: Sucursal
                         String sucCod = getRawValue(row, COL_SUCURSAL);
@@ -224,11 +223,47 @@ public class ImportacionService {
                             String code = sucCod.trim().toUpperCase();
                             sucId = sucursalMap.get(code);
                             if (sucId == null) {
-                                // AUTO-CREAR SUCURSAL SI NO EXISTE
+                                // AUTO-CREAR SUCURSAL SI NO EXISTE con nombre correcto
                                 try {
                                     Sucursal newSuc = new Sucursal();
                                     newSuc.setCodigo(code);
-                                    newSuc.setNombre(code); // Usar código como nombre por defecto
+
+                                    // Mapear códigos a nombres reales
+                                    String nombre;
+                                    String ciudad = null;
+                                    switch (code) {
+                                        case "1":
+                                        case "CC":
+                                            nombre = "Casa Central";
+                                            ciudad = "Asunción";
+                                            break;
+                                        case "2":
+                                            nombre = "Ciudad del Este";
+                                            ciudad = "Ciudad del Este";
+                                            break;
+                                        case "3":
+                                            nombre = "Villarrica";
+                                            ciudad = "Villarrica";
+                                            break;
+                                        case "5":
+                                            nombre = "Sucursal 5";
+                                            ciudad = null;
+                                            break;
+                                        case "6":
+                                            nombre = "Hernandarias";
+                                            ciudad = "Hernandarias";
+                                            break;
+                                        case "7":
+                                            nombre = "San Lorenzo";
+                                            ciudad = "San Lorenzo";
+                                            break;
+                                        default:
+                                            nombre = "Sucursal " + code;
+                                            break;
+                                    }
+
+                                    newSuc.setNombre(nombre);
+                                    newSuc.setCiudad(ciudad);
                                     newSuc = sucursalRepository.save(newSuc);
                                     sucursalMap.put(code, newSuc.getId());
                                     sucId = newSuc.getId();
@@ -435,6 +470,72 @@ public class ImportacionService {
             return 10000; // Fallback
         }
         return count;
+    }
+
+    // === LÓGICA DE PARSEO DE CELULARES ===
+    private String procesarTelefonoParaguayo(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return "";
+        }
+
+        // 1. Normalización de texto
+        String text = raw.replace("\n", " ")
+                .replace("-", " ")
+                .replace(".", " ")
+                .replace(",", " ")
+                .replace(";", " ")
+                .replace("/", " ")
+                .replace("*", " ")
+                .replace("(", " ")
+                .replace(")", " ")
+                .replaceAll("\\s+", " ");
+
+        // 2. Intento Global (Mejor apuesta para "0981 123 456")
+        String globalDigits = raw.replaceAll("[^0-9]", "");
+        String candidateGlobal = checkMobileCandidate(globalDigits);
+        if (candidateGlobal != null) {
+            return candidateGlobal;
+        }
+
+        // 3. Intento Por Tokens (Para "0981111222 / 0982333444")
+        String[] tokens = text.split(" ");
+        for (String token : tokens) {
+            String digits = token.replaceAll("[^0-9]", "");
+            String candidate = checkMobileCandidate(digits);
+            if (candidate != null) {
+                return candidate;
+            }
+        }
+
+        return "";
+    }
+
+    private String checkMobileCandidate(String digits) {
+        if (digits.length() < 8 || digits.length() > 10)
+            return null;
+        if (digits.startsWith("02"))
+            return null;
+        if (!digits.startsWith("0") && digits.startsWith("2"))
+            return null;
+
+        boolean startWith09 = digits.startsWith("09");
+        boolean startWith9 = digits.startsWith("9");
+
+        if (!startWith09 && !startWith9)
+            return null;
+
+        String number = digits;
+        if (digits.startsWith("0")) {
+            number = digits.substring(1);
+        }
+
+        if (number.length() != 9)
+            return null;
+
+        return String.format("+595 %s %s %s",
+                number.substring(0, 3),
+                number.substring(3, 6),
+                number.substring(6, 9));
     }
 
     // Clase interna para el estado (DTO)

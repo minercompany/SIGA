@@ -19,6 +19,6 @@ public class SucursalController {
 
     @GetMapping
     public ResponseEntity<List<Sucursal>> listar() {
-        return ResponseEntity.ok(sucursalRepository.findAll());
+        return ResponseEntity.ok(sucursalRepository.findAllByOrderByCodigoAsc());
     }
 }

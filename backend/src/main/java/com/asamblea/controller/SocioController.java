@@ -70,13 +70,19 @@ public class SocioController {
 
     // Listar todos los socios con paginación
     @GetMapping
-    public ResponseEntity<Page<Socio>> listarTodos(
+    public ResponseEntity<org.springframework.data.domain.Page<com.asamblea.dto.SocioDTO>> listarTodos(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         // El ordenamiento numérico ya está definido en la query con CAST
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(socioRepository.findAllWithSucursal(pageable));
+        org.springframework.data.domain.Page<Socio> sociosPage = socioRepository.findAllWithSucursal(pageable);
+
+        // Convertir a DTOs para GARANTIZAR que sucursal.nombre se serialice
+        org.springframework.data.domain.Page<com.asamblea.dto.SocioDTO> dtoPage = sociosPage
+                .map(com.asamblea.dto.SocioDTO::fromEntity);
+
+        return ResponseEntity.ok(dtoPage);
     }
 
     // Buscar socios - ahora incluye estado de asignación
@@ -222,7 +228,7 @@ public class SocioController {
     // Estadísticas por sucursal (para la tabla "Desempeño Regional")
     @GetMapping("/estadisticas/por-sucursal")
     public ResponseEntity<List<Map<String, Object>>> estadisticasPorSucursal() {
-        List<Sucursal> sucursales = sucursalRepository.findAll();
+        List<Sucursal> sucursales = sucursalRepository.findAllByOrderByCodigoAsc();
         List<Map<String, Object>> resultado = new ArrayList<>();
 
         for (Sucursal suc : sucursales) {

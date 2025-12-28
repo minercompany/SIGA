@@ -47,8 +47,8 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const nombreAsamblea = config["ASAMBLEA_NOMBRE"] || "ASAMBLEA GENERAL ORDINARIA 2025";
-    const fechaAsamblea = config["ASAMBLEA_FECHA"] || "2025-01-05";
+    const nombreAsamblea = config["ASAMBLEA_NOMBRE"] || "ASAMBLEA GENERAL ORDINARIA 2026";
+    const fechaAsamblea = config["ASAMBLEA_FECHA"] || "2026-01-15";
 
     return (
         <ConfigContext.Provider value={{ nombreAsamblea, fechaAsamblea, updateConfig, refreshConfig }}>

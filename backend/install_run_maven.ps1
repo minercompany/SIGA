@@ -29,18 +29,43 @@ if (-not (Test-Path $mavenBin)) {
     finally {
         if (Test-Path $zipPath) { Remove-Item $zipPath }
     }
-} else {
+}
+else {
     Write-Host "Maven found at $mavenBin"
 }
 
-# Set Java Home (Using the one from run_backend.ps1 if valid, otherwise rely on system or try to find it)
-$configuredJavaHome = "C:\Program Files\Microsoft\jdk-21.0.9.10-hotspot"
-if (Test-Path $configuredJavaHome) {
-    $env:JAVA_HOME = $configuredJavaHome
+# Set Java Home (Provision portable JDK 21 if not present)
+$jdkVersion = "21.0.4"
+$jdkUrl = "https://aka.ms/download-jdk/microsoft-jdk-$jdkVersion-windows-x64.zip"
+$jdkDir = Join-Path $toolsDir "jdk-$jdkVersion"
+$jdkZip = Join-Path $toolsDir "jdk.zip"
+
+if (-not (Test-Path $jdkDir)) {
+    Write-Host "JDK 21 not found in $jdkDir. Downloading..."
+    try {
+        Invoke-WebRequest -Uri $jdkUrl -OutFile $jdkZip
+        Write-Host "Extracting JDK..."
+        Expand-Archive -Path $jdkZip -DestinationPath $toolsDir -Force
+        
+        # Renaissance of folder name might be needed as zip usually extracts to 'jdk-21.0.4+7' or similar
+        # simpler: just identify the new folder
+        $extracted = Get-ChildItem -Path $toolsDir -Directory | Where-Object { $_.Name -like "jdk-21*" -and $_.Name -ne "jdk-$jdkVersion" } | Select-Object -First 1
+        if ($extracted) {
+            Rename-Item -Path $extracted.FullName -NewName "jdk-$jdkVersion"
+        }
+    }
+    finally {
+        if (Test-Path $jdkZip) { Remove-Item $jdkZip }
+    }
+}
+
+if (Test-Path $jdkDir) {
+    $env:JAVA_HOME = $jdkDir
     $env:Path = "$env:JAVA_HOME\bin;$env:Path"
-    Write-Host "Using JAVA_HOME: $env:JAVA_HOME"
-} else {
-    Write-Warning "Configured JAVA_HOME ($configuredJavaHome) not found. Relying on system PATH."
+    Write-Host "Using Portable JAVA_HOME: $env:JAVA_HOME"
+}
+else {
+    Write-Warning "Failed to provision portable JDK. Relying on system PATH (Risk of incompatibility)."
 }
 
 # Run Backend

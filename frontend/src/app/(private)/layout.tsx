@@ -9,6 +9,7 @@ import { ImportProvider } from "@/context/ImportContext";
 import ImportStatusFloating from "@/components/ImportStatusFloating";
 import ForcePasswordChange from "@/components/auth/ForcePasswordChange";
 import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
+import { TourProvider, TourOverlay } from "@/components/tour";
 
 export default function PrivateLayout({
     children,
@@ -46,26 +47,29 @@ export default function PrivateLayout({
     }
 
     return (
-        <ImportProvider>
-            <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-teal-50/30">
-                {user?.requiresPasswordChange && (
-                    <ForcePasswordChange onSuccess={() => {
-                        const newUser = JSON.parse(localStorage.getItem("user") || "{}");
-                        setUser(newUser);
-                    }} />
-                )}
-                {user && <WelcomeModal user={user} onUpdateUser={setUser} />}
-                <Sidebar />
-                <div className="flex flex-1 flex-col overflow-hidden">
-                    <TopBar />
-                    <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-                        <div className="animate-fade-in">
-                            {children}
-                        </div>
-                    </main>
-                    <ImportStatusFloating />
+        <TourProvider>
+            <ImportProvider>
+                <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-teal-50/30">
+                    {user?.requiresPasswordChange && (
+                        <ForcePasswordChange onSuccess={() => {
+                            const newUser = JSON.parse(localStorage.getItem("user") || "{}");
+                            setUser(newUser);
+                        }} />
+                    )}
+                    {user && <WelcomeModal user={user} onUpdateUser={setUser} />}
+                    <Sidebar />
+                    <div className="flex flex-1 flex-col overflow-hidden">
+                        <TopBar />
+                        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+                            <div className="animate-fade-in">
+                                {children}
+                            </div>
+                        </main>
+                        <ImportStatusFloating />
+                    </div>
                 </div>
-            </div>
-        </ImportProvider>
+                <TourOverlay />
+            </ImportProvider>
+        </TourProvider>
     );
 }

@@ -181,6 +181,7 @@ export default function SociosPage() {
                                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-16">#</th>
                                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Socio</th>
                                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Documento</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Teléfono</th>
                                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Sucursal</th>
                                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Estado</th>
                                         <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
@@ -197,6 +198,9 @@ export default function SociosPage() {
                                             </td>
                                             <td className="p-4 text-sm text-slate-600 font-medium">
                                                 {socio.cedula}
+                                            </td>
+                                            <td className="p-4 text-sm text-slate-600 font-mono">
+                                                {socio.telefono || '-'}
                                             </td>
                                             <td className="p-4 text-sm text-slate-600">
                                                 {socio.sucursal?.nombre || '-'}
@@ -276,6 +280,10 @@ export default function SociosPage() {
                                         <p className="font-bold text-slate-700 font-mono tracking-tight text-sm">{socio.cedula}</p>
                                     </div>
                                     <div className="space-y-1 border-l border-slate-200 pl-4">
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Teléfono</p>
+                                        <p className="font-bold text-slate-700 font-mono tracking-tight text-sm">{socio.telefono || '-'}</p>
+                                    </div>
+                                    <div className="space-y-1 col-span-2 border-t border-slate-100 pt-2">
                                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Sucursal</p>
                                         <div className="flex items-center gap-1 overflow-hidden">
                                             <Building2 className="h-3 w-3 text-slate-400 flex-shrink-0" />

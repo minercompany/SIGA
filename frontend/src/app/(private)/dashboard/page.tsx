@@ -71,11 +71,21 @@ export default function DashboardPage() {
                     const [statsRes, desempenoRes, rankingRes] = await Promise.all([
                         axios.get("http://localhost:8081/api/socios/estadisticas", { headers }),
                         axios.get("http://localhost:8081/api/socios/estadisticas/por-sucursal", { headers }),
-                        axios.get("http://localhost:8081/api/asistencia/ranking-operadores", { headers })
+                        // Cambiado a ranking de asignaciones en lugar de asistencia
+                        axios.get("http://localhost:8081/api/asignaciones/ranking-usuarios", { headers })
                     ]);
                     setStats(statsRes.data);
                     setDesempeno(desempenoRes.data);
-                    setRankingOperadores(rankingRes.data || []);
+
+                    // Mapear respuesta del ranking de asignaciones al formato esperado por AdminDashboard
+                    const mappedRanking = (rankingRes.data || []).map((item: any) => ({
+                        nombre: item.nombre,
+                        username: item.username,
+                        totalRegistros: item.totalAsignados, // Mapeamos totalAsignados a totalRegistros
+                        ...item
+                    }));
+
+                    setRankingOperadores(mappedRanking);
                 }
             }
         } catch (error) {
