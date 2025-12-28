@@ -3,57 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { useConfig } from "@/context/ConfigContext";
 import { motion } from "framer-motion";
-import { Calendar, AlertCircle } from "lucide-react";
-
-const Digit = ({ value, label }: { value: string | number, label: string }) => (
-    <motion.div
-        className="flex flex-col items-center gap-1 md:gap-2"
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-    >
-        <div className="relative group">
-            {/* Glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-
-            {/* Main digit container - Mobile optimized */}
-            <div className="relative bg-gradient-to-br from-white via-white to-emerald-50/30 rounded-xl md:rounded-2xl border-2 border-emerald-100/50 px-3 py-3 md:px-5 md:py-4 min-w-[50px] md:min-w-[80px] shadow-[0_8px_30px_rgba(16,185,129,0.12)] backdrop-blur-sm flex items-center justify-center group-hover:shadow-[0_12px_40px_rgba(16,185,129,0.18)] transition-all duration-300">
-                <span className="text-2xl md:text-4xl font-black bg-gradient-to-br from-slate-800 to-slate-600 bg-clip-text text-transparent leading-none select-none tabular-nums">
-                    {String(value).padStart(2, '0')}
-                </span>
-            </div>
-        </div>
-        <span className="text-[10px] md:text-xs font-bold text-slate-600 uppercase tracking-[0.15em] hidden sm:block">
-            {label}
-        </span>
-    </motion.div>
-);
-
-
-const Separator = () => (
-    <div className="flex flex-col justify-center gap-1.5 md:gap-3 pt-1 md:pt-2 px-0.5 md:px-2">
-        <div className="w-1 h-1 md:w-2 md:h-2 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full shadow-lg shadow-emerald-500/30" />
-        <div className="w-1 h-1 md:w-2 md:h-2 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-full shadow-md shadow-emerald-400/20 opacity-60" />
-    </div>
-);
+import { Calendar, Clock, AlertCircle, ChevronRight, Zap } from "lucide-react";
 
 export const CountdownTimer = () => {
     const { fechaAsamblea, nombreAsamblea } = useConfig();
-    const [timeLeft, setTimeLeft] = useState<{
-        days: number;
-        hours: number;
-        minutes: number;
-        seconds: number;
-    }>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+    const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
     const [isPast, setIsPast] = useState(false);
 
     useEffect(() => {
         if (!fechaAsamblea) return;
 
-        // Intentar parsear la fecha de forma segura
-        // Si viene como YYYY-MM-DD
         const [year, month, day] = fechaAsamblea.split('-').map(Number);
-        const targetDate = new Date(year, month - 1, day, 8, 0, 0); // 8 AM del día X
+        const targetDate = new Date(year, month - 1, day, 8, 0, 0);
 
         const calculateTimeLeft = () => {
             const now = new Date();
@@ -78,63 +39,107 @@ export const CountdownTimer = () => {
         return () => clearInterval(timer);
     }, [fechaAsamblea]);
 
+    if (!timeLeft && !isPast) return null;
+
+    // Vivid Premium Design: High Contrast & System Colors
     return (
         <div className="w-full mb-8">
-            <div className={`bg-gradient-to-r ${isPast ? 'from-amber-50 to-orange-50 border-amber-100' : 'from-[#f0fdf4] to-[#f8fafc] border-emerald-100'} rounded-[2rem] p-4 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 px-4 md:px-12 relative overflow-hidden transition-colors duration-500`}>
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`
+                relative overflow-hidden rounded-[2rem] w-full shadow-2xl shadow-emerald-900/20
+                ${isPast
+                        ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600'
+                        : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800'
+                    }
+            `}>
+                {/* Decorative Background Elements - Glassy & Vivid */}
+                <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-black/5 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none" />
 
-                {/* Logo Decorativo */}
-                <div className="absolute top-1/2 -right-10 -translate-y-1/2 opacity-[0.04] pointer-events-none grayscale select-none">
-                    <img src="/images/logo_coop.png" className="w-56" alt="" />
-                </div>
+                {/* Pattern Overlay */}
+                <div className="absolute inset-0 opacity-[0.05] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay pointer-events-none" />
 
-                {/* Sección Izquierda */}
-                <div className="flex items-center gap-4 md:gap-6 relative z-10 w-full md:w-auto">
-                    <div className={`p-3.5 ${isPast ? 'bg-amber-600 shadow-amber-200' : 'bg-emerald-600 shadow-emerald-200'} rounded-2xl shadow-lg transition-colors flex-shrink-0`}>
-                        {isPast ? <AlertCircle className="w-7 h-7 text-white" /> : <Calendar className="w-7 h-7 text-white" />}
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className={`w-2 h-2 ${isPast ? 'bg-amber-500' : 'bg-emerald-500'} rounded-full animate-ping`} />
-                            <h2 className={`text-[10px] font-black ${isPast ? 'text-amber-600' : 'text-emerald-600'} uppercase tracking-[0.2em] leading-tight italic`}>
-                                {isPast ? 'Evento Finalizado / En Curso' : 'Cuenta Regresiva Oficial'}
+                <div className="relative flex flex-col lg:flex-row items-center justify-between px-6 py-6 lg:px-10 lg:py-8 gap-8">
+
+                    {/* Left: Event Info with High Impact */}
+                    <div className="flex items-center gap-6 w-full lg:w-auto z-10">
+                        <div className={`
+                            p-4 rounded-2xl shadow-xl shrink-0 backdrop-blur-md border border-white/20
+                            ${isPast ? 'bg-white/20' : 'bg-white/10'}
+                        `}>
+                            {isPast
+                                ? <AlertCircle className="w-8 h-8 text-white drop-shadow-md" />
+                                : <Calendar className="w-8 h-8 text-white drop-shadow-md" />
+                            }
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                                {!isPast && (
+                                    <span className="relative flex h-2.5 w-2.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
+                                    </span>
+                                )}
+                                <h3 className="text-xs font-bold text-emerald-100 uppercase tracking-[0.2em] drop-shadow-sm">
+                                    {isPast ? 'Evento Finalizado' : 'Cuenta Regresiva Oficial'}
+                                </h3>
+                            </div>
+                            <h2 className="text-2xl lg:text-3xl font-black text-white leading-tight tracking-tight drop-shadow-md">
+                                {nombreAsamblea}
                             </h2>
+                            <p className="text-white/80 text-sm font-medium mt-1 flex items-center gap-2">
+                                <Clock className="w-3.5 h-3.5" />
+                                {fechaAsamblea} • Asamblea.Cloud
+                            </p>
                         </div>
-                        <p className="text-lg md:text-xl font-black text-slate-800 uppercase tracking-tight line-clamp-2 md:line-clamp-none">
-                            {nombreAsamblea}
-                        </p>
                     </div>
-                </div>
 
-                {/* Centro: El Reloj - Mobile Optimized */}
-                <div className={`flex items-center justify-center gap-2 md:gap-8 relative z-10 w-full md:w-auto ${isPast ? 'bg-amber-100/50 border-amber-200/50 opacity-60' : 'bg-gradient-to-br from-emerald-50/80 via-teal-50/60 to-cyan-50/40 border-emerald-200/60'} p-3 md:p-4 md:px-8 rounded-2xl md:rounded-3xl border-2 backdrop-blur-md shadow-[0_8px_32px_rgba(16,185,129,0.15)] transition-all`}>
-                    <Digit value={timeLeft.days} label="Días" />
-                    <Separator />
-                    <Digit value={timeLeft.hours} label="Horas" />
-                    <Separator />
-                    <Digit value={timeLeft.minutes} label="Minutos" />
-                    <Separator />
-                    <Digit value={timeLeft.seconds} label="Segundos" />
-                </div>
-
-                {/* Sección Derecha */}
-                <div className="hidden lg:block relative z-10">
-                    <div className={`px-6 py-2.5 bg-white border ${isPast ? 'border-amber-200' : 'border-emerald-100'} rounded-2xl shadow-sm flex items-center gap-4`}>
-                        <div className="flex -space-x-1">
-                            <div className={`w-2 h-2 ${isPast ? 'bg-amber-500' : 'bg-emerald-500'} rounded-full`} />
-                            <div className={`w-2 h-2 ${isPast ? 'bg-amber-400' : 'bg-emerald-400'} rounded-full opacity-50`} />
+                    {/* Right: The Timer (White Cards on Vivid Background) */}
+                    {!isPast && timeLeft && (
+                        <div className="flex items-center gap-3 lg:gap-4 z-10">
+                            {[
+                                { val: timeLeft.days, label: 'DÍAS' },
+                                { val: timeLeft.hours, label: 'HORAS' },
+                                { val: timeLeft.minutes, label: 'MIN' },
+                                { val: timeLeft.seconds, label: 'SEG' }
+                            ].map((item, i) => (
+                                <div key={item.label} className="flex flex-col items-center">
+                                    <motion.div
+                                        whileHover={{ y: -2 }}
+                                        className="relative bg-white rounded-2xl w-16 h-16 lg:w-20 lg:h-20 flex items-center justify-center shadow-lg shadow-emerald-900/20 border-b-4 border-emerald-100/50"
+                                    >
+                                        <span className="text-3xl lg:text-4xl font-black text-emerald-700 tabular-nums leading-none tracking-tight">
+                                            {String(item.val).padStart(2, '0')}
+                                        </span>
+                                    </motion.div>
+                                    <span className="text-[10px] lg:text-xs font-bold text-white/90 mt-2 uppercase tracking-widest drop-shadow-sm">
+                                        {item.label}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
-                        <span className={`text-xs font-black ${isPast ? 'text-amber-800' : 'text-emerald-800'} uppercase tracking-widest`}>
-                            {isPast ? 'Finalizado' : 'Activo'}
-                        </span>
+                    )}
+
+                    {/* Status Badge (Desktop Only) */}
+                    <div className="hidden lg:block z-10">
+                        <div className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${isPast ? 'bg-amber-400' : 'bg-emerald-400'} shadow-[0_0_8px_rgba(52,211,153,0.6)]`} />
+                            <span className="text-xs font-bold text-white uppercase tracking-wider">
+                                {isPast ? 'Finalizado' : 'Sistema Activo'}
+                            </span>
+                        </div>
                     </div>
+
                 </div>
-            </div>
+            </motion.div>
 
             {isPast && (
-                <div className="mt-2 text-center">
-                    <p className="text-xs text-amber-600 font-bold bg-amber-50 py-1 px-4 rounded-full inline-block border border-amber-100 italic">
-                        Nota: La fecha configurada ({fechaAsamblea}) es anterior a la fecha de hoy.
-                        <strong> Cambia el año a 2026 en Configuración</strong> si deseas ver el contador.
+                <div className="mt-3 text-center">
+                    <p className="text-xs text-amber-600 font-bold bg-amber-50 py-1.5 px-6 rounded-full inline-block border border-amber-100">
+                        La fecha del evento ({fechaAsamblea}) ha pasado.
+                        Configura 2026 para reiniciar el contador.
                     </p>
                 </div>
             )}
