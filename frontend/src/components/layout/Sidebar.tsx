@@ -166,7 +166,7 @@ export function Sidebar() {
             </div>
 
             {/* Navegación */}
-            <nav data-tour="sidebar-panel" className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+            <nav data-tour={isMobile && !mobileOpen ? undefined : "sidebar-panel"} className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
                 {menuItems.filter(item => hasPermission(item.id)).map((item) => {
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     const hasSubmenu = item.submenu && item.submenu.length > 0;
