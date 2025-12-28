@@ -88,7 +88,7 @@ export default function ImportarPage() {
         alert("Descarga de plantilla iniciada...");
     };
 
-    const formatNumber = (num: number) => num.toLocaleString();
+    const formatNumber = (num: number | undefined | null) => (num ?? 0).toLocaleString();
     const formatDate = (dateStr: string) => {
         const date = new Date(dateStr);
         return date.toLocaleDateString("es-PY", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -289,10 +289,10 @@ export default function ImportarPage() {
                                     <div className="p-8">
                                         <div className="grid grid-cols-2 gap-4 mb-8">
                                             {[
-                                                { label: "Total Filas", val: stats.totalRows, color: "text-slate-800", bg: "bg-slate-50", border: "border-slate-100" },
-                                                { label: "Nuevos Socios", val: stats.imported, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
-                                                { label: "Actualizados", val: stats.updated, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100" },
-                                                { label: "Errores", val: stats.errors, color: "text-red-500", bg: "bg-red-50", border: "border-red-100" }
+                                                { label: "Total Filas", val: stats.totalRows ?? 0, color: "text-slate-800", bg: "bg-slate-50", border: "border-slate-100" },
+                                                { label: "Nuevos Socios", val: stats.imported ?? 0, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
+                                                { label: "Actualizados", val: stats.updated ?? 0, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100" },
+                                                { label: "Errores", val: stats.errors ?? 0, color: "text-red-500", bg: "bg-red-50", border: "border-red-100" }
                                             ].map((stat, i) => (
                                                 <div key={i} className={`p-6 rounded-2xl border ${stat.bg} ${stat.border} flex flex-col items-center justify-center`}>
                                                     <span className={`text-4xl font-black ${stat.color}`}>{formatNumber(stat.val)}</span>
