@@ -60,6 +60,9 @@ public class Usuario implements UserDetails {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+
     /**
      * Roles del Sistema:
      * - SUPER_ADMIN: Acceso total, puede editar, cargar, eliminar todo

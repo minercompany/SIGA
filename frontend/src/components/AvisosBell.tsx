@@ -158,7 +158,7 @@ export default function AvisosBell() {
 
     return (
         <>
-            {/* Bell Button */}
+            {/* Bell Button Premium - Permanent Style */}
             <div className="relative">
                 <motion.button
                     onClick={() => setIsOpen(!isOpen)}

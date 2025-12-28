@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, User, Calendar, Menu, X, ArrowLeft } from "lucide-react";
+import { Bell, Search, User, Calendar, Menu, X, ArrowLeft, LogOut, Settings, Mail, UserCircle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { WelcomeModal } from "../onboarding/WelcomeModal";
 import AvisosBell from "../AvisosBell";
@@ -12,6 +12,9 @@ export function TopBar() {
     const [showResults, setShowResults] = useState(false);
     const [selectedMember, setSelectedMember] = useState<any | null>(null);
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+    const userMenuRef = useRef<HTMLDivElement>(null);
 
     const searchContainerRef = useRef<HTMLDivElement>(null);
     const mobileSearchRef = useRef<HTMLInputElement>(null);
@@ -22,12 +25,15 @@ export function TopBar() {
             if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
                 setShowResults(false);
             }
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setIsUserMenuOpen(false);
+            }
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [searchContainerRef]);
+    }, [searchContainerRef, userMenuRef]);
 
     // Cerrar modal con ESC
     useEffect(() => {
@@ -261,15 +267,86 @@ export function TopBar() {
 
                     <div className="h-8 w-px bg-slate-200 hidden md:block" />
 
-                    {/* Perfil de usuario */}
-                    <div className="flex items-center gap-3">
-                        <div className="text-right hidden md:block">
-                            <p className="text-sm font-bold text-slate-700">{user?.nombreCompleto || "Cargando..."}</p>
-                            <p className="text-xs text-teal-600 font-medium">{user?.rol || "Usuario"}</p>
-                        </div>
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-200/50">
-                            <User className="h-5 w-5 text-white" />
-                        </div>
+                    {/* Perfil de usuario con Dropdown */}
+                    <div className="relative" ref={userMenuRef}>
+                        <button
+                            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                            className="flex items-center gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors outline-none focus:ring-2 focus:ring-teal-100"
+                        >
+                            <div className="text-right hidden md:block">
+                                <p className="text-sm font-bold text-slate-700">{user?.nombreCompleto || "Cargando..."}</p>
+                                <p className="text-xs text-teal-600 font-medium">{user?.rol || "Usuario"}</p>
+                            </div>
+                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-200/50 ring-2 ring-white">
+                                {user?.fotoPerfil ? (
+                                    <img
+                                        src={user.fotoPerfil}
+                                        alt="Perfil"
+                                        className="h-full w-full object-cover rounded-xl"
+                                    />
+                                ) : (
+                                    <User className="h-5 w-5 text-white" />
+                                )}
+                            </div>
+                        </button>
+
+                        {/* Dropdown Menu Premium */}
+                        {isUserMenuOpen && (
+                            <div className="absolute right-0 top-14 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2 z-50">
+                                {/* Header del Dropdown */}
+                                <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
+                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-md text-white font-bold text-xl">
+                                        {user?.fotoPerfil ? (
+                                            <img src={user.fotoPerfil} alt="" className="h-full w-full rounded-full object-cover" />
+                                        ) : (
+                                            user?.nombreCompleto?.charAt(0) || "U"
+                                        )}
+                                    </div>
+                                    <div className="flex-1 overflow-hidden">
+                                        <p className="font-bold text-slate-800 truncate">{user?.nombreCompleto}</p>
+                                        <p className="text-xs text-slate-500 truncate">{user?.username}</p>
+                                    </div>
+                                </div>
+
+                                <div className="p-2 space-y-1">
+                                    <button
+                                        onClick={() => { setIsUserMenuOpen(false); window.location.href = '/configuracion'; }}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-colors group"
+                                    >
+                                        <UserCircle className="h-5 w-5 text-slate-400 group-hover:text-teal-500" />
+                                        Mi Perfil
+                                    </button>
+                                    <button
+                                        onClick={() => { setIsUserMenuOpen(false); window.location.href = '/mensajes/chat'; }}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-colors group"
+                                    >
+                                        <Mail className="h-5 w-5 text-slate-400 group-hover:text-teal-500" />
+                                        Ver Mensajes
+                                    </button>
+                                    <button
+                                        onClick={() => { setIsUserMenuOpen(false); window.location.href = '/configuracion'; }}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-colors group"
+                                    >
+                                        <Settings className="h-5 w-5 text-slate-400 group-hover:text-teal-500" />
+                                        Configuración
+                                    </button>
+                                </div>
+
+                                <div className="p-2 border-t border-slate-100">
+                                    <button
+                                        onClick={() => {
+                                            localStorage.removeItem("token");
+                                            localStorage.removeItem("user");
+                                            window.location.href = "/login";
+                                        }}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 transition-colors group"
+                                    >
+                                        <LogOut className="h-5 w-5 text-red-400 group-hover:text-red-500" />
+                                        Cerrar Sesión
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </header>
