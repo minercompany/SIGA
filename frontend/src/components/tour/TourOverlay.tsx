@@ -93,6 +93,21 @@ export function TourOverlay() {
         };
     }, [isActive, currentStep, currentStepData, isMobile]);
 
+    // Función inteligente para avanzar
+    const handleNext = () => {
+        // En móvil: Si estamos en el paso del sidebar, verificar si está abierto
+        if (isMobile && currentStepData.id === 'sidebar') {
+            // Buscamos el panel. Si existe (tiene el atributo data-tour), es porque está abierto.
+            // Si no existe (undefined o invisible), está cerrado.
+            const sidebarIsOpen = document.querySelector('[data-tour="sidebar-panel"]');
+
+            if (!sidebarIsOpen) {
+                window.dispatchEvent(new Event('toggle-sidebar'));
+            }
+        }
+        nextStep();
+    };
+
     if (!isActive || !currentStepData) return null;
 
     return (
@@ -235,7 +250,7 @@ export function TourOverlay() {
                                     </button>
                                 )}
                                 <button
-                                    onClick={nextStep}
+                                    onClick={handleNext}
                                     className="px-4 py-2 md:px-5 md:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-bold text-xs md:text-sm hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg shadow-emerald-200 flex items-center gap-2 whitespace-nowrap"
                                 >
                                     {currentStep === steps.length - 1 ? '¡Listo!' : 'Siguiente'}
