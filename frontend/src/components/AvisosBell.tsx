@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, X, Check, CheckCheck, MessageSquare, AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { Bell, X, Check, CheckCheck, MessageSquare, AlertTriangle, AlertCircle, Info, Megaphone } from 'lucide-react';
 import axios from 'axios';
 
 interface Aviso {
@@ -133,16 +133,27 @@ export default function AvisosBell() {
         switch (prioridad) {
             case 'CRITICA': return <AlertCircle className="h-5 w-5 text-red-500" />;
             case 'ALTA': return <AlertTriangle className="h-5 w-5 text-amber-500" />;
-            default: return <Info className="h-5 w-5 text-blue-500" />;
+            default: return <Megaphone className="h-5 w-5 text-teal-500" />;
         }
     };
 
     const getPrioridadStyle = (prioridad: string) => {
         switch (prioridad) {
-            case 'CRITICA': return 'border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20';
-            case 'ALTA': return 'border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-900/20';
-            default: return 'border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20';
+            case 'CRITICA': return 'border-l-4 border-red-500 bg-red-50';
+            case 'ALTA': return 'border-l-4 border-amber-500 bg-amber-50';
+            default: return 'border-l-4 border-teal-500 bg-teal-50/50';
         }
+    };
+
+    const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr);
+        return new Intl.DateTimeFormat('es-PY', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
     };
 
     return (
@@ -153,14 +164,14 @@ export default function AvisosBell() {
                     onClick={() => setIsOpen(!isOpen)}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className="relative p-2.5 rounded-2xl bg-white border border-slate-200 hover:border-teal-300 hover:shadow-lg hover:shadow-teal-100 transition-all"
                 >
-                    <Bell className="h-6 w-6 text-slate-600 dark:text-slate-300" />
+                    <Bell className="h-5 w-5 text-slate-600" />
                     {unreadCount > 0 && (
                         <motion.span
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs font-bold flex items-center justify-center"
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-full text-white text-[10px] font-black flex items-center justify-center shadow-lg shadow-teal-200"
                         >
                             {unreadCount > 9 ? '9+' : unreadCount}
                         </motion.span>
@@ -174,65 +185,89 @@ export default function AvisosBell() {
                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50"
+                            className="absolute right-0 mt-3 w-80 sm:w-[420px] bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden z-50"
                         >
-                            {/* Header */}
-                            <div className="px-4 py-3 bg-gradient-to-r from-violet-500 to-purple-600 flex items-center justify-between">
-                                <h3 className="text-white font-bold">Avisos</h3>
-                                <button onClick={() => setIsOpen(false)}>
-                                    <X className="h-5 w-5 text-white/80 hover:text-white" />
+                            {/* Header Premium */}
+                            <div className="px-6 py-4 bg-gradient-to-r from-slate-900 to-slate-800 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-white/10 rounded-xl">
+                                        <Bell className="h-5 w-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-black tracking-tight">AVISOS</h3>
+                                        <p className="text-white/60 text-xs font-medium">Centro de notificaciones</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setIsOpen(false)}
+                                    className="p-2 hover:bg-white/10 rounded-xl transition-colors"
+                                >
+                                    <X className="h-5 w-5 text-white/70 hover:text-white" />
                                 </button>
                             </div>
 
                             {/* List */}
-                            <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                            <div className="max-h-[400px] overflow-y-auto">
                                 {avisos.length === 0 ? (
-                                    <div className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
-                                        <Bell className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                                        <p>No tenés avisos</p>
+                                    <div className="px-6 py-12 text-center">
+                                        <div className="w-16 h-16 mx-auto bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                                            <Bell className="h-8 w-8 text-slate-300" />
+                                        </div>
+                                        <p className="text-slate-400 font-bold">Sin avisos pendientes</p>
+                                        <p className="text-slate-300 text-sm mt-1">Estás al día</p>
                                     </div>
                                 ) : (
-                                    avisos.map((aviso) => (
-                                        <motion.div
-                                            key={aviso.id}
-                                            whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
-                                            onClick={() => {
-                                                setSelectedAviso(aviso);
-                                                setShowModal(true);
-                                                if (!aviso.leidoAt) marcarLeido(aviso.id);
-                                            }}
-                                            className={`px-4 py-3 cursor-pointer ${!aviso.leidoAt ? 'bg-violet-50 dark:bg-violet-900/20' : ''
-                                                } ${getPrioridadStyle(aviso.prioridad)}`}
-                                        >
-                                            <div className="flex items-start gap-3">
-                                                {getPrioridadIcon(aviso.prioridad)}
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold text-sm text-slate-800 dark:text-white truncate">
-                                                        {aviso.titulo || 'Aviso'}
-                                                    </p>
-                                                    <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mt-0.5">
-                                                        {aviso.contenido}
-                                                    </p>
-                                                    <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-400">
-                                                        <span>{new Date(aviso.enviadoAt).toLocaleDateString('es-PY')}</span>
-                                                        {aviso.confirmadoAt && (
-                                                            <span className="flex items-center gap-1 text-green-500">
-                                                                <CheckCheck className="h-3 w-3" /> Confirmado
+                                    <div className="divide-y divide-slate-100">
+                                        {avisos.map((aviso) => (
+                                            <motion.div
+                                                key={aviso.id}
+                                                whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
+                                                onClick={() => {
+                                                    setSelectedAviso(aviso);
+                                                    setShowModal(true);
+                                                    if (!aviso.leidoAt) marcarLeido(aviso.id);
+                                                }}
+                                                className={`px-6 py-4 cursor-pointer transition-all ${!aviso.leidoAt ? 'bg-teal-50/50' : ''
+                                                    } ${getPrioridadStyle(aviso.prioridad)}`}
+                                            >
+                                                <div className="flex items-start gap-4">
+                                                    <div className={`p-2.5 rounded-xl flex-shrink-0 ${aviso.prioridad === 'CRITICA' ? 'bg-red-100' :
+                                                            aviso.prioridad === 'ALTA' ? 'bg-amber-100' : 'bg-teal-100'
+                                                        }`}>
+                                                        {getPrioridadIcon(aviso.prioridad)}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <p className="font-bold text-sm text-slate-900 truncate">
+                                                                {aviso.titulo || 'Aviso del Sistema'}
+                                                            </p>
+                                                            {!aviso.leidoAt && (
+                                                                <span className="w-2.5 h-2.5 bg-teal-500 rounded-full flex-shrink-0 animate-pulse"></span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                                                            {aviso.contenido}
+                                                        </p>
+                                                        <div className="flex items-center gap-3 mt-2">
+                                                            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">
+                                                                {formatDate(aviso.enviadoAt)}
                                                             </span>
-                                                        )}
-                                                        {aviso.respondidoAt && !aviso.confirmadoAt && (
-                                                            <span className="flex items-center gap-1 text-blue-500">
-                                                                <MessageSquare className="h-3 w-3" /> Respondido
-                                                            </span>
-                                                        )}
+                                                            {aviso.confirmadoAt && (
+                                                                <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 uppercase">
+                                                                    <CheckCheck className="h-3 w-3" /> Confirmado
+                                                                </span>
+                                                            )}
+                                                            {aviso.respondidoAt && !aviso.confirmadoAt && (
+                                                                <span className="flex items-center gap-1 text-[10px] font-bold text-teal-500 uppercase">
+                                                                    <MessageSquare className="h-3 w-3" /> Respondido
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                {!aviso.leidoAt && (
-                                                    <span className="w-2 h-2 bg-violet-500 rounded-full flex-shrink-0 mt-2"></span>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    ))
+                                            </motion.div>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                         </motion.div>
@@ -240,7 +275,7 @@ export default function AvisosBell() {
                 </AnimatePresence>
             </div>
 
-            {/* Modal para aviso detallado */}
+            {/* Modal para aviso detallado - ESTILO PREMIUM CLARO */}
             <AnimatePresence>
                 {showModal && selectedAviso && (
                     <>
@@ -249,49 +284,58 @@ export default function AvisosBell() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => !selectedAviso.requiereConfirmacion && setShowModal(false)}
-                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100]"
                         />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="fixed inset-4 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl z-[101] overflow-hidden flex flex-col max-h-[90vh]"
+                            className="fixed inset-4 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-lg bg-white rounded-[2rem] shadow-2xl shadow-slate-300/50 z-[101] overflow-hidden flex flex-col max-h-[90vh] border border-slate-100"
                         >
-                            {/* Modal Header */}
-                            <div className={`px-6 py-4 flex items-center gap-3 ${selectedAviso.prioridad === 'CRITICA' ? 'bg-gradient-to-r from-red-500 to-rose-600' :
-                                    selectedAviso.prioridad === 'ALTA' ? 'bg-gradient-to-r from-amber-500 to-orange-600' :
-                                        'bg-gradient-to-r from-violet-500 to-purple-600'
+                            {/* Modal Header - Premium Light */}
+                            <div className={`px-6 py-5 flex items-center gap-4 ${selectedAviso.prioridad === 'CRITICA' ? 'bg-gradient-to-r from-red-500 to-rose-500' :
+                                    selectedAviso.prioridad === 'ALTA' ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
+                                        'bg-gradient-to-r from-teal-500 to-emerald-500'
                                 }`}>
-                                {getPrioridadIcon(selectedAviso.prioridad)}
+                                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
+                                    {selectedAviso.prioridad === 'CRITICA' ? <AlertCircle className="h-6 w-6 text-white" /> :
+                                        selectedAviso.prioridad === 'ALTA' ? <AlertTriangle className="h-6 w-6 text-white" /> :
+                                            <Megaphone className="h-6 w-6 text-white" />}
+                                </div>
                                 <div className="flex-1">
-                                    <h2 className="text-white font-bold text-lg">
-                                        {selectedAviso.titulo || 'Aviso'}
+                                    <h2 className="text-white font-black text-lg tracking-tight">
+                                        {selectedAviso.titulo || 'Aviso del Sistema'}
                                     </h2>
-                                    <p className="text-white/80 text-sm">De: {selectedAviso.emisorNombre}</p>
+                                    <p className="text-white/80 text-sm font-medium">De: {selectedAviso.emisorNombre}</p>
                                 </div>
                                 {!selectedAviso.requiereConfirmacion && (
-                                    <button onClick={() => setShowModal(false)}>
-                                        <X className="h-6 w-6 text-white/80 hover:text-white" />
+                                    <button
+                                        onClick={() => setShowModal(false)}
+                                        className="p-2 hover:bg-white/20 rounded-xl transition-colors"
+                                    >
+                                        <X className="h-6 w-6 text-white" />
                                     </button>
                                 )}
                             </div>
 
                             {/* Modal Body */}
-                            <div className="flex-1 overflow-y-auto p-6">
-                                <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
-                                    {selectedAviso.contenido}
-                                </p>
+                            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+                                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                                    <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-[15px]">
+                                        {selectedAviso.contenido}
+                                    </p>
+                                </div>
 
-                                <p className="text-xs text-slate-400 mt-4">
-                                    Enviado: {new Date(selectedAviso.enviadoAt).toLocaleString('es-PY')}
+                                <p className="text-xs text-slate-400 mt-4 text-center font-medium">
+                                    Enviado: {formatDate(selectedAviso.enviadoAt)}
                                 </p>
                             </div>
 
-                            {/* Modal Actions */}
-                            <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
+                            {/* Modal Actions - Premium Styling */}
+                            <div className="px-6 py-5 border-t border-slate-100 bg-white space-y-4">
                                 {selectedAviso.requiereRespuesta && !selectedAviso.respondidoAt && (
                                     <>
-                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                        <p className="text-sm font-bold text-slate-700">
                                             Respondé el mensaje:
                                         </p>
                                         <div className="flex flex-wrap gap-2">
@@ -301,7 +345,7 @@ export default function AvisosBell() {
                                                     whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
                                                     onClick={() => responderAviso(selectedAviso.id, resp)}
-                                                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors"
+                                                    className="px-4 py-2 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 rounded-xl text-sm font-semibold text-slate-600 transition-colors border border-transparent hover:border-teal-200"
                                                 >
                                                     {resp}
                                                 </motion.button>
@@ -313,14 +357,14 @@ export default function AvisosBell() {
                                                 value={respuestaTexto}
                                                 onChange={(e) => setRespuestaTexto(e.target.value)}
                                                 placeholder="O escribí una respuesta..."
-                                                className="flex-1 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 dark:text-white"
+                                                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder:text-slate-400 font-medium"
                                             />
                                             <motion.button
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => responderAviso(selectedAviso.id, 'texto_libre', respuestaTexto)}
                                                 disabled={!respuestaTexto.trim()}
-                                                className="px-4 py-2 bg-violet-500 text-white rounded-xl text-sm font-semibold disabled:opacity-50"
+                                                className="px-5 py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-teal-200 transition-all"
                                             >
                                                 Enviar
                                             </motion.button>
@@ -333,10 +377,10 @@ export default function AvisosBell() {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => confirmarAviso(selectedAviso.id)}
-                                        className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-500/30"
+                                        className="w-full py-4 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-2xl font-black text-lg shadow-xl shadow-teal-200 hover:shadow-2xl hover:shadow-teal-300 transition-all"
                                     >
                                         <Check className="h-5 w-5 inline mr-2" />
-                                        Entendido
+                                        Cerrar
                                     </motion.button>
                                 )}
 
@@ -345,7 +389,7 @@ export default function AvisosBell() {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => setShowModal(false)}
-                                        className="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-semibold"
+                                        className="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold transition-colors"
                                     >
                                         Cerrar
                                     </motion.button>
