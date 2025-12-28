@@ -427,41 +427,86 @@ export default function DashboardEnVivoPage() {
                     </motion.div>
                 </div>
 
-                {/* Barra de Progreso Premium */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`${cardStyle} p-6 mb-8`}
-                >
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl shadow-lg shadow-amber-200">
-                                <Target className="h-5 w-5 text-white" />
+                {/* Grid de Métricas de Asamblea (Participación y Mayoría) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    {/* Nivel de Participación */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className={`${cardStyle} p-6 relative overflow-hidden`}
+                    >
+                        <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-cyan-300/20 blur-2xl rounded-bl-full pointer-events-none" />
+                        <div className="flex items-center justify-between mb-4 relative z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl shadow-lg shadow-blue-200">
+                                    <Users className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-800">Nivel de Participación</h2>
+                                    <p className="text-xs text-slate-400">Socios presentes sobre total padrón</p>
+                                </div>
                             </div>
+                            <div className="text-right">
+                                <span className="text-3xl font-black text-slate-800">{porcentajeAsistencia.toFixed(1)}%</span>
+                            </div>
+                        </div>
+                        <div className="h-4 bg-slate-100 rounded-full overflow-hidden relative shadow-inner">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${porcentajeAsistencia}%` }}
+                                transition={{ duration: 1.5, ease: "easeOut" }}
+                                className={`h-full rounded-full relative overflow-hidden ${porcentajeAsistencia >= 50
+                                    ? 'bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500'
+                                    : 'bg-gradient-to-r from-blue-400 via-indigo-500 to-violet-500'
+                                    }`}
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-shimmer" />
+                            </motion.div>
+                        </div>
+                        <div className="mt-2 text-right">
+                            <p className="text-xs font-bold text-slate-500">{stats.presentes} de {stats.totalPadron} socios</p>
+                        </div>
+                    </motion.div>
+
+                    {/* Umbral de Aprobación (Mayoría Simple) */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-6 text-white relative overflow-hidden shadow-xl shadow-slate-800/30 border border-slate-700/50"
+                    >
+                        <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+                        <div className="flex items-center justify-between mb-2 relative z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg shadow-emerald-500/20">
+                                    <Target className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-white">Umbral de Aprobación</h2>
+                                    <p className="text-xs text-slate-400">Mayoría Simple (50% + 1 de Votos Presentes)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-end justify-between mt-4">
                             <div>
-                                <h2 className="text-lg font-bold text-slate-800">Progreso hacia el Quórum</h2>
-                                <p className="text-xs text-slate-400">50% + 1 de socios presentes requeridos</p>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-4xl lg:text-5xl font-black text-emerald-400 tracking-tight">
+                                        {(Math.floor(stats.presentesVyV / 2) + 1).toLocaleString()}
+                                    </span>
+                                    <span className="text-lg font-bold text-slate-300">votos</span>
+                                </div>
+                                <p className="text-sm text-emerald-100/80 font-medium mt-1">
+                                    Necesarios para aprobar mociones
+                                </p>
+                            </div>
+                            <div className="text-right pb-1">
+                                <div className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Base de Cálculo</div>
+                                <div className="text-xl font-bold text-white">{stats.presentesVyV}</div>
+                                <div className="text-[10px] text-slate-400">Presentes con V&V</div>
                             </div>
                         </div>
-                        <div className="text-right">
-                            <span className="text-3xl font-black text-slate-800">{porcentajeQuorum.toFixed(1)}%</span>
-                            <p className="text-slate-400 text-sm font-medium">{stats.presentes} / {quorumNecesario}</p>
-                        </div>
-                    </div>
-                    <div className="h-5 bg-slate-100 rounded-full overflow-hidden relative shadow-inner">
-                        <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${porcentajeQuorum}%` }}
-                            transition={{ duration: 1.5, ease: "easeOut" }}
-                            className={`h-full rounded-full relative overflow-hidden ${porcentajeQuorum >= 100
-                                ? 'bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500'
-                                : 'bg-gradient-to-r from-teal-400 via-emerald-500 to-green-500'
-                                }`}
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-shimmer" />
-                        </motion.div>
-                    </div>
-                </motion.div>
+                    </motion.div>
+                </div>
 
                 {/* Grid de Gráficos */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
