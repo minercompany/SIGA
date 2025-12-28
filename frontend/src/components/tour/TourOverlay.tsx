@@ -102,20 +102,22 @@ export function TourOverlay() {
     // Función inteligente para avanzar
     const handleNext = () => {
         if (isMobile && currentStepData) {
-            const sidebarIsOpen = document.querySelector('[data-tour="sidebar-panel"]');
+            const sidebarEl = document.querySelector('[data-tour="sidebar-panel"]');
+            // Está cerrado si tiene la clase -translate-x-full
+            const isClosed = sidebarEl && sidebarEl.classList.contains('-translate-x-full');
 
-            // CASO 1: Salimos del botón hamburguesa para entrar al menú ("Mis Listas", etc.)
-            // Acción: ABRIR la barra si está cerrada.
+            // CASO 1: Salimos del botón hamburguesa (step="sidebar") hacia el menú
+            // Acción: ABRIR la barra si está visualmente cerrada
             if (currentStepData.id === 'sidebar') {
-                if (!sidebarIsOpen) {
+                if (isClosed) {
                     window.dispatchEvent(new Event('toggle-sidebar'));
                 }
             }
 
             // CASO 2: Salimos del último item del menú ("Configuración") hacia el Dashboard
-            // Acción: CERRAR la barra para ver los KPIs.
+            // Acción: CERRAR la barra si está visualmente abierta
             if (currentStepData.id === 'config-nav') {
-                if (sidebarIsOpen) {
+                if (!isClosed) {
                     window.dispatchEvent(new Event('toggle-sidebar'));
                 }
             }
