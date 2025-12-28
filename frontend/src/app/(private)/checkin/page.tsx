@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { createRoot } from "react-dom/client";
-import SocioCarnet from "@/components/carnet/SocioCarnet";
+import SocioCarnet, { SocioCarnetBase } from "@/components/carnet/SocioCarnet";
 import { useConfig } from "@/context/ConfigContext";
 
 interface Socio {
@@ -201,18 +201,29 @@ export default function CheckInPage() {
     const handlePrint = () => {
         if (!socioEncontrado) return;
 
-        const printWindow = window.open('', '', 'width=600,height=600');
+        const printWindow = window.open('', '_blank', 'width=800,height=800');
         if (!printWindow) return;
 
         printWindow.document.write(`
+            <!DOCTYPE html>
             <html>
                 <head>
                     <title>Imprimir Carnet - ${socioEncontrado.nombreCompleto}</title>
+                    <base href="${window.location.origin}/">
+                    <meta charset="utf-8" />
                     <style>
-                        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: white; }
+                        body { 
+                            margin: 0; 
+                            display: flex; 
+                            justify-content: center; 
+                            align-items: center; 
+                            min-height: 100vh; 
+                            background: white; 
+                        }
                         @media print {
                             @page { size: 100mm 100mm; margin: 0; }
-                            body { margin: 0; }
+                            body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                            #print-root { width: 100%; height: 100%; }
                         }
                     </style>
                 </head>
@@ -223,18 +234,24 @@ export default function CheckInPage() {
         `);
         printWindow.document.close();
 
+        // Inyectar estilos del documento padre (Tailwind, fuentes, etc.)
+        const styles = document.querySelectorAll('style, link[rel="stylesheet"]');
+        styles.forEach(style => {
+            printWindow.document.head.appendChild(style.cloneNode(true));
+        });
+
         const printRoot = printWindow.document.getElementById('print-root');
         if (printRoot) {
             const root = createRoot(printRoot);
             root.render(
-                <SocioCarnet
+                <SocioCarnetBase
                     socio={{
                         nroSocio: socioEncontrado.numeroSocio,
                         nombreCompleto: socioEncontrado.nombreCompleto,
                         tieneVoto: tieneVozYVoto(socioEncontrado),
                         cedula: socioEncontrado.cedula
                     }}
-                    configOverride={{
+                    config={{
                         nombreAsamblea,
                         fechaAsamblea
                     }}
@@ -245,8 +262,7 @@ export default function CheckInPage() {
             setTimeout(() => {
                 printWindow.focus();
                 printWindow.print();
-                // Opcional: printWindow.close(); // Algunos navegadores bloquean el close inmediato
-            }, 800);
+            }, 1000);
         }
     };
 

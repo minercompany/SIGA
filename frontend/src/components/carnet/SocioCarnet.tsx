@@ -1,23 +1,22 @@
 import React from 'react';
 import { useConfig } from "@/context/ConfigContext";
 
-interface CarnetCuadradoProps {
+interface CarnetDataProps {
     socio: {
         nroSocio: string | number;
         nombreCompleto: string;
         tieneVoto: boolean;
         cedula?: string;
     };
-    configOverride?: {
+    config: {
         nombreAsamblea: string;
         fechaAsamblea: string;
     };
 }
 
-const SocioCarnet: React.FC<CarnetCuadradoProps> = ({ socio, configOverride }) => {
-    const config = useConfig();
-    const nombreAsamblea = configOverride?.nombreAsamblea || config.nombreAsamblea;
-    const fechaAsamblea = configOverride?.fechaAsamblea || config.fechaAsamblea;
+// Componente Presentacional Puro (Sin Hooks de Contexto)
+export const SocioCarnetBase: React.FC<CarnetDataProps> = ({ socio, config }) => {
+    const { nombreAsamblea, fechaAsamblea } = config;
     const votingStatus = socio.tieneVoto ? "VOZ Y VOTO" : "SOLO VOZ";
     const year = fechaAsamblea ? new Date(fechaAsamblea).getFullYear() : new Date().getFullYear();
 
@@ -167,6 +166,40 @@ const SocioCarnet: React.FC<CarnetCuadradoProps> = ({ socio, configOverride }) =
             </div>
         </div>
     );
+};
+
+// Componente Conectado (Mantiene compatibilidad hacia atrás)
+interface CarnetConnectedProps {
+    socio: {
+        nroSocio: string | number;
+        nombreCompleto: string;
+        tieneVoto: boolean;
+        cedula?: string;
+    };
+    // Props opcionales para override (ya no son estrictamente necesarias con el Base, pero las dejo por si acaso)
+    configOverride?: {
+        nombreAsamblea: string;
+        fechaAsamblea: string;
+    };
+}
+
+const SocioCarnet: React.FC<CarnetConnectedProps> = ({ socio, configOverride }) => {
+    // Si hay override, pasamos directo al Base sin llamar al hook (si es posible evitar el hook...
+    // Pero hooks deben ser incondicionales.
+    // Asi que llamaremos al hook SIEMPRE y luego decidiremos qué data usar.
+    // ESTO SE ROMPE SI NO HAY PROVIDER.
+
+    // SOLUCION: El componente por defecto SIEMPRE usa el hook y asume que está en el provider.
+    // Si quieres usarlo fuera, usa <SocioCarnetBase />
+
+    const config = useConfig();
+
+    const finalConfig = {
+        nombreAsamblea: configOverride?.nombreAsamblea || config.nombreAsamblea,
+        fechaAsamblea: configOverride?.fechaAsamblea || config.fechaAsamblea
+    };
+
+    return <SocioCarnetBase socio={socio} config={finalConfig} />;
 };
 
 export default SocioCarnet;
