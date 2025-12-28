@@ -23,7 +23,7 @@ export const dashboardSocioTour: TourStep[] = [
         target: '[data-tour="sidebar-panel"], [data-tour="sidebar-trigger"]', // Ahora apunta a ambos
         title: '📌 Menú de Navegación',
         content: 'Esta barra lateral te acompañará siempre. Es tu centro de comando para moverte por el sistema.',
-        position: 'auto'
+        position: 'bottom'
     },
     {
         id: 'mis-listas-nav',
@@ -74,10 +74,10 @@ export const dashboardAdminTour: TourStep[] = [
     },
     {
         id: 'sidebar',
-        target: '[data-tour="sidebar"]',
+        target: '[data-tour="sidebar-panel"], [data-tour="sidebar-trigger"]',
         title: '📌 Panel de Navegación',
         content: 'Desde aquí accedes a todas las secciones: Dashboard, Socios, Usuarios, Importar padrón y más.',
-        position: 'right'
+        position: 'bottom'
     },
     {
         id: 'kpis',
