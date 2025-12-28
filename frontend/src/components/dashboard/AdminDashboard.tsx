@@ -52,13 +52,26 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [autoRefresh, setAutoRefresh] = useState(false);
 
+    // Persistencia del estado Auto-Sync
+    // Leer al montar el componente
+    useEffect(() => {
+        const saved = localStorage.getItem("dashboard_autosync");
+        if (saved === "true") {
+            setAutoRefresh(true);
+        }
+    }, []);
+
     const handleRefresh = (silent = false) => {
         if (!silent) setIsRefreshing(true);
         onRefresh(silent);
         if (!silent) setTimeout(() => setIsRefreshing(false), 800);
     };
 
+    // Efecto para intervalo y guardar estado
     useEffect(() => {
+        // Guardar persistencia
+        localStorage.setItem("dashboard_autosync", String(autoRefresh));
+
         let interval: NodeJS.Timeout;
         if (autoRefresh) {
             interval = setInterval(() => handleRefresh(true), 10000);
@@ -114,60 +127,90 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
 
     return (
         <div className="space-y-6 pb-12">
-            {/* Header Premium con Gradiente */}
+            {/* Header Global Súper Premium (Consistent Light Theme) */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-900 p-8 text-white shadow-2xl"
+                className="relative overflow-hidden rounded-[2.5rem] bg-white p-8 shadow-2xl shadow-slate-200/50 ring-1 ring-slate-100"
             >
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
+                {/* Decorative Background Elements */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-emerald-50/50 to-teal-50/30 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-50/30 to-indigo-50/30 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none" />
 
-                <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    <div className="flex items-center gap-5">
-                        <motion.div
-                            animate={{ rotate: [0, 360] }}
-                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                            className="p-4 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20"
-                        >
-                            <Activity className="h-10 w-10 text-emerald-400" />
-                        </motion.div>
-                        <div>
-                            <h1 className="text-3xl lg:text-4xl font-black tracking-tight">
-                                Centro de Control
-                            </h1>
-                            <p className="text-white/60 font-medium flex items-center gap-2 mt-1">
-                                <span className="relative flex h-2 w-2">
+                <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+
+                    {/* Title Section */}
+                    <div className="flex items-center gap-6">
+                        <div className="relative group">
+                            {/* Icon Container with Glass Effect */}
+                            <div className="relative p-5 bg-white rounded-2xl border border-slate-100 shadow-xl shadow-emerald-100/50 transition-transform group-hover:scale-105 duration-500">
+                                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 rounded-2xl" />
+                                <Activity className={`h-8 w-8 text-emerald-500 relative z-10 transition-all duration-700 ${autoRefresh ? 'animate-pulse' : ''}`} />
+                            </div>
+
+                            {/* Live Indicator Icon */}
+                            {autoRefresh && (
+                                <div className="absolute -top-1.5 -right-1.5 flex h-4 w-4 z-20">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                </span>
-                                Monitoreo en tiempo real
+                                    <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white"></span>
+                                </div>
+                            )}
+                        </div>
+
+                        <div>
+                            <div className="flex items-center gap-3 mb-1">
+                                <h1 className="text-3xl lg:text-4xl font-black text-slate-800 tracking-tight">
+                                    Centro de Control
+                                </h1>
+                                {autoRefresh && (
+                                    <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 text-[10px] font-black uppercase tracking-widest animate-pulse shadow-sm">
+                                        LIVE
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-slate-500 font-medium text-sm flex items-center gap-2">
+                                Panel de Monitoreo & Estadísticas
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <div className="bg-white/10 backdrop-blur px-4 py-3 rounded-2xl flex items-center gap-3 border border-white/10">
-                            <span className="text-xs font-bold uppercase text-white/60 tracking-widest">Auto-Sync</span>
-                            <button
-                                onClick={() => setAutoRefresh(!autoRefresh)}
-                                className={`relative w-14 h-7 rounded-full transition-all duration-300 ${autoRefresh ? 'bg-emerald-500' : 'bg-white/20'}`}
-                            >
+                    {/* Controls Section - Premium Floating Pill */}
+                    <div className="flex items-center gap-2 bg-slate-50/80 backdrop-blur-md p-2 pr-2.5 rounded-full border border-slate-100 shadow-inner">
+                        <div
+                            onClick={() => setAutoRefresh(!autoRefresh)}
+                            className="cursor-pointer group flex items-center gap-3 px-5 py-3 rounded-full hover:bg-white transition-all duration-300 select-none border border-transparent hover:border-slate-100 hover:shadow-sm"
+                        >
+                            {/* Custom Toggle Switch */}
+                            <div className={`relative w-12 h-7 rounded-full transition-colors duration-300 shadow-inner ${autoRefresh ? 'bg-emerald-500' : 'bg-slate-200'}`}>
                                 <motion.div
-                                    animate={{ x: autoRefresh ? 28 : 4 }}
-                                    className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-lg"
+                                    animate={{ x: autoRefresh ? 22 : 2 }}
+                                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                    className="absolute top-1 left-0 w-5 h-5 bg-white rounded-full shadow-md"
                                 />
-                            </button>
+                            </div>
+
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none">Auto-Sync</span>
+                                <span className={`text-[10px] font-bold leading-none mt-1 ${autoRefresh ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                    {autoRefresh ? 'ACTIVADO' : 'PAUSADO'}
+                                </span>
+                            </div>
                         </div>
 
+                        <div className="w-px h-8 bg-slate-200 mx-2" />
+
                         <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                            whileHover={{ scale: 1.02, backgroundColor: "#ffffff" }}
+                            whileTap={{ scale: 0.98 }}
                             onClick={() => handleRefresh(false)}
                             disabled={isRefreshing}
-                            className="bg-white text-slate-900 px-6 py-3 rounded-xl font-black uppercase text-sm tracking-wide hover:bg-emerald-50 transition-all flex items-center gap-2 shadow-xl"
+                            className="relative overflow-hidden bg-white text-slate-700 px-6 py-3 rounded-full font-bold uppercase text-xs tracking-wider border border-slate-200 hover:border-emerald-200 hover:text-emerald-700 transition-all flex items-center gap-2 shadow-sm hover:shadow-md group"
                         >
-                            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                            Actualizar
+                            <RefreshCw className={`h-4 w-4 text-emerald-500 transition-transform duration-700 ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180'}`} />
+                            <span className="relative z-10">Actualizar</span>
+                            {isRefreshing && (
+                                <span className="absolute bottom-0 left-0 h-0.5 bg-emerald-500 animate-[loading_1s_ease-in-out_infinite] w-full" />
+                            )}
                         </motion.button>
                     </div>
                 </div>
@@ -383,9 +426,9 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                                 >
                                     {/* Ranking Badge - NÚMERO GRANDE */}
                                     <div className={`h-14 w-14 rounded-2xl flex flex-col items-center justify-center transition-transform group-hover:scale-110 shadow-lg shrink-0 ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-orange-200' :
-                                            i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-slate-200' :
-                                                i === 2 ? 'bg-gradient-to-br from-orange-400 to-amber-700 text-white shadow-orange-200' :
-                                                    'bg-slate-100 text-slate-400'
+                                        i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-slate-200' :
+                                            i === 2 ? 'bg-gradient-to-br from-orange-400 to-amber-700 text-white shadow-orange-200' :
+                                                'bg-slate-100 text-slate-400'
                                         }`}>
                                         <span className="text-[9px] font-bold uppercase tracking-widest opacity-90">TOP</span>
                                         <span className="text-2xl font-black leading-none -mt-0.5">{i + 1}</span>
