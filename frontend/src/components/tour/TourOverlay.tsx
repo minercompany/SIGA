@@ -97,15 +97,26 @@ export function TourOverlay() {
         };
     }, [isActive, currentStep, currentStepData, isMobile]);
 
+    // Autómata de Sidebar: Abrir al entrar al paso, Cerrar al salir.
+    useEffect(() => {
+        if (!isMobile || !isActive || !currentStepData) return;
+
+        // Si entramos al paso 'sidebar', garantizar que se ABRA
+        if (currentStepData.id === 'sidebar') {
+            const sidebarIsOpen = document.querySelector('[data-tour="sidebar-panel"]');
+            if (!sidebarIsOpen) {
+                // Pequeño delay para permitir que la UI estabilice
+                setTimeout(() => window.dispatchEvent(new Event('toggle-sidebar')), 100);
+            }
+        }
+    }, [currentStepData, isMobile, isActive]);
+
     // Función inteligente para avanzar
     const handleNext = () => {
-        // En móvil: Si estamos en el paso del sidebar, verificar si está abierto
+        // En móvil: Si estamos SALIENDO del paso del sidebar, cerrarlo para ver el contenido (KPIs, etc)
         if (isMobile && currentStepData.id === 'sidebar') {
-            // Buscamos el panel. Si existe (tiene el atributo data-tour), es porque está abierto.
-            // Si no existe (undefined o invisible), está cerrado.
             const sidebarIsOpen = document.querySelector('[data-tour="sidebar-panel"]');
-
-            if (!sidebarIsOpen) {
+            if (sidebarIsOpen) {
                 window.dispatchEvent(new Event('toggle-sidebar'));
             }
         }
