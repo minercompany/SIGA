@@ -669,4 +669,60 @@ public class AsignacionController {
             return ResponseEntity.ok(new ArrayList<>());
         }
     }
+
+    @GetMapping("/rastreo/{nroSocio}")
+    public ResponseEntity<?> rastrearSocio(@PathVariable String nroSocio, Authentication auth) {
+        if (auth == null)
+            return ResponseEntity.status(401).build();
+
+        Map<String, Object> result = new HashMap<>();
+
+        // 1. Buscar Socio
+        Optional<Socio> socioOpt = socioRepository.findByNumeroSocio(nroSocio);
+        if (socioOpt.isEmpty()) {
+            // Intentar por cedula
+            socioOpt = socioRepository.findByCedula(nroSocio);
+        }
+
+        if (socioOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Socio no encontrado"));
+        }
+
+        Socio socio = socioOpt.get();
+        result.put("socio", Map.of(
+                "id", socio.getId(),
+                "numeroSocio", socio.getNumeroSocio(),
+                "nombreCompleto", socio.getNombreCompleto(),
+                "cedula", socio.getCedula()));
+
+        // 2. Estado Actual de la Asignación
+        Optional<Asignacion> asignacion = asignacionRepository.findBySocioId(socio.getId());
+        if (asignacion.isPresent()) {
+            Map<String, Object> estadoActual = new HashMap<>();
+            estadoActual.put("asignadoA", asignacion.get().getListaAsignacion().getUsuario().getNombreCompleto());
+            estadoActual.put("usuario", asignacion.get().getListaAsignacion().getUsuario().getUsername());
+            estadoActual.put("lista", asignacion.get().getListaAsignacion().getNombre());
+            estadoActual.put("fecha", asignacion.get().getFechaAsignacion());
+            estadoActual.put("asignadoPor",
+                    asignacion.get().getAsignadoPor() != null ? asignacion.get().getAsignadoPor().getUsername()
+                            : "Desconocido");
+            result.put("estadoActual", estadoActual);
+        } else {
+            result.put("estadoActual", null);
+        }
+
+        // 3. Historial de Auditoría
+        // Buscamos logs que contengan el numero de socio
+        List<com.asamblea.model.LogAuditoria> logs = auditService.buscarPorTermino(socio.getNumeroSocio());
+
+        // Filtramos para quedarnos con lo relevante de asignaciones
+        List<com.asamblea.model.LogAuditoria> logsRelevantes = logs.stream()
+                .filter(l -> l.getModulo().equals("ASIGNACIONES"))
+                // Opcional: filtrar por acciones especificas si hay mucho ruido
+                .collect(Collectors.toList());
+
+        result.put("historial", logsRelevantes);
+
+        return ResponseEntity.ok(result);
+    }
 }

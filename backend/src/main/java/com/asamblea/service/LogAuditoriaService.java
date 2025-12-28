@@ -36,4 +36,8 @@ public class LogAuditoriaService {
     public void borrarTodo() {
         logAuditoriaRepository.deleteAll();
     }
+
+    public java.util.List<LogAuditoria> buscarPorTermino(String termino) {
+        return logAuditoriaRepository.findByDetallesContainingOrderByCreatedAtDesc(termino);
+    }
 }

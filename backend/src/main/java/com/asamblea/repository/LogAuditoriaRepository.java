@@ -13,4 +13,6 @@ public interface LogAuditoriaRepository extends JpaRepository<LogAuditoria, Long
     Page<LogAuditoria> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     List<LogAuditoria> findByModuloOrderByCreatedAtDesc(String modulo);
+
+    List<LogAuditoria> findByDetallesContainingOrderByCreatedAtDesc(String texto);
 }
