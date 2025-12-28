@@ -24,11 +24,7 @@ import {
     ShieldAlert,
     Zap,
     MessageSquare,
-    Send,
-    Briefcase,
-    Building2,
-    FileText,
-    Bell
+    Send
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -43,69 +39,29 @@ const menuItems = [
             { id: "dashboard-live", name: "En Vivo", href: "/dashboard-live", icon: Activity },
         ]
     },
+    { id: "importar", name: "Importar Padrón", href: "/importar", icon: FileUp },
+    { id: "importar-funcionarios", name: "Importar Funcionarios", href: "/importar-funcionarios", icon: Users },
+    { id: "socios", name: "Padrón Socios", href: "/socios", icon: Users },
+    { id: "asignacion-rapida", name: "Asignación Rápida", href: "/asignacion-rapida", icon: Zap },
+    { id: "asignaciones", name: "Mis Listas", href: "/asignaciones", icon: UserCheck },
+    { id: "asignaciones-admin", name: "Asignación Master", href: "/asignaciones-admin", icon: ShieldAlert },
+    { id: "asistencia", name: "Asistencia", href: "/asistencia", icon: ClipboardCheck },
+    { id: "checkin", name: "Check-in", href: "/checkin", icon: CheckSquare },
     {
-        id: "padrones",
-        name: "Gestión de Padrones",
-        href: "#", // Group container
-        icon: Users,
-        submenu: [
-            { id: "importar", name: "Importar Padrón", href: "/importar", icon: FileUp },
-            { id: "importar-funcionarios", name: "Importar Funcionarios", href: "/importar-funcionarios", icon: Users },
-            { id: "socios", name: "Padrón de Socios", href: "/socios", icon: Users },
+        id: "reportes", name: "Reportes", href: "/reportes", icon: ClipboardList, submenu: [
+            { id: "reportes-general", name: "General", href: "/reportes", icon: ClipboardList },
+            { id: "reportes-sucursal", name: "Por Sucursal", href: "/reportes/por-sucursal", icon: Users },
         ]
     },
     {
-        id: "operativa",
-        name: "Gestión Operativa",
-        href: "#",
-        icon: Briefcase,
-        submenu: [
-            { id: "asignacion-rapida", name: "Asignación Rápida", href: "/asignacion-rapida", icon: Zap },
-            { id: "asignaciones", name: "Mis Listas", href: "/asignaciones", icon: UserCheck },
-            { id: "asignaciones-admin", name: "Asignación Master", href: "/asignaciones-admin", icon: ShieldAlert },
+        id: "comunicacion", name: "Comunicación", href: "/mensajes", icon: MessageSquare, submenu: [
+            { id: "mensajes-chat", name: "Chat Admin", href: "/mensajes/chat", icon: MessageSquare },
+            { id: "mensajes-avisos", name: "Avisos", href: "/mensajes/avisos", icon: Send },
         ]
     },
-    {
-        id: "asistencia-group",
-        name: "Control de Asistencia",
-        href: "#",
-        icon: ClipboardCheck,
-        submenu: [
-            { id: "asistencia", name: "Asistencia", href: "/asistencia", icon: ClipboardCheck },
-            { id: "checkin", name: "Check-in", href: "/checkin", icon: CheckSquare },
-        ]
-    },
-    {
-        id: "reportes",
-        name: "Reportes",
-        href: "#",
-        icon: FileText,
-        submenu: [
-            { id: "reportes-general", name: "Reportes Generales", href: "/reportes", icon: ClipboardList },
-            { id: "reportes-sucursal", name: "Reportes Específicos", href: "/reportes/por-sucursal", icon: Building2 },
-        ]
-    },
-    {
-        id: "comunicacion",
-        name: "Comunicación",
-        href: "#",
-        icon: MessageSquare,
-        submenu: [
-            { id: "mensajes-chat", name: "Mensajería", href: "/mensajes/chat", icon: MessageSquare },
-            { id: "mensajes-avisos", name: "Notificaciones", href: "/mensajes/avisos", icon: Bell },
-        ]
-    },
-    {
-        id: "admin",
-        name: "Administración del Sistema",
-        href: "#",
-        icon: Settings,
-        submenu: [
-            { id: "usuarios", name: "Usuarios y Roles", href: "/usuarios", icon: Shield },
-            { id: "auditoria", name: "Auditoría", href: "/auditoria", icon: History },
-            { id: "configuracion", name: "Configuración", href: "/configuracion", icon: Settings },
-        ]
-    }
+    { id: "usuarios", name: "Usuarios y Roles", href: "/usuarios", icon: Shield },
+    { id: "auditoria", name: "Auditoría", href: "/auditoria", icon: History },
+    { id: "configuracion", name: "Configuración", href: "/configuracion", icon: Settings },
 ];
 
 export function Sidebar() {
@@ -125,6 +81,8 @@ export function Sidebar() {
 
         const checkMobile = () => {
             setIsMobile(window.innerWidth < 768);
+            // En móvil NO forzamos colapsado automáticamente, 
+            // dejamos que se vea completo si el menú se abre.
         };
         checkMobile();
         window.addEventListener("resize", checkMobile);
@@ -147,73 +105,33 @@ export function Sidebar() {
             if (special.includes(itemId)) return true;
         }
 
-        // --- Logica de Grupos ---
-        // Un grupo es visible si el usuario tiene permiso para AL MENOS UNO de sus hijos.
-        if (itemId === "padrones") {
-            return hasPermission("importar") || hasPermission("importar-funcionarios") || hasPermission("socios");
-        }
-        if (itemId === "operativa") {
-            return hasPermission("asignacion-rapida") || hasPermission("asignaciones") || hasPermission("asignaciones-admin");
-        }
-        if (itemId === "asistencia-group") {
-            return hasPermission("asistencia") || hasPermission("checkin");
-        }
-        if (itemId === "reportes") {
-            return hasPermission("reportes-general") || hasPermission("reportes-sucursal");
-        }
-        if (itemId === "comunicacion") {
-            return hasPermission("mensajes-chat") || hasPermission("mensajes-avisos");
-        }
-        if (itemId === "admin") {
-            return hasPermission("usuarios") || hasPermission("auditoria") || hasPermission("configuracion");
-        }
-
-        // --- Permisos por Item Individual ---
+        // Permisos por Rol (Lógica base)
         switch (itemId) {
             case "dashboard":
                 return true;
             case "dashboard-general":
             case "dashboard-live":
                 return user.rol !== "USUARIO_SOCIO";
-
-            // Padrones
-            case "importar":
-            case "importar-funcionarios":
-                return user.rol === "SUPER_ADMIN";
             case "socios":
+            case "reportes":
                 return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
-
-            // Operativa
-            case "asignacion-rapida":
-                return user.rol === "SUPER_ADMIN";
-            case "asignaciones": // Mis Listas
+            case "asignaciones":
                 return user.rol === "USUARIO_SOCIO" || user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
-            case "asignaciones-admin": // Master
+            case "asignaciones-admin":
                 return user.rol === "ADMIN" || user.rol === "SUPER_ADMIN";
-
-            // Asistencia
             case "asistencia":
             case "checkin":
                 return user.rol === "OPERADOR" || user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
-
-            // Reportes
-            case "reportes-general":
-                return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
-            case "reportes-sucursal":
-                return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
-
-            // Comunicacion
+            case "usuarios":
+            case "importar":
+            case "auditoria":
+                return user.rol === "SUPER_ADMIN";
+            case "comunicacion":
             case "mensajes-chat":
             case "mensajes-avisos":
                 return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
-
-            // Admin
-            case "usuarios":
-            case "auditoria":
-                return user.rol === "SUPER_ADMIN";
             case "configuracion":
                 return user.rol === "USUARIO_SOCIO" || user.rol === "SUPER_ADMIN";
-
             default: return false;
         }
     };
@@ -230,6 +148,8 @@ export function Sidebar() {
         return () => window.removeEventListener('toggle-sidebar', handleToggle);
     }, []);
 
+    // Lógica principal: En móvil, SIEMPRE está expandido (títulos visibles) cuando está abierto.
+    // collapsed solo afecta a Desktop.
     const effectiveCollapsed = collapsed && !isMobile;
 
     const sidebarContent = (
@@ -260,25 +180,22 @@ export function Sidebar() {
             {/* Navegación */}
             <nav data-tour={isMobile && !mobileOpen ? undefined : "sidebar-panel"} className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
                 {menuItems.filter(item => hasPermission(item.id)).map((item) => {
-                    // Verificar si el grupo tiene items visibles
+                    const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                    const hasSubmenu = item.submenu && item.submenu.length > 0;
+                    const isExpanded = expandedMenu === item.id;
+
+                    // Filtrar submenús por permisos
                     const filteredSubmenu = (item.submenu || []).filter(sub => hasPermission(sub.id));
                     const hasVisibleSubmenu = filteredSubmenu.length > 0;
 
-                    // Si es un grupo vacio (por permisos), no mostrarlo
-                    if (!hasVisibleSubmenu && item.href === '#') return null;
-
-                    const isActive = pathname === item.href || (item.href !== '#' && pathname.startsWith(item.href + '/')) ||
-                        (hasVisibleSubmenu && filteredSubmenu.some(sub => pathname === sub.href));
-
-                    const isExpanded = expandedMenu === item.id;
-
-                    // Si no tiene submenú (ej Dashboard), renderizar link simple
+                    // Si no hay submenús visibles, mostrar como link directo
                     if (!hasVisibleSubmenu) {
                         return (
                             <Link
                                 key={item.id}
                                 href={item.href}
                                 title={effectiveCollapsed ? item.name : undefined}
+                                data-tour={item.id === 'asignaciones' ? 'nav-mis-listas' : item.id === 'configuracion' ? 'nav-config' : undefined}
                                 className={cn(
                                     "group flex items-center rounded-xl font-medium transition-all duration-200",
                                     effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
@@ -297,63 +214,90 @@ export function Sidebar() {
                         );
                     }
 
-                    // Renderizar con Submenú (Grupos)
-                    return (
-                        <div key={item.id}>
-                            <button
-                                onClick={() => setExpandedMenu(isExpanded ? null : item.id)}
-                                className={cn(
-                                    "group flex items-center w-full rounded-xl font-medium transition-all duration-200",
-                                    effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
-                                    (isActive) // Highlight parent if child active? Optional
-                                        ? "text-white"
-                                        : "text-teal-100 hover:bg-white/10 hover:text-white"
+                    if (hasSubmenu) {
+                        return (
+                            <div key={item.id}>
+                                <button
+                                    onClick={() => setExpandedMenu(isExpanded ? null : item.id)}
+                                    className={cn(
+                                        "group flex items-center w-full rounded-xl font-medium transition-all duration-200",
+                                        effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
+                                        (pathname.startsWith('/dashboard'))
+                                            ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
+                                            : "text-teal-100 hover:bg-white/10 hover:text-white"
+                                    )}
+                                >
+                                    <item.icon className={cn(
+                                        "h-5 w-5 flex-shrink-0 transition-colors",
+                                        effectiveCollapsed ? "" : "mr-3",
+                                        (pathname.startsWith('/dashboard')) ? "text-white" : "text-teal-200 group-hover:text-white"
+                                    )} />
+                                    {!effectiveCollapsed && (
+                                        <>
+                                            <span className="text-sm truncate flex-1 text-left">{item.name}</span>
+                                            <ChevronDown className={cn(
+                                                "h-4 w-4 transition-transform duration-200",
+                                                isExpanded ? "rotate-180" : ""
+                                            )} />
+                                        </>
+                                    )}
+                                </button>
+                                {/* Submenú filtrado por permisos */}
+                                {!effectiveCollapsed && isExpanded && (
+                                    <div className="mt-1 ml-4 space-y-1 border-l-2 border-teal-500/30 pl-3">
+                                        {filteredSubmenu.map((sub) => {
+                                            const isSubActive = pathname === sub.href;
+                                            return (
+                                                <Link
+                                                    key={sub.id}
+                                                    href={sub.href}
+                                                    className={cn(
+                                                        "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                                                        isSubActive
+                                                            ? "bg-white/20 text-white"
+                                                            : "text-teal-200 hover:bg-white/10 hover:text-white"
+                                                    )}
+                                                >
+                                                    <sub.icon className={cn(
+                                                        "h-4 w-4 mr-2",
+                                                        isSubActive ? "text-white" : "text-teal-300"
+                                                    )} />
+                                                    {sub.name}
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
                                 )}
-                                title={effectiveCollapsed ? item.name : undefined}
-                            >
-                                <item.icon className={cn(
-                                    "h-5 w-5 flex-shrink-0 transition-colors",
-                                    effectiveCollapsed ? "" : "mr-3",
-                                    isActive ? "text-white" : "text-teal-200 group-hover:text-white"
-                                )} />
-                                {!effectiveCollapsed && (
-                                    <>
-                                        <span className="text-sm truncate flex-1 text-left font-bold">{item.name}</span>
-                                        <ChevronDown className={cn(
-                                            "h-4 w-4 transition-transform duration-200 text-teal-300",
-                                            isExpanded ? "rotate-180" : ""
-                                        )} />
-                                    </>
-                                )}
-                            </button>
+                            </div>
+                        );
+                    }
 
-                            {/* Submenú */}
-                            {!effectiveCollapsed && isExpanded && (
-                                <div className="mt-1 ml-4 space-y-1 border-l-2 border-teal-500/30 pl-3">
-                                    {filteredSubmenu.map((sub) => {
-                                        const isSubActive = pathname === sub.href;
-                                        return (
-                                            <Link
-                                                key={sub.id}
-                                                href={sub.href}
-                                                className={cn(
-                                                    "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
-                                                    isSubActive
-                                                        ? "bg-white/20 text-white shadow-sm backdrop-blur-sm"
-                                                        : "text-teal-200 hover:bg-white/10 hover:text-white"
-                                                )}
-                                            >
-                                                <sub.icon className={cn(
-                                                    "h-4 w-4 mr-2",
-                                                    isSubActive ? "text-white" : "text-teal-300"
-                                                )} />
-                                                {sub.name}
-                                            </Link>
-                                        );
-                                    })}
-                                </div>
+                    return (
+                        <Link
+                            key={item.id}
+                            href={item.href}
+                            title={effectiveCollapsed ? item.name : undefined}
+                            data-tour={item.id === 'asignaciones' ? 'nav-mis-listas' : item.id === 'configuracion' ? 'nav-config' : undefined}
+                            className={cn(
+                                "group flex items-center rounded-xl font-medium transition-all duration-200",
+                                effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
+                                isActive
+                                    ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
+                                    : "text-teal-100 hover:bg-white/10 hover:text-white"
                             )}
-                        </div>
+                        >
+                            <item.icon className={cn(
+                                "h-5 w-5 flex-shrink-0 transition-colors",
+                                effectiveCollapsed ? "" : "mr-3",
+                                isActive ? "text-white" : "text-teal-200 group-hover:text-white"
+                            )} />
+                            {!effectiveCollapsed && (
+                                <span className="text-sm truncate">{item.name}</span>
+                            )}
+                            {isActive && !effectiveCollapsed && (
+                                <div className="ml-auto h-2 w-2 rounded-full bg-white animate-pulse" />
+                            )}
+                        </Link>
                     );
                 })}
             </nav>
@@ -420,7 +364,7 @@ export function Sidebar() {
             >
                 {sidebarContent}
 
-                {/* Espaciador inferior */}
+                {/* Espaciador inferior para evitar overlays como el de Next.js */}
                 <div className="h-20 flex-shrink-0" />
             </div>
         </>
