@@ -3,15 +3,12 @@ package com.asamblea.controller;
 import com.asamblea.model.ImportacionHistorial;
 import com.asamblea.model.Socio;
 import com.asamblea.model.Sucursal;
-import com.asamblea.repository.AsignacionRepository;
 import com.asamblea.repository.AsistenciaRepository;
 import com.asamblea.repository.ImportacionHistorialRepository;
-import com.asamblea.repository.ListaAsignacionRepository;
 import com.asamblea.repository.SocioRepository;
 import com.asamblea.repository.SucursalRepository;
 import com.asamblea.service.ImportacionService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -34,8 +31,6 @@ public class SocioController {
     private final SucursalRepository sucursalRepository;
     private final AsistenciaRepository asistenciaRepository;
     private final ImportacionHistorialRepository importacionHistorialRepository;
-    private final AsignacionRepository asignacionRepository;
-    private final ListaAsignacionRepository listaAsignacionRepository;
     private final com.asamblea.service.LogAuditoriaService auditService;
     private final com.asamblea.repository.UsuarioRepository usuarioRepository;
     private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
@@ -352,5 +347,220 @@ public class SocioController {
                     "success", false,
                     "error", "Server Error: " + e.getMessage()));
         }
+    }
+
+    // =========================================================================
+    // EXPORT ENDPOINTS (Excel & PDF)
+    // =========================================================================
+
+    @GetMapping("/export/excel")
+    public void exportToExcel(jakarta.servlet.http.HttpServletResponse response) throws Exception {
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=padron_socios.xlsx");
+
+        List<Socio> socios = socioRepository.findAll();
+
+        try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
+            org.apache.poi.xssf.usermodel.XSSFSheet sheet = workbook.createSheet("Padrón de Socios");
+
+            // Header style
+            org.apache.poi.xssf.usermodel.XSSFCellStyle headerStyle = workbook.createCellStyle();
+            org.apache.poi.xssf.usermodel.XSSFFont headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(org.apache.poi.ss.usermodel.IndexedColors.LIGHT_GREEN.getIndex());
+            headerStyle.setFillPattern(org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
+
+            // Create header row
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+            String[] columns = { "N° Socio", "Nombre Completo", "Cédula", "Teléfono", "Sucursal", "Aporte",
+                    "Solidaridad", "Fondo", "INCOOP", "Crédito", "Voz y Voto" };
+            for (int i = 0; i < columns.length; i++) {
+                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columns[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Data rows
+            int rowNum = 1;
+            for (Socio socio : socios) {
+                org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(socio.getNumeroSocio());
+                row.createCell(1).setCellValue(socio.getNombreCompleto());
+                row.createCell(2).setCellValue(socio.getCedula());
+                row.createCell(3).setCellValue(socio.getTelefono() != null ? socio.getTelefono() : "");
+                row.createCell(4).setCellValue(socio.getSucursal() != null ? socio.getSucursal().getNombre() : "");
+                row.createCell(5).setCellValue(socio.isAporteAlDia() ? "SI" : "NO");
+                row.createCell(6).setCellValue(socio.isSolidaridadAlDia() ? "SI" : "NO");
+                row.createCell(7).setCellValue(socio.isFondoAlDia() ? "SI" : "NO");
+                row.createCell(8).setCellValue(socio.isIncoopAlDia() ? "SI" : "NO");
+                row.createCell(9).setCellValue(socio.isCreditoAlDia() ? "SI" : "NO");
+                row.createCell(10).setCellValue(socio.isEstadoVozVoto() ? "SI" : "NO");
+            }
+
+            // Auto-size columns
+            for (int i = 0; i < columns.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(response.getOutputStream());
+        }
+    }
+
+    @GetMapping("/export/pdf")
+    public void exportToPdf(jakarta.servlet.http.HttpServletResponse response) throws Exception {
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=padron_socios.pdf");
+
+        List<Socio> socios = socioRepository.findAll();
+
+        com.lowagie.text.Document document = new com.lowagie.text.Document(com.lowagie.text.PageSize.A4.rotate());
+        com.lowagie.text.pdf.PdfWriter.getInstance(document, response.getOutputStream());
+        document.open();
+
+        // Title
+        com.lowagie.text.Font titleFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 18,
+                com.lowagie.text.Font.BOLD);
+        com.lowagie.text.Paragraph title = new com.lowagie.text.Paragraph("Padrón de Socios - Cooperativa Reducto",
+                titleFont);
+        title.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+        title.setSpacingAfter(20);
+        document.add(title);
+
+        // Table
+        com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(8);
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(10);
+
+        // Header style
+        com.lowagie.text.Font headerFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 9,
+                com.lowagie.text.Font.BOLD, java.awt.Color.WHITE);
+        java.awt.Color headerBg = new java.awt.Color(16, 185, 129); // Emerald-500
+
+        String[] headers = { "N° Socio", "Nombre", "Cédula", "Teléfono", "Sucursal", "Aporte", "Crédito", "V&V" };
+        for (String header : headers) {
+            com.lowagie.text.pdf.PdfPCell cell = new com.lowagie.text.pdf.PdfPCell(
+                    new com.lowagie.text.Phrase(header, headerFont));
+            cell.setBackgroundColor(headerBg);
+            cell.setPadding(8);
+            cell.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+            table.addCell(cell);
+        }
+
+        // Data rows
+        com.lowagie.text.Font dataFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 8);
+        for (Socio socio : socios) {
+            table.addCell(new com.lowagie.text.Phrase(socio.getNumeroSocio(), dataFont));
+            table.addCell(new com.lowagie.text.Phrase(socio.getNombreCompleto(), dataFont));
+            table.addCell(new com.lowagie.text.Phrase(socio.getCedula(), dataFont));
+            table.addCell(
+                    new com.lowagie.text.Phrase(socio.getTelefono() != null ? socio.getTelefono() : "-", dataFont));
+            table.addCell(new com.lowagie.text.Phrase(
+                    socio.getSucursal() != null ? socio.getSucursal().getNombre() : "-", dataFont));
+            table.addCell(new com.lowagie.text.Phrase(socio.isAporteAlDia() ? "SI" : "NO", dataFont));
+            table.addCell(new com.lowagie.text.Phrase(socio.isCreditoAlDia() ? "SI" : "NO", dataFont));
+            table.addCell(new com.lowagie.text.Phrase(socio.isEstadoVozVoto() ? "SI" : "NO", dataFont));
+        }
+
+        document.add(table);
+
+        // Footer
+        com.lowagie.text.Paragraph footer = new com.lowagie.text.Paragraph(
+                "Total: " + socios.size() + " socios | Generado: "
+                        + java.time.LocalDateTime.now()
+                                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 10, com.lowagie.text.Font.ITALIC));
+        footer.setSpacingBefore(20);
+        footer.setAlignment(com.lowagie.text.Element.ALIGN_RIGHT);
+        document.add(footer);
+
+        document.close();
+    }
+
+    // =========================================================================
+    // ABM ENDPOINTS (Solo SUPER_ADMIN)
+    // =========================================================================
+
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PostMapping
+    public ResponseEntity<?> crearSocio(@RequestBody Socio socio, Authentication auth, HttpServletRequest request) {
+        try {
+            // Validar campos obligatorios
+            if (socio.getNumeroSocio() == null || socio.getNombreCompleto() == null || socio.getCedula() == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Número de socio, nombre y cédula son obligatorios"));
+            }
+
+            // Verificar duplicados
+            if (socioRepository.findByNumeroSocio(socio.getNumeroSocio()).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Ya existe un socio con ese número"));
+            }
+            if (socioRepository.findByCedula(socio.getCedula()).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Ya existe un socio con esa cédula"));
+            }
+
+            Socio saved = socioRepository.save(socio);
+
+            auditService.registrar("SOCIOS", "CREAR",
+                    "Socio creado: " + saved.getNumeroSocio() + " - " + saved.getNombreCompleto(),
+                    auth != null ? auth.getName() : "SYSTEM", request.getRemoteAddr());
+
+            return ResponseEntity.ok(Map.of("message", "Socio creado exitosamente", "socio", saved));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizarSocio(@PathVariable Long id, @RequestBody Socio socioData,
+            Authentication auth, HttpServletRequest request) {
+        return socioRepository.findById(id).map(socio -> {
+            // Actualizar campos
+            if (socioData.getNumeroSocio() != null)
+                socio.setNumeroSocio(socioData.getNumeroSocio());
+            if (socioData.getNombreCompleto() != null)
+                socio.setNombreCompleto(socioData.getNombreCompleto());
+            if (socioData.getCedula() != null)
+                socio.setCedula(socioData.getCedula());
+            if (socioData.getTelefono() != null)
+                socio.setTelefono(socioData.getTelefono());
+
+            socio.setAporteAlDia(socioData.isAporteAlDia());
+            socio.setSolidaridadAlDia(socioData.isSolidaridadAlDia());
+            socio.setFondoAlDia(socioData.isFondoAlDia());
+            socio.setIncoopAlDia(socioData.isIncoopAlDia());
+            socio.setCreditoAlDia(socioData.isCreditoAlDia());
+
+            Socio updated = socioRepository.save(socio);
+
+            auditService.registrar("SOCIOS", "MODIFICAR", "Socio modificado: " + updated.getNumeroSocio(),
+                    auth != null ? auth.getName() : "SYSTEM", request.getRemoteAddr());
+
+            return ResponseEntity.ok(Map.of("message", "Socio actualizado exitosamente", "socio", updated));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('SUPER_ADMIN')")
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> eliminarSocio(@PathVariable Long id, Authentication auth, HttpServletRequest request) {
+        return socioRepository.findById(id).map(socio -> {
+            String numeroSocio = socio.getNumeroSocio();
+            String nombre = socio.getNombreCompleto();
+
+            // Eliminar asistencias relacionadas
+            asistenciaRepository.deleteBySocioId(id);
+
+            // Eliminar de asignaciones
+            jdbcTemplate.update("DELETE FROM asignaciones_socios WHERE socio_id = ?", id);
+
+            socioRepository.delete(socio);
+
+            auditService.registrar("SOCIOS", "ELIMINAR", "Socio eliminado: " + numeroSocio + " - " + nombre,
+                    auth != null ? auth.getName() : "SYSTEM", request.getRemoteAddr());
+
+            return ResponseEntity.ok(Map.of("message", "Socio eliminado exitosamente"));
+        }).orElse(ResponseEntity.notFound().build());
     }
 }

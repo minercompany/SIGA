@@ -18,13 +18,20 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     const refreshConfig = async () => {
         try {
             const token = localStorage.getItem("token");
-            // Intentar cargar configuración (endpoint público o privado)
+            if (!token) {
+                // Sin token, usar valores por defecto silenciosamente
+                return;
+            }
             const response = await axios.get("http://localhost:8081/api/configuracion", {
-                headers: token ? { Authorization: `Bearer ${token}` } : {}
+                headers: { Authorization: `Bearer ${token}` },
+                timeout: 5000 // 5 segundos timeout
             });
-            setConfig(response.data);
+            if (response.data) {
+                setConfig(response.data);
+            }
         } catch (error) {
-            console.error("Error cargando configuración:", error);
+            // Silenciosamente usar valores por defecto si el backend no responde
+            console.warn("Usando configuración por defecto");
         }
     };
 

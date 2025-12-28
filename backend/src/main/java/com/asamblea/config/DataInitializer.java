@@ -12,8 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -53,20 +51,9 @@ public class DataInitializer {
             }
 
             // ==========================================
-            // 2. LIMPIAR SUCURSALES INCORRECTAS
+            // 2. INICIALIZAR SUCURSALES OFICIALES
             // ==========================================
             try {
-                // Definir códigos válidos
-                List<String> codigosValidos = Arrays.asList("1", "2", "3", "5", "6", "7", "30", "150");
-                // Agregué algunos extra por seguridad, pero nos centraremos en normalizar
-
-                List<Sucursal> todasSucursales = sucursalRepository.findAll();
-                for (Sucursal suc : todasSucursales) {
-                    // Si el código NO está en nuestra lista de "oficiales" y no parece válido,
-                    // eliminar
-                    // (Esta lógica es simplificada, ajustar según necesidad real del negocio)
-                    // Por ahora, solo nos aseguramos de tener las básicas.
-                }
 
                 // ==========================================
                 // 3. CREAR/ACTUALIZAR SUCURSALES OFICIALES

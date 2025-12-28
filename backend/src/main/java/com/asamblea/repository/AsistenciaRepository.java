@@ -20,4 +20,7 @@ public interface AsistenciaRepository extends JpaRepository<Asistencia, Long> {
     boolean existsBySocioId(Long socioId);
 
     java.util.Optional<Asistencia> findFirstBySocioId(Long socioId);
+
+    // Eliminar asistencias por socio ID
+    void deleteBySocioId(Long socioId);
 }
