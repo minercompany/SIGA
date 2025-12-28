@@ -63,28 +63,39 @@ public class SocioController {
         return ResponseEntity.ok(Map.of("message", "Cancelación solicitada"));
     }
 
+    // Historial de importaciones
+    @GetMapping("/import-history")
+    public ResponseEntity<List<ImportacionHistorial>> getImportHistory() {
+        return ResponseEntity.ok(importacionHistorialRepository.findTop10ByOrderByFechaImportacionDesc());
+    }
+
+    // Listar todos los socios con paginación
+    @GetMapping
+    public ResponseEntity<Page<Socio>> listarTodos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(socioRepository.findAllWithSucursal(pageable));
+    }
+
     // -------------------------------------------------------------------------
     // SEARCH ENDPOINT
     // -------------------------------------------------------------------------
     @GetMapping("/buscar")
     public ResponseEntity<List<Map<String, Object>>> buscar(@RequestParam String term) {
-        // Limpiar término de búsqueda
         String cleanTerm = term.trim();
         List<Socio> sociosEncontrados;
 
-        // Primero buscar coincidencia exacta
         List<Socio> exactos = socioRepository.buscarExacto(cleanTerm);
         if (!exactos.isEmpty()) {
             sociosEncontrados = exactos;
         } else {
-            // Si no hay exacto, buscar parcial (limitado a 50 resultados)
             sociosEncontrados = socioRepository.buscarParcial(cleanTerm);
             if (sociosEncontrados.size() > 50) {
                 sociosEncontrados = sociosEncontrados.subList(0, 50);
             }
         }
 
-        // Construir respuesta enriquecida
         List<Map<String, Object>> response = new ArrayList<>();
         for (Socio socio : sociosEncontrados) {
             Map<String, Object> dto = new HashMap<>();
@@ -92,42 +103,134 @@ public class SocioController {
             dto.put("nombreCompleto", socio.getNombreCompleto());
             dto.put("numeroSocio", socio.getNumeroSocio());
             dto.put("cedula", socio.getCedula());
-
-            // Campos de estado individuales para el frontend
             dto.put("aporteAlDia", socio.isAporteAlDia());
             dto.put("solidaridadAlDia", socio.isSolidaridadAlDia());
             dto.put("fondoAlDia", socio.isFondoAlDia());
             dto.put("incoopAlDia", socio.isIncoopAlDia());
             dto.put("creditoAlDia", socio.isCreditoAlDia());
             dto.put("vozYVoto", socio.isEstadoVozVoto());
-
-            dto.put("yaAsignado", false); // Simplificado para evitar más errores
-
+            dto.put("yaAsignado", false);
             response.add(dto);
         }
-
         return ResponseEntity.ok(response);
+    }
+
+    // Obtener un socio por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Socio> obtenerPorId(@PathVariable Long id) {
+        return socioRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // -------------------------------------------------------------------------
     // UPDATE STATUS ENDPOINT
     // -------------------------------------------------------------------------
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, Boolean> updates) {
-        return socioRepository.findById(id).map(s -> {
+    public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, Boolean> updates,
+            Authentication auth, HttpServletRequest request) {
+        return socioRepository.findById(id).map(socio -> {
             if (updates.containsKey("aporteAlDia"))
-                s.setAporteAlDia(updates.get("aporteAlDia"));
+                socio.setAporteAlDia(updates.get("aporteAlDia"));
             if (updates.containsKey("solidaridadAlDia"))
-                s.setSolidaridadAlDia(updates.get("solidaridadAlDia"));
+                socio.setSolidaridadAlDia(updates.get("solidaridadAlDia"));
             if (updates.containsKey("fondoAlDia"))
-                s.setFondoAlDia(updates.get("fondoAlDia"));
+                socio.setFondoAlDia(updates.get("fondoAlDia"));
             if (updates.containsKey("incoopAlDia"))
-                s.setIncoopAlDia(updates.get("incoopAlDia"));
+                socio.setIncoopAlDia(updates.get("incoopAlDia"));
             if (updates.containsKey("creditoAlDia"))
-                s.setCreditoAlDia(updates.get("creditoAlDia"));
-            socioRepository.save(s);
-            return ResponseEntity.ok(s);
+                socio.setCreditoAlDia(updates.get("creditoAlDia"));
+            socioRepository.save(socio);
+            return ResponseEntity.ok(Map.of("message", "Estado actualizado correctamente", "socio", socio));
         }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // Estadísticas generales del padrón
+    @GetMapping("/estadisticas")
+    public ResponseEntity<Map<String, Object>> estadisticas() {
+        long total = socioRepository.count();
+        long conVozYVoto = socioRepository.countConVozYVoto();
+        long soloVoz = socioRepository.countSoloVoz();
+        long presentes = asistenciaRepository.count();
+        long presentesVyV = asistenciaRepository.countByEstadoVozVoto(true);
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalPadron", total);
+        stats.put("conVozYVoto", conVozYVoto);
+        stats.put("soloVoz", soloVoz);
+        stats.put("presentes", presentes);
+        stats.put("presentesVyV", presentesVyV);
+        return ResponseEntity.ok(stats);
+    }
+
+    // Estadísticas por sucursal
+    @GetMapping("/estadisticas/por-sucursal")
+    public ResponseEntity<List<Map<String, Object>>> estadisticasPorSucursal() {
+        List<Sucursal> sucursales = sucursalRepository.findAll();
+        List<Map<String, Object>> resultado = new ArrayList<>();
+
+        for (Sucursal suc : sucursales) {
+            Map<String, Object> item = new HashMap<>();
+            long padron = socioRepository.countBySucursalId(suc.getId());
+            long conVozYVoto = socioRepository.countConVozYVotoBySucursalId(suc.getId());
+            long presentes = asistenciaRepository.countBySucursalId(suc.getId());
+            double ratio = padron > 0 ? ((double) presentes / padron) * 100 : 0;
+
+            item.put("sucursalId", suc.getId());
+            item.put("sucursal",
+                    suc.getNombre() != null ? suc.getNombre().toUpperCase() : "SIN NOMBRE (" + suc.getId() + ")");
+            item.put("padron", padron);
+            item.put("presentes", presentes);
+            item.put("vozVoto", conVozYVoto);
+            item.put("ratio", Math.round(ratio * 10.0) / 10.0);
+            resultado.add(item);
+        }
+        return ResponseEntity.ok(resultado);
+    }
+
+    @GetMapping("/stats-globales")
+    public ResponseEntity<Map<String, Object>> statsGlobales() {
+        long totalHabilitados = socioRepository.countConVozYVoto();
+        long presentesGlobal = asistenciaRepository.countByEstadoVozVoto(true);
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalHabilitados", totalHabilitados);
+        stats.put("presentesGlobal", presentesGlobal);
+        return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/buscar-exacto")
+    public ResponseEntity<?> buscarSocio(@RequestParam String term) {
+        Optional<Socio> socioOpt = socioRepository.findByNumeroSocio(term);
+        if (socioOpt.isEmpty()) {
+            socioOpt = socioRepository.findByCedula(term);
+        }
+
+        if (socioOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Socio no encontrado"));
+        }
+
+        Socio socio = socioOpt.get();
+        boolean asistenciaConfirmada = asistenciaRepository.existsBySocioId(socio.getId());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", socio.getId());
+        response.put("numeroSocio", socio.getNumeroSocio());
+        response.put("cedula", socio.getCedula());
+        response.put("nombreCompleto", socio.getNombreCompleto());
+        response.put("telefono", socio.getTelefono());
+        response.put("sucursal", socio.getSucursal());
+        response.put("aporteAlDia", socio.isAporteAlDia());
+        response.put("solidaridadAlDia", socio.isSolidaridadAlDia());
+        response.put("fondoAlDia", socio.isFondoAlDia());
+        response.put("incoopAlDia", socio.isIncoopAlDia());
+        response.put("creditoAlDia", socio.isCreditoAlDia());
+        response.put("asistenciaConfirmada", asistenciaConfirmada);
+
+        boolean conVozYVoto = socio.isAporteAlDia() && socio.isSolidaridadAlDia() &&
+                socio.isFondoAlDia() && socio.isIncoopAlDia() && socio.isCreditoAlDia();
+        response.put("conVozYVoto", conVozYVoto);
+        return ResponseEntity.ok(response);
     }
 
     /**
