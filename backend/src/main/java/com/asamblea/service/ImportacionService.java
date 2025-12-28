@@ -240,40 +240,40 @@ public class ImportacionService {
                                     newSuc.setCodigo(code);
 
                                     // Mapear códigos a nombres reales
-                                    String nombre;
+                                    String nombreSucursal;
                                     String ciudad = null;
                                     switch (code) {
                                         case "1":
                                         case "CC":
-                                            nombre = "Casa Central";
+                                            nombreSucursal = "Casa Central";
                                             ciudad = "Asunción";
                                             break;
                                         case "2":
-                                            nombre = "Ciudad del Este";
+                                            nombreSucursal = "Ciudad del Este";
                                             ciudad = "Ciudad del Este";
                                             break;
                                         case "3":
-                                            nombre = "Villarrica";
+                                            nombreSucursal = "Villarrica";
                                             ciudad = "Villarrica";
                                             break;
                                         case "5":
-                                            nombre = "Sucursal 5";
+                                            nombreSucursal = "Sucursal 5";
                                             ciudad = null;
                                             break;
                                         case "6":
-                                            nombre = "Hernandarias";
+                                            nombreSucursal = "Hernandarias";
                                             ciudad = "Hernandarias";
                                             break;
                                         case "7":
-                                            nombre = "San Lorenzo";
+                                            nombreSucursal = "San Lorenzo";
                                             ciudad = "San Lorenzo";
                                             break;
                                         default:
-                                            nombre = "Sucursal " + code;
+                                            nombreSucursal = "Sucursal " + code;
                                             break;
                                     }
 
-                                    newSuc.setNombre(nombre);
+                                    newSuc.setNombre(nombreSucursal);
                                     newSuc.setCiudad(ciudad);
                                     newSuc = sucursalRepository.save(newSuc);
                                     sucursalMap.put(code, newSuc.getId());

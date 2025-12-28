@@ -29,7 +29,7 @@ export const dashboardSocioTour: TourStep[] = [
         id: 'mis-listas-nav',
         target: '[data-tour="nav-mis-listas"]',
         title: '👥 Módulo: Mis Listas',
-        content: 'Aquí es donde ocurre la magia. Usa este botón para buscar socios y agregarlos a tu gestión.',
+        content: 'Este es el núcleo de tu gestión. Usa este botón para buscar socios y agregarlos a tu lista de trabajo.',
         position: 'right'
     },
     {
