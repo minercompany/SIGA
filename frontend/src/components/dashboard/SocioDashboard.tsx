@@ -57,7 +57,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
         const fetchStats = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get("http://192.168.100.123:8081/api/asignaciones/stats-socio", {
+                const res = await axios.get("http://localhost:8081/api/asignaciones/stats-socio", {
                     headers: { Authorization: `Bearer ${token} ` }
                 });
                 setStats(res.data);
@@ -74,7 +74,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
         const fetchStatsGlobales = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get("http://192.168.100.123:8081/api/socios/stats-globales", {
+                const res = await axios.get("http://localhost:8081/api/socios/stats-globales", {
                     headers: { Authorization: `Bearer ${token} ` }
                 });
                 setStatsGlobales(res.data);
@@ -89,7 +89,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
         const fetchSociosDetalle = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get("http://192.168.100.123:8081/api/asignaciones/mis-socios-detalle", {
+                const res = await axios.get("http://localhost:8081/api/asignaciones/mis-socios-detalle", {
                     headers: { Authorization: `Bearer ${token} ` }
                 });
                 setSociosDetalle(res.data);
@@ -104,7 +104,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
         const fetchRanking = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get("http://192.168.100.123:8081/api/asignaciones/ranking-usuarios", {
+                const res = await axios.get("http://localhost:8081/api/asignaciones/ranking-usuarios", {
                     headers: { Authorization: `Bearer ${token} ` }
                 });
                 // Tomar solo el top 5

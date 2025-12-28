@@ -57,7 +57,7 @@ export function TopBar() {
 
         const fetchAsamblea = async () => {
             try {
-                const res = await fetch("http://192.168.100.123:8081/api/asambleas/proxima", {
+                const res = await fetch("http://localhost:8081/api/asambleas/proxima", {
                     headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
                 });
                 if (res.ok) {
@@ -89,7 +89,7 @@ export function TopBar() {
                 setIsSearching(true);
                 try {
                     const token = localStorage.getItem("token");
-                    const res = await fetch(`http://192.168.100.123:8081/api/usuarios/unificados?term=${searchTerm}`, {
+                    const res = await fetch(`http://localhost:8081/api/usuarios/unificados?term=${searchTerm}`, {
                         headers: { "Authorization": `Bearer ${token}` }
                     });
                     if (res.ok) {
@@ -436,7 +436,7 @@ export function TopBar() {
                 </div>
             )}
             {/* MODAL ONBOARDING */}
-            <WelcomeModal user={user} onUpdateUser={setUser} />
+            {/* <WelcomeModal user={user} onUpdateUser={setUser} /> MOVED TO LAYOUT */}
         </>
     );
 }

@@ -45,6 +45,6 @@ public interface SocioRepository extends JpaRepository<Socio, Long> {
     List<Socio> buscarExacto(String term);
 
     // Buscar parcial por nombre, cédula o número socio - CON SUCURSAL
-    @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE LOWER(s.nombreCompleto) LIKE LOWER(CONCAT('%', :term, '%')) OR s.cedula LIKE CONCAT('%', :term, '%') OR s.numeroSocio LIKE CONCAT('%', :term, '%') ORDER BY CAST(s.numeroSocio AS int) ASC")
+    @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE LOWER(s.nombreCompleto) LIKE LOWER(CONCAT('%', :term, '%')) OR s.cedula LIKE CONCAT('%', :term, '%') OR s.numeroSocio LIKE CONCAT('%', :term, '%') ORDER BY s.nombreCompleto ASC")
     List<Socio> buscarParcial(String term);
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, Loader2, User, ChevronRight, Check, X, ShieldAlert, Users, ChevronDown } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, Loader2, User, ChevronRight, Check, X, Users, ArrowLeft, UserCircle2, ShieldAlert } from "lucide-react";
 import Swal from "sweetalert2";
 import axios from "axios";
 
@@ -21,60 +21,106 @@ interface Socio {
     numeroSocio: string;
     cedula: string;
     vozYVoto: boolean;
+    // Campos nuevos para seguridad
+    yaAsignado?: boolean;
+    asignadoA?: string;
+    asignadoAUsuario?: string;
+    fechaAsignacion?: string;
 }
 
 export default function DirectAssignmentMaster() {
-    const [responsables, setResponsables] = useState<Lista[]>([]);
-    const [selectedTarget, setSelectedTarget] = useState<Lista | null>(null);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [socioEncontrado, setSocioEncontrado] = useState<Socio | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [searching, setSearching] = useState(false);
-    const [isSelectorOpen, setIsSelectorOpen] = useState(true);
+    // ESTADOS
+    const [step, setStep] = useState<1 | 2>(1); // 1: Elegir Responsable, 2: Asignar Socios
 
+    // DATOS
+    const [responsables, setResponsables] = useState<Lista[]>([]);
+    const [filteredResponsables, setFilteredResponsables] = useState<Lista[]>([]);
+
+    // SELECCIONES
+    const [selectedTarget, setSelectedTarget] = useState<Lista | null>(null);
+    const [socioEncontrado, setSocioEncontrado] = useState<Socio | null>(null);
+
+    // INPUTS
+    const [searchResponsable, setSearchResponsable] = useState("");
+    const [searchSocio, setSearchSocio] = useState("");
+
+    // UI
+    const [loading, setLoading] = useState(false);
+    const [searchingSocio, setSearchingSocio] = useState(false);
+
+    // REF para foco automático
+    const socioInputRef = useRef<HTMLInputElement>(null);
+
+    // Cargar responsables al inicio
     useEffect(() => {
         fetchResponsables();
     }, []);
 
-    // Efecto Debounce para búsqueda automática
+    // Filtrar responsables localmente
+    useEffect(() => {
+        if (!searchResponsable) {
+            setFilteredResponsables(responsables);
+        } else {
+            const term = searchResponsable.toLowerCase();
+            const filtered = responsables.filter(r =>
+                r.responsable.toLowerCase().includes(term) ||
+                (r.responsableUser && r.responsableUser.toLowerCase().includes(term))
+            );
+            setFilteredResponsables(filtered);
+        }
+    }, [searchResponsable, responsables]);
+
+    // Lógica BUSCADOR DE SOCIO (Paso 2)
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (searchTerm.length >= 3) {
-                performSearch(searchTerm);
-            } else if (searchTerm.length === 0) {
+            const isNumeric = /^\d+$/.test(searchSocio);
+            const minLength = isNumeric ? 1 : 2;
+
+            if (searchSocio.length >= minLength) {
+                performSearchSocio(searchSocio);
+            } else if (searchSocio.length === 0) {
                 setSocioEncontrado(null);
             }
-        }, 600);
+        }, /^\d+$/.test(searchSocio) ? 100 : 300);
 
         return () => clearTimeout(timer);
-    }, [searchTerm]);
+    }, [searchSocio]);
+
+    // --- FUNCIONES ---
 
     const fetchResponsables = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get("http://192.168.100.123:8081/api/asignaciones/admin/responsables", {
+            const res = await axios.get("http://localhost:8081/api/asignaciones/admin/responsables", {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            // res.data is List<Map> from getPosiblesResponsables
-            // Mapeamos ID de usuario a idUsuario y id ficticio
             setResponsables(res.data);
+            setFilteredResponsables(res.data);
 
+            // Si solo hay uno, seleccionarlo automáticamente (opcional, pero práctico)
             if (res.data.length === 1) {
-                setSelectedTarget(res.data[0]);
-                setIsSelectorOpen(false);
+                selectResponsable(res.data[0]);
             }
-
         } catch (error) {
             console.error("Error cargando responsables:", error);
         }
     };
 
-    const performSearch = async (term: string) => {
-        setSearching(true);
+    const selectResponsable = (target: Lista) => {
+        setSelectedTarget(target);
+        setStep(2);
+        setSearchSocio(""); // Limpiar búsqueda anterior
+        setSocioEncontrado(null);
+        // Dar foco al input de socio después de un breve delay para que renderice
+        setTimeout(() => socioInputRef.current?.focus(), 100);
+    };
+
+    const performSearchSocio = async (term: string) => {
+        setSearchingSocio(true);
         setSocioEncontrado(null);
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get(`http://192.168.100.123:8081/api/socios/buscar?term=${term}`, {
+            const res = await axios.get(`http://localhost:8081/api/socios/buscar?term=${term}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -84,245 +130,385 @@ export default function DirectAssignmentMaster() {
         } catch (error) {
             console.error(error);
         } finally {
-            setSearching(false);
+            setSearchingSocio(false);
         }
     };
 
-    const [searchTermResponsable, setSearchTermResponsable] = useState("");
-
     const handleAssign = async () => {
         if (!selectedTarget || !socioEncontrado) return;
+
+        // VERIFICACIÓN PRECIA AL INTENTAR ASIGNAR
+        if (socioEncontrado.yaAsignado) {
+            Swal.fire({
+                title: '¡Ya está registrado!',
+                html: `
+                    <div class="text-left mt-2">
+                        <div class="bg-red-50 p-4 rounded-xl border border-red-100 shadow-inner">
+                            <div class="mb-3 border-b border-red-200 pb-2 flex justify-between items-center">
+                                <span class="text-xs font-bold text-red-500 uppercase tracking-widest">DETALLE DE ASIGNACIÓN</span>
+                            </div>
+                            
+                            <div class="grid gap-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500 font-medium">Socio:</span>
+                                    <span class="font-bold text-slate-800">${socioEncontrado.nombreCompleto}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500 font-medium">Asignado a:</span>
+                                    <span class="font-bold text-emerald-700">${socioEncontrado.asignadoAUsuario}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500 font-medium">Lista:</span>
+                                    <span class="font-mono text-slate-600 text-xs text-right">${socioEncontrado.asignadoA}</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-2 mt-2 border-t border-red-200/50">
+                                    <span class="text-slate-500 font-medium">Fecha/Hora:</span>
+                                    <span class="font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                                        ${socioEncontrado.fechaAsignacion ? new Date(socioEncontrado.fechaAsignacion).toLocaleString() : 'N/A'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-slate-500 text-sm mt-4 text-center">Este socio no se puede volver a asignar.</p>
+                    </div>
+                `,
+                icon: 'warning',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#0f172a',
+                didClose: () => {
+                    setSearchSocio("");
+                    setSocioEncontrado(null);
+                    socioInputRef.current?.focus();
+                }
+            });
+            return; // DETENER PROCESO AQUÍ
+        }
 
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
 
             await axios.post(
-                `http://192.168.100.123:8081/api/asignaciones/admin/asignar-a-usuario/${selectedTarget.idUsuario || selectedTarget.id}`,
+                `http://localhost:8081/api/asignaciones/admin/asignar-a-usuario/${selectedTarget.idUsuario || selectedTarget.id}`,
                 { term: socioEncontrado.numeroSocio },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            // Feedback Toast
+            // Alerta Flotante (Toast)
             const Toast = Swal.mixin({
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: false,
                 timer: 3000,
-                timerProgressBar: true
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
             });
-
-            // Actualizar contador visualmente (truco optimista)
-            setSelectedTarget(prev => prev ? ({ ...prev, total: prev.total + 1 }) : null);
 
             Toast.fire({
                 icon: 'success',
-                title: `Asignado a ${selectedTarget.responsable.split(' ')[0]}`
+                title: `Asignado correctamente a ${selectedTarget.responsable}`
             });
 
+            // Actualizar contador visualmente
+            setSelectedTarget(prev => prev ? ({ ...prev, total: prev.total + 1 }) : null);
+
+            // Actualizar lista global también para cuando volvamos al paso 1
+            setResponsables(prev => prev.map(r => r.id === selectedTarget.id ? { ...r, total: r.total + 1 } : r));
+
+            // RESETEO RÁPIDO PARA SEGUIR ASIGNANDO
             setSocioEncontrado(null);
-            setSearchTerm("");
+            setSearchSocio("");
+            // Foco de nuevo al input
+            socioInputRef.current?.focus();
 
         } catch (error: any) {
-            Swal.fire("Error", error.response?.data?.error || "Error al asignar", "error");
+            console.error("Error asignando:", error);
+
+            if (error.response?.status === 409 && error.response?.data?.error === "SOCIO_YA_ASIGNADO") {
+                const data = error.response.data;
+                Swal.fire({
+                    title: '¡No se puede asignar!',
+                    html: `
+                        <div class="text-left mt-2">
+                            <p class="text-slate-600 mb-4">Este socio ya fue registrado previamente. Detalle del registro:</p>
+                            
+                            <div class="bg-red-50 p-4 rounded-xl border border-red-100 shadow-inner">
+                                <div class="mb-3 border-b border-red-200 pb-2 flex justify-between items-center">
+                                    <span class="text-xs font-bold text-red-500 uppercase tracking-widest">SOCIO YA ASIGNADO</span>
+                                    <span class="text-[10px] font-mono text-red-400">Error 409</span>
+                                </div>
+                                
+                                <div class="grid gap-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-500 font-medium">Socio:</span>
+                                        <span class="font-bold text-slate-800">${data.socioNombre}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-500 font-medium">Asignado a:</span>
+                                        <span class="font-bold text-emerald-700">${data.listaUsuario}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-500 font-medium">Lista:</span>
+                                        <span class="font-mono text-slate-600 text-xs text-right">${data.listaNombre}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2 mt-2 border-t border-red-200/50">
+                                        <span class="text-slate-500 font-medium">Fecha/Hora:</span>
+                                        <span class="font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                                            ${data.fechaAsignacion ? new Date(data.fechaAsignacion).toLocaleString() : 'N/A'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    confirmButtonText: 'Entendido, cerrar',
+                    confirmButtonColor: '#0f172a'
+                });
+            } else {
+                Swal.fire("Error", "No se pudo realizar la asignación", "error");
+            }
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="max-w-2xl mx-auto pb-20 pt-8 px-4">
+        <div className="max-w-4xl mx-auto p-4 min-h-screen">
 
-            {/* Header */}
-            <div className="text-center mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
-                <div className="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-1.5 rounded-full text-xs font-bold tracking-wider shadow-sm mb-4">
-                    <ShieldAlert className="h-3 w-3 text-red-400" />
-                    MODO ADMINISTRADOR
-                </div>
-                <h1 className="text-4xl font-black text-slate-800 tracking-tight mb-2">
-                    Asignación Directa
+            {/* HEADER */}
+            <header className="mb-8 text-center md:text-left">
+                <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                    Asignación <span className="text-emerald-600">Admin</span>
                 </h1>
-                <p className="text-slate-500 font-medium">Selecciona un responsable y asigna socios automáticamente.</p>
-            </div>
+                <p className="text-slate-500 font-medium">Sistema rápido de distribución de socios.</p>
+            </header>
 
-            {/* SELECCIÓN DE RESPONSABLE */}
-            <div className={`bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden transition-all duration-500 relative z-20 ${isSelectorOpen ? 'mb-8 ring-4 ring-slate-100' : 'mb-8'}`}>
-                {/* Header Selector */}
-                <button
-                    onClick={() => setIsSelectorOpen(!isSelectorOpen)}
-                    className="w-full bg-slate-900 text-white p-5 flex items-center justify-between hover:bg-slate-800 transition-colors"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center">
-                            <Users className="h-6 w-6 text-emerald-400" />
-                        </div>
-                        <div className="text-left">
-                            <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">RESPONSABLE ACTUAL</div>
-                            <div className="font-bold text-xl flex items-center gap-2">
-                                {selectedTarget ? (
-                                    <>
-                                        {selectedTarget.responsable}
-                                        <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full ml-1 shadow-sm">
-                                            {selectedTarget.total}
-                                        </span>
-                                    </>
-                                ) : "Selecciona un Responsable"}
+            {/* ERROR DE ESTADO (Por seguridad) */}
+            {!responsables && <div className="p-4 bg-red-100 text-red-700 rounded-lg">Error cargando datos.</div>}
+
+            {/* --- PASO 1: SELECCIONAR RESPONSABLE --- */}
+            {step === 1 && (
+                <div className="animate-in slide-in-from-left duration-300">
+                    <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+
+                        {/* Buscador de Responsable Header */}
+                        <div className="p-6 bg-slate-50 border-b border-slate-100">
+                            <label className="block text-sm font-bold text-emerald-600 uppercase tracking-wider mb-2">
+                                Paso 1: Selecciona Responsable
+                            </label>
+                            <div className="relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por Nombre, Usuario..."
+                                    className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-xl text-lg font-bold text-slate-800 focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all"
+                                    value={searchResponsable}
+                                    onChange={e => setSearchResponsable(e.target.value)}
+                                    autoFocus
+                                />
                             </div>
                         </div>
-                    </div>
-                    <ChevronDown className={`h-6 w-6 text-slate-400 transition-transform duration-300 ${isSelectorOpen ? 'rotate-180' : ''}`} />
-                </button>
 
-                {/* Body Selector (Lista de Personas) */}
-                <div className={`transition-all duration-300 ease-in-out ${isSelectorOpen ? 'max-h-[60vh] opacity-100' : 'max-h-0 opacity-0'}`}>
-
-                    {/* BUSCADOR RESPONSABLES */}
-                    <div className="p-3 bg-slate-100 sticky top-0 z-20 border-b border-slate-200">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Buscar nombre o cédula..."
-                                className="w-full pl-9 pr-4 py-2 rounded-lg text-sm font-bold border-none outline-none focus:ring-2 focus:ring-emerald-500 text-slate-700 placeholder:text-slate-400 placeholder:font-medium"
-                                value={searchTermResponsable}
-                                onChange={e => setSearchTermResponsable(e.target.value)}
-                                onClick={(e) => e.stopPropagation()}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="p-2 bg-slate-50 overflow-y-auto max-h-[50vh] custom-scrollbar">
-                        {responsables
-                            .filter(r => r.responsable.toLowerCase().includes(searchTermResponsable.toLowerCase()) || r.responsableUser.includes(searchTermResponsable))
-                            .map(target => (
-                                <button
-                                    key={target.id}
-                                    onClick={() => {
-                                        setSelectedTarget(target);
-                                        setIsSelectorOpen(false); // Auto cerrar al seleccionar
-                                    }}
-                                    className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all mb-2 last:mb-0 group ${selectedTarget?.id === target.id
-                                        ? "bg-white border-emerald-500 shadow-md ring-2 ring-emerald-500/20"
-                                        : "bg-white border-transparent hover:border-slate-200 hover:bg-slate-100"
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className={`h-10 w-10 rounded-full flex items-center justify-center text-lg font-black transition-colors ${selectedTarget?.id === target.id ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500 group-hover:bg-white group-hover:shadow"
-                                            }`}>
-                                            {target.responsable.charAt(0)}
-                                        </div>
-                                        <div className="text-left">
-                                            <div className={`font-bold text-base ${selectedTarget?.id === target.id ? "text-slate-900" : "text-slate-600"}`}>
-                                                {target.responsable}
-                                            </div>
-                                            <div className="text-xs text-slate-400 font-medium flex items-center gap-2">
-                                                <span className={target.activa ? "text-emerald-500" : "text-amber-500"}>
-                                                    {target.activa ? "● Activo" : "● Inactivo"}
-                                                </span>
-                                                <span>• {target.idUsuario ? `User ${target.idUsuario}` : `Lista #${target.id}`}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {selectedTarget?.id === target.id && <Check className="h-6 w-6 text-emerald-600" />}
-                                </button>
-                            ))}
-                        {responsables.length === 0 && (
-                            <div className="p-8 text-center text-slate-400">
-                                Sin responsables disponibles.
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* BUSCADOR GIGANTE */}
-            <div className={`transition-all duration-500 ${!selectedTarget ? 'opacity-50 blur-sm pointer-events-none' : 'opacity-100'}`}>
-                <div className="relative group">
-                    <div className={`absolute -inset-1 rounded-3xl blur transition duration-500 ${socioEncontrado ? 'bg-gradient-to-r from-emerald-400 to-green-500 opacity-50' : 'bg-gradient-to-r from-slate-200 to-slate-300 opacity-50 group-hover:opacity-100'}`}></div>
-                    <div className="relative bg-white rounded-3xl shadow-xl flex items-center p-2 border border-slate-100">
-                        <div className="pl-4 pr-2">
-                            {searching ? (
-                                <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
+                        {/* Lista de Resultados */}
+                        <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-2">
+                            {filteredResponsables.length === 0 ? (
+                                <div className="p-8 text-center text-slate-400">
+                                    No se encontraron responsables.
+                                </div>
                             ) : (
-                                <Search className={`h-8 w-8 transition-colors ${searchTerm ? 'text-slate-800' : 'text-slate-300'}`} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    {filteredResponsables.map((resp) => (
+                                        <button
+                                            key={resp.id}
+                                            onClick={() => selectResponsable(resp)}
+                                            className="flex items-center p-4 bg-white hover:bg-emerald-50 border border-transparent hover:border-emerald-200 rounded-xl transition-all group text-left"
+                                        >
+                                            <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-xl group-hover:bg-emerald-500 group-hover:text-white transition-colors mr-4 shrink-0">
+                                                {resp.responsable.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <div className="font-bold text-slate-800 text-lg leading-tight group-hover:text-emerald-700">
+                                                    {resp.responsable}
+                                                </div>
+                                                <div className="text-sm text-slate-400 flex items-center gap-2">
+                                                    <UserCircle2 className="h-3 w-3" />
+                                                    {resp.responsableUser}
+                                                </div>
+                                            </div>
+                                            <div className="ml-auto flex flex-col items-end">
+                                                <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-xs font-bold mb-1">
+                                                    {resp.total}
+                                                </span>
+                                                <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-emerald-500" />
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
                             )}
                         </div>
-                        <input
-                            type="text"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Buscar Socio..."
-                            className="w-full bg-transparent text-3xl font-black text-slate-800 placeholder:text-slate-200 placeholder:font-bold outline-none border-none py-6 px-2"
-                            autoFocus
-                        />
-                        {searchTerm && (
-                            <button onClick={() => { setSearchTerm(""); setSocioEncontrado(null); }} className="hover:bg-slate-100 p-2 rounded-full mr-2 transition-colors">
-                                <X className="h-6 w-6 text-slate-400" />
+                    </div>
+                </div>
+            )}
+
+            {/* --- PASO 2: BUSCAR SOCIO Y ASIGNAR --- */}
+            {step === 2 && selectedTarget && (
+                <div className="animate-in slide-in-from-right duration-300">
+
+                    {/* BARRA SUPERIOR CON RESPONSABLE SELECCIONADO */}
+                    <div className="flex items-center justify-between bg-slate-900 text-white p-4 rounded-t-2xl shadow-lg">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => setStep(1)}
+                                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                                title="Cambiar Responsable"
+                            >
+                                <ArrowLeft className="h-6 w-6" />
                             </button>
-                        )}
-                    </div>
-                </div>
-
-                {/* TARJETA DE RESULTADO Y ACCIÓN */}
-                <div className={`transition-all duration-500 ease-out overflow-hidden ${socioEncontrado ? 'max-h-[600px] mt-6 opacity-100 transform translate-y-0' : 'max-h-0 mt-0 opacity-0 transform -translate-y-4'}`}>
-                    {socioEncontrado && (
-                        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 relative">
-                            {/* Header Tarjeta */}
-                            <div className="bg-emerald-600 p-8 flex justify-between items-start relative overflow-hidden">
-                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 rounded-full blur-3xl"></div>
-                                <div className="relative z-10 w-full">
-                                    <div className="text-emerald-200 text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-2">
-                                        <User className="h-3 w-3" /> SOCIO ENCONTRADO
-                                    </div>
-                                    <h2 className="text-3xl font-black text-white leading-tight mb-1">{socioEncontrado.nombreCompleto}</h2>
-                                    <div className="text-emerald-100 text-sm font-medium opacity-80">
-                                        {socioEncontrado.vozYVoto ? "Habilitado para Voto" : "Sin Voto"}
-                                    </div>
+                            <div>
+                                <div className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
+                                    Asignando socios a:
+                                </div>
+                                <div className="text-xl font-bold flex items-center gap-2">
+                                    {selectedTarget.responsable}
+                                    <span className="bg-white/10 text-xs px-2 py-0.5 rounded font-mono text-slate-300">
+                                        {selectedTarget.responsableUser}
+                                    </span>
                                 </div>
                             </div>
-
-                            {/* Body & Acción */}
-                            <div className="p-6 pt-8">
-                                <div className="grid grid-cols-2 gap-4 mb-8">
-                                    <div className="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">
-                                        <div className="text-[10px] text-slate-400 font-black uppercase tracking-wider mb-1">CÉDULA DE IDENTIDAD</div>
-                                        <div className="text-xl font-black text-slate-700">{socioEncontrado.cedula}</div>
-                                    </div>
-                                    <div className="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">
-                                        <div className="text-[10px] text-slate-400 font-black uppercase tracking-wider mb-1">NÚMERO DE SOCIO</div>
-                                        <div className="text-xl font-black text-slate-700">{socioEncontrado.numeroSocio}</div>
-                                    </div>
-                                </div>
-
-                                <button
-                                    onClick={handleAssign}
-                                    disabled={loading}
-                                    className="w-full bg-slate-900 text-white py-6 rounded-2xl font-black text-xl hover:bg-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-slate-900/20 flex items-center justify-center gap-3 relative overflow-hidden group"
-                                >
-                                    {loading ? (
-                                        <Loader2 className="h-6 w-6 animate-spin" />
-                                    ) : (
-                                        <>
-                                            <span>ASIGNAR AHORA</span>
-                                            <ChevronRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
-                                        </>
-                                    )}
-                                    <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 group-hover:animate-shine" />
-                                </button>
-                            </div>
                         </div>
-                    )}
-                </div>
-
-                {/* Instrucciones */}
-                {!socioEncontrado && selectedTarget && (
-                    <div className="mt-8 flex justify-center opacity-50">
-                        <div className="text-xs font-bold text-slate-400 bg-slate-100 px-4 py-2 rounded-full">
-                            TIP: Presiona ENTER al escribir para buscar
+                        <div className="bg-emerald-600 px-4 py-2 rounded-lg font-bold">
+                            Total: {selectedTarget.total}
                         </div>
                     </div>
-                )}
-            </div>
+
+                    <div className="bg-white border-x border-b border-slate-200 shadow-xl rounded-b-2xl p-6 md:p-10 space-y-8 min-h-[400px]">
+
+                        {/* Buscador de SOCIO GIGANTE */}
+                        <div className="relative">
+                            <div className="text-sm font-bold text-slate-400 uppercase mb-2">Paso 2: Buscar Socio</div>
+                            <div className="relative">
+                                <Search className={`absolute left-5 top-1/2 -translate-y-1/2 h-8 w-8 transition-colors ${searchingSocio ? 'text-emerald-500 animate-pulse' : 'text-slate-300'}`} />
+                                <input
+                                    ref={socioInputRef}
+                                    type="text"
+                                    placeholder="Ingresa Cédula o N° Socio..."
+                                    className="w-full pl-16 pr-4 py-6 bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 focus:bg-white rounded-2xl text-3xl md:text-4xl font-black text-slate-800 placeholder:text-slate-300 outline-none transition-all shadow-inner"
+                                    value={searchSocio}
+                                    onChange={e => setSearchSocio(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            performSearchSocio(searchSocio);
+                                        }
+                                    }}
+                                />
+                                {searchSocio && (
+                                    <button
+                                        onClick={() => { setSearchSocio(""); setSocioEncontrado(null); socioInputRef.current?.focus(); }}
+                                        className="absolute right-5 top-1/2 -translate-y-1/2 p-2 hover:bg-slate-200 rounded-full text-slate-400"
+                                    >
+                                        <X className="h-6 w-6" />
+                                    </button>
+                                )}
+                            </div>
+                            <p className="mt-2 text-slate-400 text-sm">
+                                Presiona <kbd className="bg-slate-100 border border-slate-300 rounded px-1 text-xs">ENTER</kbd> para búsqueda inmediata.
+                            </p>
+                        </div>
+
+                        {/* RESULTADO Y ACCIÓN */}
+                        <div className="transition-all duration-300">
+                            {searchingSocio && (
+                                <div className="text-center py-10">
+                                    <Loader2 className="h-10 w-10 animate-spin text-emerald-500 mx-auto mb-2" />
+                                    <p className="text-slate-500 font-medium">Buscando en padrón...</p>
+                                </div>
+                            )}
+
+                            {!socioEncontrado && !searchingSocio && searchSocio.length > 2 && (
+                                <div className="text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                                    <div className="text-4xl mb-2">🤷‍♂️</div>
+                                    <p className="text-slate-500 font-bold">No se encontró al socio</p>
+                                    <p className="text-slate-400 text-sm">Verifica el número o la cédula.</p>
+                                </div>
+                            )}
+
+                            {socioEncontrado && (
+                                <div className={`rounded-2xl border p-6 md:p-8 animate-in zoom-in-95 duration-200 ${socioEncontrado.yaAsignado ? 'bg-red-50 border-red-200' : 'bg-emerald-50/50 border-emerald-100'}`}>
+                                    <div className="flex flex-col md:flex-row items-center gap-6">
+
+                                        {/* Datos Socio */}
+                                        <div className="flex-1 text-center md:text-left">
+                                            {socioEncontrado.yaAsignado ? (
+                                                <div className="inline-block bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded mb-2 uppercase animate-pulse">
+                                                    ⚠️ YA ASIGNADO
+                                                </div>
+                                            ) : (
+                                                <div className="inline-block bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded mb-2 uppercase">
+                                                    Socio Encontrado
+                                                </div>
+                                            )}
+
+                                            <h3 className="text-3xl font-black text-slate-800 mb-2">
+                                                {socioEncontrado.nombreCompleto}
+                                            </h3>
+                                            <div className="flex items-center justify-center md:justify-start gap-4 text-slate-600 font-medium">
+                                                <span>CI: <strong className="text-slate-900">{socioEncontrado.cedula}</strong></span>
+                                                <span>•</span>
+                                                <span>Socio N°: <strong className="text-slate-900">{socioEncontrado.numeroSocio}</strong></span>
+                                            </div>
+
+                                            {/* ALERTA DE YA ASIGNADO */}
+                                            {socioEncontrado.yaAsignado && (
+                                                <div className="mt-4 bg-white/80 p-4 rounded-xl border border-red-100 text-red-700 shadow-sm">
+                                                    <div className="font-bold flex items-center gap-2 mb-2 text-red-800">
+                                                        <X className="h-5 w-5" />
+                                                        No se puede re-asignar
+                                                    </div>
+                                                    <div className="text-sm space-y-1">
+                                                        <div>👤 Registrado por: <strong className="text-slate-900">{socioEncontrado.asignadoAUsuario}</strong></div>
+                                                        <div>📋 Lista: <strong>{socioEncontrado.asignadoA}</strong></div>
+                                                        <div>🕒 Fecha: <span className="font-mono text-red-600">{socioEncontrado.fechaAsignacion ? new Date(socioEncontrado.fechaAsignacion).toLocaleString() : 'N/A'}</span></div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Botón Acción */}
+                                        <div className="shrink-0 w-full md:w-auto">
+                                            <button
+                                                onClick={handleAssign}
+                                                disabled={loading} // SE PERMITE CLIC AUNQUE ESTÉ ASIGNADO PARA VER EL DETALLE
+                                                className={`w-full md:w-auto text-xl font-bold py-4 px-8 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${socioEncontrado.yaAsignado
+                                                    ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/30'
+                                                    : 'bg-slate-900 hover:bg-emerald-600 text-white hover:shadow-emerald-500/30 active:scale-95'
+                                                    }`}
+                                            >
+                                                {loading ? <Loader2 className="animate-spin" /> : (
+                                                    <>
+                                                        {socioEncontrado.yaAsignado ? "ASIGNAR (Verificar)" : "ASIGNAR"}
+                                                        {socioEncontrado.yaAsignado ? <ShieldAlert className="h-6 w-6" /> : <Check className="h-6 w-6" />}
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                    </div>
+
+                    <div className="mt-4 text-center">
+                        <p className="text-sm text-slate-400">
+                            Modo de asignación rápida activado. Al asignar, el buscador se limpiará automáticamente.
+                        </p>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

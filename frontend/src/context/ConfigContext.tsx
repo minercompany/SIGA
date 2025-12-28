@@ -19,7 +19,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
         try {
             const token = localStorage.getItem("token");
             // Intentar cargar configuración (endpoint público o privado)
-            const response = await axios.get("http://192.168.100.123:8081/api/configuracion", {
+            const response = await axios.get("http://localhost:8081/api/configuracion", {
                 headers: token ? { Authorization: `Bearer ${token}` } : {}
             });
             setConfig(response.data);
@@ -35,7 +35,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     const updateConfig = async (clave: string, valor: string) => {
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://192.168.100.123:8081/api/configuracion", {
+            await axios.post("http://localhost:8081/api/configuracion", {
                 [clave]: valor
             }, {
                 headers: { Authorization: `Bearer ${token}` }

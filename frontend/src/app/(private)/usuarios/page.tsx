@@ -116,9 +116,9 @@ export default function UsuariosPage() {
             const headers = { Authorization: `Bearer ${token}` };
 
             const [usuariosRes, rolesRes, sucursalesRes] = await Promise.all([
-                axios.get(`http://192.168.100.123:8081/api/usuarios/unificados?term=${query}`, { headers }),
-                axios.get("http://192.168.100.123:8081/api/usuarios/roles", { headers }),
-                axios.get("http://192.168.100.123:8081/api/socios/estadisticas/por-sucursal", { headers })
+                axios.get(`http://localhost:8081/api/usuarios/unificados?term=${query}`, { headers }),
+                axios.get("http://localhost:8081/api/usuarios/roles", { headers }),
+                axios.get("http://localhost:8081/api/socios/estadisticas/por-sucursal", { headers })
             ]);
 
             setUsuarios(usuariosRes.data);
@@ -214,10 +214,10 @@ export default function UsuariosPage() {
             };
 
             if (editingUser && editingUser.id) {
-                await axios.put(`http://192.168.100.123:8081/api/usuarios/${editingUser.id}`, payload, { headers });
+                await axios.put(`http://localhost:8081/api/usuarios/${editingUser.id}`, payload, { headers });
                 setMessage({ type: "success", text: "Usuario actualizado correctamente" });
             } else {
-                await axios.post("http://192.168.100.123:8081/api/usuarios", payload, { headers });
+                await axios.post("http://localhost:8081/api/usuarios", payload, { headers });
                 setMessage({ type: "success", text: "Usuario creado correctamente" });
             }
 
@@ -257,7 +257,7 @@ export default function UsuariosPage() {
                 const token = localStorage.getItem("token");
                 const headers = { Authorization: `Bearer ${token}` };
                 // Usamos DELETE para baja lógica (según controller)
-                await axios.delete(`http://192.168.100.123:8081/api/usuarios/${user.id}`, { headers });
+                await axios.delete(`http://localhost:8081/api/usuarios/${user.id}`, { headers });
 
                 await Swal.fire({
                     title: '¡Desactivado!',
@@ -281,7 +281,7 @@ export default function UsuariosPage() {
         try {
             const token = localStorage.getItem("token");
             const headers = { Authorization: `Bearer ${token}` };
-            await axios.put(`http://192.168.100.123:8081/api/usuarios/${user.id}`, { activo: true }, { headers });
+            await axios.put(`http://localhost:8081/api/usuarios/${user.id}`, { activo: true }, { headers });
 
             const Toast = Swal.mixin({
                 toast: true,

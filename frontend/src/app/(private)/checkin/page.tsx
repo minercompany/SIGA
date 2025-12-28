@@ -62,7 +62,7 @@ export default function CheckInPage() {
         try {
             const token = localStorage.getItem("token");
             const headers = { Authorization: `Bearer ${token}` };
-            const response = await axios.get("http://192.168.100.123:8081/api/socios/estadisticas", { headers });
+            const response = await axios.get("http://localhost:8081/api/socios/estadisticas", { headers });
             setStats({
                 total: response.data.totalPadron || 0,
                 presentes: response.data.presentes || 0
@@ -100,7 +100,7 @@ export default function CheckInPage() {
 
             // Usar endpoint de búsqueda parcial/exacta
             const response = await axios.get(
-                `http://192.168.100.123:8081/api/socios/buscar?term=${encodeURIComponent(searchTerm.trim())}`,
+                `http://localhost:8081/api/socios/buscar?term=${encodeURIComponent(searchTerm.trim())}`,
                 { headers }
             );
 
@@ -144,7 +144,7 @@ export default function CheckInPage() {
         setCheckinLoading(true);
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://192.168.100.123:8081/api/asistencia/marcar",
+            await axios.post("http://localhost:8081/api/asistencia/marcar",
                 { socioId: socioEncontrado.id },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

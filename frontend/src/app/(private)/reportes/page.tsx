@@ -9,12 +9,14 @@ import {
     User,
     Users,
     ChevronDown,
-    Search
+    Search,
+    Loader2
 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
+import { Toaster, toast } from "sonner";
 
 interface ReporteItem {
     id: number;
@@ -27,6 +29,7 @@ interface ReporteItem {
     operador: string;
     estado?: string; // Para reporte de padrón (PRESENTE/AUSENTE)
     fechaAsignacion?: string;
+    asignadoPor?: string;
     operadorId?: string | number;
 }
 
@@ -39,7 +42,7 @@ const reportConfig: Record<ReportType, { title: string; description: string; adm
     'POR_SUCURSAL': { title: 'Por Sucursal', description: 'Asistencia filtrada por sucursal', adminOnly: true },
     'SIN_ASIGNAR': { title: 'Socios Sin Asignar', description: 'Socios que no están en ninguna lista', adminOnly: true },
     'SUCURSALES': { title: 'Estadísticas por Sucursal', description: 'Resumen agrupado por sucursal', adminOnly: true },
-    'OBSERVADOS': { title: 'Socios Observados', description: 'Socios con Solo Voz y motivos', adminOnly: true },
+    'OBSERVADOS': { title: 'Socios Solo Voz', description: 'Socios con Solo Voz y motivos', adminOnly: true },
 };
 
 export default function ReportesPage() {
@@ -54,6 +57,8 @@ export default function ReportesPage() {
     const [reportView, setReportView] = useState<ReportType>('ASISTENCIA');
     const [sucursales, setSucursales] = useState<any[]>([]);
     const [selectedSucursal, setSelectedSucursal] = useState<string>("");
+    const [generating, setGenerating] = useState(false);
+    const [progress, setProgress] = useState(0);
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -73,7 +78,7 @@ export default function ReportesPage() {
         if (usuario.rol === "SUPER_ADMIN") {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get("http://192.168.100.123:8081/api/usuarios", {
+                const res = await axios.get("http://localhost:8081/api/usuarios", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 // Filtramos para mostrar usuarios relevantes
@@ -85,7 +90,7 @@ export default function ReportesPage() {
             // Cargar sucursales para el filtro
             try {
                 const token = localStorage.getItem("token");
-                const resSuc = await axios.get("http://192.168.100.123:8081/api/reportes/sucursales-lista", {
+                const resSuc = await axios.get("http://localhost:8081/api/reportes/sucursales-lista", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setSucursales(resSuc.data);
@@ -97,9 +102,11 @@ export default function ReportesPage() {
 
     const fetchReporte = async (currentUser: any, opId: string, view: ReportType = reportView) => {
         setLoading(true);
+        // Reset data to avoid showing old data while loading or on error
+        setData([]);
         try {
             const token = localStorage.getItem("token");
-            let url = "http://192.168.100.123:8081/api/reportes";
+            let url = "http://localhost:8081/api/reportes";
 
             switch (view) {
                 case 'PADRON':
@@ -139,7 +146,9 @@ export default function ReportesPage() {
         } catch (error: any) {
             console.error("Error al obtener reporte", error);
             if (error.response?.status === 403) {
-                console.warn("No tienes permisos para este reporte o hubo un error.");
+                toast.error("No tienes permisos para ver este reporte.");
+            } else {
+                toast.error("Error al cargar los datos del reporte.");
             }
         } finally {
             setLoading(false);
@@ -163,214 +172,245 @@ export default function ReportesPage() {
     };
 
     const handleExportPDF = async () => {
-        const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
+        if (!data || data.length === 0) {
+            toast.error("No hay datos para exportar en este reporte.");
+            return;
+        }
 
-        // --- CARGAR LOGO ---
-        let logoBase64 = '';
+        setGenerating(true);
+        setProgress(10);
+
         try {
-            const response = await fetch('/logo-cooperativa.png');
-            const blob = await response.blob();
-            logoBase64 = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result as string);
-                reader.readAsDataURL(blob);
-            });
-        } catch (e) {
-            console.error("No se pudo cargar el logo", e);
-        }
+            // Permitir que la UI muestre el modal antes de bloquear con jsPDF
+            await new Promise(resolve => setTimeout(resolve, 500));
 
-        // --- ENCABEZADO PREMIUM (UNIFORME PARA TODOS) ---
-        doc.setFillColor(31, 41, 55);
-        doc.rect(0, 0, 297, 45, 'F');
+            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
 
-        if (logoBase64) {
-            doc.addImage(logoBase64, 'PNG', 10, 5, 35, 35);
-        }
+            // --- CARGAR LOGO ---
+            let logoBase64 = '';
+            try {
+                const response = await fetch('/logo-cooperativa.png');
+                const blob = await response.blob();
+                logoBase64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) {
+                console.error("No se pudo cargar el logo", e);
+            }
 
-        doc.setFontSize(22);
-        doc.setTextColor(255, 255, 255);
-        doc.setFont("helvetica", "bold");
-        doc.text("COOPERATIVA REDUCTO LTDA", 50, 18);
+            // --- ENCABEZADO PREMIUM (UNIFORME PARA TODOS) ---
+            doc.setFillColor(31, 41, 55);
+            doc.rect(0, 0, 297, 45, 'F');
 
-        doc.setFontSize(11);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(16, 185, 129);
-        doc.text("SIGA - Sistema Integral de Gestión de Asamblea", 50, 26);
+            if (logoBase64) {
+                doc.addImage(logoBase64, 'PNG', 10, 5, 35, 35);
+            }
 
-        doc.setFontSize(9);
-        doc.setTextColor(200, 200, 200);
-        doc.text("Documento Oficial", 50, 33);
+            doc.setFontSize(22);
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.text("COOPERATIVA REDUCTO LTDA", 50, 18);
 
-        doc.setFontSize(9);
-        doc.text(`Fecha: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 283, 38, { align: 'right' });
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(16, 185, 129);
+            doc.text("SIGA - Sistema Integral de Gestión de Asamblea", 50, 26);
 
-        // --- TÍTULO DINÁMICO ---
-        const titulos: Record<ReportType, string> = {
-            'ASISTENCIA': 'REPORTE OFICIAL DE ASISTENCIA',
-            'PADRON': 'REPORTE DE PADRÓN Y ASISTENCIA (MIS ASIGNADOS)',
-            'POR_SUCURSAL': `REPORTE DE ASISTENCIA - ${stats.sucursalNombre || 'SUCURSAL'}`,
-            'SIN_ASIGNAR': 'REPORTE DE SOCIOS SIN ASIGNAR',
-            'SUCURSALES': 'ESTADÍSTICAS DE ASISTENCIA POR SUCURSAL',
-            'OBSERVADOS': 'REPORTE DE SOCIOS OBSERVADOS (SOLO VOZ)'
-        };
+            doc.setFontSize(9);
+            doc.setTextColor(200, 200, 200);
+            doc.text("Documento Oficial", 50, 33);
 
-        doc.setFontSize(16);
-        doc.setTextColor(31, 41, 55);
-        doc.setFont("helvetica", "bold");
-        doc.text(titulos[reportView], 14, 58);
+            doc.setFontSize(9);
+            doc.text(`Fecha: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 283, 38, { align: 'right' });
 
-        doc.setFontSize(11);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(75, 85, 99);
-        doc.text(`Total: ${stats.totalRegistros}`, 14, 66);
+            // --- TÍTULO DINÁMICO ---
+            const titulos: Record<ReportType, string> = {
+                'ASISTENCIA': 'REPORTE OFICIAL DE ASISTENCIA',
+                'PADRON': 'REPORTE DE PADRÓN Y ASISTENCIA (MIS ASIGNADOS)',
+                'POR_SUCURSAL': `REPORTE DE ASISTENCIA - ${stats.sucursalNombre || 'SUCURSAL'}`,
+                'SIN_ASIGNAR': 'REPORTE DE SOCIOS SIN ASIGNAR',
+                'SUCURSALES': 'ESTADÍSTICAS DE ASISTENCIA POR SUCURSAL',
+                'OBSERVADOS': 'REPORTE DE SOCIOS (SOLO VOZ)'
+            };
 
-        doc.setFontSize(9);
-        doc.setTextColor(120, 130, 140);
-        doc.text(`Operador: ${user?.nombreCompleto || 'Sistema'}`, 283, 66, { align: 'right' });
+            doc.setFontSize(16);
+            doc.setTextColor(31, 41, 55);
+            doc.setFont("helvetica", "bold");
+            doc.text(titulos[reportView], 14, 58);
 
-        // --- COLUMNAS Y DATOS DINÁMICOS ---
-        let columns: any[] = [];
-        let rows: any[] = [];
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(75, 85, 99);
+            doc.text(`Total: ${stats.totalRegistros}`, 14, 66);
 
-        if (reportView === 'SUCURSALES') {
-            columns = [
-                { header: 'SUCURSAL', dataKey: 'sucursal' },
-                { header: 'TOTAL PRESENTES', dataKey: 'totalPresentes' },
-                { header: 'VOZ Y VOTO', dataKey: 'habilitados' },
-                { header: 'SOLO VOZ', dataKey: 'soloVoz' },
-            ];
-            rows = data.map((item: any) => ({
-                sucursal: item.sucursal,
-                totalPresentes: item.totalPresentes,
-                habilitados: item.habilitados,
-                soloVoz: item.soloVoz
-            }));
-        } else if (reportView === 'OBSERVADOS') {
-            columns = [
-                { header: 'CÉDULA', dataKey: 'cedula' },
-                { header: 'SOCIO', dataKey: 'socio' },
-                { header: 'NRO', dataKey: 'nro' },
-                { header: 'SUCURSAL', dataKey: 'sucursal' },
-                { header: 'MOTIVO OBSERVACIÓN', dataKey: 'motivos' },
-                { header: 'INGRESO', dataKey: 'fechaIngreso' },
-            ];
-            rows = data.map((item: any) => ({
-                cedula: item.cedula,
-                socio: item.socioNombre,
-                nro: item.socioNro,
-                sucursal: item.sucursal,
-                motivos: item.motivos || 'Sin especificar',
-                fechaIngreso: item.fechaIngreso ? new Date(item.fechaIngreso).toLocaleString() : '-'
-            }));
-        } else if (reportView === 'SIN_ASIGNAR') {
-            columns = [
-                { header: 'CÉDULA', dataKey: 'cedula' },
-                { header: 'SOCIO', dataKey: 'socio' },
-                { header: 'NRO', dataKey: 'nro' },
-                { header: 'SUCURSAL', dataKey: 'sucursal' },
-                { header: 'CONDICIÓN', dataKey: 'condicion' },
-            ];
-            rows = data.map((item: any) => ({
-                cedula: item.cedula,
-                socio: item.socioNombre,
-                nro: item.socioNro,
-                sucursal: item.sucursal,
-                condicion: item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ',
-                rawStatus: item.vozVoto
-            }));
-        } else if (reportView === 'POR_SUCURSAL') {
-            columns = [
-                { header: 'CÉDULA', dataKey: 'cedula' },
-                { header: 'SOCIO', dataKey: 'socio' },
-                { header: 'NRO', dataKey: 'nro' },
-                { header: 'REGISTRADO EN LISTA', dataKey: 'fechaAsig' },
-                { header: 'INGRESO ASAMBLEA', dataKey: 'fechaIngreso' },
-                { header: 'OPERADOR', dataKey: 'operador' },
-                { header: 'ESTADO', dataKey: 'estado' },
-                { header: 'CONDICIÓN', dataKey: 'condicion' },
-            ];
-            rows = data.map((item: any) => ({
-                cedula: item.cedula,
-                socio: item.socioNombre,
-                nro: item.socioNro,
-                fechaAsig: item.fechaAsignacion ? new Date(item.fechaAsignacion).toLocaleString() : '-',
-                fechaIngreso: item.fechaHora ? new Date(item.fechaHora).toLocaleString() : '-',
-                operador: item.operador,
-                estado: item.estado,
-                condicion: item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ',
-                rawStatus: item.vozVoto,
-                rawPresence: item.estado
-            }));
-        } else {
-            // ASISTENCIA y PADRON (ya existente)
-            columns = [
-                { header: 'CÉDULA', dataKey: 'cedula' },
-                { header: 'SOCIO', dataKey: 'socio' },
-                { header: 'NRO', dataKey: 'nro' },
-                { header: 'FECHA/HORA REGISTRO LISTA', dataKey: 'fechaAsig' },
-                { header: 'FECHA/HORA INGRESO ASAMBLEA', dataKey: 'fechaIngreso' },
-                { header: 'REGISTRADO POR', dataKey: 'operador' },
-                { header: 'CONDICIÓN', dataKey: 'condicion' },
-            ];
-            rows = data.map(item => {
-                const esHabilitado = item.vozVoto === 'HABILITADO';
-                return {
+            doc.setFontSize(9);
+            doc.setTextColor(120, 130, 140);
+            doc.text(`Operador: ${user?.nombreCompleto || 'Sistema'}`, 283, 66, { align: 'right' });
+
+            // --- COLUMNAS Y DATOS DINÁMICOS ---
+            setProgress(40);
+            await new Promise(resolve => setTimeout(resolve, 200));
+            let columns: any[] = [];
+            let rows: any[] = [];
+
+            if (reportView === 'SUCURSALES') {
+                columns = [
+                    { header: 'SUCURSAL', dataKey: 'sucursal' },
+                    { header: 'TOTAL PRESENTES', dataKey: 'totalPresentes' },
+                    { header: 'VOZ Y VOTO', dataKey: 'habilitados' },
+                    { header: 'SOLO VOZ', dataKey: 'soloVoz' },
+                ];
+                rows = data.map((item: any) => ({
+                    sucursal: item.sucursal,
+                    totalPresentes: item.totalPresentes,
+                    habilitados: item.habilitados,
+                    soloVoz: item.soloVoz
+                }));
+            } else if (reportView === 'OBSERVADOS') {
+                columns = [
+                    { header: 'CÉDULA', dataKey: 'cedula' },
+                    { header: 'SOCIO', dataKey: 'socio' },
+                    { header: 'NRO', dataKey: 'nro' },
+                    { header: 'SUCURSAL', dataKey: 'sucursal' },
+                    { header: 'MOTIVO OBSERVACIÓN', dataKey: 'motivos' },
+                    { header: 'INGRESO', dataKey: 'fechaIngreso' },
+                ];
+                rows = data.map((item: any) => ({
+                    cedula: item.cedula,
+                    socio: item.socioNombre,
+                    nro: item.socioNro,
+                    sucursal: item.sucursal,
+                    motivos: item.motivos || 'Sin especificar',
+                    fechaIngreso: item.fechaIngreso ? new Date(item.fechaIngreso).toLocaleString() : '-'
+                }));
+            } else if (reportView === 'SIN_ASIGNAR') {
+                columns = [
+                    { header: 'CÉDULA', dataKey: 'cedula' },
+                    { header: 'SOCIO', dataKey: 'socio' },
+                    { header: 'NRO', dataKey: 'nro' },
+                    { header: 'SUCURSAL', dataKey: 'sucursal' },
+                    { header: 'CONDICIÓN', dataKey: 'condicion' },
+                ];
+                rows = data.map((item: any) => ({
+                    cedula: item.cedula,
+                    socio: item.socioNombre,
+                    nro: item.socioNro,
+                    sucursal: item.sucursal,
+                    condicion: item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ',
+                    rawStatus: item.vozVoto
+                }));
+            } else if (reportView === 'POR_SUCURSAL') {
+                columns = [
+                    { header: 'CÉDULA', dataKey: 'cedula' },
+                    { header: 'SOCIO', dataKey: 'socio' },
+                    { header: 'NRO', dataKey: 'nro' },
+                    { header: 'REGISTRADO EN LISTA', dataKey: 'fechaAsig' },
+                    { header: 'INGRESO ASAMBLEA', dataKey: 'fechaIngreso' },
+                    { header: 'OPERADOR', dataKey: 'operador' },
+                    { header: 'ESTADO', dataKey: 'estado' },
+                    { header: 'CONDICIÓN', dataKey: 'condicion' },
+                ];
+                rows = data.map((item: any) => ({
                     cedula: item.cedula,
                     socio: item.socioNombre,
                     nro: item.socioNro,
                     fechaAsig: item.fechaAsignacion ? new Date(item.fechaAsignacion).toLocaleString() : '-',
                     fechaIngreso: item.fechaHora ? new Date(item.fechaHora).toLocaleString() : '-',
                     operador: item.operador,
-                    condicion: esHabilitado ? 'VOZ Y VOTO' : 'SOLO VOZ',
+                    estado: item.estado,
+                    condicion: item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ',
                     rawStatus: item.vozVoto,
-                    rawPresence: item.estado || ''
-                };
-            });
-        }
+                    rawPresence: item.estado
+                }));
+            } else {
+                // ASISTENCIA y PADRON (ya existente)
+                columns = [
+                    { header: 'CÉDULA', dataKey: 'cedula' },
+                    { header: 'SOCIO', dataKey: 'socio' },
+                    { header: 'NRO', dataKey: 'nro' },
+                    { header: 'ASIGNADO EL', dataKey: 'fechaAsig' },
+                    { header: 'ASIGNADO POR', dataKey: 'asignadoPor' },
+                    { header: 'INGRESO ASAMBLEA', dataKey: 'fechaIngreso' },
+                    { header: 'REGISTRADO EN ASAMBLEA POR', dataKey: 'operador' },
+                    { header: 'CONDICIÓN', dataKey: 'condicion' },
+                ];
+                rows = data.map(item => {
+                    const esHabilitado = item.vozVoto === 'HABILITADO';
+                    return {
+                        cedula: item.cedula,
+                        socio: item.socioNombre,
+                        nro: item.socioNro,
+                        fechaAsig: item.fechaAsignacion ? new Date(item.fechaAsignacion).toLocaleString() : '-',
+                        asignadoPor: item.asignadoPor || '-',
+                        fechaIngreso: item.fechaHora ? new Date(item.fechaHora).toLocaleString() : '-',
+                        operador: item.operador,
+                        condicion: esHabilitado ? 'VOZ Y VOTO' : 'SOLO VOZ',
+                        rawStatus: item.vozVoto,
+                        rawPresence: item.estado || ''
+                    };
+                });
+            }
 
-        autoTable(doc, {
-            startY: 75,
-            columns: columns,
-            body: rows,
-            headStyles: {
-                fillColor: [31, 41, 55],
-                textColor: [255, 255, 255],
-                fontStyle: 'bold',
-                halign: 'center'
-            },
-            bodyStyles: {
-                valign: 'middle',
-                fontSize: 8
-            },
-            alternateRowStyles: { fillColor: [248, 250, 252] },
-            didParseCell: function (cellData: any) {
-                if (cellData.section === 'body') {
-                    const row = cellData.row.raw as any;
-                    if (row.rawStatus === 'HABILITADO') {
-                        cellData.cell.styles.fillColor = [209, 250, 229];
-                        cellData.cell.styles.textColor = [6, 78, 59];
-                    } else if (row.rawStatus === 'OBSERVADO') {
-                        cellData.cell.styles.fillColor = [254, 243, 199];
-                        cellData.cell.styles.textColor = [120, 53, 15];
-                    }
-                    if (row.rawPresence === 'AUSENTE') {
-                        cellData.cell.styles.textColor = [156, 163, 175];
+            setProgress(70);
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            autoTable(doc, {
+                startY: 75,
+                columns: columns,
+                body: rows,
+                headStyles: {
+                    fillColor: [31, 41, 55],
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    halign: 'center'
+                },
+                bodyStyles: {
+                    valign: 'middle',
+                    fontSize: 8,
+                    textColor: [0, 0, 0] // NEGRO
+                },
+                alternateRowStyles: { fillColor: [248, 250, 252] },
+                didParseCell: function (cellData: any) {
+                    if (cellData.section === 'body') {
+                        const row = cellData.row.raw as any;
+                        if (row.rawStatus === 'HABILITADO') {
+                            cellData.cell.styles.fillColor = [209, 250, 229];
+                            cellData.cell.styles.textColor = [0, 0, 0]; // NEGRO
+                        } else if (row.rawStatus === 'OBSERVADO') {
+                            cellData.cell.styles.fillColor = [254, 243, 199];
+                            cellData.cell.styles.textColor = [0, 0, 0]; // NEGRO
+                        }
+                        if (row.rawPresence === 'AUSENTE') {
+                            cellData.cell.styles.textColor = [0, 0, 0]; // NEGRO
+                        }
                     }
                 }
+            });
+
+            // Pie de página
+            const pageCount = (doc as any).internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(150);
+                doc.text(`Página ${i} de ${pageCount} - SIGA - Sistema Integral de Gestión de Asamblea`, 148, 200, { align: 'center' });
             }
-        });
 
-        // Pie de página
-        const pageCount = (doc as any).internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(8);
-            doc.setTextColor(150);
-            doc.text(`Página ${i} de ${pageCount} - SIGA - Sistema Integral de Gestión de Asamblea`, 148, 200, { align: 'center' });
+            const fileName = `reporte_${reportView.toLowerCase()}_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+
+            setProgress(100);
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+        } catch (error) {
+            console.error("Error generando PDF:", error);
+            toast.error("Ocurrió un error al generar el PDF.");
+        } finally {
+            setGenerating(false);
+            setProgress(0);
         }
-
-        const fileName = `reporte_${reportView.toLowerCase()}_${new Date().toISOString().split('T')[0]}.pdf`;
-        doc.save(fileName);
     };
 
     const handleExportExcel = () => {
@@ -393,7 +433,39 @@ export default function ReportesPage() {
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12">
+            {/* Modal de Progreso */}
+            {generating && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 animate-in fade-in zoom-in duration-300 border border-emerald-100">
+                        <div className="mx-auto w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center relative">
+                            <Loader2 className="w-10 h-10 text-emerald-600 animate-spin" />
+                            <div className="absolute inset-0 border-4 border-emerald-100 rounded-full" />
+                            <div
+                                className="absolute inset-0 border-4 border-emerald-500 rounded-full border-t-transparent animate-spin"
+                                style={{ animationDuration: '1.5s' }}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <h3 className="text-2xl font-black text-slate-800">Generando Reporte</h3>
+                            <p className="text-slate-500 font-medium">Procesando datos del sistema...</p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                                <div
+                                    className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
+                            <p className="text-emerald-600 font-bold text-sm tabular-nums text-right">{progress}% completado</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Header Premium */}
+            <Toaster position="top-center" richColors />
             <div className="text-center space-y-3 py-6">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-full mb-2">
                     <span className="text-emerald-600 font-bold text-xs uppercase tracking-wider">SIGA Premium</span>
@@ -670,7 +742,7 @@ export default function ReportesPage() {
                 </div>
                 <div className={`p-5 rounded-2xl border text-center ${reportView === 'PADRON' ? 'bg-red-50 border-red-100' : 'bg-amber-50 border-amber-100'}`}>
                     <p className={`text-sm font-medium uppercase tracking-wider mb-1 ${reportView === 'PADRON' ? 'text-red-600' : 'text-amber-600'}`}>
-                        {reportView === 'PADRON' ? 'Ausentes' : 'Observados'}
+                        {reportView === 'PADRON' ? 'Ausentes' : 'Solo Voz'}
                     </p>
                     <p className={`text-4xl font-black ${reportView === 'PADRON' ? 'text-red-700' : 'text-amber-700'}`}>{stats.observados}</p>
                 </div>
@@ -685,54 +757,70 @@ export default function ReportesPage() {
                     <table className="w-full">
                         <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">Hora</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">Socio</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">Estado</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">Operador</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Hora Ingreso</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Socio</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Estado</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Asignado Por</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Registrado (Asistencia)</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {loading ? (
-                                <tr><td colSpan={4} className="p-8 text-center text-slate-400">Cargando...</td></tr>
-                            ) :
-                                data.map((item) => (
-                                    <tr key={item.id} className={`hover:bg-slate-50 ${item.estado === 'AUSENTE' ? 'bg-red-50/30' : ''}`}>
-                                        <td className="px-6 py-3 text-sm text-slate-600 font-mono">
-                                            {item.fechaHora
-                                                ? new Date(item.fechaHora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                                : <span className="text-slate-300">-</span>
-                                            }
-                                        </td>
-                                        <td className="px-6 py-3 text-sm">
-                                            <div className="font-bold text-slate-700">{item.socioNombre}</div>
-                                            <div className="text-xs text-slate-400">CI: {item.cedula}</div>
-                                        </td>
-                                        <td className="px-6 py-3">
-                                            {reportView === 'PADRON' ? (
-                                                <div className="flex flex-col gap-1">
-                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold w-fit ${item.estado === "PRESENTE" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                                                        }`}>
-                                                        {item.estado}
-                                                    </span>
-                                                    <span className="text-[10px] text-slate-400 font-medium">
-                                                        {item.vozVoto}
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <span className={`px-2 py-1 rounded text-xs font-bold ${item.vozVoto === "HABILITADO"
-                                                    ? "bg-emerald-100 text-emerald-700"
-                                                    : "bg-amber-100 text-amber-700"
+                            {loading && (
+                                <tr><td colSpan={5} className="p-8 text-center text-slate-400">Cargando...</td></tr>
+                            )}
+
+                            {!loading && data.length > 0 && data.map((item) => (
+                                <tr key={item.id} className={`hover:bg-slate-50 border-b border-slate-100/50 ${item.estado === 'AUSENTE' ? 'bg-red-50/50' : ''}`}>
+                                    <td className="px-6 py-3 text-sm text-black font-mono">
+                                        {item.fechaHora
+                                            ? new Date(item.fechaHora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                            : <span className="text-black">-</span>
+                                        }
+                                    </td>
+                                    <td className="px-6 py-3 text-sm">
+                                        <div className="font-bold text-black">{item.socioNombre}</div>
+                                        <div className="text-xs text-black font-semibold">CI: {item.cedula}</div>
+                                    </td>
+                                    <td className="px-6 py-3">
+                                        {reportView === 'PADRON' ? (
+                                            <div className="flex flex-col gap-1">
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold w-fit border ${item.estado === "PRESENTE" ? "bg-emerald-100 text-black border-emerald-200" : "bg-red-100 text-black border-red-200"
                                                     }`}>
-                                                    {item.vozVoto}
+                                                    {item.estado}
                                                 </span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-3 text-sm text-slate-500">
-                                            {item.operador}
-                                        </td>
-                                    </tr>
-                                ))
-                            }
+                                                <span className="text-[10px] text-black font-bold">
+                                                    {item.vozVoto === "OBSERVADO" ? "SOLO VOZ" : item.vozVoto}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <span className={`px-2 py-1 rounded text-xs font-bold border ${item.vozVoto === "HABILITADO"
+                                                ? "bg-emerald-100 text-black border-emerald-200"
+                                                : "bg-amber-100 text-black border-amber-200"
+                                                }`}>
+                                                {item.vozVoto === "OBSERVADO" ? "SOLO VOZ" : item.vozVoto}
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-3 text-sm text-black font-bold">
+                                        {item.asignadoPor || '-'}
+                                    </td>
+                                    <td className="px-6 py-3 text-sm text-black font-medium">
+                                        {item.operador}
+                                    </td>
+                                </tr>
+                            ))}
+
+                            {!loading && data.length === 0 && (
+                                <tr>
+                                    <td colSpan={5} className="py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center text-slate-400">
+                                            <FileSpreadsheet className="w-12 h-12 mb-3 opacity-20" />
+                                            <p className="font-medium">No hay registros para mostrar</p>
+                                            <p className="text-xs mt-1">Intenta cambiar los filtros o el tipo de reporte</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

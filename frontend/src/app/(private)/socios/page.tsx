@@ -61,10 +61,10 @@ export default function SociosPage() {
             const token = localStorage.getItem("token");
             const headers = { Authorization: `Bearer ${token}` };
 
-            let url = `http://192.168.100.123:8081/api/socios?page=${page}&size=${pageSize}`;
+            let url = `http://localhost:8081/api/socios?page=${page}&size=${pageSize}`;
             if (term) {
                 // Ajuste para búsqueda según backend real
-                url = `http://192.168.100.123:8081/api/socios/buscar?term=${encodeURIComponent(term)}`;
+                url = `http://localhost:8081/api/socios/buscar?term=${encodeURIComponent(term)}`;
             }
 
             const response = await axios.get(url, { headers });
