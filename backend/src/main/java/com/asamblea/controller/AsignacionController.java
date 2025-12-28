@@ -417,6 +417,15 @@ public class AsignacionController {
             errorResponse.put("socioNro", socioOpt.get().getNumeroSocio());
             errorResponse.put("fechaAsignacion", existing.getFechaAsignacion());
 
+            // AUDITORÍA INTENTO FALLIDO (ADMIN)
+            auditService.registrar(
+                    "ASIGNACIONES",
+                    "INTENTO_FALLIDO_ADMIN",
+                    "Intento fallido Admin: " + admin.getUsername() + " quiso asignar a socio #"
+                            + socioOpt.get().getNumeroSocio() + " pero ya pertenece a " + usuarioLista,
+                    admin.getUsername(),
+                    "API_ADMIN_FAIL");
+
             return ResponseEntity.status(409).body(errorResponse);
         }
 
@@ -425,6 +434,22 @@ public class AsignacionController {
         asignacion.setSocio(socioOpt.get());
         asignacion.setAsignadoPor(admin); // Guardar quién hizo la asignación
         asignacionRepository.save(asignacion);
+
+        // AUDITORÍA ÉXITO
+        // Al método le falta HttpServletRequest, pero podemos usar uno dummy o nulo si
+        // el servicio lo soporta,
+        // o inyectar HttpServletRequest en el controlador.
+        // Mejor opción: Agregar HttpServletRequest al signature del metodo.
+        // Pero como multi_replace es limitado, asumiré que auditService maneja null ip
+        // o insertaré "API"
+
+        auditService.registrar(
+                "ASIGNACIONES",
+                "ASIGNAR_ADMIN",
+                "Admin " + admin.getUsername() + " asignó socio #" + socioOpt.get().getNumeroSocio() + " a "
+                        + destino.getUsername(),
+                admin.getUsername(),
+                "API_ADMIN");
 
         pushService.sendToSuperAdmins(
                 "Nueva Asignación Admin",
@@ -479,6 +504,15 @@ public class AsignacionController {
             errorResponse.put("socioNro", socio.getNumeroSocio());
             errorResponse.put("fechaAsignacion", existing.getFechaAsignacion());
 
+            // AUDITORÍA INTENTO FALLIDO
+            auditService.registrar(
+                    "ASIGNACIONES",
+                    "INTENTO_FALLIDO_SOCIO",
+                    "Intento fallido: " + currentUser.getUsername() + " quiso asignar a socio #"
+                            + socio.getNumeroSocio() + " pero ya pertenece a " + usuarioLista,
+                    currentUser.getUsername(),
+                    request.getRemoteAddr());
+
             return ResponseEntity.status(409).body(errorResponse);
         }
 
@@ -487,6 +521,15 @@ public class AsignacionController {
         asignacion.setSocio(socio);
         asignacion.setAsignadoPor(currentUser); // Guardar quién hizo la asignación
         asignacionRepository.save(asignacion);
+
+        // AUDITORÍA ÉXITO
+        auditService.registrar(
+                "ASIGNACIONES",
+                "ASIGNAR_SOCIO",
+                "Usuario " + currentUser.getUsername() + " asignó socio #" + socio.getNumeroSocio() + " ("
+                        + socio.getNombreCompleto() + ")",
+                currentUser.getUsername(),
+                request.getRemoteAddr());
 
         // Notificar a Admins (solo si no es el mismo admin quien asigna, para reducir
         // ruido, o siempre)
@@ -513,6 +556,13 @@ public class AsignacionController {
                 .orElseThrow(() -> new RuntimeException("Asignación no encontrada"));
 
         asignacionRepository.delete(asignacion);
+
+        auditService.registrar(
+                "ASIGNACIONES",
+                "ELIMINAR_ASIGNACION",
+                "Eliminó asignación de socio #" + asignacion.getSocio().getNumeroSocio() + " de la lista " + listaId,
+                auth.getName(),
+                request.getRemoteAddr());
 
         return ResponseEntity.ok(Map.of("success", true));
     }

@@ -103,7 +103,7 @@ export default function AuditoriaPage() {
                             AUDITORÍA <span className="italic text-teal-600">TOTAL</span>
                         </h1>
                     </div>
-                    <p className="text-slate-500 font-medium">Registro inmutable de todas las acciones del sistema por módulo y operador.</p>
+                    <p className="text-slate-500 font-medium">Registro inmutable de acciones. Para ver el historial de asignaciones de un socio, busca su número o cédula.</p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -127,7 +127,7 @@ export default function AuditoriaPage() {
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Buscar por detalle, usuario o acción..."
+                            placeholder="Buscar por N° Socio, Cédula, Usuario..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-14 pr-6 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900/10 transition-all"
@@ -140,8 +140,8 @@ export default function AuditoriaPage() {
                                 key={mod}
                                 onClick={() => setFilterModulo(mod)}
                                 className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all uppercase tracking-widest border ${filterModulo === mod
-                                        ? 'bg-slate-900 text-white border-slate-900 shadow-lg'
-                                        : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
+                                    ? 'bg-slate-900 text-white border-slate-900 shadow-lg'
+                                    : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
                                     }`}
                             >
                                 {mod}
