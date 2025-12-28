@@ -20,7 +20,7 @@ export const dashboardSocioTour: TourStep[] = [
     // --- SECCIÓN 1: BARRA LATERAL ---
     {
         id: 'sidebar',
-        target: '[data-tour="sidebar"]', // Ahora apunta también al menú móvil
+        target: '[data-tour="sidebar-panel"], [data-tour="sidebar-trigger"]', // Ahora apunta a ambos
         title: '📌 Menú de Navegación',
         content: 'Esta barra lateral te acompañará siempre. Es tu centro de comando para moverte por el sistema.',
         position: 'auto'

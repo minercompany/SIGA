@@ -166,7 +166,7 @@ export function Sidebar() {
             </div>
 
             {/* Navegación */}
-            <nav data-tour="sidebar" className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+            <nav data-tour="sidebar-panel" className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
                 {menuItems.filter(item => hasPermission(item.id)).map((item) => {
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     const hasSubmenu = item.submenu && item.submenu.length > 0;
@@ -347,7 +347,7 @@ export function Sidebar() {
                     effectiveCollapsed ? "w-16" : "w-64",
                     // Posición móvil
                     isMobile ? "fixed z-50 left-0 top-0" : "relative hidden md:flex",
-                    isMobile && !mobileOpen ? "-translate-x-full" : "translate-x-0"
+                    isMobile && !mobileOpen ? "-translate-x-full invisible" : "translate-x-0"
                 )}
             >
                 {sidebarContent}

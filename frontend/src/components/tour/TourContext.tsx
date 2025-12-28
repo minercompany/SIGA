@@ -7,7 +7,7 @@ interface TourStep {
     target: string; // CSS selector del elemento a resaltar
     title: string;
     content: string;
-    position?: 'top' | 'bottom' | 'left' | 'right';
+    position?: 'top' | 'bottom' | 'left' | 'right' | 'auto';
 }
 
 interface TourContextType {
