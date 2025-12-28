@@ -503,7 +503,7 @@ export default function ConfiguracionPage() {
             </div>
 
             {/* SECCIÓN PERFIL (VISIBLE PARA TODOS) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6" data-tour="config-profile">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-1 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm text-center flex flex-col items-center justify-center">
                     <div className="relative group">
                         <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-4 border-4 border-white shadow-xl overflow-hidden">
@@ -527,7 +527,7 @@ export default function ConfiguracionPage() {
                 </div>
 
                 <div className="md:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2" data-tour="config-profile">
                         <Key className="h-4 w-4 text-emerald-600" />
                         <h2 className="text-sm font-bold text-slate-700 uppercase">Datos Personales & Seguridad</h2>
                     </div>
@@ -624,7 +624,7 @@ export default function ConfiguracionPage() {
             </div>
 
             {/* Sección Guía de Principiante */}
-            <div className="rounded-2xl bg-white p-6 border border-slate-100 shadow-sm" data-tour="config-guide">
+            <div className="rounded-2xl bg-white p-6 border border-slate-100 shadow-sm">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl shadow-lg shadow-indigo-200">
@@ -638,6 +638,7 @@ export default function ConfiguracionPage() {
                         </div>
                     </div>
                     <button
+                        data-tour="config-guide"
                         onClick={handleResetTour}
                         className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-bold text-sm hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg shadow-indigo-200"
                     >
