@@ -1,0 +1,292 @@
+Crear un **módulo nuevo** de comunicación **ADMIN ↔ USUARIO** con dos funciones separadas e independientes, con **diseño premium**, **100% responsive** (desktop/tablet/móvil) y experiencia tipo WhatsApp/Messenger:
+
+1. **Mensajero flotante (CHAT en vivo)**: accesible desde cualquier pantalla, sin entrar a perfiles ni páginas.
+2. **Mensajes / Avisos (individuales y masivos)**: anuncios oficiales con notificación destacada, separados del chat.
+
+---
+
+## 1) Mensajero flotante (CHAT) – Premium + Tiempo real + Sonido + Inicio por Usuario
+
+### UI/UX obligatoria
+
+* Mostrar en todas las pantallas un **botón flotante circular (FAB)** en esquina inferior derecha.
+* El FAB debe incluir:
+
+  * **Avatar del Administrador** dentro del círculo (o ícono “Soporte/Administración” con avatar).
+  * **Badge** con contador de chats no leídos.
+* Al click/tap:
+
+  * Abrir un **panel lateral (drawer)** de chat sin recargar ni navegar.
+
+### Responsive
+
+* Desktop: drawer lateral derecho.
+* Tablet: drawer más ancho.
+* Móvil: drawer **full-screen** con botón volver.
+* Soporta orientación vertical/horizontal.
+
+### Tiempo real
+
+* Mensajes instantáneos sin recargar (WebSockets ideal; fallback polling).
+* Indicadores:
+
+  * Admin/Usuario en línea / desconectado + última vez
+  * “Escribiendo…”
+  * Enviado / entregado / leído
+
+### Sonido tipo chat (obligatorio)
+
+* Al recibir un mensaje nuevo:
+
+  * Reproducir un **sonido tipo chat** (configurable ON/OFF).
+  * Si el navegador bloquea autoplay, habilitarlo al primer click del usuario y persistir preferencia.
+
+### Inicio de chat por el usuario (actualización obligatoria)
+
+* El **usuario también puede iniciar conversación** con el administrador desde el FAB:
+
+  * Al abrir por primera vez, debe mostrar: “Escribí tu consulta a Administración”.
+  * El usuario puede enviar mensaje libre (consulta/solicitud).
+  * Esto crea/activa automáticamente la conversación Admin↔Usuario.
+* En el panel del admin debe aparecer:
+
+  * Nueva conversación marcada como **“Nuevo”** o **“Consulta entrante”**.
+  * Notificación + sonido + badge.
+
+### Restricciones del chat
+
+* Chat exclusivamente **Usuario ↔ Administrador** (1 a 1).
+* No existe usuario↔usuario.
+* El usuario solo ve un chat: “Administración”.
+
+---
+
+## 2) Mensajes / Avisos (NO chat) – Push en PC y Celular + Repetición cada 5 minutos
+
+### Concepto
+
+Los **Avisos/Mensajes** son comunicaciones oficiales (órdenes, instrucciones, recordatorios). **No se mezclan con el chat**.
+
+### Envío (Admin)
+
+Módulo Admin: **Avisos / Mensajes**
+
+* Tipos:
+
+  * Individual (a 1 usuario)
+  * Masivo (a todos)
+  * Por filtros (rol/sucursal/estado)
+* Opciones:
+
+  * Prioridad: normal / alta / crítica
+  * Mostrar como modal (sí/no)
+  * Requiere respuesta (sí/no)
+  * Requiere confirmación “Entendido” (sí/no)
+  * Programar envío (opcional)
+* Auditoría: total destinatarios, entregados, leídos, respondidos, pendientes.
+
+### Notificación en PC y Celular (obligatorio)
+
+* Al enviar un aviso:
+
+  * Notificación **en navegador/PC**.
+  * Notificación **en celular** (push) para dispositivos autorizados.
+* Reglas de repetición:
+
+  * Repetir la notificación **cada 5 minutos** hasta que el usuario:
+
+    * Abra la notificación, o
+    * Abra/lea el aviso dentro del sistema (marcado como visto).
+  * Al marcar como visto/leído, detener repeticiones.
+
+### Modal/alerta interna (obligatorio)
+
+* Badge en ícono superior (campana) con avisos no leídos.
+* Si es prioridad alta/crítica o modal:
+
+  * Mostrar **modal premium** con el contenido.
+* Si requiere confirmación:
+
+  * Botón “Entendido” obligatorio; hasta confirmar, el aviso permanece pendiente.
+
+---
+
+## Respuestas rápidas para avisos (obligatorio)
+
+Cuando el aviso requiere respuesta:
+
+* Mostrar CTA: “**Respondé el mensaje**”
+* Incluir botones rápidos (chips):
+
+  * “Leído”
+  * “Entendido”
+  * “A la orden”
+  * “En proceso”
+  * “Verifico”
+* Permitir respuesta libre además de los chips.
+* Al responder:
+
+  * Marcar como respondido y notificar al admin (badge + sonido).
+
+---
+
+## Separación estricta entre CHAT y AVISOS
+
+* Badge del FAB = chats no leídos.
+* Badge del ícono superior = avisos no leídos.
+* No mezclar listados ni contadores.
+
+---
+
+## Auditoría completa (chat y avisos)
+
+Guardar:
+
+* Fecha/hora/minuto/segundo
+* Emisor/receptor
+* IP + user-agent (si aplica)
+* Estados: enviado / entregado / leído
+* Avisos: abierto_at, leído_at, confirmado_at, respondido_at, contador de reintentos (cada 5 min)
+* Chat: delivered_at, read_at, y eventos “typing” (opcional)
+
+---
+
+## Criterios de aceptación
+
+* Usuario puede iniciar chat desde el FAB y el admin recibe la conversación en tiempo real.
+* Chat reproduce sonido, badge, y es responsive.
+* Avisos envían notificación en PC y celular y se repiten cada 5 minutos hasta ser abiertos/leídos.
+* Avisos permiten respuestas rápidas y texto libre.
+* UI premium, moderna y separada entre chat y avisos.
+
+Agregar al módulo la **trazabilidad completa (auditoría obligatoria)** para **TODOS** los eventos de **Avisos/Mensajes** y **Chat**, asegurando que nada se pierda y todo quede consultable por el administrador.
+
+---
+
+## Auditoría obligatoria (Avisos/Mensajes y Chat)
+
+### Reglas generales
+
+* **Todo mensaje y todo chat debe quedar guardado en base de datos** (persistente).
+* Cada acción debe generar **registro de auditoría**: quién, qué hizo, a quién, cuándo, desde dónde y con qué estado.
+* Debe existir **historial completo** por usuario y por administrador.
+
+---
+
+## 1) Registro y auditoría de AVISOS/MENSAJES (individual y masivo)
+
+### Datos mínimos a guardar por cada aviso
+
+* `id_mensaje`
+* `tipo`: individual / masivo / por filtro
+* `prioridad`: normal / alta / crítica
+* `titulo` (opcional)
+* `contenido`
+* `emisor_id` (admin)
+* `created_at` (fecha/hora/min/seg)
+* `ip_emisor`, `user_agent_emisor`
+* `mostrar_como_modal` (sí/no)
+* `requiere_confirmacion` (sí/no)
+* `requiere_respuesta` (sí/no)
+* `programado_para` (opcional)
+* `estado_general`: creado / enviado / finalizado
+
+### Estado por destinatario (auditoría por usuario)
+
+Por cada usuario destinatario guardar:
+
+* `mensaje_id`, `usuario_id`
+* `enviado_at`
+* `entregado_at`
+* `notificado_at` (PC), `notificado_mobile_at` (celular)
+* `reintentos_notificacion_count`
+* `ultimo_reintento_at`
+* `abierto_at`
+* `leido_at`
+* `confirmado_at` (si “Entendido”)
+* `respondido_at` (si respondió)
+* `respuesta_tipo`: chip (“Entendido”, “En proceso”, etc.) o texto libre
+* `respuesta_texto` (si aplica)
+* `estado`: pendiente / notificado / abierto / leído / confirmado / respondido / fallido
+
+### Log de notificaciones repetidas (cada 5 min)
+
+Guardar eventos:
+
+* `mensaje_id`, `usuario_id`
+* `canal`: web/pc, mobile
+* `attempt_number`
+* `attempt_at`
+* `resultado`: enviado_ok / falló / bloqueado / no_permiso
+
+---
+
+## 2) Registro y auditoría del CHAT (mensajero flotante)
+
+### Persistencia obligatoria
+
+* Cada conversación Admin↔Usuario debe tener:
+
+  * Identificador único de conversación
+  * Historial completo de mensajes
+* Nunca se elimina automáticamente; solo admin puede archivar (opcional) pero debe quedar trazado.
+
+### Datos mínimos por cada mensaje de chat
+
+* `chat_message_id`
+* `conversation_id`
+* `sender_role`: admin / usuario
+* `sender_id`
+* `receiver_id`
+* `contenido`
+* `created_at` (fecha/hora/min/seg)
+* `ip_sender`, `user_agent_sender`
+* Estados:
+
+  * `sent_at`
+  * `delivered_at`
+  * `read_at`
+* `estado`: enviado / entregado / leído / fallido / reintentado
+* `error_code` y `error_detail` si falla
+
+### Eventos adicionales auditables (opcional pero recomendado)
+
+* `typing_start_at`, `typing_end_at`
+* `user_online_at`, `user_offline_at`
+* `admin_opened_chat_at`, `user_opened_chat_at`
+* Cambios de estado (ej. “leído” marcado automáticamente al entrar en viewport)
+
+---
+
+## 3) Panel Admin: Historial y Auditoría (obligatorio)
+
+### Sección “Auditoría de Comunicaciones”
+
+* Filtros:
+
+  * Por usuario
+  * Por fecha/rango
+  * Por tipo: chat / avisos
+  * Por estado: pendiente, leído, respondido, fallido
+  * Por prioridad (avisos)
+* Acciones:
+
+  * Ver detalle completo (timeline) de un aviso enviado
+  * Ver conversación completa de chat con timestamps y estados
+  * Exportar (CSV/PDF) opcional
+
+### Timeline por aviso (vista premium)
+
+Mostrar la trazabilidad por destinatario:
+
+* Enviado → Notificado (PC/Mobile) → Reintentos → Abierto → Leído → Confirmado → Respondido
+
+---
+
+## 4) Criterios de aceptación (auditoría)
+
+* Todo aviso enviado queda registrado con detalle por cada destinatario.
+* Todo chat queda guardado íntegro con estados de entrega/lectura.
+* Admin puede consultar historial completo y filtrar.
+* Notificaciones repetidas cada 5 minutos quedan registradas (intentos y resultados).
+* IP, user-agent y timestamps exactos quedan guardados.

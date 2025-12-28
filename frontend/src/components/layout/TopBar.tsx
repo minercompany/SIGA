@@ -3,6 +3,7 @@
 import { Bell, Search, User, Calendar, Menu, X, ArrowLeft } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { WelcomeModal } from "../onboarding/WelcomeModal";
+import AvisosBell from "../AvisosBell";
 
 export function TopBar() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -255,10 +256,8 @@ export function TopBar() {
                 {/* Derecha - Usuario y notificaciones */}
                 <div className="flex items-center gap-3">
                     {/* Notificaciones */}
-                    <button className="relative rounded-xl p-2.5 text-slate-500 hover:bg-teal-50 hover:text-teal-600 transition-all">
-                        <Bell className="h-5 w-5" />
-                        <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white animate-pulse" />
-                    </button>
+                    {/* Notificaciones */}
+                    <AvisosBell />
 
                     <div className="h-8 w-px bg-slate-200 hidden md:block" />
 

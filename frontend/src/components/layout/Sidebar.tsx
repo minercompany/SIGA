@@ -22,7 +22,9 @@ import {
     LayoutDashboard,
     History,
     ShieldAlert,
-    Zap
+    Zap,
+    MessageSquare,
+    Send
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +51,12 @@ const menuItems = [
         id: "reportes", name: "Reportes", href: "/reportes", icon: ClipboardList, submenu: [
             { id: "reportes-general", name: "General", href: "/reportes", icon: ClipboardList },
             { id: "reportes-sucursal", name: "Por Sucursal", href: "/reportes/por-sucursal", icon: Users },
+        ]
+    },
+    {
+        id: "comunicacion", name: "Comunicación", href: "/mensajes", icon: MessageSquare, submenu: [
+            { id: "mensajes-chat", name: "Chat Admin", href: "/mensajes/chat", icon: MessageSquare },
+            { id: "mensajes-avisos", name: "Avisos", href: "/mensajes/avisos", icon: Send },
         ]
     },
     { id: "usuarios", name: "Usuarios y Roles", href: "/usuarios", icon: Shield },
@@ -118,6 +126,10 @@ export function Sidebar() {
             case "importar":
             case "auditoria":
                 return user.rol === "SUPER_ADMIN";
+            case "comunicacion":
+            case "mensajes-chat":
+            case "mensajes-avisos":
+                return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
             case "configuracion":
                 return user.rol === "USUARIO_SOCIO" || user.rol === "SUPER_ADMIN";
             default: return false;
