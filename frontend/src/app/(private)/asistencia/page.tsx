@@ -73,7 +73,7 @@ export default function AsistenciaPage() {
             clearTimeout(searchTimeoutRef.current);
         }
 
-        if (searchTerm.trim().length >= 3) {
+        if (searchTerm.trim().length >= 1) {
             searchTimeoutRef.current = setTimeout(() => {
                 buscarSocios(searchTerm);
             }, 600);
