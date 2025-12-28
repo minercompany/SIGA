@@ -129,7 +129,9 @@ public class ReporteController {
         public ResponseEntity<?> reporteMisAsignados(Authentication auth) {
                 Usuario currentUser = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
 
-                if (currentUser.getRol() != Usuario.Rol.USUARIO_SOCIO) {
+                // SUPER_ADMIN puede ver todo, USUARIO_SOCIO ve sus propios asignados
+                boolean isSuperAdmin = currentUser.getRol() == Usuario.Rol.SUPER_ADMIN;
+                if (currentUser.getRol() != Usuario.Rol.USUARIO_SOCIO && !isSuperAdmin) {
                         return ResponseEntity.status(403).body(Map.of("error", "Acceso denegado."));
                 }
 
