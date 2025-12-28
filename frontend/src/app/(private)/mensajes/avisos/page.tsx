@@ -172,18 +172,19 @@ export default function AdminAvisosPage() {
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-20">
-            {/* Header */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 p-8 shadow-2xl">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
+            {/* Header Premium Claro */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-500 via-emerald-500 to-teal-600 p-8 shadow-2xl shadow-teal-200">
+                <div className="absolute top-0 right-0 p-4 opacity-20">
                     <Megaphone className="h-64 w-64 text-white transform rotate-12" />
                 </div>
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
                 <div className="relative z-10">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="flex items-center gap-3 mb-2"
                     >
-                        <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase tracking-wider border border-emerald-500/20">
+                        <span className="px-3 py-1 rounded-full bg-white/20 text-white text-xs font-black uppercase tracking-wider border border-white/20 backdrop-blur-sm">
                             Panel Administrativo
                         </span>
                     </motion.div>
@@ -193,13 +194,13 @@ export default function AdminAvisosPage() {
                         transition={{ delay: 0.1 }}
                         className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight"
                     >
-                        Gestión de <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">Comunicación</span>
+                        Gestión de <span className="text-white/90 italic">Comunicación</span>
                     </motion.h1>
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="text-slate-400 text-lg max-w-2xl"
+                        className="text-white/80 text-lg max-w-2xl font-medium"
                     >
                         Redactá y enviá avisos oficiales a socios y operadores. Gestioná prioridades, confirmaciones de lectura y respuestas rápidas.
                     </motion.p>
@@ -208,20 +209,20 @@ export default function AdminAvisosPage() {
 
             {/* Custom Tabs */}
             <div className="flex justify-center">
-                <div className="bg-white dark:bg-slate-900/50 p-1.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 inline-flex relative">
+                <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 inline-flex relative">
                     {['crear', 'historial'].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab as any)}
                             className={`relative px-8 py-3 rounded-xl text-sm font-bold transition-colors z-10 ${activeTab === tab
-                                ? 'text-slate-900 dark:text-white'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+                                ? 'text-slate-900
+                                : 'text-slate-500 hover:text-slate-700
                                 }`}
                         >
                             {activeTab === tab && (
                                 <motion.div
                                     layoutId="activeTab"
-                                    className="absolute inset-0 bg-white dark:bg-slate-800 shadow-md rounded-xl border border-slate-100 dark:border-slate-700"
+                                    className="absolute inset-0 bg-white shadow-md rounded-xl border border-slate-100"
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
@@ -245,8 +246,8 @@ export default function AdminAvisosPage() {
                     >
                         <form onSubmit={handleSubmit} className="space-y-8">
                             {/* Card: Tipo de Envío */}
-                            <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                                <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                                <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                                     <Sparkles className="h-5 w-5 text-purple-500" />
                                     1. Seleccioná el Alcance
                                 </h3>
@@ -260,14 +261,14 @@ export default function AdminAvisosPage() {
                                             key={option.id}
                                             onClick={() => setTipo(option.id as any)}
                                             className={`relative cursor-pointer group p-6 rounded-2xl border-2 transition-all duration-300 ${tipo === option.id
-                                                ? `border-${option.color}-500 bg-${option.color}-50/50 dark:bg-${option.color}-900/10`
-                                                : 'border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                                                ? `border-${option.color}-500 bg-${option.color}-50/50
+                                                : 'border-slate-100 hover:border-slate-300
                                                 }`}
                                         >
-                                            <div className={`h-12 w-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${tipo === option.id ? `bg-${option.color}-500 text-white shadow-lg shadow-${option.color}-500/30` : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                                            <div className={`h-12 w-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${tipo === option.id ? `bg-${option.color}-500 text-white shadow-lg shadow-${option.color}-500/30` : 'bg-slate-100 text-slate-500'}`}>
                                                 <option.icon className="h-6 w-6" />
                                             </div>
-                                            <h4 className={`font-bold text-lg mb-1 ${tipo === option.id ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'}`}>
+                                            <h4 className={`font-bold text-lg mb-1 ${tipo === option.id ? 'text-slate-900 : 'text-slate-600
                                                 {option.label}
                                             </h4>
                                             <p className="text-sm text-slate-500">
@@ -294,31 +295,31 @@ export default function AdminAvisosPage() {
                                             exit={{ opacity: 0, height: 0 }}
                                             className="overflow-hidden"
                                         >
-                                            <div className="pt-8 mt-4 border-t border-slate-100 dark:border-slate-800">
+                                            <div className="pt-8 mt-4 border-t border-slate-100">
                                                 {tipo === 'INDIVIDUAL' && (
                                                     <div className="max-w-xl">
-                                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Buscar Usuario</label>
+                                                        <label className="block text-sm font-bold text-slate-700 mb-2">Buscar Usuario</label>
                                                         <div className="relative">
                                                             {selectedUser ? (
                                                                 <motion.div
                                                                     initial={{ scale: 0.95, opacity: 0 }}
                                                                     animate={{ scale: 1, opacity: 1 }}
-                                                                    className="flex items-center justify-between p-4 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-xl"
+                                                                    className="flex items-center justify-between p-4 bg-violet-50 border border-violet-200 rounded-xl"
                                                                 >
                                                                     <div className="flex items-center gap-4">
-                                                                        <div className="h-10 w-10 rounded-full bg-violet-200 dark:bg-violet-800 text-violet-700 dark:text-violet-200 flex items-center justify-center font-bold text-lg">
+                                                                        <div className="h-10 w-10 rounded-full bg-violet-200 text-violet-700 flex items-center justify-center font-bold text-lg">
                                                                             {selectedUser.nombreCompleto.charAt(0)}
                                                                         </div>
                                                                         <div>
-                                                                            <p className="font-bold text-violet-900 dark:text-violet-200">{selectedUser.nombreCompleto}</p>
-                                                                            <p className="text-sm text-violet-600 dark:text-violet-400">CI: {selectedUser.cedula}</p>
+                                                                            <p className="font-bold text-violet-900">{selectedUser.nombreCompleto}</p>
+                                                                            <p className="text-sm text-violet-600">CI: {selectedUser.cedula}</p>
                                                                         </div>
                                                                     </div>
                                                                     <button
                                                                         onClick={() => setSelectedUser(null)}
-                                                                        className="p-2 hover:bg-violet-200 dark:hover:bg-violet-800 rounded-lg transition-colors"
+                                                                        className="p-2 hover:bg-violet-200 rounded-lg transition-colors"
                                                                     >
-                                                                        <X className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+                                                                        <X className="h-5 w-5 text-violet-600" />
                                                                     </button>
                                                                 </motion.div>
                                                             ) : (
@@ -329,7 +330,7 @@ export default function AdminAvisosPage() {
                                                                             value={searchTerm}
                                                                             onChange={(e) => setSearchTerm(e.target.value)}
                                                                             placeholder="Buscar por Nombre, Céndula o Usuario..."
-                                                                            className="w-full pl-12 pr-10 py-4 bg-white dark:bg-slate-950/50 border-2 border-slate-200 dark:border-slate-700 rounded-2xl focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 outline-none transition-all font-bold text-lg text-slate-800 dark:text-white placeholder:text-slate-400 backdrop-blur-sm"
+                                                                            className="w-full pl-12 pr-10 py-4 bg-white border-2 border-slate-200 rounded-2xl focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 outline-none transition-all font-bold text-lg text-slate-800 placeholder:text-slate-400 backdrop-blur-sm"
                                                                         />
                                                                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-violet-500" />
                                                                         {isSearching && (
@@ -347,7 +348,7 @@ export default function AdminAvisosPage() {
                                                                         initial={{ opacity: 0, y: 10 }}
                                                                         animate={{ opacity: 1, y: 0 }}
                                                                         exit={{ opacity: 0 }}
-                                                                        className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 max-h-60 overflow-y-auto z-20"
+                                                                        className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 max-h-60 overflow-y-auto z-20"
                                                                     >
                                                                         {searchResults.map((u, i) => (
                                                                             <motion.div
@@ -356,11 +357,11 @@ export default function AdminAvisosPage() {
                                                                                 animate={{ opacity: 1, x: 0 }}
                                                                                 transition={{ delay: i * 0.05 }}
                                                                                 onClick={() => { setSelectedUser(u); setSearchResults([]); setSearchTerm(''); }}
-                                                                                className="p-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-50 dark:border-slate-700 last:border-0 flex items-center justify-between group"
+                                                                                className="p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 flex items-center justify-between group"
                                                                             >
                                                                                 <div>
-                                                                                    <p className="font-bold text-sm text-slate-900 dark:text-white">{u.nombreCompleto}</p>
-                                                                                    <p className="text-xs font-medium text-violet-600 dark:text-violet-400">
+                                                                                    <p className="font-bold text-sm text-slate-900">{u.nombreCompleto}</p>
+                                                                                    <p className="text-xs font-medium text-violet-600">
                                                                                         {u.cedula ? `CI: ${u.cedula}` : `Usuario: ${u.username || 'N/A'}`}
                                                                                     </p>
                                                                                 </div>
@@ -373,9 +374,9 @@ export default function AdminAvisosPage() {
                                                                         initial={{ opacity: 0, y: 10 }}
                                                                         animate={{ opacity: 1, y: 0 }}
                                                                         exit={{ opacity: 0 }}
-                                                                        className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-4 z-20 text-center"
+                                                                        className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 p-4 z-20 text-center"
                                                                     >
-                                                                        <p className="text-slate-500 dark:text-slate-400 text-sm">No se encontraron usuarios</p>
+                                                                        <p className="text-slate-500 text-sm">No se encontraron usuarios</p>
                                                                     </motion.div>
                                                                 )}
                                                             </AnimatePresence>
@@ -384,16 +385,16 @@ export default function AdminAvisosPage() {
                                                 )}
                                                 {tipo === 'POR_FILTRO' && (
                                                     <div className="max-w-xl">
-                                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Seleccionar Rol</label>
+                                                        <label className="block text-sm font-bold text-slate-700 mb-2">Seleccionar Rol</label>
                                                         <select
                                                             value={filtroRol}
                                                             onChange={(e) => setFiltroRol(e.target.value)}
-                                                            className="w-full px-4 py-3.5 bg-white dark:bg-slate-950/50 border-2 border-slate-200 dark:border-slate-700 rounded-xl focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 outline-none transition-all font-medium text-slate-900 dark:text-white appearance-none"
+                                                            className="w-full px-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl focus:border-violet-500 focus:ring-4 focus:ring-violet-500/20 outline-none transition-all font-medium text-slate-900 appearance-none"
                                                         >
-                                                            <option value="" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Todos los roles</option>
-                                                            <option value="DIRECTIVO" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Directivo</option>
-                                                            <option value="OPERADOR" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Operador</option>
-                                                            <option value="USUARIO_SOCIO" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Socio</option>
+                                                            <option value="" className="bg-white text-slate-900">Todos los roles</option>
+                                                            <option value="DIRECTIVO" className="bg-white text-slate-900">Directivo</option>
+                                                            <option value="OPERADOR" className="bg-white text-slate-900">Operador</option>
+                                                            <option value="USUARIO_SOCIO" className="bg-white text-slate-900">Socio</option>
                                                         </select>
                                                     </div>
                                                 )}
@@ -405,8 +406,8 @@ export default function AdminAvisosPage() {
 
                             {/* Card: Contenido */}
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                <div className="lg:col-span-2 space-y-8 bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                                    <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                                <div className="lg:col-span-2 space-y-8 bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                                         <Megaphone className="h-5 w-5 text-emerald-500" />
                                         2. Componé tu Mensaje
                                     </h3>
@@ -418,7 +419,7 @@ export default function AdminAvisosPage() {
                                                 value={titulo}
                                                 onChange={(e) => setTitulo(e.target.value)}
                                                 placeholder="Ingresá un título para el aviso..."
-                                                className="w-full px-4 py-3 text-xl font-bold bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all placeholder:font-normal placeholder:text-slate-400 text-slate-800 dark:text-slate-100"
+                                                className="w-full px-4 py-3 text-xl font-bold bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all placeholder:font-normal placeholder:text-slate-400 text-slate-800"
                                             />
                                         </div>
                                         <div>
@@ -427,7 +428,7 @@ export default function AdminAvisosPage() {
                                                 value={contenido}
                                                 onChange={(e) => setContenido(e.target.value)}
                                                 placeholder="Escribí el contenido detallado aquí..."
-                                                className="w-full p-4 bg-slate-50 dark:bg-slate-800 border-0 rounded-2xl text-lg text-slate-600 dark:text-slate-300 focus:ring-2 focus:ring-emerald-500/20 placeholder-slate-400 resize-none"
+                                                className="w-full p-4 bg-slate-50 border-0 rounded-2xl text-lg text-slate-600 focus:ring-2 focus:ring-emerald-500/20 placeholder-slate-400 resize-none"
                                             />
                                         </div>
                                     </div>
@@ -435,13 +436,13 @@ export default function AdminAvisosPage() {
 
                                 <div className="space-y-8">
                                     {/* Configuración */}
-                                    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                                         <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Configuración</h3>
 
                                         <div className="space-y-6">
                                             {/* Prioridad */}
                                             <div>
-                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Prioridad</label>
+                                                <label className="block text-sm font-bold text-slate-700 mb-3">Prioridad</label>
                                                 <div className="flex gap-2">
                                                     {(Object.keys(priorities) as Array<keyof typeof priorities>).map((p) => (
                                                         <button
@@ -449,8 +450,8 @@ export default function AdminAvisosPage() {
                                                             type="button"
                                                             onClick={() => setPrioridad(p)}
                                                             className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${prioridad === p
-                                                                ? `border-${priorities[p].color.split('-')[1]}-500 bg-${priorities[p].color.split('-')[1]}-50 dark:bg-opacity-10 text-slate-900 dark:text-white`
-                                                                : 'border-slate-100 dark:border-slate-700 text-slate-400 hover:border-slate-300'
+                                                                ? `border-${priorities[p].color.split('-')[1]}-500 bg-${priorities[p].color.split('-')[1]}-50 text-slate-900
+                                                                : 'border-slate-100 text-slate-400 hover:border-slate-300'
                                                                 }`}
                                                         >
                                                             {prioridad === p && (
@@ -468,13 +469,13 @@ export default function AdminAvisosPage() {
                                             </div>
 
                                             {/* Toggles */}
-                                            <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                            <div className="space-y-3 pt-4 border-t border-slate-100">
                                                 {[
                                                     { label: 'Mostrar Popup (Modal)', desc: 'Interrumpe la navegación del usuario', checked: mostrarModal, set: setMostrarModal },
                                                     { label: 'Requerir Confirmación', desc: 'Obliga a dar clic en "Entendido"', checked: requiereConfirmacion, set: setRequiereConfirmacion },
                                                     { label: 'Permitir Respuesta', desc: 'Habilita chat rápido en el aviso', checked: requiereRespuesta, set: setRequiereRespuesta }
                                                 ].map((opt, i) => (
-                                                    <label key={i} className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                                    <label key={i} className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors">
                                                         <div className="relative flex items-center mt-1">
                                                             <input
                                                                 type="checkbox"
@@ -485,7 +486,7 @@ export default function AdminAvisosPage() {
                                                             <Check className="pointer-events-none absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100" />
                                                         </div>
                                                         <div>
-                                                            <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{opt.label}</p>
+                                                            <p className="font-bold text-slate-700 text-sm">{opt.label}</p>
                                                             <p className="text-xs text-slate-400 leading-tight">{opt.desc}</p>
                                                         </div>
                                                     </label>
@@ -521,24 +522,24 @@ export default function AdminAvisosPage() {
                         key="historial"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+                        className="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden"
                     >
                         {/* Custom Table Component */}
                         <div className="overflow-x-auto">
                             <table className="w-full">
-                                <thead className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+                                <thead className="bg-slate-50 border-b border-slate-200">
                                     <tr>
                                         {['Aviso Detalles', 'Destinatarios', 'Fecha / Hora', 'Estado', 'Acciones'].map((h) => (
                                             <th key={h} className="px-8 py-5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tbody className="divide-y divide-slate-100">
                                     {avisos.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="py-20 text-center text-slate-400">
                                                 <div className="flex flex-col items-center">
-                                                    <div className="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                                                    <div className="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                                                         <Bell className="h-8 w-8 text-slate-300" />
                                                     </div>
                                                     <p>Aún no hay avisos enviados</p>
@@ -552,16 +553,16 @@ export default function AdminAvisosPage() {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: i * 0.05 }}
-                                                className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group"
+                                                className="hover:bg-slate-50 transition-colors group"
                                             >
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-start gap-4">
                                                         <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${aviso.prioridad === 'CRITICA' ? 'bg-red-500' : aviso.prioridad === 'ALTA' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
                                                         <div>
-                                                            <div className="font-bold text-slate-800 dark:text-slate-200 text-lg mb-1">{aviso.titulo}</div>
+                                                            <div className="font-bold text-slate-800 text-lg mb-1">{aviso.titulo}</div>
                                                             <div className="text-sm text-slate-500 line-clamp-2 max-w-md">{aviso.contenido}</div>
                                                             <div className="flex gap-2 mt-3">
-                                                                <span className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold tracking-tight">
+                                                                <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold tracking-tight">
                                                                     {aviso.tipo}
                                                                 </span>
                                                                 {aviso.prioridad !== 'NORMAL' && (
@@ -577,27 +578,27 @@ export default function AdminAvisosPage() {
                                                     <div className="flex items-center -space-x-2">
                                                         {/* Mock users avatars */}
                                                         {[1, 2, 3].map((u) => (
-                                                            <div key={u} className="h-8 w-8 rounded-full bg-slate-200 border-2 border-white dark:border-slate-900" />
+                                                            <div key={u} className="h-8 w-8 rounded-full bg-slate-200 border-2 border-white" />
                                                         ))}
-                                                        <div className="h-8 w-8 rounded-full bg-slate-100 border-2 border-white dark:border-slate-900 flex items-center justify-center text-xs text-slate-500 font-bold">
+                                                        <div className="h-8 w-8 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-xs text-slate-500 font-bold">
                                                             +
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <div className="flex flex-col">
-                                                        <span className="font-bold text-slate-700 dark:text-slate-300">{new Date(aviso.createdAt).toLocaleDateString('es-PY')}</span>
+                                                        <span className="font-bold text-slate-700">{new Date(aviso.createdAt).toLocaleDateString('es-PY')}</span>
                                                         <span className="text-xs text-slate-400">{new Date(aviso.createdAt).toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' })}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6">
-                                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-sm font-bold shadow-sm">
+                                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold shadow-sm">
                                                         <CheckCircle className="h-4 w-4" /> Enviado
                                                     </span>
                                                 </td>
                                                 <td className="px-8 py-6 text-right">
                                                     <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <button className="p-2.5 hover:bg-white dark:hover:bg-slate-800 hover:shadow-lg rounded-xl text-slate-500 transition-all transform hover:-translate-y-1">
+                                                        <button className="p-2.5 hover:bg-white hover:shadow-lg rounded-xl text-slate-500 transition-all transform hover:-translate-y-1">
                                                             <BarChart2 className="h-5 w-5" />
                                                         </button>
                                                     </div>
@@ -625,7 +626,7 @@ export default function AdminAvisosPage() {
                             initial={{ scale: 0.9, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden relative"
+                            className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden relative"
                         >
                             {/* Decoración de fondo */}
                             <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-br from-emerald-500 to-teal-600 opacity-10" />
@@ -641,11 +642,11 @@ export default function AdminAvisosPage() {
                                     <Check className="h-10 w-10 text-white stroke-[3]" />
                                 </motion.div>
 
-                                <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2">
+                                <h3 className="text-2xl font-black text-slate-800 mb-2">
                                     ¡Envío Exitoso!
                                 </h3>
 
-                                <p className="text-slate-500 dark:text-slate-400 leading-relaxed mb-8">
+                                <p className="text-slate-500 leading-relaxed mb-8">
                                     {successMessage}
                                 </p>
 
@@ -656,7 +657,7 @@ export default function AdminAvisosPage() {
                                         setShowSuccessModal(false);
                                         setActiveTab('historial');
                                     }}
-                                    className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-lg shadow-xl shadow-slate-900/10 hover:shadow-slate-900/20 transition-all"
+                                    className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold text-lg shadow-xl shadow-slate-900/10 hover:shadow-slate-900/20 transition-all"
                                 >
                                     Excelente, continuar
                                 </motion.button>
