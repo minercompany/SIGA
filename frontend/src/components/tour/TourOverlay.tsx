@@ -69,7 +69,11 @@ export function TourOverlay() {
                 // Asegurar que no se salga de la pantalla (Vertical)
                 // Si se sale por arriba, topar con margen superior
                 if (top < 80) top = rect.bottom + margin;
-                // Si aún así se sale por abajo, topar con margen inferior (menos crítico)
+
+                // CRÍTICO: Si se sale por abajo, pegarlo al fondo
+                if (top + tooltipHeight > window.innerHeight - 10) {
+                    top = window.innerHeight - tooltipHeight - 20;
+                }
 
                 setTooltipPosition({ top, left });
 
