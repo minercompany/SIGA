@@ -8,10 +8,16 @@ interface CarnetCuadradoProps {
         tieneVoto: boolean;
         cedula?: string;
     };
+    configOverride?: {
+        nombreAsamblea: string;
+        fechaAsamblea: string;
+    };
 }
 
-const SocioCarnet: React.FC<CarnetCuadradoProps> = ({ socio }) => {
-    const { nombreAsamblea, fechaAsamblea } = useConfig();
+const SocioCarnet: React.FC<CarnetCuadradoProps> = ({ socio, configOverride }) => {
+    const config = useConfig();
+    const nombreAsamblea = configOverride?.nombreAsamblea || config.nombreAsamblea;
+    const fechaAsamblea = configOverride?.fechaAsamblea || config.fechaAsamblea;
     const votingStatus = socio.tieneVoto ? "VOZ Y VOTO" : "SOLO VOZ";
     const year = fechaAsamblea ? new Date(fechaAsamblea).getFullYear() : new Date().getFullYear();
 

@@ -16,6 +16,9 @@ import {
     X
 } from "lucide-react";
 import axios from "axios";
+import { createRoot } from "react-dom/client";
+import SocioCarnet from "@/components/carnet/SocioCarnet";
+import { useConfig } from "@/context/ConfigContext";
 
 interface Socio {
     id: number;
@@ -48,6 +51,7 @@ export default function CheckInPage() {
     const [stats, setStats] = useState<CheckinStat>({ total: 0, presentes: 0 });
     const [ultimosCheckins, setUltimosCheckins] = useState<Socio[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
+    const { nombreAsamblea, fechaAsamblea } = useConfig();
 
     // Estado para modal de socio ya ingresado
     const [showYaIngresoModal, setShowYaIngresoModal] = useState(false);
@@ -192,6 +196,58 @@ export default function CheckInPage() {
         setNotFound(false);
         setCheckinSuccess(false);
         inputRef.current?.focus();
+    };
+
+    const handlePrint = () => {
+        if (!socioEncontrado) return;
+
+        const printWindow = window.open('', '', 'width=600,height=600');
+        if (!printWindow) return;
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Imprimir Carnet - ${socioEncontrado.nombreCompleto}</title>
+                    <style>
+                        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: white; }
+                        @media print {
+                            @page { size: 100mm 100mm; margin: 0; }
+                            body { margin: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div id="print-root"></div>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+
+        const printRoot = printWindow.document.getElementById('print-root');
+        if (printRoot) {
+            const root = createRoot(printRoot);
+            root.render(
+                <SocioCarnet
+                    socio={{
+                        nroSocio: socioEncontrado.numeroSocio,
+                        nombreCompleto: socioEncontrado.nombreCompleto,
+                        tieneVoto: tieneVozYVoto(socioEncontrado),
+                        cedula: socioEncontrado.cedula
+                    }}
+                    configOverride={{
+                        nombreAsamblea,
+                        fechaAsamblea
+                    }}
+                />
+            );
+
+            // Esperar a que se renderice y carguen imágenes
+            setTimeout(() => {
+                printWindow.focus();
+                printWindow.print();
+                // Opcional: printWindow.close(); // Algunos navegadores bloquean el close inmediato
+            }, 800);
+        }
     };
 
     return (
@@ -344,7 +400,9 @@ export default function CheckInPage() {
                             {checkinLoading ? "PROCESANDO..." : "CONFIRMAR INGRESO"}
                         </button>
 
-                        <button className="w-full h-24 bg-white border-2 border-slate-100 hover:border-emerald-200 text-emerald-600 rounded-3xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-xl font-black shadow-sm group">
+                        <button
+                            onClick={handlePrint}
+                            className="w-full h-24 bg-white border-2 border-slate-100 hover:border-emerald-200 text-emerald-600 rounded-3xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-xl font-black shadow-sm group">
                             <Printer className="h-8 w-8 group-hover:scale-110 transition-transform" />
                             IMPRIMIR CARNET
                         </button>
