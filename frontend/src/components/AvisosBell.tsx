@@ -147,25 +147,34 @@ export default function AvisosBell() {
 
     return (
         <>
-            {/* Bell Button */}
+            {/* Bell Button Premium - Permanent Style */}
             <div className="relative">
                 <motion.button
                     onClick={() => setIsOpen(!isOpen)}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className={`relative p-2.5 rounded-xl transition-all duration-300 group border ${isOpen
+                        ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-500 shadow-lg shadow-amber-200/50'
+                        : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 shadow-sm hover:shadow-md'
+                        }`}
                 >
-                    <Bell className="h-6 w-6 text-slate-600 dark:text-slate-300" />
-                    {unreadCount > 0 && (
-                        <motion.span
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs font-bold flex items-center justify-center"
-                        >
-                            {unreadCount > 9 ? '9+' : unreadCount}
-                        </motion.span>
-                    )}
+                    <Bell className={`h-6 w-6 transition-colors ${isOpen ? 'text-white' : 'text-amber-600 group-hover:text-amber-700'}`} />
+
+                    {/* Indicador de no leídos */}
+                    <AnimatePresence>
+                        {unreadCount > 0 && (
+                            <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                exit={{ scale: 0 }}
+                                className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white shadow-sm"
+                            >
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </motion.span>
+                        )}
+                    </AnimatePresence>
                 </motion.button>
+
 
                 {/* Dropdown */}
                 <AnimatePresence>
@@ -259,8 +268,8 @@ export default function AvisosBell() {
                         >
                             {/* Modal Header */}
                             <div className={`px-6 py-4 flex items-center gap-3 ${selectedAviso.prioridad === 'CRITICA' ? 'bg-gradient-to-r from-red-500 to-rose-600' :
-                                    selectedAviso.prioridad === 'ALTA' ? 'bg-gradient-to-r from-amber-500 to-orange-600' :
-                                        'bg-gradient-to-r from-violet-500 to-purple-600'
+                                selectedAviso.prioridad === 'ALTA' ? 'bg-gradient-to-r from-amber-500 to-orange-600' :
+                                    'bg-gradient-to-r from-violet-500 to-purple-600'
                                 }`}>
                                 {getPrioridadIcon(selectedAviso.prioridad)}
                                 <div className="flex-1">

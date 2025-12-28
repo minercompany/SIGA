@@ -16,6 +16,9 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import com.asamblea.service.AvisoService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -33,6 +36,7 @@ public class AuthController {
         private final ListaAsignacionRepository listaAsignacionRepository;
         private final ImportacionHistorialRepository importacionHistorialRepository;
         private final com.asamblea.service.LogAuditoriaService auditService;
+        private final AvisoService avisoService;
 
         @PostMapping("/login")
         public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
@@ -53,6 +57,19 @@ public class AuthController {
                                         "Inició sesión exitosamente en el sistema.",
                                         user.getUsername(),
                                         httpRequest.getRemoteAddr());
+
+                        // Detectar acceso duplicado / concurrente (simulado por tiempo reciente)
+                        if (user.getLastLogin() != null) {
+                                long minutesSinceLast = Duration.between(user.getLastLogin(), LocalDateTime.now())
+                                                .toMinutes();
+                                if (minutesSinceLast < 30) {
+                                        avisoService.crearAvisoSeguridad(user,
+                                                        "Intento de acceso duplicado detectado en tu cuenta.");
+                                }
+                        }
+
+                        user.setLastLogin(LocalDateTime.now());
+                        usuarioRepository.save(user);
 
                         var jwtToken = jwtService.generateToken(user);
                         return ResponseEntity.ok(AuthResponse.builder()
