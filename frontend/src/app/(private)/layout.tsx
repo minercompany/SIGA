@@ -10,6 +10,7 @@ import ImportStatusFloating from "@/components/ImportStatusFloating";
 import ForcePasswordChange from "@/components/auth/ForcePasswordChange";
 import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
 import { TourProvider, TourOverlay } from "@/components/tour";
+import ChatFAB from "@/components/ChatFAB";
 
 export default function PrivateLayout({
     children,
@@ -66,6 +67,7 @@ export default function PrivateLayout({
                             </div>
                         </main>
                         <ImportStatusFloating />
+                        <ChatFAB />
                     </div>
                 </div>
                 <TourOverlay />
