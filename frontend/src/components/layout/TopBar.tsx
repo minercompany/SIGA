@@ -170,6 +170,7 @@ export function TopBar() {
                 <div className="flex items-center gap-4 relative">
                     <button
                         onClick={handleSidebarToggle}
+                        data-tour="sidebar"
                         className="md:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg"
                     >
                         <Menu className="h-6 w-6" />
