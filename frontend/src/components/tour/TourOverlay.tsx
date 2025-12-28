@@ -111,6 +111,9 @@ export function TourOverlay() {
             if (currentStepData.id === 'sidebar') {
                 if (isClosed) {
                     window.dispatchEvent(new Event('toggle-sidebar'));
+                    // ESPERAR a que la animación CSS (300ms) termine para que el elemento sea visible
+                    setTimeout(nextStep, 350);
+                    return;
                 }
             }
 
@@ -119,6 +122,8 @@ export function TourOverlay() {
             if (currentStepData.id === 'config-nav') {
                 if (!isClosed) {
                     window.dispatchEvent(new Event('toggle-sidebar'));
+                    setTimeout(nextStep, 350);
+                    return;
                 }
             }
         }
