@@ -103,8 +103,9 @@ export function TourOverlay() {
     const handleNext = () => {
         if (isMobile && currentStepData) {
             const sidebarEl = document.querySelector('[data-tour="sidebar-panel"]');
-            // Está cerrado si tiene la clase -translate-x-full
-            const isClosed = sidebarEl && sidebarEl.classList.contains('-translate-x-full');
+            // En Sidebar.tsx, el atributo data-tour se elimina si está cerrado en móvil. 
+            // Por tanto, si no encontramos el elemento, asumimos que está cerrado.
+            const isClosed = !sidebarEl;
 
             // CASO 1: Salimos del botón hamburguesa (step="sidebar") hacia el menú
             // Acción: ABRIR la barra si está visualmente cerrada
