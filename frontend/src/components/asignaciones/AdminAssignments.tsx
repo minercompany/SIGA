@@ -36,7 +36,7 @@ export default function AdminAssignments() {
     const fetchListas = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get("http://localhost:8081/api/asignaciones/admin/todas-las-listas", {
+            const res = await axios.get("/api/asignaciones/admin/todas-las-listas", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setListas(res.data);
@@ -52,7 +52,7 @@ export default function AdminAssignments() {
         setLoadingSocios(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get(`http://localhost:8081/api/asignaciones/${lista.id}/socios`, {
+            const res = await axios.get(`/api/asignaciones/${lista.id}/socios`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSociosLista(res.data);

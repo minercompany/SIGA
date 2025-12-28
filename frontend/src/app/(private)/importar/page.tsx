@@ -29,7 +29,7 @@ export default function ImportarPage() {
     const fetchHistorial = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://localhost:8081/api/socios/import-history", {
+            const response = await axios.get("/api/socios/import-history", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setHistorial(response.data);

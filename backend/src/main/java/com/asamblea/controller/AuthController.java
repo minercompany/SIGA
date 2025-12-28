@@ -58,15 +58,16 @@ public class AuthController {
                                         user.getUsername(),
                                         httpRequest.getRemoteAddr());
 
-                        // Detectar acceso duplicado / concurrente (simulado por tiempo reciente)
-                        if (user.getLastLogin() != null) {
-                                long minutesSinceLast = Duration.between(user.getLastLogin(), LocalDateTime.now())
-                                                .toMinutes();
-                                if (minutesSinceLast < 30) {
-                                        avisoService.crearAvisoSeguridad(user,
-                                                        "Intento de acceso duplicado detectado en tu cuenta.");
-                                }
-                        }
+
+                        // DESACTIVADO: Detectar acceso duplicado - generaba falsos positivos
+                        // if (user.getLastLogin() != null) {
+                        //         long minutesSinceLast = Duration.between(user.getLastLogin(), LocalDateTime.now())
+                        //                         .toMinutes();
+                        //         if (minutesSinceLast < 30) {
+                        //                 avisoService.crearAvisoSeguridad(user,
+                        //                                 "Intento de acceso duplicado detectado en tu cuenta.");
+                        //         }
+                        // }
 
                         user.setLastLogin(LocalDateTime.now());
                         usuarioRepository.save(user);
@@ -155,6 +156,41 @@ public class AuthController {
                         usuarioRepository.save(user);
 
                         return ResponseEntity.ok(Map.of("message", "Contraseña actualizada correctamente"));
+                } catch (Exception e) {
+                        return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+                }
+        }
+
+        /**
+         * Cerrar todas las sesiones del usuario actual
+         * Incrementa tokenVersion para invalidar todos los JWT existentes
+         */
+        @PostMapping("/logout-all-sessions")
+        public ResponseEntity<?> logoutAllSessions(HttpServletRequest httpRequest) {
+                try {
+                        var auth = SecurityContextHolder.getContext().getAuthentication();
+                        if (auth == null || !auth.isAuthenticated()) {
+                                return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+                        }
+
+                        String username = auth.getName();
+                        var user = usuarioRepository.findByUsername(username).orElseThrow();
+
+                        // Incrementar tokenVersion para invalidar todos los tokens
+                        Integer currentVersion = user.getTokenVersion() != null ? user.getTokenVersion() : 0;
+                        user.setTokenVersion(currentVersion + 1);
+                        usuarioRepository.save(user);
+
+                        auditService.registrar(
+                                        "USUARIOS",
+                                        "LOGOUT_ALL_SESSIONS",
+                                        "Cerró todas las sesiones activas. Token version incrementado a " + user.getTokenVersion(),
+                                        user.getUsername(),
+                                        httpRequest.getRemoteAddr());
+
+                        return ResponseEntity.ok(Map.of(
+                                        "success", true,
+                                        "message", "Todas las sesiones han sido cerradas. Debes iniciar sesión nuevamente."));
                 } catch (Exception e) {
                         return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
                 }

@@ -45,14 +45,14 @@ export function WelcomeModal({ user, onUpdateUser }: WelcomeModalProps) {
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
-            console.log(`Sending PUT to http://localhost:8081/api/usuarios/${user.id}`);
-            await axios.put(`http://localhost:8081/api/usuarios/${user.id}`,
+            console.log(`Sending PUT to /api/usuarios/${user.id}`);
+            await axios.put(`/api/usuarios/${user.id}`,
                 { telefono: phone },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
             // Actualizar usuario local REFRESCANDO desde el servidor para garantizar persistencia
-            const userRes = await axios.get("http://localhost:8081/api/auth/me", {
+            const userRes = await axios.get("/api/auth/me", {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

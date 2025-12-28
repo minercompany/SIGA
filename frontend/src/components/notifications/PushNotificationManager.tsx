@@ -47,7 +47,7 @@ export default function PushNotificationManager() {
 
                 if (permissionResult === 'granted') {
                     // Obtener clave pública del servidor
-                    const response = await axios.get('http://localhost:8081/api/push/public-key', {
+                    const response = await axios.get('/api/push/public-key', {
                         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                     });
                     const publicKey = response.data.publicKey;
@@ -60,7 +60,7 @@ export default function PushNotificationManager() {
 
                     // Enviar suscripción al backend
                     const subJson = subscription.toJSON();
-                    await axios.post('http://localhost:8081/api/push/subscribe', {
+                    await axios.post('/api/push/subscribe', {
                         endpoint: subJson.endpoint,
                         keys_p256dh: subJson.keys?.p256dh,
                         keys_auth: subJson.keys?.auth

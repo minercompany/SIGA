@@ -58,7 +58,7 @@ export default function AsistenciaPage() {
     const fetchAsistenciasHoy = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get("http://localhost:8081/api/asistencia/hoy", {
+            const res = await axios.get("/api/asistencia/hoy", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setAsistenciasHoy(res.data);
@@ -95,7 +95,7 @@ export default function AsistenciaPage() {
             // Usamos buscar-exacto o buscar general según prefieras. 
             // 'buscar' devuelve lista, 'buscar-exacto' devuelve uno.
             // Para UX premium, mejor una lista de coincidencias:
-            const res = await axios.get(`http://localhost:8081/api/socios/buscar?term=${term}`, {
+            const res = await axios.get(`/api/socios/buscar?term=${term}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -123,7 +123,7 @@ export default function AsistenciaPage() {
         try {
             const token = localStorage.getItem("token");
             await axios.post(
-                `http://localhost:8081/api/asistencia/marcar`,
+                `/api/asistencia/marcar`,
                 { socioId },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

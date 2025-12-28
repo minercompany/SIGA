@@ -61,7 +61,7 @@ export default function DashboardPage() {
 
                 if (isSocio) {
                     try {
-                        const listasRes = await axios.get("http://localhost:8081/api/asignaciones/mis-listas", { headers });
+                        const listasRes = await axios.get("/api/asignaciones/mis-listas", { headers });
                         setMisListas(listasRes.data);
                     } catch (err) {
                         console.error("Error cargando listas del socio:", err);
@@ -69,10 +69,10 @@ export default function DashboardPage() {
                     }
                 } else {
                     const [statsRes, desempenoRes, rankingRes] = await Promise.all([
-                        axios.get("http://localhost:8081/api/socios/estadisticas", { headers }),
-                        axios.get("http://localhost:8081/api/socios/estadisticas/por-sucursal", { headers }),
+                        axios.get("/api/socios/estadisticas", { headers }),
+                        axios.get("/api/socios/estadisticas/por-sucursal", { headers }),
                         // Cambiado a ranking de asignaciones en lugar de asistencia
-                        axios.get("http://localhost:8081/api/asignaciones/ranking-usuarios", { headers })
+                        axios.get("/api/asignaciones/ranking-usuarios", { headers })
                     ]);
                     setStats(statsRes.data);
                     setDesempeno(desempenoRes.data);

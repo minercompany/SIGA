@@ -30,7 +30,7 @@ export default function ImportarFuncionariosPage() {
     const checkDbStatus = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://localhost:8081/api/funcionarios/count", {
+            const response = await axios.get("/api/funcionarios/count", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const total = response.data.total || 0;
@@ -71,7 +71,7 @@ export default function ImportarFuncionariosPage() {
         formData.append("file", selectedFile);
 
         try {
-            const response = await axios.post("http://localhost:8081/api/funcionarios/importar", formData, {
+            const response = await axios.post("/api/funcionarios/importar", formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "multipart/form-data"

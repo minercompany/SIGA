@@ -63,6 +63,9 @@ public class Usuario implements UserDetails {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
+    @Column(name = "token_version")
+    private Integer tokenVersion = 0;
+
     /**
      * Roles del Sistema:
      * - SUPER_ADMIN: Acceso total, puede editar, cargar, eliminar todo

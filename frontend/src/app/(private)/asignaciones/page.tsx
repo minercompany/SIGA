@@ -110,14 +110,14 @@ export default function AsignacionesPage() {
 
                 if (isSocio) {
                     try {
-                        const response = await axios.get("http://localhost:8081/api/asignaciones/mis-listas", { headers });
+                        const response = await axios.get("/api/asignaciones/mis-listas", { headers });
 
                         if (response.data.length === 0) {
                             // AUTO CREAR LISTA si no existe ninguna
                             const timestamp = new Date().toLocaleString('es-PY', {
                                 day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
                             });
-                            const createRes = await axios.post("http://localhost:8081/api/asignaciones/crear-lista",
+                            const createRes = await axios.post("/api/asignaciones/crear-lista",
                                 {
                                     nombre: `Mi Lista ${timestamp}`,
                                     descripcion: "Lista generada automáticamente"
@@ -148,8 +148,8 @@ export default function AsignacionesPage() {
                 } else {
                     // Admin/Directivo: cargar sucursales + ranking
                     const [sucursalesRes, rankingRes] = await Promise.all([
-                        axios.get("http://localhost:8081/api/socios/estadisticas/por-sucursal", { headers }),
-                        axios.get("http://localhost:8081/api/asignaciones/ranking-usuarios", { headers }).catch(() => ({ data: [] }))
+                        axios.get("/api/socios/estadisticas/por-sucursal", { headers }),
+                        axios.get("/api/asignaciones/ranking-usuarios", { headers }).catch(() => ({ data: [] }))
                     ]);
                     setSucursales(sucursalesRes.data);
                     setRankingUsuarios(rankingRes.data || []);
@@ -181,7 +181,7 @@ export default function AsignacionesPage() {
                 hour: '2-digit',
                 minute: '2-digit'
             });
-            const response = await axios.post("http://localhost:8081/api/asignaciones/crear-lista",
+            const response = await axios.post("/api/asignaciones/crear-lista",
                 {
                     nombre: `Mi Lista ${timestamp}`,
                     descripcion: "Lista creada automáticamente"
@@ -232,7 +232,7 @@ export default function AsignacionesPage() {
         try {
             const token = localStorage.getItem("token");
             // Buscar el socio sin asignarlo todavía
-            const response = await axios.get(`http://localhost:8081/api/socios/buscar-exacto?term=${socioSearchTerm}`, {
+            const response = await axios.get(`/api/socios/buscar-exacto?term=${socioSearchTerm}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.data) {
@@ -262,7 +262,7 @@ export default function AsignacionesPage() {
         if (!selectedLista || !searchedSocio) return;
         try {
             const token = localStorage.getItem("token");
-            await axios.post(`http://localhost:8081/api/asignaciones/${selectedLista.id}/agregar-socio`,
+            await axios.post(`/api/asignaciones/${selectedLista.id}/agregar-socio`,
                 { term: searchedSocio.cedula },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -270,7 +270,7 @@ export default function AsignacionesPage() {
             setSearchedSocio(null);
 
             // Refresh socios list and counts
-            const responseSocios = await axios.get(`http://localhost:8081/api/asignaciones/${selectedLista.id}/socios`, {
+            const responseSocios = await axios.get(`/api/asignaciones/${selectedLista.id}/socios`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSocios(responseSocios.data);
@@ -281,7 +281,7 @@ export default function AsignacionesPage() {
                 // Refresh anyway to show the invisible socio
                 try {
                     const token = localStorage.getItem("token");
-                    const responseSocios = await axios.get(`http://localhost:8081/api/asignaciones/${selectedLista.id}/socios`, {
+                    const responseSocios = await axios.get(`/api/asignaciones/${selectedLista.id}/socios`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     setSocios(responseSocios.data);
@@ -331,7 +331,7 @@ export default function AsignacionesPage() {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:8081/api/asignaciones/${selectedLista.id}/socio/${socioId}`, {
+            await axios.delete(`/api/asignaciones/${selectedLista.id}/socio/${socioId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             fetchData(); // actualizar contadores
@@ -342,7 +342,7 @@ export default function AsignacionesPage() {
             // Recargar la lista completa en caso de error
             try {
                 const token = localStorage.getItem("token");
-                const responseSocios = await axios.get(`http://localhost:8081/api/asignaciones/${selectedLista.id}/socios`, {
+                const responseSocios = await axios.get(`/api/asignaciones/${selectedLista.id}/socios`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setSocios(responseSocios.data);
@@ -356,7 +356,7 @@ export default function AsignacionesPage() {
     const handleDeleteLista = async (listaId: number) => {
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:8081/api/asignaciones/lista/${listaId}`, {
+            await axios.delete(`/api/asignaciones/lista/${listaId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (selectedLista?.id === listaId) {
@@ -372,7 +372,7 @@ export default function AsignacionesPage() {
     const handleUpdateLista = async (listaId: number, nombre: string, descripcion: string) => {
         try {
             const token = localStorage.getItem("token");
-            await axios.put(`http://localhost:8081/api/asignaciones/lista/${listaId}`,
+            await axios.put(`/api/asignaciones/lista/${listaId}`,
                 { nombre, descripcion },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -390,7 +390,7 @@ export default function AsignacionesPage() {
         setLoadingSocios(true);
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`http://localhost:8081/api/asignaciones/${lista.id}/socios`, {
+            const response = await axios.get(`/api/asignaciones/${lista.id}/socios`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSocios(response.data);
@@ -406,7 +406,7 @@ export default function AsignacionesPage() {
         try {
             const token = localStorage.getItem("token");
             const headers = { Authorization: `Bearer ${token}` };
-            const response = await axios.get("http://localhost:8081/api/socios", { headers });
+            const response = await axios.get("/api/socios", { headers });
             const filtered = response.data.filter((s: Socio) => s.sucursal?.id === sucursalId);
             setSocios(filtered);
         } catch (error) {
