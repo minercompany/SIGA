@@ -15,7 +15,7 @@ public interface ConversacionRepository extends JpaRepository<Conversacion, Long
     Optional<Conversacion> findByUsuarioId(Long usuarioId);
 
     // Lista de conversaciones para admin (ordenadas por último mensaje)
-    @Query("SELECT c FROM Conversacion c ORDER BY c.lastMessageAt DESC NULLS LAST")
+    @Query("SELECT c FROM Conversacion c ORDER BY c.lastMessageAt DESC")
     List<Conversacion> findAllOrderByLastMessageDesc();
 
     // Conversaciones con mensajes no leídos para admin
