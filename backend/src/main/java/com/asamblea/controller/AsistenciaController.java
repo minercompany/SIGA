@@ -52,10 +52,12 @@ public class AsistenciaController {
             Long socioId = Long.valueOf(body.get("socioId").toString());
 
             // Obtener el operador actual
-            Usuario operador = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
+            Usuario operador = usuarioRepository.findByUsername(auth.getName())
+                    .orElseThrow(() -> new RuntimeException("Operador no encontrado: " + auth.getName()));
 
             // Obtener socio
-            Socio socio = socioRepository.findById(socioId).orElseThrow();
+            Socio socio = socioRepository.findById(socioId)
+                    .orElseThrow(() -> new RuntimeException("Socio no encontrado con ID: " + socioId));
 
             // VALIDACIÓN: Verificar si el socio ya tiene asistencia registrada
             Optional<Asistencia> asistenciaExistente = asistenciaRepository.findFirstBySocioId(socioId);
