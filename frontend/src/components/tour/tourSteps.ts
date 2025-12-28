@@ -116,14 +116,14 @@ export const asignacionesTour: TourStep[] = [
         target: '[data-tour="search-socio"]',
         title: '🔍 Buscador de Socios',
         content: 'Ingresa la cédula o número de socio para buscarlo. El sistema te mostrará la información antes de agregarlo a tu lista.',
-        position: 'bottom'
+        position: 'top'
     },
     {
         id: 'meta',
         target: '[data-tour="meta-indicator"]',
         title: '🎯 Tu Meta: 10 Socios',
         content: 'Te recomendamos agregar al menos 10 socios para una distribución efectiva del trabajo en equipo.',
-        position: 'bottom'
+        position: 'top'
     },
     {
         id: 'lista-socios',
@@ -173,7 +173,7 @@ export const configuracionTour: TourStep[] = [
         target: '[data-tour="config-profile"]',
         title: '� Perfil y Seguridad',
         content: 'En esta sección puedes actualizar tu foto, correo y contraseña. ¡La seguridad de tu cuenta es prioridad!',
-        position: 'top'
+        position: 'bottom'
     },
     {
         id: 'guide',

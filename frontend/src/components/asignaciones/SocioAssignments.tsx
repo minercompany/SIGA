@@ -134,32 +134,33 @@ export function SocioAssignments({
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
             {/* Header Premium con Estadísticas */}
+            {/* Header Premium con Estadísticas */}
             <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white">
-                <div className="max-w-5xl mx-auto px-4 py-6">
+                <div className="max-w-5xl mx-auto px-4 py-4 md:py-6">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div data-tour="asignaciones-header">
-                            <h1 className="text-2xl md:text-3xl font-black">
+                            <h1 className="text-xl md:text-3xl font-black leading-tight">
                                 Mi Lista de Asignaciones
                             </h1>
-                            <p className="text-violet-200 text-sm mt-1">
+                            <p className="text-violet-200 text-xs md:text-sm mt-1">
                                 {miLista?.nombre || "Cargando..."}
                             </p>
                         </div>
 
                         {/* Estadísticas */}
                         {miLista && (
-                            <div className="flex gap-4">
-                                <div className="bg-white/10 backdrop-blur rounded-2xl px-5 py-3 text-center">
-                                    <p className="text-2xl font-black">{miLista.total}</p>
-                                    <p className="text-xs text-violet-200 uppercase tracking-wide">Total</p>
+                            <div className="flex gap-2 md:gap-4 overflow-x-auto pb-1 md:pb-0">
+                                <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-3 py-2 md:px-5 md:py-3 text-center min-w-[70px]">
+                                    <p className="text-lg md:text-2xl font-black">{miLista.total}</p>
+                                    <p className="text-[10px] md:text-xs text-violet-200 uppercase tracking-wide">Total</p>
                                 </div>
-                                <div className="bg-emerald-500/30 backdrop-blur rounded-2xl px-5 py-3 text-center">
-                                    <p className="text-2xl font-black text-emerald-300">{miLista.vyv}</p>
-                                    <p className="text-xs text-emerald-200 uppercase tracking-wide">Voz y Voto</p>
+                                <div className="bg-emerald-500/30 backdrop-blur rounded-xl md:rounded-2xl px-3 py-2 md:px-5 md:py-3 text-center min-w-[70px]">
+                                    <p className="text-lg md:text-2xl font-black text-emerald-300">{miLista.vyv}</p>
+                                    <p className="text-[10px] md:text-xs text-emerald-200 uppercase tracking-wide">V&V</p>
                                 </div>
-                                <div className="bg-amber-500/30 backdrop-blur rounded-2xl px-5 py-3 text-center">
-                                    <p className="text-2xl font-black text-amber-300">{miLista.soloVoz}</p>
-                                    <p className="text-xs text-amber-200 uppercase tracking-wide">Solo Voz</p>
+                                <div className="bg-amber-500/30 backdrop-blur rounded-xl md:rounded-2xl px-3 py-2 md:px-5 md:py-3 text-center min-w-[70px]">
+                                    <p className="text-lg md:text-2xl font-black text-amber-300">{miLista.soloVoz}</p>
+                                    <p className="text-[10px] md:text-xs text-amber-200 uppercase tracking-wide">Solo</p>
                                 </div>
                             </div>
                         )}
@@ -308,27 +309,27 @@ export function SocioAssignments({
                     data-tour="socios-list"
                 >
                     {/* Header */}
-                    <div className="p-5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Users className="w-6 h-6" />
+                    <div className="p-3 md:p-5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 md:gap-3">
+                                <Users className="w-5 h-5 md:w-6 md:h-6" />
                                 <div>
-                                    <h2 className="text-xl font-bold">Mis Socios Asignados</h2>
-                                    <p className="text-sm text-emerald-100">{miLista?.nombre}</p>
+                                    <h2 className="text-base md:text-xl font-bold leading-tight">Mis Socios<br className="md:hidden" /> Asignados</h2>
+                                    <p className="text-[10px] md:text-sm text-emerald-100 hidden md:block">{miLista?.nombre}</p>
                                 </div>
                             </div>
-                            <div className="flex gap-3">
-                                <div className="bg-white/20 backdrop-blur rounded-xl px-4 py-2 text-center">
-                                    <p className="text-xl font-black">{miLista?.total || 0}</p>
-                                    <p className="text-[10px] text-white/70 uppercase">Total</p>
+                            <div className="flex gap-1 md:gap-3">
+                                <div className="bg-white/20 backdrop-blur rounded-lg md:rounded-xl px-2 py-1 md:px-4 md:py-2 text-center min-w-[45px] md:min-w-0">
+                                    <p className="text-sm md:text-xl font-black">{miLista?.total || 0}</p>
+                                    <p className="text-[8px] md:text-[10px] text-white/70 uppercase">Total</p>
                                 </div>
-                                <div className="bg-emerald-400/30 backdrop-blur rounded-xl px-4 py-2 text-center">
-                                    <p className="text-xl font-black text-emerald-200">{miLista?.vyv || 0}</p>
-                                    <p className="text-[10px] text-emerald-100/70 uppercase">V&V</p>
+                                <div className="bg-emerald-400/30 backdrop-blur rounded-lg md:rounded-xl px-2 py-1 md:px-4 md:py-2 text-center min-w-[45px] md:min-w-0">
+                                    <p className="text-sm md:text-xl font-black text-emerald-200">{miLista?.vyv || 0}</p>
+                                    <p className="text-[8px] md:text-[10px] text-emerald-100/70 uppercase">V&V</p>
                                 </div>
-                                <div className="bg-amber-400/30 backdrop-blur rounded-xl px-4 py-2 text-center">
-                                    <p className="text-xl font-black text-amber-200">{miLista?.soloVoz || 0}</p>
-                                    <p className="text-[10px] text-amber-100/70 uppercase">SV</p>
+                                <div className="bg-amber-400/30 backdrop-blur rounded-lg md:rounded-xl px-2 py-1 md:px-4 md:py-2 text-center min-w-[45px] md:min-w-0">
+                                    <p className="text-sm md:text-xl font-black text-amber-200">{miLista?.soloVoz || 0}</p>
+                                    <p className="text-[8px] md:text-[10px] text-amber-100/70 uppercase">SV</p>
                                 </div>
                             </div>
                         </div>
