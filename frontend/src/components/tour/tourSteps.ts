@@ -5,7 +5,7 @@ export interface TourStep {
     target: string;
     title: string;
     content: string;
-    position?: 'top' | 'bottom' | 'left' | 'right';
+    position?: 'top' | 'bottom' | 'left' | 'right' | 'auto';
 }
 
 // Tour COMPLETO para el Dashboard - Usuario Socio
@@ -15,29 +15,29 @@ export const dashboardSocioTour: TourStep[] = [
         target: '[data-tour="header"]',
         title: '¡Bienvenido al Sistema! 🎉',
         content: 'Este es tu panel de control personal. Comencemos con un recorrido rápido por la navegación.',
-        position: 'bottom'
+        position: 'auto'
     },
     // --- SECCIÓN 1: BARRA LATERAL ---
     {
         id: 'sidebar',
-        target: '[data-tour="sidebar"]',
+        target: '[data-tour="sidebar"]', // Ahora apunta también al menú móvil
         title: '📌 Menú de Navegación',
         content: 'Esta barra lateral te acompañará siempre. Es tu centro de comando para moverte por el sistema.',
-        position: 'right'
+        position: 'auto'
     },
     {
         id: 'mis-listas-nav',
         target: '[data-tour="nav-mis-listas"]',
         title: '👥 Módulo: Mis Listas',
         content: 'Este es el núcleo de tu gestión. Usa este botón para buscar socios y agregarlos a tu lista de trabajo.',
-        position: 'right'
+        position: 'auto'
     },
     {
         id: 'config-nav',
         target: '[data-tour="nav-config"]',
         title: '⚙️ Configuración',
         content: 'Aquí podrás personalizar tu perfil, cambiar tu contraseña y ver opciones de tu cuenta.',
-        position: 'right'
+        position: 'auto'
     },
     // --- SECCIÓN 2: CONTENIDO DEL DASHBOARD ---
     {
@@ -45,7 +45,7 @@ export const dashboardSocioTour: TourStep[] = [
         target: '[data-tour="stats-cards"]',
         title: '📊 Resumen en Tiempo Real',
         content: 'Ya en el Dashboard: Aquí ves tus números clave. Cuántos socios tienes, cuántos votan y cuántos llegaron.',
-        position: 'bottom'
+        position: 'auto'
     },
     {
         id: 'ratio',
