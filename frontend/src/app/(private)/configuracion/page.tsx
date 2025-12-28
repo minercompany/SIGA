@@ -160,7 +160,7 @@ const ResetOptionsPanel = ({ isAdminMode, accessCode, setAccessCode, checkAccess
                             <div className="flex-1">
                                 <h3 className="font-bold text-slate-800 text-lg">Acceso Protegido</h3>
                                 <p className="text-sm text-slate-500 mt-1">
-                                    Ingresa el código maestro (226118) para desbloquear las opciones de limpieza.
+                                    Ingresa el código maestro de administrador para desbloquear las opciones de limpieza.
                                 </p>
                             </div>
                         </div>
