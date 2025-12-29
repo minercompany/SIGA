@@ -334,7 +334,7 @@ public class AsignacionController {
             return ResponseEntity.status(403).build();
         }
 
-        List<Usuario> usuarios = usuarioRepository.findAll();
+        List<Usuario> usuarios = usuarioRepository.findByActivoTrue();
 
         List<Map<String, Object>> result = usuarios.stream()
                 .map(u -> {
