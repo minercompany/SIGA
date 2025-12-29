@@ -645,6 +645,15 @@ public class AsignacionController {
                             asignacion.getAsignadoPor() != null ? asignacion.getAsignadoPor().getNombreCompleto()
                                     : "Sistema");
 
+                    // Buscar datos de asistencia (ingreso)
+                    java.util.Optional<com.asamblea.model.Asistencia> asistenciaOpt = asistenciaRepository
+                            .findFirstBySocioId(socio.getId());
+                    if (asistenciaOpt.isPresent()) {
+                        socioMap.put("fechaHoraIngreso", asistenciaOpt.get().getFechaHora());
+                    } else {
+                        socioMap.put("fechaHoraIngreso", null);
+                    }
+
                     sociosDetalle.add(socioMap);
                 }
             }

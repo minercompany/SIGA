@@ -40,6 +40,7 @@ interface SocioAsignado {
     nombreCompleto: string;
     numeroSocio: string;
     fechaAsignacion: string;
+    fechaHoraIngreso: string | null;
     condicion: string;
     esVyV: boolean;
     asignadoPor: string;
@@ -127,13 +128,16 @@ export default function ReporteFuncionariosPage() {
         if (!selectedFuncionario?.idListaReal || !listaDetalle) return;
 
         // Crear CSV manualmente
-        const headers = ['CÉDULA', 'SOCIO', 'NRO', 'CONDICIÓN', 'ASIGNADO POR'];
-        const rows = listaDetalle.socios.map(s => [
+        // Crear CSV manualmente
+        const headers = ['#', 'NRO SOCIO', 'CÉDULA', 'SOCIO', 'FECHA/HORA LISTA', 'FECHA/HORA INGRESO', 'CONDICIÓN'];
+        const rows = listaDetalle.socios.map((s, idx) => [
+            String(idx + 1),
+            s.numeroSocio,
             s.cedula,
             s.nombreCompleto,
-            s.numeroSocio,
-            s.condicion,
-            s.asignadoPor
+            formatDate(s.fechaAsignacion),
+            formatDate(s.fechaHoraIngreso || ''),
+            s.condicion
         ]);
 
         const csvContent = [
@@ -306,21 +310,22 @@ export default function ReporteFuncionariosPage() {
 
         const tableData = listaDetalle.socios.map((s, idx) => [
             String(idx + 1),
+            s.numeroSocio,
             s.cedula,
             s.nombreCompleto,
-            s.numeroSocio,
             formatFecha(s.fechaAsignacion),
+            formatFecha(s.fechaHoraIngreso || ''),
             s.condicion
         ]);
 
         autoTable(doc, {
             startY: 98,
-            head: [['#', 'CÉDULA', 'SOCIO', 'NRO', 'FECHA ASIG.', 'CONDICIÓN']],
+            head: [['#', 'NRO', 'CÉDULA', 'SOCIO', 'FECHA/HORA LISTA', 'FECHA/HORA INGRESO', 'CONDICIÓN']],
             body: tableData,
             theme: 'grid',
             styles: {
-                fontSize: 8,
-                cellPadding: 4,
+                fontSize: 6,
+                cellPadding: 2,
                 lineColor: [226, 232, 240],
                 lineWidth: 0.1,
             },
@@ -328,7 +333,7 @@ export default function ReporteFuncionariosPage() {
                 fillColor: [17, 94, 89],
                 textColor: [255, 255, 255],
                 fontStyle: 'bold',
-                fontSize: 8,
+                fontSize: 7,
                 halign: 'center',
             },
             bodyStyles: {
@@ -338,12 +343,13 @@ export default function ReporteFuncionariosPage() {
                 fillColor: [248, 250, 252],
             },
             columnStyles: {
-                0: { cellWidth: 10, halign: 'center', fontStyle: 'bold' },
-                1: { cellWidth: 25 },
-                2: { cellWidth: 'auto' },
-                3: { cellWidth: 18, halign: 'center' },
-                4: { cellWidth: 25, halign: 'center', fontSize: 7 },
-                5: { cellWidth: 26, halign: 'center', fontStyle: 'bold' }
+                0: { cellWidth: 8, halign: 'center', fontStyle: 'bold' },
+                1: { cellWidth: 14, halign: 'center' },
+                2: { cellWidth: 20 },
+                3: { cellWidth: 'auto' },
+                4: { cellWidth: 32, halign: 'center', fontSize: 6 },
+                5: { cellWidth: 32, halign: 'center', fontSize: 6 },
+                6: { cellWidth: 22, halign: 'center', fontStyle: 'bold' }
             },
             didParseCell: (data) => {
                 // Estilo para columna #
@@ -352,7 +358,7 @@ export default function ReporteFuncionariosPage() {
                     data.cell.styles.textColor = [13, 148, 136];
                 }
                 // Colores para condición
-                if (data.section === 'body' && data.column.index === 5) {
+                if (data.section === 'body' && data.column.index === 6) {
                     const condicion = data.cell.raw as string;
                     if (condicion === 'VOZ Y VOTO') {
                         data.cell.styles.fillColor = [209, 250, 229];
@@ -627,11 +633,13 @@ export default function ReporteFuncionariosPage() {
                                                             <table className="w-full min-w-[600px]">
                                                                 <thead className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white">
                                                                     <tr>
-                                                                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider">Cédula</th>
-                                                                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider">Socio</th>
-                                                                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider">Nro</th>
-                                                                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider">Asignado Por</th>
-                                                                        <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider">Condición</th>
+                                                                        <th className="px-2 py-2 text-center text-xs font-bold">#</th>
+                                                                        <th className="px-2 py-2 text-center text-xs font-bold">NRO</th>
+                                                                        <th className="px-2 py-2 text-left text-xs font-bold">CÉDULA</th>
+                                                                        <th className="px-2 py-2 text-left text-xs font-bold">SOCIO</th>
+                                                                        <th className="px-2 py-2 text-center text-xs font-bold">FECHA/HORA LISTA</th>
+                                                                        <th className="px-2 py-2 text-center text-xs font-bold">FECHA/HORA INGRESO</th>
+                                                                        <th className="px-2 py-2 text-center text-xs font-bold">CONDICIÓN</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody className="divide-y divide-slate-100">
@@ -643,28 +651,26 @@ export default function ReporteFuncionariosPage() {
                                                                             transition={{ delay: idx * 0.02 }}
                                                                             className={`${socio.esVyV ? 'bg-emerald-50/50' : 'bg-amber-50/50'} hover:bg-slate-50 transition-colors`}
                                                                         >
-                                                                            <td className="px-4 py-3">
+                                                                            <td className="px-2 py-2 text-sm text-center font-bold text-teal-600">{idx + 1}</td>
+                                                                            <td className="px-2 py-2 text-sm text-center font-bold text-teal-600">{socio.numeroSocio}</td>
+                                                                            <td className="px-2 py-2">
                                                                                 <span className="font-mono text-sm text-slate-700">{socio.cedula}</span>
                                                                             </td>
-                                                                            <td className="px-4 py-3">
+                                                                            <td className="px-2 py-2">
                                                                                 <span className="font-bold text-slate-800 text-sm">{socio.nombreCompleto}</span>
                                                                             </td>
-                                                                            <td className="px-4 py-3">
-                                                                                <span className="font-bold text-teal-600">#{socio.numeroSocio}</span>
+                                                                            <td className="px-2 py-2 text-center">
+                                                                                <span className="text-xs font-mono text-slate-600">{formatDate(socio.fechaAsignacion)}</span>
                                                                             </td>
-                                                                            <td className="px-4 py-3">
-                                                                                <span className="text-sm text-slate-500">{socio.asignadoPor}</span>
+                                                                            <td className="px-2 py-2 text-center">
+                                                                                <span className="text-xs font-mono text-slate-600">{formatDate(socio.fechaHoraIngreso || '')}</span>
                                                                             </td>
-                                                                            <td className="px-4 py-3">
+                                                                            <td className="px-2 py-2 text-center">
                                                                                 <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${socio.esVyV
                                                                                     ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                                                                                     : 'bg-amber-100 text-amber-700 border border-amber-200'
                                                                                     }`}>
-                                                                                    {socio.esVyV ? (
-                                                                                        <><CheckCircle className="h-3 w-3" /> VOZ Y VOTO</>
-                                                                                    ) : (
-                                                                                        <><Shield className="h-3 w-3" /> SOLO VOZ</>
-                                                                                    )}
+                                                                                    {socio.condicion}
                                                                                 </span>
                                                                             </td>
                                                                         </motion.tr>
