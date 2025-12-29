@@ -605,6 +605,74 @@ public class AsignacionController {
         }
     }
 
+    @GetMapping("/admin/lista/{listaId}/socios-detalle")
+    public ResponseEntity<?> verSociosListaAdmin(@PathVariable Long listaId, Authentication auth) {
+        if (auth == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        try {
+            Usuario admin = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
+            // Solo SUPER_ADMIN y DIRECTIVO pueden ver cualquier lista
+            if (admin.getRol() != Usuario.Rol.SUPER_ADMIN && admin.getRol() != Usuario.Rol.DIRECTIVO) {
+                return ResponseEntity.status(403).body(Map.of("error", "No tienes permisos para ver esta lista"));
+            }
+
+            Optional<ListaAsignacion> listaOpt = listaRepository.findById(listaId);
+            if (listaOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("error", "Lista no encontrada"));
+            }
+
+            ListaAsignacion lista = listaOpt.get();
+            List<Asignacion> asignaciones = asignacionRepository.findByListaAsignacionId(listaId);
+
+            List<Map<String, Object>> sociosDetalle = new ArrayList<>();
+            for (Asignacion asignacion : asignaciones) {
+                Socio socio = asignacion.getSocio();
+                if (socio != null) {
+                    boolean esVyV = socio.isEstadoVozVoto();
+
+                    Map<String, Object> socioMap = new HashMap<>();
+                    socioMap.put("id", socio.getId());
+                    socioMap.put("cedula", socio.getCedula() != null ? socio.getCedula() : "-");
+                    socioMap.put("nombreCompleto",
+                            socio.getNombreCompleto() != null ? socio.getNombreCompleto() : "Sin Nombre");
+                    socioMap.put("numeroSocio", socio.getNumeroSocio() != null ? socio.getNumeroSocio() : "-");
+                    socioMap.put("fechaAsignacion", asignacion.getFechaAsignacion());
+                    socioMap.put("condicion", esVyV ? "VOZ Y VOTO" : "SOLO VOZ");
+                    socioMap.put("esVyV", esVyV);
+                    socioMap.put("asignadoPor",
+                            asignacion.getAsignadoPor() != null ? asignacion.getAsignadoPor().getNombreCompleto()
+                                    : "Sistema");
+
+                    sociosDetalle.add(socioMap);
+                }
+            }
+
+            // Estadísticas
+            long totalVyV = sociosDetalle.stream().filter(s -> Boolean.TRUE.equals(s.get("esVyV"))).count();
+            long totalSoloVoz = sociosDetalle.size() - totalVyV;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("lista", Map.of(
+                    "id", lista.getId(),
+                    "nombre", lista.getNombre(),
+                    "responsable", lista.getUsuario().getNombreCompleto(),
+                    "responsableUser", lista.getUsuario().getUsername()));
+            response.put("socios", sociosDetalle);
+            response.put("stats", Map.of(
+                    "total", sociosDetalle.size(),
+                    "vyv", totalVyV,
+                    "soloVoz", totalSoloVoz));
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("ERROR in /admin/lista/" + listaId + "/socios-detalle: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Error interno del servidor"));
+        }
+    }
+
     @GetMapping("/mis-socios-detalle")
     public ResponseEntity<List<Map<String, Object>>> getMisSociosDetalle(Authentication auth) {
         if (auth == null) {
