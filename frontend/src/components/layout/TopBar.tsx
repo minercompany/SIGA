@@ -92,7 +92,7 @@ export function TopBar() {
 
     useEffect(() => {
         const timer = setTimeout(async () => {
-            if (searchTerm.trim().length >= 2) {
+            if (searchTerm.trim().length >= 1) {
                 setIsSearching(true);
                 try {
                     const token = localStorage.getItem("token");
@@ -113,7 +113,7 @@ export function TopBar() {
                 setSearchResults([]);
                 setShowResults(false);
             }
-        }, 400);
+        }, 100);
 
         return () => clearTimeout(timer);
     }, [searchTerm]);

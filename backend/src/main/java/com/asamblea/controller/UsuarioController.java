@@ -178,11 +178,20 @@ public class UsuarioController {
         return ResponseEntity.ok(new ArrayList<>(mergedResults.values()));
     }
 
-    // Listar todos los usuarios
+    private final com.asamblea.repository.FuncionarioDirectivoRepository funcionarioRepository;
+
+
+
+    // Listar todos los usuarios + Funcionarios importados
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> listarTodos() {
+        List<Map<String, Object>> result = new ArrayList<>();
+        
+        // 1. Obtener usuarios registrados
         List<Usuario> usuarios = usuarioRepository.findAll();
-        List<Map<String, Object>> result = usuarios.stream().map(u -> {
+        Set<String> procesados = new HashSet<>(); // Para evitar duplicados (username/cedula)
+
+        for (Usuario u : usuarios) {
             Map<String, Object> map = new HashMap<>();
             map.put("id", u.getId());
             map.put("username", u.getUsername());
@@ -196,15 +205,53 @@ public class UsuarioController {
             map.put("idSocio", u.getIdSocio());
             map.put("sucursal", u.getSucursal() != null ? u.getSucursal().getNombre() : null);
             map.put("sucursalId", u.getSucursal() != null ? u.getSucursal().getId() : null);
+            map.put("tipo", "USUARIO");
 
             if (u.getIdSocio() != null) {
                 socioRepository.findById(u.getIdSocio()).ifPresent(s -> {
                     map.put("cedula", s.getCedula());
                     map.put("numeroSocio", s.getNumeroSocio());
                 });
+            } else {
+                 // Intentar recuperar cédula del username si es numérico
+                 if (u.getUsername().matches("\\d+")) {
+                     map.put("cedula", u.getUsername());
+                 }
             }
-            return map;
-        }).collect(Collectors.toList());
+            
+            result.add(map);
+            procesados.add(u.getUsername()); // Asumimos username como identificador clave
+        }
+
+        // 2. Obtener funcionarios importados que NO son usuarios aún
+        List<com.asamblea.model.FuncionarioDirectivo> funcionarios = funcionarioRepository.findAll();
+        for (com.asamblea.model.FuncionarioDirectivo f : funcionarios) {
+            // Verificar si ya está procesado como usuario (por Cédula o NroSocio)
+            // Normalizamos cédula quitando puntos
+            String cedulaLimpia = f.getCedula() != null ? f.getCedula().replaceAll("[^0-9]", "") : "";
+            
+            if (procesados.contains(cedulaLimpia) || procesados.contains(f.getNumeroSocio())) {
+                continue; // Ya está listado como Usuario
+            }
+            
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", null); // No tiene ID de Usuario
+            map.put("idFuncionario", f.getId());
+            map.put("username", f.getCedula()); // Mostramos cédula como "usuario" sugerido
+            map.put("nombreCompleto", f.getNombreCompleto());
+            map.put("email", ""); // No tiene email aún
+            map.put("telefono", "");
+            map.put("rol", f.getRol().name());
+            map.put("rolNombre", "Funcionario / " + f.getRol().name());
+            map.put("activo", false); // Inactivo porque no tiene usuario creado
+            map.put("sucursal", null);
+            map.put("cedula", f.getCedula());
+            map.put("numeroSocio", f.getNumeroSocio());
+            map.put("tipo", "FUNCIONARIO"); // Flag para UI
+            
+            result.add(map);
+        }
+
         return ResponseEntity.ok(result);
     }
 
