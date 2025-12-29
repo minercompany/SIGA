@@ -38,7 +38,6 @@ interface AsistenciaDetalle {
     numeroSocio: string;
     fechaHoraLista: string | null;
     fechaHoraIngreso: string;
-    registradoPor: string;
     condicion: string;
     esVyV: boolean;
 }
@@ -121,13 +120,14 @@ export default function ReporteAsistenciaFuncionariosPage() {
     const handleExportCSV = () => {
         if (!selectedOperador || !reporteDetalle) return;
 
-        const headers = ['#', 'SOCIO', 'FECHA/HORA LISTA', 'FECHA/HORA INGRESO', 'REGISTRADO POR', 'CONDICIÓN'];
+        const headers = ['#', 'NRO SOCIO', 'CÉDULA', 'SOCIO', 'FECHA/HORA LISTA', 'FECHA/HORA INGRESO', 'CONDICIÓN'];
         const rows = reporteDetalle.asistencias.map((a, idx) => [
             String(idx + 1),
+            a.numeroSocio,
+            a.cedula,
             a.nombreCompleto,
             formatFechaHora(a.fechaHoraLista),
             formatFechaHora(a.fechaHoraIngreso),
-            a.registradoPor,
             a.condicion
         ]);
 
@@ -272,19 +272,20 @@ export default function ReporteAsistenciaFuncionariosPage() {
         // Tabla
         const tableData = reporteDetalle.asistencias.map((a, idx) => [
             String(idx + 1),
+            a.numeroSocio,
+            a.cedula,
             a.nombreCompleto,
             formatFechaHora(a.fechaHoraLista),
             formatFechaHora(a.fechaHoraIngreso),
-            a.registradoPor,
             a.condicion
         ]);
 
         autoTable(doc, {
             startY: 98,
-            head: [['#', 'SOCIO', 'FECHA/HORA LISTA', 'FECHA/HORA INGRESO', 'REGISTRADO POR', 'CONDICIÓN']],
+            head: [['#', 'NRO', 'CÉDULA', 'SOCIO', 'FECHA/HORA LISTA', 'FECHA/HORA INGRESO', 'CONDICIÓN']],
             body: tableData,
             theme: 'grid',
-            styles: { fontSize: 8, cellPadding: 3 },
+            styles: { fontSize: 6, cellPadding: 2 },
             headStyles: {
                 fillColor: [17, 94, 89],
                 textColor: [255, 255, 255],
@@ -292,15 +293,16 @@ export default function ReporteAsistenciaFuncionariosPage() {
                 halign: 'center'
             },
             columnStyles: {
-                0: { cellWidth: 10, halign: 'center' },
-                1: { cellWidth: 'auto' },
-                2: { cellWidth: 38, halign: 'center', fontSize: 7 },
-                3: { cellWidth: 38, halign: 'center', fontSize: 7 },
-                4: { cellWidth: 28, halign: 'center', fontSize: 7 },
-                5: { cellWidth: 24, halign: 'center', fontStyle: 'bold' }
+                0: { cellWidth: 8, halign: 'center' },
+                1: { cellWidth: 14, halign: 'center' },
+                2: { cellWidth: 20, halign: 'center' },
+                3: { cellWidth: 'auto' },
+                4: { cellWidth: 32, halign: 'center' },
+                5: { cellWidth: 32, halign: 'center' },
+                6: { cellWidth: 22, halign: 'center', fontStyle: 'bold' }
             },
             didParseCell: (data) => {
-                if (data.section === 'body' && data.column.index === 5) {
+                if (data.section === 'body' && data.column.index === 6) {
                     const cond = data.cell.raw as string;
                     if (cond === 'VOZ Y VOTO') {
                         data.cell.styles.fillColor = [209, 250, 229];
@@ -550,27 +552,29 @@ export default function ReporteAsistenciaFuncionariosPage() {
                                                             <table className="w-full">
                                                                 <thead className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white">
                                                                     <tr>
-                                                                        <th className="px-3 py-3 text-left text-xs font-bold">#</th>
-                                                                        <th className="px-3 py-3 text-left text-xs font-bold">SOCIO</th>
-                                                                        <th className="px-3 py-3 text-center text-xs font-bold">FECHA/HORA LISTA</th>
-                                                                        <th className="px-3 py-3 text-center text-xs font-bold">FECHA/HORA INGRESO</th>
-                                                                        <th className="px-3 py-3 text-center text-xs font-bold">REGISTRADO POR</th>
-                                                                        <th className="px-3 py-3 text-center text-xs font-bold">CONDICIÓN</th>
+                                                                        <th className="px-2 py-2 text-center text-xs font-bold">#</th>
+                                                                        <th className="px-2 py-2 text-center text-xs font-bold">NRO</th>
+                                                                        <th className="px-2 py-2 text-left text-xs font-bold">CÉDULA</th>
+                                                                        <th className="px-2 py-2 text-left text-xs font-bold">SOCIO</th>
+                                                                        <th className="px-2 py-2 text-center text-xs font-bold">FECHA/HORA LISTA</th>
+                                                                        <th className="px-2 py-2 text-center text-xs font-bold">FECHA/HORA INGRESO</th>
+                                                                        <th className="px-2 py-2 text-center text-xs font-bold">CONDICIÓN</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody className="divide-y divide-slate-100">
                                                                     {reporteDetalle.asistencias.map((asist, idx) => (
                                                                         <tr key={asist.id} className="hover:bg-slate-50 transition-colors">
-                                                                            <td className="px-3 py-3 text-sm font-bold text-teal-600">{idx + 1}</td>
-                                                                            <td className="px-3 py-3 text-sm font-medium text-slate-800">{asist.nombreCompleto}</td>
-                                                                            <td className="px-3 py-3 text-sm text-center font-mono text-slate-600">
+                                                                            <td className="px-2 py-2 text-sm text-center font-bold text-teal-600">{idx + 1}</td>
+                                                                            <td className="px-2 py-2 text-sm text-center text-slate-600">{asist.numeroSocio}</td>
+                                                                            <td className="px-2 py-2 text-sm text-slate-700">{asist.cedula}</td>
+                                                                            <td className="px-2 py-2 text-sm font-medium text-slate-800">{asist.nombreCompleto}</td>
+                                                                            <td className="px-2 py-2 text-xs text-center font-mono text-slate-600">
                                                                                 {formatFechaHora(asist.fechaHoraLista)}
                                                                             </td>
-                                                                            <td className="px-3 py-3 text-sm text-center font-mono text-slate-700">
+                                                                            <td className="px-2 py-2 text-xs text-center font-mono text-slate-700">
                                                                                 {formatFechaHora(asist.fechaHoraIngreso)}
                                                                             </td>
-                                                                            <td className="px-3 py-3 text-sm text-center text-slate-600">{asist.registradoPor}</td>
-                                                                            <td className="px-3 py-3 text-center">
+                                                                            <td className="px-2 py-2 text-center">
                                                                                 <span className={`px-2 py-1 rounded-lg text-xs font-bold ${asist.esVyV
                                                                                     ? 'bg-emerald-100 text-emerald-700'
                                                                                     : 'bg-amber-100 text-amber-700'
