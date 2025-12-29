@@ -16,4 +16,8 @@ public interface FuncionarioDirectivoRepository extends JpaRepository<Funcionari
     boolean existsByNumeroSocio(String numeroSocio);
 
     boolean existsByCedula(String cedula);
+
+    long countByRol(FuncionarioDirectivo.RolFuncionario rol);
+
+    long countByRolNot(FuncionarioDirectivo.RolFuncionario rol);
 }

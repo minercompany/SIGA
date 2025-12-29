@@ -62,8 +62,15 @@ export default function AvisosBell() {
     }, [avisos]);
 
     const loadAvisos = async () => {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            // Si no hay token, no intentamos cargar y probablemente deberíamos redirigir
+            // pero dejaremos que el layout maneje la redirección principal.
+            return;
+        }
+
         try {
-            const token = localStorage.getItem('token');
             const [avisosRes, countRes] = await Promise.all([
                 axios.get('/api/avisos/mis-avisos', {
                     headers: { Authorization: `Bearer ${token}` }
@@ -82,8 +89,14 @@ export default function AvisosBell() {
 
             setAvisos(avisosRes.data || []);
             setUnreadCount(newCount);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error loading avisos:', error);
+            // Si el error es de autenticación, detenemos el polling silenciosamente
+            // o redirigimos al login si es crítico
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                // Opcional: localStorage.removeItem('token');
+                // router.push('/login'); 
+            }
         }
     };
 

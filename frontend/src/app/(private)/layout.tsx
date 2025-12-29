@@ -9,9 +9,35 @@ import { ImportProvider } from "@/context/ImportContext";
 import ImportStatusFloating from "@/components/ImportStatusFloating";
 import ForcePasswordChange from "@/components/auth/ForcePasswordChange";
 import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
-import { TourProvider, TourOverlay } from "@/components/tour";
+import { TourProvider, TourOverlay, TourWelcome, useTour, dashboardSocioTour, dashboardAdminTour } from "@/components/tour";
 import ChatFAB from "@/components/ChatFAB";
 import PageTransition from "@/components/PageTransition";
+
+// Componente wrapper para el TourWelcome que necesita acceso al contexto
+function TourWelcomeWrapper({ userRole }: { userRole?: string }) {
+    const { startTour, hasSeenTour } = useTour();
+
+    const handleStartTour = () => {
+        // Determinar el tour según el rol
+        const tourSteps = userRole === "SUPER_ADMIN" || userRole === "DIRECTIVO"
+            ? dashboardAdminTour
+            : dashboardSocioTour;
+        const tourId = userRole === "SUPER_ADMIN" || userRole === "DIRECTIVO"
+            ? "dashboard-admin"
+            : "dashboard";
+
+        // Solo iniciar si no lo ha visto
+        if (!hasSeenTour(tourId)) {
+            startTour(tourSteps, tourId);
+        } else {
+            // Si ya lo vio, simplemente iniciarlo de nuevo
+            startTour(tourSteps, tourId);
+        }
+    };
+
+    return <TourWelcome onStartTour={handleStartTour} />;
+}
+
 
 export default function PrivateLayout({
     children,
@@ -59,6 +85,7 @@ export default function PrivateLayout({
                         }} />
                     )}
                     {user && <WelcomeModal user={user} onUpdateUser={setUser} />}
+                    <TourWelcomeWrapper userRole={user?.rol} />
                     <Sidebar />
                     <div className="flex flex-1 flex-col overflow-hidden">
                         <TopBar />

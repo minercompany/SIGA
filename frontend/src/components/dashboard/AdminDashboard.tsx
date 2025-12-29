@@ -26,7 +26,7 @@ interface AdminDashboardProps {
 }
 
 // Contador animado premium
-const AnimatedCounter = ({ value, duration = 1.5 }: { value: number; duration?: number }) => {
+const AnimatedCounter = ({ value, duration = 3.5 }: { value: number; duration?: number }) => {
     const [count, setCount] = useState(0);
 
     useEffect(() => {
@@ -216,34 +216,53 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                 </div>
             </motion.div>
 
-            {/* KPIs Premium con Animaciones */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* KPIs Premium 'Nano' Style */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                 {[
-                    { label: "Total Padrón", value: stats.totalPadron, icon: Users, gradient: "from-blue-500 to-blue-600", shadow: "shadow-blue-500/25" },
-                    { label: "Habilitados V&V", value: stats.conVozYVoto, icon: ShieldCheck, gradient: "from-emerald-500 to-teal-600", shadow: "shadow-emerald-500/25" },
-                    { label: "Presentes Ahora", value: presentes, icon: UserCheck, gradient: "from-purple-500 to-indigo-600", shadow: "shadow-purple-500/25" },
-                    { label: "Solo Voz", value: stats.soloVoz, icon: AlertCircle, gradient: "from-amber-500 to-orange-600", shadow: "shadow-amber-500/25" },
+                    { label: "Total Padrón", value: stats.totalPadron, icon: Users, gradient: "from-blue-500 via-blue-600 to-blue-700", shadow: "shadow-blue-500/40", ring: "ring-blue-400/30" },
+                    { label: "Habilitados V&V", value: stats.conVozYVoto, icon: ShieldCheck, gradient: "from-emerald-500 via-emerald-600 to-emerald-700", shadow: "shadow-emerald-500/40", ring: "ring-emerald-400/30" },
+                    { label: "Presentes Ahora", value: presentes, icon: UserCheck, gradient: "from-violet-500 via-purple-600 to-purple-700", shadow: "shadow-purple-500/40", ring: "ring-purple-400/30" },
+                    { label: "Solo Voz", value: stats.soloVoz, icon: AlertCircle, gradient: "from-amber-400 via-orange-500 to-orange-600", shadow: "shadow-orange-500/40", ring: "ring-orange-400/30" },
                 ].map((stat, i) => (
                     <motion.div
                         key={i}
                         variants={cardVariants}
                         initial="hidden"
                         animate="visible"
-                        transition={{ delay: i * 0.1 }}
-                        whileHover={{ y: -8, scale: 1.02 }}
-                        className={`relative overflow-hidden bg-gradient-to-br ${stat.gradient} rounded-[1.5rem] p-6 text-white shadow-xl ${stat.shadow}`}
+                        transition={{ delay: i * 0.05 }}
+                        whileHover={{ y: -5, scale: 1.02 }}
+                        className={`relative overflow-hidden rounded-[2rem] p-6 lg:p-8 text-white shadow-2xl bg-gradient-to-br ${stat.shadow} ${stat.gradient} group`}
                     >
-                        <div className="absolute -right-4 -top-4 opacity-20">
-                            <stat.icon className="h-24 w-24" />
+                        {/* Glossy Overlay/Reflection */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10 pointer-events-none" />
+                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none group-hover:bg-white/20 transition-colors" />
+
+                        {/* Inner Highlight Ring */}
+                        <div className={`absolute inset-0 rounded-[2rem] border border-white/20 ${stat.ring} pointer-events-none`} />
+
+                        {/* Background Icon */}
+                        <div className="absolute -right-6 -bottom-6 opacity-10 rotate-12 transition-transform duration-500 group-hover:rotate-0 group-hover:scale-110">
+                            <stat.icon className="h-32 w-32" />
                         </div>
-                        <div className="relative">
-                            <div className="p-3 bg-white/20 backdrop-blur rounded-xl w-fit mb-4">
-                                <stat.icon className="h-6 w-6" />
+
+                        {/* Content */}
+                        <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                            {/* Header: Icon + Label */}
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl shadow-inner border border-white/20">
+                                    <stat.icon className="h-5 w-5 text-white" />
+                                </div>
+                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/90 drop-shadow-sm">
+                                    {stat.label}
+                                </span>
                             </div>
-                            <p className="text-4xl lg:text-5xl font-black tracking-tight">
-                                <AnimatedCounter value={stat.value} />
-                            </p>
-                            <p className="text-white/80 text-xs font-bold uppercase tracking-widest mt-2">{stat.label}</p>
+
+                            {/* Value */}
+                            <div className="mt-auto">
+                                <p className="text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-lg leading-none">
+                                    <AnimatedCounter value={stat.value} />
+                                </p>
+                            </div>
                         </div>
                     </motion.div>
                 ))}
@@ -261,36 +280,26 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                             <Target className="h-6 w-6 text-white" />
                         </div>
                         <div>
-                            <h3 className="font-black text-slate-800 text-lg">Progreso hacia el Quórum</h3>
-                            <p className="text-slate-400 text-xs font-medium">Se requiere el 50% + 1 del padrón</p>
+                            <h3 className="font-black text-slate-800 text-lg">Progreso de Asistencia</h3>
+                            <p className="text-slate-400 text-xs font-medium">Asistencia sobre el total de padrón</p>
                         </div>
                     </div>
                     <div className="text-right">
-                        <p className="text-4xl font-black text-slate-800">{progresoQuorum.toFixed(1)}%</p>
-                        <p className="text-slate-400 text-sm font-medium">{presentes.toLocaleString()} / {quorumNecesario.toLocaleString()}</p>
+                        <p className="text-4xl font-black text-slate-800">{porcentajeAsistencia}%</p>
+                        <p className="text-slate-400 text-sm font-medium">{presentes.toLocaleString()} / {stats.totalPadron.toLocaleString()}</p>
                     </div>
                 </div>
                 <div className="h-6 bg-slate-100 rounded-full overflow-hidden relative">
                     <motion.div
                         initial={{ width: 0 }}
-                        animate={{ width: `${progresoQuorum}%` }}
+                        animate={{ width: `${Math.min(porcentajeAsistenciaRaw, 100)}%` }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
-                        className={`h-full rounded-full relative ${progresoQuorum >= 100 ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-indigo-500 to-purple-500'}`}
+                        className={`h-full rounded-full relative ${porcentajeAsistenciaRaw >= 50 ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-indigo-500 to-purple-500'}`}
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-pulse" />
                     </motion.div>
                 </div>
-                {progresoQuorum >= 100 && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="mt-4 flex items-center justify-center gap-2 text-emerald-600 font-bold"
-                    >
-                        <CheckCircle2 className="h-5 w-5" />
-                        <span>¡QUÓRUM ALCANZADO!</span>
-                        <Zap className="h-5 w-5 animate-pulse" />
-                    </motion.div>
-                )}
+
             </motion.div>
 
             {/* Grid Principal de Estadísticas */}

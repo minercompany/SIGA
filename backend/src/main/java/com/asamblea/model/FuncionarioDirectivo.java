@@ -36,6 +36,7 @@ public class FuncionarioDirectivo {
 
     public enum RolFuncionario {
         DIRECTIVO,
-        OPERADOR
+        OPERADOR,
+        ASESOR_DE_CREDITO
     }
 }

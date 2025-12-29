@@ -545,7 +545,7 @@ export function Sidebar() {
             <div
                 className={cn(
                     "flex h-screen flex-col text-white shadow-2xl transition-all duration-300 ease-in-out",
-                    // Gradiente verde pastel
+                    // Gradiente verde pastel (RESTAURADO)
                     "bg-gradient-to-b from-teal-700 via-teal-600 to-emerald-700",
                     // Ancho
                     effectiveCollapsed ? "w-16" : "w-64",
@@ -554,7 +554,285 @@ export function Sidebar() {
                     isMobile && !mobileOpen ? "-translate-x-full invisible" : "translate-x-0"
                 )}
             >
-                {sidebarContent}
+                {/* Logo y título */}
+                <div className={cn(
+                    "flex items-center border-b border-teal-600/30 transition-all duration-300",
+                    effectiveCollapsed ? "h-20 justify-center p-2" : "h-24 justify-start p-4 gap-3 ml-2"
+                )}>
+                    <div className="flex-shrink-0">
+                        <img
+                            src="/logo.png"
+                            alt="Logo"
+                            className={cn(
+                                "object-contain rounded-full bg-white shadow-lg transition-all duration-300",
+                                effectiveCollapsed ? "h-10 w-10 p-0.5" : "h-12 w-12 p-1"
+                            )}
+                        />
+                    </div>
+                    {!effectiveCollapsed && (
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-sm font-bold text-white truncate">Cooperativa Reducto</span>
+                            <span className="text-xs text-teal-200/80">Sistema de Asambleas</span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Navegación */}
+                <nav data-tour={isMobile && !mobileOpen ? undefined : "sidebar-panel"} className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+                    {(() => {
+                        const isPowerUser = user?.rol === "SUPER_ADMIN" || user?.rol === "DIRECTIVO";
+
+                        // Si no es admin, aplanamos los submenús para que vea iconos directos
+                        let itemsToRender: any[] = [];
+                        if (isPowerUser) {
+                            itemsToRender = menuItems;
+                        } else {
+                            menuItems.forEach(item => {
+                                if (item.submenu) {
+                                    itemsToRender.push(...item.submenu);
+                                } else {
+                                    itemsToRender.push(item);
+                                }
+                            });
+                        }
+
+                        return itemsToRender.filter(item => hasPermission(item.id)).map((item) => {
+                            const filteredSubmenu = (item.submenu || []).filter((sub: any) => hasPermission(sub.id));
+                            const hasVisibleSubmenu = filteredSubmenu.length > 0;
+
+                            if (isPowerUser && !hasVisibleSubmenu && item.href === '#') return null;
+
+                            const isActive = pathname === item.href || (item.href !== '#' && pathname.startsWith(item.href + '/')) ||
+                                (hasVisibleSubmenu && filteredSubmenu.some((sub: any) => pathname === sub.href));
+
+                            const isExpanded = expandedMenu === item.id;
+                            const isHovered = hoveredMenu === item.id;
+
+                            // Si no tiene submenú o no somos PowerUser
+                            if (!hasVisibleSubmenu || !isPowerUser) {
+                                return (
+                                    <div
+                                        key={item.id}
+                                        className="relative"
+                                        onMouseEnter={() => effectiveCollapsed && setHoveredMenu(item.id)}
+                                        onMouseLeave={() => effectiveCollapsed && setHoveredMenu(null)}
+                                    >
+                                        <Link
+                                            href={item.href}
+                                            className={cn(
+                                                "group flex items-center rounded-xl font-medium transition-all duration-200",
+                                                effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
+                                                isActive
+                                                    ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
+                                                    : "text-teal-100 hover:bg-white/10 hover:text-white"
+                                            )}
+                                        >
+                                            <item.icon className={cn(
+                                                "h-5 w-5 flex-shrink-0 transition-colors",
+                                                effectiveCollapsed ? "" : "mr-3",
+                                                isActive ? "text-white" : "text-teal-200 group-hover:text-white"
+                                            )} />
+                                            {!effectiveCollapsed && <span className="text-sm truncate">{item.name}</span>}
+                                        </Link>
+
+                                        {/* TOOLTIP SIMPLE - DISEÑO PREMIUM */}
+                                        <AnimatePresence>
+                                            {effectiveCollapsed && isHovered && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, x: 10, scale: 0.95 }}
+                                                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                                                    exit={{ opacity: 0, x: 5 }}
+                                                    className="fixed left-16 ml-3 px-3 py-1.5 bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-xl z-[100] whitespace-nowrap border border-slate-700/50"
+                                                >
+                                                    <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-800 rotate-45 border-l border-b border-slate-700/50" />
+                                                    {item.name}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                );
+                            }
+
+                            // Renderizar con Submenú (Grupos)
+                            return (
+                                <div
+                                    key={item.id}
+                                    className="relative"
+                                    onMouseEnter={() => effectiveCollapsed && setHoveredMenu(item.id)}
+                                    onMouseLeave={() => effectiveCollapsed && setHoveredMenu(null)}
+                                >
+                                    <button
+                                        onClick={() => {
+                                            if (effectiveCollapsed && hasVisibleSubmenu) {
+                                                router.push(filteredSubmenu[0].href);
+                                            } else {
+                                                setExpandedMenu(isExpanded ? null : item.id);
+                                            }
+                                        }}
+                                        className={cn(
+                                            "group flex items-center w-full rounded-xl font-medium transition-all duration-200",
+                                            effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
+                                            (isActive)
+                                                ? "text-white"
+                                                : "text-teal-100 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/5"
+                                        )}
+                                    >
+                                        <item.icon className={cn(
+                                            "h-5 w-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110",
+                                            effectiveCollapsed ? "" : "mr-3",
+                                            isActive ? "text-white" : "text-teal-200 group-hover:text-white"
+                                        )} />
+                                        {!effectiveCollapsed && (
+                                            <>
+                                                <span className="text-sm truncate flex-1 text-left font-bold">{item.name}</span>
+                                                <ChevronDown className={cn(
+                                                    "h-4 w-4 transition-transform duration-200 text-teal-300",
+                                                    isExpanded ? "rotate-180" : ""
+                                                )} />
+                                            </>
+                                        )}
+                                    </button>
+
+                                    {!effectiveCollapsed && isExpanded && (
+                                        <div className="mt-1 ml-4 space-y-1 border-l-2 border-teal-500/30 pl-3">
+                                            {filteredSubmenu.map((sub: any) => {
+                                                const isSubActive = pathname === sub.href;
+                                                return (
+                                                    <Link
+                                                        key={sub.id}
+                                                        href={sub.href}
+                                                        className={cn(
+                                                            "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                                                            isSubActive
+                                                                ? "bg-white/20 text-white shadow-sm backdrop-blur-sm"
+                                                                : "text-teal-200 hover:bg-white/10 hover:text-white"
+                                                        )}
+                                                    >
+                                                        <sub.icon className={cn(
+                                                            "h-4 w-4 mr-2",
+                                                            isSubActive ? "text-white" : "text-teal-300"
+                                                        )} />
+                                                        {sub.name}
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {/* TOOLTIP SUBMENÚ - DISEÑO PREMIUM & COMPACTO */}
+                                    <AnimatePresence>
+                                        {effectiveCollapsed && isHovered && (
+                                            <motion.div
+                                                initial={{ opacity: 0, x: 10, scale: 0.95 }}
+                                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                                exit={{ opacity: 0, x: 10, scale: 0.95 }}
+                                                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                                className="fixed left-[72px] w-52 bg-slate-800 rounded-xl shadow-xl z-[100] border border-slate-700/50 overflow-hidden"
+                                            >
+                                                <div className="absolute left-[-5px] top-6 w-2.5 h-2.5 bg-slate-800 rotate-45 border-l border-b border-slate-700/50" />
+                                                <div className="px-4 py-2 bg-slate-900/50 border-b border-slate-700/50">
+                                                    <div className="text-[10px] font-bold text-teal-400 uppercase tracking-wider">{item.name}</div>
+                                                </div>
+                                                <div className="p-1.5 space-y-0.5">
+                                                    {filteredSubmenu.map((sub: any) => {
+                                                        const isSubActive = pathname === sub.href;
+                                                        return (
+                                                            <Link
+                                                                key={sub.id}
+                                                                href={sub.href}
+                                                                className={cn(
+                                                                    "block px-3 py-2 text-xs font-medium rounded-lg transition-colors",
+                                                                    isSubActive
+                                                                        ? "bg-teal-600 text-white shadow-sm"
+                                                                        : "text-slate-300 hover:bg-white/5 hover:text-white"
+                                                                )}
+                                                            >
+                                                                {sub.name}
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            );
+                        });
+                    })()}
+                </nav>
+
+                {/* Botón colapsar (solo desktop) */}
+                {!isMobile && (
+                    <div className="px-2 py-2 border-t border-teal-600/30">
+                        <div
+                            className="relative"
+                            onMouseEnter={() => effectiveCollapsed && setHoveredMenu("collapse-btn")}
+                            onMouseLeave={() => effectiveCollapsed && setHoveredMenu(null)}
+                        >
+                            <button
+                                onClick={() => setCollapsed(!collapsed)}
+                                className="flex w-full items-center justify-center rounded-xl px-3 py-2.5 text-teal-200 hover:bg-white/10 hover:text-white transition-all shadow-sm"
+                            >
+                                {collapsed ? (
+                                    <ChevronRight className="h-5 w-5" />
+                                ) : (
+                                    <>
+                                        <ChevronLeft className="h-5 w-5 mr-2" />
+                                        <span className="text-sm font-medium">Colapsar</span>
+                                    </>
+                                )}
+                            </button>
+
+                            <AnimatePresence>
+                                {effectiveCollapsed && hoveredMenu === "collapse-btn" && (
+                                    <motion.div
+                                        initial={{ opacity: 0, x: 10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 10 }}
+                                        className="fixed left-16 ml-3 px-3 py-1.5 bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-xl z-[100] whitespace-nowrap border border-slate-700/50"
+                                    >
+                                        <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-800 rotate-45 border-l border-b border-slate-700/50" />
+                                        Expandir menú
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </div>
+                )}
+
+                {/* Cerrar sesión */}
+                <div className="border-t border-teal-600/30 p-2">
+                    <div
+                        className="relative"
+                        onMouseEnter={() => effectiveCollapsed && setHoveredMenu("logout-btn")}
+                        onMouseLeave={() => effectiveCollapsed && setHoveredMenu(null)}
+                    >
+                        <button
+                            onClick={handleLogout}
+                            className={cn(
+                                "flex w-full items-center rounded-xl text-teal-200 hover:bg-red-500/20 hover:text-red-300 transition-all",
+                                effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5"
+                            )}
+                        >
+                            <LogOut className={cn("h-5 w-5 flex-shrink-0", effectiveCollapsed ? "" : "mr-3")} />
+                            {!effectiveCollapsed && <span className="text-sm font-medium">Cerrar Sesión</span>}
+                        </button>
+
+                        <AnimatePresence>
+                            {effectiveCollapsed && hoveredMenu === "logout-btn" && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: 10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 10 }}
+                                    className="fixed left-16 ml-3 px-3 py-1.5 bg-red-900 text-white text-xs font-semibold rounded-lg shadow-xl z-[100] whitespace-nowrap border border-red-800/50"
+                                >
+                                    <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-red-900 rotate-45 border-l border-b border-red-800/50" />
+                                    Salir del Sistema
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
 
                 {/* Espaciador inferior */}
                 <div className="h-20 flex-shrink-0" />

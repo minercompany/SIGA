@@ -34,11 +34,21 @@ public class FuncionarioDirectivoService {
     private final JdbcTemplate jdbcTemplate;
 
     /**
-     * Importa el Excel de funcionarios y directivos
-     * Columnas esperadas: NRO_SOCIO, NOMBRE, CI, ROL (opcional)
+     * Importa el Excel de funcionarios y directivos (GENÉRICO)
      */
-    // Quitamos @Transactional global para permitir éxitos parciales
     public Map<String, Object> importarFuncionarios(MultipartFile file) throws Exception {
+        return importarFuncionariosConRol(file, FuncionarioDirectivo.RolFuncionario.OPERADOR);
+    }
+
+    /**
+     * Importa el Excel de Asesores de Crédito
+     */
+    public Map<String, Object> importarAsesores(MultipartFile file) throws Exception {
+        return importarFuncionariosConRol(file, FuncionarioDirectivo.RolFuncionario.ASESOR_DE_CREDITO);
+    }
+
+    private Map<String, Object> importarFuncionariosConRol(MultipartFile file,
+            FuncionarioDirectivo.RolFuncionario rolPorDefecto) throws Exception {
         // Guardar archivo temporal
         File tempFile = File.createTempFile("funcionarios_", ".xlsx");
         try (FileOutputStream fos = new FileOutputStream(tempFile)) {
@@ -69,31 +79,40 @@ public class FuncionarioDirectivoService {
                 try {
                     String numeroSocio = getCellValue(row, 0); // NRO_SOCIO
                     String nombre = getCellValue(row, 1); // NOMBRE
-                    String cedula = getCellValue(row, 2); // CI
+                    String cedula = getCellValue(row, 2); // CI (Puede venir vacía o ser la sucursal en el caso de
+                                                          // Asesores)
+
+                    // AJUSTE: En formato Asesores, Col 2 es NOMBRE, Col 3 es SUCURSAL
+                    // El Excel de Asesores tiene: A=NroSocio, B=Nombre, C=Sucursal
+                    // El Excel de Funcionarios tiene: A=NroSocio, B=Nombre, C=CI (A veces)
+
+                    // Si estamos importando ASESORES, la columna 2 (C) es SUCURSAL, no CI.
+                    // Para simplificar, si es ASESOR, ignoramos CI del excel y ponemos PENDIENTE.
+                    if (rolPorDefecto == FuncionarioDirectivo.RolFuncionario.ASESOR_DE_CREDITO) {
+                        cedula = "PENDIENTE";
+                    } else {
+                        cedula = getCellValue(row, 2); // CI
+                    }
 
                     if (numeroSocio == null || numeroSocio.trim().isEmpty()) {
                         continue; // Saltar filas vacías
                     }
 
-                    // Validar Datos Requeridos (Nombre es obligatorio, Cédula opcional si se
-                    // recuperará del padrón)
+                    // NORMALIZAR: Eliminar puntos, comas y caracteres no numéricos del número de
+                    // socio
+                    numeroSocio = numeroSocio.replaceAll("[^0-9]", "");
+
+                    if (numeroSocio.isEmpty()) {
+                        continue; // Si después de limpiar queda vacío, saltar
+                    }
+
                     if (nombre == null || nombre.trim().isEmpty()) {
                         throw new IllegalArgumentException("Falta NOMBRE");
                     }
 
-                    // Si no trae cédula, usamos "PENDIENTE" o null para llenarla luego con el
-                    // padrón
                     if (cedula == null || cedula.trim().isEmpty()) {
                         cedula = "PENDIENTE";
                     }
-
-                    // Determinar rol: POR DEFECTO TODOS SON OPERADOR (Funcionario básico)
-                    // El usuario pidió que no sean Directivos por defecto.
-                    FuncionarioDirectivo.RolFuncionario rol = FuncionarioDirectivo.RolFuncionario.OPERADOR;
-
-                    // Si explícitamente quieren marcar alguien como directivo en el Excel, podrían,
-                    // pero la orden fue "que todos sean rol funcionario".
-                    // Dejamos OPERADOR como default.
 
                     // Buscar si ya existe
                     Optional<FuncionarioDirectivo> existente = funcionarioRepository.findByNumeroSocio(numeroSocio);
@@ -102,11 +121,11 @@ public class FuncionarioDirectivoService {
                         // Actualizar
                         FuncionarioDirectivo func = existente.get();
                         func.setNombreCompleto(nombre);
-                        // Solo actualizamos cédula si viene una válida en el Excel
                         if (!"PENDIENTE".equals(cedula)) {
                             func.setCedula(cedula);
                         }
-                        func.setRol(rol);
+                        // SIEMPRE actualizamos al rol que estamos importando ahora
+                        func.setRol(rolPorDefecto);
                         funcionarioRepository.save(func);
                         actualizados++;
                     } else {
@@ -115,7 +134,7 @@ public class FuncionarioDirectivoService {
                         func.setNumeroSocio(numeroSocio);
                         func.setNombreCompleto(nombre);
                         func.setCedula(cedula);
-                        func.setRol(rol);
+                        func.setRol(rolPorDefecto);
                         funcionarioRepository.save(func);
                         importados++;
                     }
@@ -262,10 +281,14 @@ public class FuncionarioDirectivoService {
             return false;
 
         // 1. NORMALIZAR DATOS EN TABLA FUNCIONARIOS
+        // Actualizamos la cédula real obtenida del padrón
         if (!cedulaSanitized.equals(funcionario.getCedula().replaceAll("[^0-9]", ""))
                 || "PENDIENTE".equals(funcionario.getCedula())) {
             funcionario.setCedula(cedulaDelPadron);
-            funcionario.setRol(FuncionarioDirectivo.RolFuncionario.OPERADOR); // Asegurar rol OPERADOR
+            // NO forzamos rol a OPERADOR si ya es ASESOR
+            if (funcionario.getRol() != FuncionarioDirectivo.RolFuncionario.ASESOR_DE_CREDITO) {
+                funcionario.setRol(FuncionarioDirectivo.RolFuncionario.OPERADOR);
+            }
             funcionarioRepository.save(funcionario);
         }
 
@@ -293,18 +316,38 @@ public class FuncionarioDirectivoService {
 
         // 3. ACTUALIZAR CREDENCIALES (Siempre forzamos Cédula/Cédula)
         usuario.setUsername(cedulaSanitized); // Usuario es la Cédula
-        usuario.setPassword(passwordEncoder.encode(cedulaSanitized)); // Password es la Cédula
+        usuario.setPassword(passwordEncoder.encode(cedulaSanitized)); // Password encriptada
+        usuario.setPasswordVisible(cedulaSanitized); // Contraseña visible para admin
         usuario.setNombreCompleto(nombreCompleto);
 
-        // Asignar rol
-        // CAMBIO SOLICITADO: Todos nacen como USUARIO_SOCIO (Perfil bajo por seguridad)
-        usuario.setRol(Usuario.Rol.USUARIO_SOCIO);
+        // 4. ASIGNAR ROL según el tipo de funcionario
+        // REGLA: Si es ASESOR_DE_CREDITO en la tabla funcionarios, SIEMPRE debe tener
+        // ese rol
+        // (excepto si ya es SUPER_ADMIN, DIRECTIVO u OPERADOR - roles más altos)
+
+        Usuario.Rol rolActual = usuario.getRol();
+        boolean esRolAlto = rolActual == Usuario.Rol.SUPER_ADMIN ||
+                rolActual == Usuario.Rol.DIRECTIVO ||
+                rolActual == Usuario.Rol.OPERADOR;
+
+        if (funcionario.getRol() == FuncionarioDirectivo.RolFuncionario.ASESOR_DE_CREDITO) {
+            // Es asesor de crédito - asignar ese rol (a menos que ya tenga rol alto)
+            if (!esRolAlto) {
+                usuario.setRol(Usuario.Rol.ASESOR_DE_CREDITO);
+            }
+        } else {
+            // Es funcionario normal - asignar USUARIO_SOCIO si no tiene rol o es rol básico
+            if (rolActual == null) {
+                usuario.setRol(Usuario.Rol.USUARIO_SOCIO);
+            }
+            // Si ya tiene rol, lo dejamos como está (no bajamos de nivel)
+        }
 
         usuario.setActivo(true);
 
         usuarioRepository.save(usuario);
 
-        // 4. CREAR LISTA POR DEFECTO AUTOMÁTICAMENTE
+        // 5. CREAR LISTA POR DEFECTO AUTOMÁTICAMENTE
         // Si no tiene lista, le creamos una activa
         if (listaAsignacionRepository.findByUsuarioId(usuario.getId()).isEmpty()) {
             ListaAsignacion lista = new ListaAsignacion();
@@ -337,6 +380,14 @@ public class FuncionarioDirectivoService {
 
     public long contarTotal() {
         return funcionarioRepository.count();
+    }
+
+    public long contarFuncionarios() {
+        return funcionarioRepository.countByRolNot(FuncionarioDirectivo.RolFuncionario.ASESOR_DE_CREDITO);
+    }
+
+    public long contarAsesores() {
+        return funcionarioRepository.countByRol(FuncionarioDirectivo.RolFuncionario.ASESOR_DE_CREDITO);
     }
 
     private String getCellValue(Row row, int index) {
