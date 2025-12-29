@@ -263,7 +263,7 @@ export default function SociosPage() {
         const fetchSucursales = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get("http://localhost:8081/api/sucursales", {
+                const res = await axios.get("/api/sucursales", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setSucursales(res.data);
@@ -282,7 +282,7 @@ export default function SociosPage() {
             const headers = { Authorization: `Bearer ${token}` };
 
             if (term) {
-                const searchUrl = `http://localhost:8081/api/socios/buscar?term=${encodeURIComponent(term)}`;
+                const searchUrl = `/api/socios/buscar?term=${encodeURIComponent(term)}`;
                 const response = await axios.get(searchUrl, { headers });
 
                 if (response.data) {
@@ -296,7 +296,7 @@ export default function SociosPage() {
                     setTotalPages(0);
                 }
             } else {
-                const baseUrl = `http://localhost:8081/api/socios`;
+                const baseUrl = `/api/socios`;
                 const params: any = {
                     page,
                     size: pageSize
@@ -354,7 +354,7 @@ export default function SociosPage() {
 
             try {
                 // Get presentes count
-                const asistenciaRes = await axios.get("http://localhost:8081/api/asistencia/hoy", { headers });
+                const asistenciaRes = await axios.get("/api/asistencia/hoy", { headers });
                 if (asistenciaRes.data) {
                     setPresentesCount(asistenciaRes.data.length);
                     // Count registrados con voz y voto y solo voz entre los presentes
@@ -414,7 +414,7 @@ export default function SociosPage() {
         try {
             const token = localStorage.getItem("token");
             const response = await axios.get(
-                `http://localhost:8081/api/socios/export/${format}`,
+                `/api/socios/export/${format}`,
                 {
                     headers: { Authorization: `Bearer ${token}` },
                     responseType: "blob"
@@ -487,10 +487,10 @@ export default function SociosPage() {
             const headers = { Authorization: `Bearer ${token}` };
 
             if (modalMode === "create") {
-                await axios.post("http://localhost:8081/api/socios", formData, { headers });
+                await axios.post("/api/socios", formData, { headers });
                 toast.success("Socio creado exitosamente");
             } else {
-                await axios.put(`http://localhost:8081/api/socios/${selectedSocio?.id}`, formData, { headers });
+                await axios.put(`/api/socios/${selectedSocio?.id}`, formData, { headers });
                 toast.success("Socio actualizado exitosamente");
             }
 
@@ -516,7 +516,7 @@ export default function SociosPage() {
         setDeleting(true);
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:8081/api/socios/${socioToDelete.id}`, {
+            await axios.delete(`/api/socios/${socioToDelete.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Socio eliminado exitosamente");

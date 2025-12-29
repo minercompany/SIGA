@@ -77,6 +77,12 @@ export default function UsuariosPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null);
 
+    // Socio Search State
+    const [socioQuery, setSocioQuery] = useState("");
+    const [sociosFound, setSociosFound] = useState<any[]>([]);
+    const [searchingSocio, setSearchingSocio] = useState(false);
+    const [selectedSocio, setSelectedSocio] = useState<any | null>(null);
+
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 10;
@@ -117,7 +123,7 @@ export default function UsuariosPage() {
             const headers = { Authorization: `Bearer ${token}` };
 
             const [usuariosRes, rolesRes, sucursalesRes] = await Promise.all([
-                axios.get(`/api/usuarios/unificados?term=${query}`, { headers }),
+                axios.get(`/api/usuarios?term=${query}`, { headers }),
                 axios.get("/api/usuarios/roles", { headers }),
                 axios.get("/api/socios/estadisticas/por-sucursal", { headers })
             ]);
@@ -142,6 +148,9 @@ export default function UsuariosPage() {
 
     const openNewModal = () => {
         setEditingUser(null);
+        setSelectedSocio(null);
+        setSocioQuery("");
+        setSociosFound([]);
         setForm({
             username: "",
             password: "",
@@ -154,6 +163,46 @@ export default function UsuariosPage() {
             idSocio: ""
         });
         setShowModal(true);
+    };
+
+    const searchSocios = async () => {
+        if (!socioQuery.trim()) return;
+        setSearchingSocio(true);
+        try {
+            const token = localStorage.getItem("token");
+            const res = await axios.get(`/api/socios/buscar?term=${socioQuery}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setSociosFound(res.data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setSearchingSocio(false);
+        }
+    };
+
+    const selectSocioForUser = (socio: any) => {
+        setSelectedSocio(socio);
+        setForm({
+            ...form,
+            nombreCompleto: socio.nombreCompleto,
+            // Pre-fill username with CI if available
+            username: socio.cedula ? socio.cedula.replace(/\D/g, '') : "",
+            idSocio: socio.id,
+            // Pre-fill phone/email if they exist on socio, otherwise empty for manual entry
+            // BUT user specifically requested "telefono y email el usuario carga por su cuenta"
+            // however, it makes sense to pre-fill IF available allowing edit. 
+            // The prompt said: "el telefono y el email despues el usuario carga por su cuenta"
+            // implying they want to check/enter it. I will pre-fill if available but it's editable.
+
+            // Actually, let's leave email empty as requested context implies verification.
+            // Phone can be pre-filled as it's useful.
+            telefono: "", // Explicitly empty as per "user loads on their own" request interpretation? 
+            // "el usuario carga por su cuenta" -> user inputs it manually.
+            // I will leave it empty to force manual entry/verification.
+            email: ""
+        });
+        setSociosFound([]);
     };
 
     const openGiveAccessModal = (socio: Usuario) => {
@@ -579,6 +628,94 @@ export default function UsuariosPage() {
                                 <div className={`p-4 rounded-2xl text-sm font-bold flex items-center gap-3 ${message.type === "success" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
                                     {message.type === "success" ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
                                     {message.text}
+                                </div>
+                            )}
+
+                            {/* SEARCH SECTION FOR NEW USERS */}
+                            {!editingUser && (
+                                <div className="space-y-4 mb-8 pb-8 border-b border-slate-100">
+                                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                                        Paso 1: Buscar en Padrón de Socios
+                                    </h3>
+
+                                    {!selectedSocio ? (
+                                        <div className="space-y-4">
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={socioQuery}
+                                                    onChange={(e) => setSocioQuery(e.target.value)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), searchSocios())}
+                                                    placeholder="Buscar por Cédula, N° Socio o Nombre..."
+                                                    className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm transition-all"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={searchSocios}
+                                                    disabled={searchingSocio}
+                                                    className="px-6 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-all flex items-center gap-2"
+                                                >
+                                                    {searchingSocio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                                                    Buscar
+                                                </button>
+                                            </div>
+
+                                            {/* Results List */}
+                                            {sociosFound.length > 0 && (
+                                                <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-xl bg-slate-50 divide-y divide-slate-100">
+                                                    {sociosFound.map((sobj: any) => (
+                                                        <button
+                                                            key={sobj.id}
+                                                            type="button"
+                                                            onClick={() => selectSocioForUser(sobj)}
+                                                            className="w-full text-left p-3 hover:bg-teal-50 transition-colors flex items-center justify-between group"
+                                                        >
+                                                            <div>
+                                                                <p className="font-bold text-slate-700 text-sm group-hover:text-teal-700">{sobj.nombreCompleto}</p>
+                                                                <div className="flex gap-2 text-xs text-slate-500">
+                                                                    <span>C.I. {sobj.cedula}</span>
+                                                                    <span>•</span>
+                                                                    <span>Socio #{sobj.numeroSocio}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 group-hover:bg-teal-600 group-hover:text-white group-hover:border-teal-600 transition-all">
+                                                                Seleccionar
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {sociosFound.length === 0 && socioQuery && !searchingSocio && (
+                                                <p className="text-xs text-slate-400 italic text-center">
+                                                    No se encontraron resultados o presiona buscar.
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-emerald-100 rounded-full text-emerald-600">
+                                                    <UserCheck className="h-5 w-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-0.5">Socio Seleccionado</p>
+                                                    <p className="font-bold text-emerald-900">{selectedSocio.nombreCompleto}</p>
+                                                    <p className="text-xs text-emerald-700">C.I. {selectedSocio.cedula} | Socio #{selectedSocio.numeroSocio}</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedSocio(null);
+                                                    setForm({ ...form, idSocio: "", nombreCompleto: "", username: "" });
+                                                }}
+                                                className="text-xs font-bold text-emerald-600 hover:text-emerald-800 hover:underline px-3 py-1"
+                                            >
+                                                Cambiar
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

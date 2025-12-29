@@ -131,21 +131,21 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-[2.5rem] bg-white p-8 shadow-2xl shadow-slate-200/50 ring-1 ring-slate-100"
+                className="relative overflow-hidden rounded-[2.5rem] bg-white p-4 lg:p-8 shadow-2xl shadow-slate-200/50 ring-1 ring-slate-100"
             >
                 {/* Decorative Background Elements */}
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-emerald-50/50 to-teal-50/30 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-50/30 to-indigo-50/30 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none" />
 
-                <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-8">
 
                     {/* Title Section */}
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4 lg:gap-6">
                         <div className="relative group">
                             {/* Icon Container with Glass Effect */}
-                            <div className="relative p-5 bg-white rounded-2xl border border-slate-100 shadow-xl shadow-emerald-100/50 transition-transform group-hover:scale-105 duration-500">
+                            <div className="relative p-3 lg:p-5 bg-white rounded-2xl border border-slate-100 shadow-xl shadow-emerald-100/50 transition-transform group-hover:scale-105 duration-500">
                                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 rounded-2xl" />
-                                <Activity className={`h-8 w-8 text-emerald-500 relative z-10 transition-all duration-700 ${autoRefresh ? 'animate-pulse' : ''}`} />
+                                <Activity className={`h-6 w-6 lg:h-8 lg:w-8 text-emerald-500 relative z-10 transition-all duration-700 ${autoRefresh ? 'animate-pulse' : ''}`} />
                             </div>
 
                             {/* Live Indicator Icon */}
@@ -158,55 +158,55 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                         </div>
 
                         <div>
-                            <div className="flex items-center gap-3 mb-1">
-                                <h1 className="text-3xl lg:text-4xl font-black text-slate-800 tracking-tight">
+                            <div className="flex items-center gap-2 lg:gap-3 mb-1">
+                                <h1 className="text-2xl lg:text-4xl font-black text-slate-800 tracking-tight">
                                     Centro de Control
                                 </h1>
                                 {autoRefresh && (
-                                    <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 text-[10px] font-black uppercase tracking-widest animate-pulse shadow-sm">
+                                    <span className="px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 text-[9px] lg:text-[10px] font-black uppercase tracking-widest animate-pulse shadow-sm">
                                         LIVE
                                     </span>
                                 )}
                             </div>
-                            <p className="text-slate-500 font-medium text-sm flex items-center gap-2">
+                            <p className="text-slate-500 font-medium text-xs lg:text-sm flex items-center gap-2">
                                 Panel de Monitoreo & Estadísticas
                             </p>
                         </div>
                     </div>
 
                     {/* Controls Section - Premium Floating Pill */}
-                    <div className="flex items-center gap-2 bg-slate-50/80 backdrop-blur-md p-2 pr-2.5 rounded-full border border-slate-100 shadow-inner">
+                    <div className="self-start lg:self-auto flex items-center gap-2 bg-slate-50/80 backdrop-blur-md p-1.5 lg:p-2 pr-2.5 rounded-full border border-slate-100 shadow-inner scale-90 origin-left lg:scale-100">
                         <div
                             onClick={() => setAutoRefresh(!autoRefresh)}
-                            className="cursor-pointer group flex items-center gap-3 px-5 py-3 rounded-full hover:bg-white transition-all duration-300 select-none border border-transparent hover:border-slate-100 hover:shadow-sm"
+                            className="cursor-pointer group flex items-center gap-3 px-4 lg:px-5 py-2 lg:py-3 rounded-full hover:bg-white transition-all duration-300 select-none border border-transparent hover:border-slate-100 hover:shadow-sm"
                         >
                             {/* Custom Toggle Switch */}
-                            <div className={`relative w-12 h-7 rounded-full transition-colors duration-300 shadow-inner ${autoRefresh ? 'bg-emerald-500' : 'bg-slate-200'}`}>
+                            <div className={`relative w-10 lg:w-12 h-6 lg:h-7 rounded-full transition-colors duration-300 shadow-inner ${autoRefresh ? 'bg-emerald-500' : 'bg-slate-200'}`}>
                                 <motion.div
-                                    animate={{ x: autoRefresh ? 22 : 2 }}
+                                    animate={{ x: autoRefresh ? (typeof window !== 'undefined' && window.innerWidth < 1024 ? 18 : 22) : 2 }}
                                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                                    className="absolute top-1 left-0 w-5 h-5 bg-white rounded-full shadow-md"
+                                    className="absolute top-1 left-0 w-4 lg:w-5 h-4 lg:h-5 bg-white rounded-full shadow-md"
                                 />
                             </div>
 
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none">Auto-Sync</span>
-                                <span className={`text-[10px] font-bold leading-none mt-1 ${autoRefresh ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none lg:leading-none">Auto-Sync</span>
+                                <span className={`text-[9px] lg:text-[10px] font-bold leading-none mt-1 ${autoRefresh ? 'text-emerald-600' : 'text-slate-500'}`}>
                                     {autoRefresh ? 'ACTIVADO' : 'PAUSADO'}
                                 </span>
                             </div>
                         </div>
 
-                        <div className="w-px h-8 bg-slate-200 mx-2" />
+                        <div className="w-px h-6 lg:h-8 bg-slate-200 mx-1 lg:mx-2" />
 
                         <motion.button
                             whileHover={{ scale: 1.02, backgroundColor: "#ffffff" }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => handleRefresh(false)}
                             disabled={isRefreshing}
-                            className="relative overflow-hidden bg-white text-slate-700 px-6 py-3 rounded-full font-bold uppercase text-xs tracking-wider border border-slate-200 hover:border-emerald-200 hover:text-emerald-700 transition-all flex items-center gap-2 shadow-sm hover:shadow-md group"
+                            className="relative overflow-hidden bg-white text-slate-700 px-4 lg:px-6 py-2 lg:py-3 rounded-full font-bold uppercase text-[10px] lg:text-xs tracking-wider border border-slate-200 hover:border-emerald-200 hover:text-emerald-700 transition-all flex items-center gap-2 shadow-sm hover:shadow-md group"
                         >
-                            <RefreshCw className={`h-4 w-4 text-emerald-500 transition-transform duration-700 ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180'}`} />
+                            <RefreshCw className={`h-3.5 w-3.5 lg:h-4 lg:w-4 text-emerald-500 transition-transform duration-700 ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180'}`} />
                             <span className="relative z-10">Actualizar</span>
                             {isRefreshing && (
                                 <span className="absolute bottom-0 left-0 h-0.5 bg-emerald-500 animate-[loading_1s_ease-in-out_infinite] w-full" />

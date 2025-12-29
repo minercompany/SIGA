@@ -136,7 +136,7 @@ export default function ReportesPage() {
         if (usuario.rol === "SUPER_ADMIN" || usuario.rol === "DIRECTIVO") {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get("http://localhost:8081/api/usuarios/operadores", {
+                const res = await axios.get("/api/usuarios/operadores", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setOperadores(res.data);
@@ -144,7 +144,7 @@ export default function ReportesPage() {
 
             try {
                 const token = localStorage.getItem("token");
-                const resSuc = await axios.get("http://localhost:8081/api/reportes/sucursales-lista", {
+                const resSuc = await axios.get("/api/reportes/sucursales-lista", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setSucursales(resSuc.data);
@@ -194,7 +194,7 @@ export default function ReportesPage() {
         setData([]);
         try {
             const token = localStorage.getItem("token");
-            let url = "http://localhost:8081/api/reportes";
+            let url = "/api/reportes";
 
             const finalOpId = opId !== undefined ? opId : selectedOperador;
             const finalSucId = sucursalIdOverride !== undefined ? sucursalIdOverride : selectedSucursalFilter;

@@ -52,7 +52,7 @@ export default function AdminChatPage() {
     const loadConversaciones = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:8081/api/chat/conversaciones', {
+            const res = await axios.get('/api/chat/conversaciones', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setConversaciones(res.data);
@@ -64,7 +64,7 @@ export default function AdminChatPage() {
     const loadMensajes = async (convId: number) => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:8081/api/chat/conversacion/${convId}`, {
+            const res = await axios.get(`/api/chat/conversacion/${convId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setMensajes(res.data.mensajes || []);
@@ -82,7 +82,7 @@ export default function AdminChatPage() {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:8081/api/chat/mensaje',
+            const res = await axios.post('/api/chat/mensaje',
                 {
                     contenido: nuevoMensaje,
                     conversacionId: selectedConv.id

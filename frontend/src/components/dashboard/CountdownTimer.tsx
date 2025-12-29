@@ -61,17 +61,17 @@ export const CountdownTimer = () => {
                 {/* Pattern Overlay */}
                 <div className="absolute inset-0 opacity-[0.05] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay pointer-events-none" />
 
-                <div className="relative flex flex-col lg:flex-row items-center justify-between px-6 py-6 lg:px-10 lg:py-8 gap-8">
+                <div className="relative flex flex-col lg:flex-row items-center justify-between px-4 py-6 lg:px-10 lg:py-8 gap-6 lg:gap-8">
 
                     {/* Left: Event Info with High Impact */}
-                    <div className="flex items-center gap-6 w-full lg:w-auto z-10">
+                    <div className="flex items-center gap-4 lg:gap-6 w-full lg:w-auto z-10">
                         <div className={`
-                            p-4 rounded-2xl shadow-xl shrink-0 backdrop-blur-md border border-white/20
+                            p-3 lg:p-4 rounded-2xl shadow-xl shrink-0 backdrop-blur-md border border-white/20
                             ${isPast ? 'bg-white/20' : 'bg-white/10'}
                         `}>
                             {isPast
-                                ? <AlertCircle className="w-8 h-8 text-white drop-shadow-md" />
-                                : <Calendar className="w-8 h-8 text-white drop-shadow-md" />
+                                ? <AlertCircle className="w-6 h-6 lg:w-8 lg:h-8 text-white drop-shadow-md" />
+                                : <Calendar className="w-6 h-6 lg:w-8 lg:h-8 text-white drop-shadow-md" />
                             }
                         </div>
                         <div className="min-w-0 flex-1">
@@ -82,14 +82,14 @@ export const CountdownTimer = () => {
                                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
                                     </span>
                                 )}
-                                <h3 className="text-xs font-bold text-emerald-100 uppercase tracking-[0.2em] drop-shadow-sm">
+                                <h3 className="text-[10px] lg:text-xs font-bold text-emerald-100 uppercase tracking-[0.2em] drop-shadow-sm">
                                     {isPast ? 'Evento Finalizado' : 'Cuenta Regresiva Oficial'}
                                 </h3>
                             </div>
-                            <h2 className="text-2xl lg:text-3xl font-black text-white leading-tight tracking-tight drop-shadow-md">
+                            <h2 className="text-xl lg:text-3xl font-black text-white leading-tight tracking-tight drop-shadow-md">
                                 {nombreAsamblea}
                             </h2>
-                            <p className="text-white/80 text-sm font-medium mt-1 flex items-center gap-2">
+                            <p className="text-white/80 text-xs lg:text-sm font-medium mt-1 flex items-center gap-2">
                                 <Clock className="w-3.5 h-3.5" />
                                 {fechaAsamblea} • Asamblea.Cloud
                             </p>
@@ -98,7 +98,7 @@ export const CountdownTimer = () => {
 
                     {/* Right: The Timer (White Cards on Vivid Background) */}
                     {!isPast && timeLeft && (
-                        <div className="flex items-center gap-3 lg:gap-4 z-10">
+                        <div className="flex items-center gap-2 lg:gap-4 z-10 w-full lg:w-auto justify-center lg:justify-end">
                             {[
                                 { val: timeLeft.days, label: 'DÍAS' },
                                 { val: timeLeft.hours, label: 'HORAS' },
@@ -108,13 +108,13 @@ export const CountdownTimer = () => {
                                 <div key={item.label} className="flex flex-col items-center">
                                     <motion.div
                                         whileHover={{ y: -2 }}
-                                        className="relative bg-white rounded-2xl w-16 h-16 lg:w-20 lg:h-20 flex items-center justify-center shadow-lg shadow-emerald-900/20 border-b-4 border-emerald-100/50"
+                                        className="relative bg-white rounded-xl lg:rounded-2xl w-14 h-14 lg:w-20 lg:h-20 flex items-center justify-center shadow-lg shadow-emerald-900/20 border-b-4 border-emerald-100/50"
                                     >
-                                        <span className="text-3xl lg:text-4xl font-black text-emerald-700 tabular-nums leading-none tracking-tight">
+                                        <span className="text-2xl lg:text-4xl font-black text-emerald-700 tabular-nums leading-none tracking-tight">
                                             {String(item.val).padStart(2, '0')}
                                         </span>
                                     </motion.div>
-                                    <span className="text-[10px] lg:text-xs font-bold text-white/90 mt-2 uppercase tracking-widest drop-shadow-sm">
+                                    <span className="text-[9px] lg:text-xs font-bold text-white/90 mt-2 uppercase tracking-widest drop-shadow-sm">
                                         {item.label}
                                     </span>
                                 </div>
