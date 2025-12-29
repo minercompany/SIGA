@@ -1,9 +1,10 @@
 "use client";
 
-import { Bell, Search, User, Calendar, Menu, X, ArrowLeft, LogOut, Settings, Mail, UserCircle } from "lucide-react";
+import { Bell, Search, User, Calendar, Menu, X, ArrowLeft, LogOut, Settings, Mail, UserCircle, HelpCircle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { WelcomeModal } from "../onboarding/WelcomeModal";
 import AvisosBell from "../AvisosBell";
+import { ManualUsuarioModal } from "../ManualUsuarioModal";
 
 export function TopBar() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -13,6 +14,7 @@ export function TopBar() {
     const [selectedMember, setSelectedMember] = useState<any | null>(null);
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
 
     const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -270,6 +272,15 @@ export function TopBar() {
                 {/* Derecha - Usuario y notificaciones */}
                 <div className="flex items-center gap-3">
                     {/* Notificaciones */}
+                    {/* Botón Ayuda - Manual de Usuario */}
+                    <button
+                        onClick={() => setIsHelpOpen(true)}
+                        className="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all"
+                        title="Manual de Usuario"
+                    >
+                        <HelpCircle className="h-6 w-6" />
+                    </button>
+
                     {/* Notificaciones */}
                     <AvisosBell />
 
@@ -520,6 +531,9 @@ export function TopBar() {
                     `}</style>
                 </div>
             )}
+            {/* MODAL MANUAL DE USUARIO */}
+            <ManualUsuarioModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+
             {/* MODAL ONBOARDING */}
             {/* <WelcomeModal user={user} onUpdateUser={setUser} /> MOVED TO LAYOUT */}
         </>
