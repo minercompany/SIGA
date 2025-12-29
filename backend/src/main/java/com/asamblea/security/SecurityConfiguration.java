@@ -36,6 +36,7 @@ public class SecurityConfiguration {
                                                 .requestMatchers("/api/configuracion").permitAll()
                                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                                                 .requestMatchers("/api/socios/reset-padron").permitAll()
+                                                .requestMatchers("/actuator/**").permitAll()
                                                 .anyRequest().authenticated())
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

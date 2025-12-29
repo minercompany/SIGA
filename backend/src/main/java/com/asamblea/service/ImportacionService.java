@@ -145,6 +145,9 @@ public class ImportacionService {
 
             int imported = 0;
             int errors = 0;
+            int duplicados = 0;
+            int sinCedula = 0;
+            int sinNombre = 0;
 
             // OPTIMIZACIÓN: Estimar filas desde tamaño de archivo
             // Excel XLSX tiene mucho overhead por celda (~500-800 bytes por fila típica)
@@ -203,8 +206,12 @@ public class ImportacionService {
                         String nombre = getRawValue(row, COL_NOMBRE);
 
                         // Validación mínima crítica
-                        if (cedula == null || cedula.isEmpty() || nombre == null) {
-                            errors++;
+                        if (cedula == null || cedula.isEmpty()) {
+                            sinCedula++;
+                            continue;
+                        }
+                        if (nombre == null || nombre.trim().isEmpty()) {
+                            sinNombre++;
                             continue;
                         }
                         if (nroSocio == null || nroSocio.isEmpty())
@@ -212,7 +219,8 @@ public class ImportacionService {
 
                         // Deduplicación en memoria (rápida para 100k registros)
                         if (cedulasProcesadas.contains(cedula)) {
-                            // Si ya existe en el archivo, lo saltamos (o logueamos)
+                            // Si ya existe en el archivo, lo saltamos
+                            duplicados++;
                             continue;
                         }
                         cedulasProcesadas.add(cedula);
@@ -366,6 +374,9 @@ public class ImportacionService {
                 stats.put("imported", imported); // Total processed (Inserted + Updated)
                 stats.put("mode", "UPSERT"); // Informative flag
                 stats.put("errors", errors);
+                stats.put("duplicados", duplicados);
+                stats.put("sinCedula", sinCedula);
+                stats.put("sinNombre", sinNombre);
                 stats.put("timeMs", ms);
                 stats.put("rowsPerSecond", (int) speed);
                 stats.put("usuariosCreados", usuariosCreados);

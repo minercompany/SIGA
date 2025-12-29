@@ -27,6 +27,7 @@ import { useConfig } from "@/context/ConfigContext";
 import Swal from 'sweetalert2';
 import { useTour } from "@/components/tour";
 import { configuracionTour } from "@/components/tour/tourSteps";
+import { useRouter } from "next/navigation";
 
 const ConfiguracionEvento = () => {
     const { nombreAsamblea, fechaAsamblea, updateConfig } = useConfig();
@@ -272,6 +273,10 @@ export default function ConfiguracionPage() {
     const [fotoPerfil, setFotoPerfil] = useState("");
     const [savingPersonal, setSavingPersonal] = useState(false);
 
+    // Logout all sessions
+    const [closingSessions, setClosingSessions] = useState(false);
+    const router = useRouter();
+
     // Handler para reiniciar guía
     const handleResetTour = () => {
         resetAllTours();
@@ -327,7 +332,7 @@ export default function ConfiguracionPage() {
         setSavingPersonal(true);
         try {
             const token = localStorage.getItem("token");
-            await axios.put(`http://localhost:8081/api/usuarios/${user.id}`, {
+            await axios.put(`/api/usuarios/${user.id}`, {
                 email,
                 telefono,
                 fotoPerfil
@@ -363,7 +368,7 @@ export default function ConfiguracionPage() {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:8081/api/usuarios/cambiar-password-actual", {
+            await axios.post("/api/usuarios/cambiar-password-actual", {
                 currentPassword,
                 newPassword
             }, {
@@ -384,6 +389,50 @@ export default function ConfiguracionPage() {
         }
     };
 
+    const handleLogoutAllSessions = async () => {
+        const result = await Swal.fire({
+            title: '¿Cerrar Todas las Sesiones?',
+            text: 'Esto invalidará todos los tokens activos. Tendrás que volver a iniciar sesión.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, Cerrar Todas',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) return;
+
+        setClosingSessions(true);
+        try {
+            const token = localStorage.getItem("token");
+            await axios.post("/api/auth/logout-all-sessions", {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            Swal.fire({
+                title: '¡Sesiones Cerradas!',
+                text: 'Todas tus sesiones han sido invalidadas. Serás redirigido al login.',
+                icon: 'success',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#10b981'
+            }).then(() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                router.push("/login");
+            });
+        } catch (error: any) {
+            Swal.fire({
+                title: 'Error',
+                text: error.response?.data?.error || 'No se pudieron cerrar las sesiones',
+                icon: 'error',
+                confirmButtonColor: '#ef4444'
+            });
+        } finally {
+            setClosingSessions(false);
+        }
+    };
+
     const handleResetData = async (type: 'padron' | 'factory') => {
         if (type === 'padron' && confirmText !== "REINICIAR_TODO_EL_PADRON") {
             setMessage({ type: "error", text: "Texto de confirmación incorrecto." });
@@ -398,7 +447,7 @@ export default function ConfiguracionPage() {
                 setMessage({ type: "error", text: "No hay sesión activa. Por favor, cierra sesión e inicia de nuevo." });
                 return;
             }
-            const response = await axios.post(`http://localhost:8081/api/socios/reset-${type}`, {}, {
+            const response = await axios.post(`/api/socios/reset-${type}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             console.log("Reset response:", response.data);
@@ -422,7 +471,7 @@ export default function ConfiguracionPage() {
             if (!token) throw new Error("No hay sesión activa. Recarga la página.");
 
             // Usar el endpoint oficial que borra todo con opciones
-            const response = await axios.post("http://localhost:8081/api/socios/reset-padron", options, {
+            const response = await axios.post("/api/socios/reset-padron", options, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -455,7 +504,7 @@ export default function ConfiguracionPage() {
         setIsSearching(true);
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`http://localhost:8081/api/socios/buscar?term=${query}`, {
+            const response = await axios.get(`/api/socios/buscar?term=${query}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setFoundSocios(response.data);
@@ -477,7 +526,7 @@ export default function ConfiguracionPage() {
         setUpdatingSocioId(socioId);
         try {
             const token = localStorage.getItem("token");
-            await axios.patch(`http://localhost:8081/api/socios/${socioId}/estado`,
+            await axios.patch(`/api/socios/${socioId}/estado`,
                 { [field]: !currentValue },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -644,6 +693,31 @@ export default function ConfiguracionPage() {
                     >
                         <RotateCcw className="h-4 w-4" />
                         Reiniciar Guía
+                    </button>
+                </div>
+            </div>
+
+            {/* Sección Cerrar Todas las Sesiones */}
+            <div className="rounded-2xl bg-gradient-to-br from-red-50 to-orange-50 p-6 border border-red-100 shadow-sm">
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl shadow-lg shadow-red-200">
+                            <ShieldAlert className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-800">Seguridad de la Cuenta</h2>
+                            <p className="text-sm text-slate-500">
+                                Si sospechas que alguien accedió a tu cuenta, cierra todas las sesiones.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleLogoutAllSessions}
+                        disabled={closingSessions}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-xl font-bold text-sm hover:from-red-600 hover:to-orange-600 transition-all shadow-lg shadow-red-200 disabled:opacity-50"
+                    >
+                        {closingSessions ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
+                        Cerrar Todas las Sesiones
                     </button>
                 </div>
             </div>

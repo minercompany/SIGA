@@ -115,10 +115,10 @@ export default function DashboardEnVivoPage() {
             const headers = { Authorization: `Bearer ${token}` };
 
             const [statsRes, asistenciasRes, rankingRes, sucursalesRes] = await Promise.all([
-                axios.get("http://localhost:8081/api/socios/estadisticas", { headers }),
-                axios.get("http://localhost:8081/api/asistencia/hoy", { headers }),
-                axios.get("http://localhost:8081/api/asistencia/ranking-operadores", { headers }),
-                axios.get("http://localhost:8081/api/socios/estadisticas/por-sucursal", { headers }),
+                axios.get("/api/socios/estadisticas", { headers }),
+                axios.get("/api/asistencia/hoy", { headers }),
+                axios.get("/api/asistencia/ranking-operadores", { headers }),
+                axios.get("/api/socios/estadisticas/por-sucursal", { headers }),
             ]);
 
             setStats(statsRes.data);

@@ -91,7 +91,7 @@ export default function DirectAssignmentMaster() {
     const fetchResponsables = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get("http://localhost:8081/api/asignaciones/admin/responsables", {
+            const res = await axios.get("/api/asignaciones/admin/responsables", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setResponsables(res.data);
@@ -120,7 +120,7 @@ export default function DirectAssignmentMaster() {
         setSocioEncontrado(null);
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get(`http://localhost:8081/api/socios/buscar?term=${term}`, {
+            const res = await axios.get(`/api/socios/buscar?term=${term}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -189,7 +189,7 @@ export default function DirectAssignmentMaster() {
             const token = localStorage.getItem("token");
 
             await axios.post(
-                `http://localhost:8081/api/asignaciones/admin/asignar-a-usuario/${selectedTarget.idUsuario || selectedTarget.id}`,
+                `/api/asignaciones/admin/asignar-a-usuario/${selectedTarget.idUsuario || selectedTarget.id}`,
                 { term: socioEncontrado.numeroSocio },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

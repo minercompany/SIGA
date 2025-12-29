@@ -33,13 +33,13 @@ export default function ForcePasswordChange({ onSuccess }: ForcePasswordChangePr
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:8081/api/auth/change-password",
+            await axios.post("/api/auth/change-password",
                 { password },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
             // 1. Force refresh of user data from server to ensure state is synced
-            const userRes = await axios.get("http://localhost:8081/api/auth/me", {
+            const userRes = await axios.get("/api/auth/me", {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

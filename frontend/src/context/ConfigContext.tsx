@@ -22,7 +22,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
                 // Sin token, usar valores por defecto silenciosamente
                 return;
             }
-            const response = await axios.get("http://localhost:8081/api/configuracion", {
+            const response = await axios.get("/api/configuracion", {
                 headers: { Authorization: `Bearer ${token}` },
                 timeout: 5000 // 5 segundos timeout
             });
@@ -42,7 +42,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     const updateConfig = async (clave: string, valor: string) => {
         try {
             const token = localStorage.getItem("token");
-            await axios.post("http://localhost:8081/api/configuracion", {
+            await axios.post("/api/configuracion", {
                 [clave]: valor
             }, {
                 headers: { Authorization: `Bearer ${token}` }

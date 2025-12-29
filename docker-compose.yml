@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # MySQL Database (internal only - no host port exposed)
+  db:
+    image: mysql:8.0
+    container_name: asamblea-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: asamblea_root_2024
+      MYSQL_DATABASE: asamblea_db
+      MYSQL_USER: asamblea_user
+      MYSQL_PASSWORD: asamblea_pass_2024
+    volumes:
+      - asamblea_mysql_data:/var/lib/mysql
+    networks:
+      - asamblea-network
+    command: >
+      --innodb-buffer-pool-size=256M
+      --innodb-flush-log-at-trx-commit=2
+      --innodb-flush-method=O_DIRECT
+      --max-connections=100
+      --thread-cache-size=8
+      --table-open-cache=400
+      --sort-buffer-size=2M
+      --read-buffer-size=2M
+      --performance-schema=OFF
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pasamblea_root_2024"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    # NO ports exposed to host - only accessible within Docker network
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: asamblea-backend
+    restart: unless-stopped
+    ports:
+      - "8082:8081"  # Port 8082 on host -> 8081 in container
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/asamblea_db?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: asamblea_user
+      SPRING_DATASOURCE_PASSWORD: asamblea_pass_2024
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - asamblea-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/api/configuracion"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: https://asamblea.cloud
+    container_name: asamblea-frontend
+    restart: unless-stopped
+    ports:
+      - "6002:6001"  # Port 6002 on host -> 6001 in container
+    environment:
+      NEXT_PUBLIC_API_URL: https://asamblea.cloud
+    depends_on:
+      - backend
+    networks:
+      - asamblea-network
+
+networks:
+  asamblea-network:
+    driver: bridge
+    name: asamblea-network
+
+volumes:
+  asamblea_mysql_data:
+    name: asamblea_mysql_data

@@ -63,20 +63,20 @@ export default function AsignacionRapidaPage() {
                 const headers = { Authorization: `Bearer ${token}` };
 
                 // Obtener mis listas
-                const response = await axios.get("http://localhost:8081/api/asignaciones/mis-listas", { headers });
+                const response = await axios.get("/api/asignaciones/mis-listas", { headers });
 
                 if (response.data.length === 0) {
                     // AUTO CREAR LISTA si no existe ninguna
                     const timestamp = new Date().toLocaleString('es-PY', {
                         day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
                     });
-                    await axios.post("http://localhost:8081/api/asignaciones/crear-lista", {
+                    await axios.post("/api/asignaciones/crear-lista", {
                         nombre: `Lista de ${parsedUser.nombreCompleto || parsedUser.username}`,
                         descripcion: `Creada automáticamente el ${timestamp}`
                     }, { headers });
 
                     // Recargar
-                    const newResponse = await axios.get("http://localhost:8081/api/asignaciones/mis-listas", { headers });
+                    const newResponse = await axios.get("/api/asignaciones/mis-listas", { headers });
                     if (newResponse.data.length > 0) {
                         setMiLista(newResponse.data[0]);
                         await loadSocios(newResponse.data[0].id);
@@ -98,7 +98,7 @@ export default function AsignacionRapidaPage() {
         setLoadingSocios(true);
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`http://localhost:8081/api/asignaciones/${listaId}/socios`, {
+            const response = await axios.get(`/api/asignaciones/${listaId}/socios`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSocios(response.data);
@@ -133,7 +133,7 @@ export default function AsignacionRapidaPage() {
 
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get(`http://localhost:8081/api/socios/buscar?term=${searchTerm}`, {
+            const response = await axios.get(`/api/socios/buscar?term=${searchTerm}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -154,7 +154,7 @@ export default function AsignacionRapidaPage() {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.post(`http://localhost:8081/api/asignaciones/${miLista.id}/agregar-socio`,
+            await axios.post(`/api/asignaciones/${miLista.id}/agregar-socio`,
                 { term: searchedSocio.cedula },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -196,7 +196,7 @@ export default function AsignacionRapidaPage() {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:8081/api/asignaciones/${miLista.id}/socio/${socioId}`, {
+            await axios.delete(`/api/asignaciones/${miLista.id}/socio/${socioId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             await loadSocios(miLista.id);

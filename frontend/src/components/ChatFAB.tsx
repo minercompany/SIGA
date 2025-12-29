@@ -66,7 +66,7 @@ export default function ChatFAB() {
     const loadUnreadCount = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:8081/api/chat/unread-count', {
+            const res = await axios.get('/api/chat/unread-count', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const newCount = res.data.unreadCount || 0;
@@ -86,7 +86,7 @@ export default function ChatFAB() {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:8081/api/chat/mi-conversacion', {
+            const res = await axios.get('/api/chat/mi-conversacion', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setConversacion(res.data.conversacion);
@@ -102,7 +102,7 @@ export default function ChatFAB() {
     const loadMensajes = async (convId: number) => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:8081/api/chat/conversacion/${convId}`, {
+            const res = await axios.get(`/api/chat/conversacion/${convId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -122,7 +122,7 @@ export default function ChatFAB() {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:8081/api/chat/mensaje',
+            const res = await axios.post('/api/chat/mensaje',
                 {
                     contenido: nuevoMensaje,
                     conversacionId: conversacion?.id

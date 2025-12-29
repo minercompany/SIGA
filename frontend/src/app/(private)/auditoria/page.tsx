@@ -49,7 +49,7 @@ export default function AuditoriaPage() {
         setRastreoData(null);
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get(`http://localhost:8081/api/asignaciones/rastreo/${rastreoTerm}`, {
+            const res = await axios.get(`/api/asignaciones/rastreo/${rastreoTerm}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setRastreoData(res.data);
@@ -69,7 +69,7 @@ export default function AuditoriaPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get(`http://localhost:8081/api/auditoria?page=${pageNum}&size=20`, {
+            const res = await axios.get(`/api/auditoria?page=${pageNum}&size=20`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setLogs(res.data.content);

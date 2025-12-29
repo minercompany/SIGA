@@ -65,10 +65,10 @@ export default function AvisosBell() {
         try {
             const token = localStorage.getItem('token');
             const [avisosRes, countRes] = await Promise.all([
-                axios.get('http://localhost:8081/api/avisos/mis-avisos', {
+                axios.get('/api/avisos/mis-avisos', {
                     headers: { Authorization: `Bearer ${token}` }
                 }),
-                axios.get('http://localhost:8081/api/avisos/unread-count', {
+                axios.get('/api/avisos/unread-count', {
                     headers: { Authorization: `Bearer ${token}` }
                 })
             ]);
@@ -90,7 +90,7 @@ export default function AvisosBell() {
     const marcarLeido = async (avisoId: number) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:8081/api/avisos/${avisoId}/leido`, {}, {
+            await axios.put(`/api/avisos/${avisoId}/leido`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             loadAvisos();
@@ -102,7 +102,7 @@ export default function AvisosBell() {
     const confirmarAviso = async (avisoId: number) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:8081/api/avisos/${avisoId}/confirmar`, {}, {
+            await axios.put(`/api/avisos/${avisoId}/confirmar`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setShowModal(false);
@@ -116,7 +116,7 @@ export default function AvisosBell() {
     const responderAviso = async (avisoId: number, tipo: string, texto?: string) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:8081/api/avisos/${avisoId}/responder`,
+            await axios.put(`/api/avisos/${avisoId}/responder`,
                 { tipo, texto },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
