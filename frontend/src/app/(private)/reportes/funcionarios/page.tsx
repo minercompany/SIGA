@@ -174,13 +174,45 @@ export default function ReporteFuncionariosPage() {
         doc.setFillColor(245, 158, 11); // amber-500
         doc.rect(0, 40, pageWidth, 2, 'F');
 
-        // Logo/Ícono circular simulado con iniciales
-        doc.setFillColor(255, 255, 255);
-        doc.circle(23, 25, 12, 'F');
-        doc.setTextColor(13, 148, 136);
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text('CR', 17, 28);
+        // Intentar cargar logo
+        const logoUrl = '/logo.png';
+        try {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = logoUrl;
+            await new Promise<void>((resolve) => {
+                img.onload = () => {
+                    try {
+                        doc.addImage(img, 'PNG', 10, 8, 28, 28);
+                    } catch (e) {
+                        doc.setFillColor(255, 255, 255);
+                        doc.circle(23, 25, 12, 'F');
+                        doc.setTextColor(13, 148, 136);
+                        doc.setFontSize(12);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('CR', 17, 28);
+                    }
+                    resolve();
+                };
+                img.onerror = () => {
+                    doc.setFillColor(255, 255, 255);
+                    doc.circle(23, 25, 12, 'F');
+                    doc.setTextColor(13, 148, 136);
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('CR', 17, 28);
+                    resolve();
+                };
+                setTimeout(() => resolve(), 1500);
+            });
+        } catch (e) {
+            doc.setFillColor(255, 255, 255);
+            doc.circle(23, 25, 12, 'F');
+            doc.setTextColor(13, 148, 136);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('CR', 17, 28);
+        }
 
         // Título COOPERATIVA REDUCTO
         doc.setTextColor(255, 255, 255);

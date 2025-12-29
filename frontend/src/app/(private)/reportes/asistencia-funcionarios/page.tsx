@@ -162,12 +162,45 @@ export default function ReporteAsistenciaFuncionariosPage() {
         doc.setFillColor(245, 158, 11);
         doc.rect(0, 40, pageWidth, 2, 'F');
 
-        doc.setFillColor(255, 255, 255);
-        doc.circle(23, 25, 12, 'F');
-        doc.setTextColor(13, 148, 136);
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text('CR', 17, 28);
+        // Intentar cargar logo
+        const logoUrl = '/logo.png';
+        try {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = logoUrl;
+            await new Promise<void>((resolve) => {
+                img.onload = () => {
+                    try {
+                        doc.addImage(img, 'PNG', 10, 8, 28, 28);
+                    } catch (e) {
+                        doc.setFillColor(255, 255, 255);
+                        doc.circle(23, 25, 12, 'F');
+                        doc.setTextColor(13, 148, 136);
+                        doc.setFontSize(12);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('CR', 17, 28);
+                    }
+                    resolve();
+                };
+                img.onerror = () => {
+                    doc.setFillColor(255, 255, 255);
+                    doc.circle(23, 25, 12, 'F');
+                    doc.setTextColor(13, 148, 136);
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('CR', 17, 28);
+                    resolve();
+                };
+                setTimeout(() => resolve(), 1500);
+            });
+        } catch (e) {
+            doc.setFillColor(255, 255, 255);
+            doc.circle(23, 25, 12, 'F');
+            doc.setTextColor(13, 148, 136);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('CR', 17, 28);
+        }
 
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(18);
@@ -247,7 +280,7 @@ export default function ReporteAsistenciaFuncionariosPage() {
 
         autoTable(doc, {
             startY: 98,
-            head: [['#', 'CÉDULA', 'SOCIO', 'NRO', 'HORA', 'CONDICIÓN']],
+            head: [['#', 'CÉDULA', 'SOCIO', 'NRO', 'HORA INGRESO', 'CONDICIÓN']],
             body: tableData,
             theme: 'grid',
             styles: { fontSize: 8, cellPadding: 3 },
@@ -533,8 +566,8 @@ export default function ReporteAsistenciaFuncionariosPage() {
                                                                             </td>
                                                                             <td className="px-4 py-3 text-center">
                                                                                 <span className={`px-2 py-1 rounded-lg text-xs font-bold ${asist.esVyV
-                                                                                        ? 'bg-emerald-100 text-emerald-700'
-                                                                                        : 'bg-amber-100 text-amber-700'
+                                                                                    ? 'bg-emerald-100 text-emerald-700'
+                                                                                    : 'bg-amber-100 text-amber-700'
                                                                                     }`}>
                                                                                     {asist.condicion}
                                                                                 </span>

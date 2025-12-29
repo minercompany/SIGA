@@ -110,7 +110,7 @@ export default function MiReportePage() {
         link.click();
     };
 
-    const handleExportPDF = () => {
+    const handleExportPDF = async () => {
         if (!reporte) return;
 
         const doc = new jsPDF();
@@ -127,12 +127,46 @@ export default function MiReportePage() {
         doc.setFillColor(245, 158, 11);
         doc.rect(0, 40, pageWidth, 2, 'F');
 
-        doc.setFillColor(255, 255, 255);
-        doc.circle(23, 25, 12, 'F');
-        doc.setTextColor(13, 148, 136);
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text('CR', 17, 28);
+        // Intentar cargar logo
+        const logoUrl = '/logo.png';
+        try {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = logoUrl;
+            await new Promise<void>((resolve) => {
+                img.onload = () => {
+                    try {
+                        doc.addImage(img, 'PNG', 10, 8, 28, 28);
+                    } catch (e) {
+                        // Si falla, dibujar círculo con iniciales
+                        doc.setFillColor(255, 255, 255);
+                        doc.circle(23, 25, 12, 'F');
+                        doc.setTextColor(13, 148, 136);
+                        doc.setFontSize(12);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('CR', 17, 28);
+                    }
+                    resolve();
+                };
+                img.onerror = () => {
+                    doc.setFillColor(255, 255, 255);
+                    doc.circle(23, 25, 12, 'F');
+                    doc.setTextColor(13, 148, 136);
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('CR', 17, 28);
+                    resolve();
+                };
+                setTimeout(() => resolve(), 1500);
+            });
+        } catch (e) {
+            doc.setFillColor(255, 255, 255);
+            doc.circle(23, 25, 12, 'F');
+            doc.setTextColor(13, 148, 136);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('CR', 17, 28);
+        }
 
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(18);
@@ -212,7 +246,7 @@ export default function MiReportePage() {
 
         autoTable(doc, {
             startY: 98,
-            head: [['#', 'CÉDULA', 'SOCIO', 'NRO', 'HORA', 'CONDICIÓN']],
+            head: [['#', 'CÉDULA', 'SOCIO', 'NRO', 'HORA INGRESO', 'CONDICIÓN']],
             body: tableData,
             theme: 'grid',
             styles: { fontSize: 8, cellPadding: 3 },
@@ -417,7 +451,7 @@ export default function MiReportePage() {
                                     <th className="px-4 py-4 text-left text-xs font-bold">SOCIO</th>
                                     <th className="px-4 py-4 text-center text-xs font-bold">NRO</th>
                                     <th className="px-4 py-4 text-center text-xs font-bold">FECHA</th>
-                                    <th className="px-4 py-4 text-center text-xs font-bold">HORA</th>
+                                    <th className="px-4 py-4 text-center text-xs font-bold">HORA INGRESO</th>
                                     <th className="px-4 py-4 text-center text-xs font-bold">CONDICIÓN</th>
                                 </tr>
                             </thead>
@@ -440,8 +474,8 @@ export default function MiReportePage() {
                                         </td>
                                         <td className="px-4 py-4 text-center">
                                             <span className={`px-3 py-1 rounded-lg text-xs font-bold ${registro.esVyV
-                                                    ? 'bg-emerald-100 text-emerald-700'
-                                                    : 'bg-amber-100 text-amber-700'
+                                                ? 'bg-emerald-100 text-emerald-700'
+                                                : 'bg-amber-100 text-amber-700'
                                                 }`}>
                                                 {registro.condicion}
                                             </span>
