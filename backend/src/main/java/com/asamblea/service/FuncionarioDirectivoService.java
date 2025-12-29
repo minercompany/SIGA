@@ -14,6 +14,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +31,7 @@ public class FuncionarioDirectivoService {
     private final UsuarioRepository usuarioRepository;
     private final ListaAsignacionRepository listaAsignacionRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     /**
      * Importa el Excel de funcionarios y directivos
@@ -129,16 +131,111 @@ public class FuncionarioDirectivoService {
             tempFile.delete();
         }
 
+        // ===== AUTO-CREACIÓN DE USUARIOS PARA FUNCIONARIOS =====
+        int usuariosCreados = 0;
+        try {
+            System.out.println("Iniciando auto-creación de usuarios para funcionarios importados...");
+
+            // Obtener todos los funcionarios de la base de datos
+            List<FuncionarioDirectivo> todosFuncionarios = funcionarioRepository.findAll();
+
+            for (FuncionarioDirectivo func : todosFuncionarios) {
+                try {
+                    String numeroSocio = func.getNumeroSocio();
+                    String cedula = func.getCedula();
+                    String nombre = func.getNombreCompleto();
+
+                    // Si la cédula está pendiente o vacía, intentar obtenerla del padrón de socios
+                    if (cedula == null || cedula.isEmpty() || "PENDIENTE".equals(cedula)) {
+                        // Buscar en tabla socios por numero_socio
+                        Optional<String> cedulaSocio = buscarCedulaEnPadron(numeroSocio);
+                        if (cedulaSocio.isPresent()) {
+                            cedula = cedulaSocio.get();
+                            func.setCedula(cedula);
+                            funcionarioRepository.save(func);
+                        }
+                    }
+
+                    // Si aún no tenemos cédula válida, no podemos crear usuario
+                    if (cedula == null || cedula.isEmpty() || "PENDIENTE".equals(cedula)) {
+                        continue;
+                    }
+
+                    // Limpiar cédula
+                    String cedulaSanitized = cedula.replaceAll("[^0-9]", "");
+                    if (cedulaSanitized.isEmpty())
+                        continue;
+
+                    // Verificar si ya existe usuario con esta cédula
+                    Optional<Usuario> existente = usuarioRepository.findByUsername(cedulaSanitized);
+
+                    Usuario usuario;
+                    if (existente.isPresent()) {
+                        usuario = existente.get();
+                        // Actualizar datos si el usuario ya existe
+                        usuario.setNombreCompleto(nombre);
+                        usuario.setActivo(true);
+                    } else {
+                        // Crear nuevo usuario
+                        usuario = new Usuario();
+                        usuario.setUsername(cedulaSanitized);
+                        usuario.setPassword(passwordEncoder.encode(cedulaSanitized));
+                        usuario.setNombreCompleto(nombre);
+                        usuario.setRol(Usuario.Rol.USUARIO_SOCIO); // Rol base por seguridad
+                        usuario.setActivo(true);
+                        usuariosCreados++;
+                    }
+
+                    usuarioRepository.save(usuario);
+
+                    // Crear lista por defecto si no existe
+                    if (listaAsignacionRepository.findByUsuarioId(usuario.getId()).isEmpty()) {
+                        ListaAsignacion lista = new ListaAsignacion();
+                        lista.setNombre("Lista de " + usuario.getNombreCompleto());
+                        lista.setUsuario(usuario);
+                        lista.setActiva(true);
+                        lista.setDescripcion("Lista generada automáticamente");
+                        listaAsignacionRepository.save(lista);
+                    }
+                } catch (Exception e) {
+                    System.err.println(
+                            "Error creando usuario para funcionario " + func.getNumeroSocio() + ": " + e.getMessage());
+                }
+            }
+
+            System.out.println("✓ Se crearon " + usuariosCreados + " usuarios automáticamente.");
+        } catch (Exception e) {
+            System.err.println("Error en auto-creación de usuarios: " + e.getMessage());
+        }
+        // ===== FIN AUTO-CREACIÓN =====
+
         Map<String, Object> resultado = new HashMap<>();
         resultado.put("importados", importados);
         resultado.put("actualizados", actualizados);
         resultado.put("errores", errores);
         resultado.put("total", importados + actualizados);
+        resultado.put("usuariosCreados", usuariosCreados);
         if (!mensajesError.isEmpty()) {
             resultado.put("mensajesError", mensajesError);
         }
 
         return resultado;
+    }
+
+    /**
+     * Busca la cédula de un socio en el padrón por su número de socio
+     */
+    private Optional<String> buscarCedulaEnPadron(String numeroSocio) {
+        try {
+            String sql = "SELECT cedula FROM socios WHERE numero_socio = ? LIMIT 1";
+            List<String> results = jdbcTemplate.queryForList(sql, String.class, numeroSocio);
+            if (!results.isEmpty() && results.get(0) != null) {
+                return Optional.of(results.get(0));
+            }
+            return Optional.empty();
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     /**

@@ -166,65 +166,61 @@ export default function AsistenciaPage() {
             <Toaster position="top-center" richColors />
 
             {/* Header Premium */}
-            <div className="text-center space-y-4 pt-10">
-                <div className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full shadow-lg shadow-violet-500/30 animate-in fade-in slide-in-from-top-4 duration-700">
-                    <QrCode className="w-4 h-4 text-white" />
-                    <span className="text-white font-bold text-xs uppercase tracking-widest">Control de Acceso 2025</span>
+            <div className="text-center space-y-3 sm:space-y-4 pt-6 sm:pt-10">
+                <div className="inline-flex items-center gap-2 px-4 sm:px-6 py-1.5 sm:py-2 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full shadow-lg shadow-violet-500/30 animate-in fade-in slide-in-from-top-4 duration-700">
+                    <QrCode className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                    <span className="text-white font-bold text-[10px] sm:text-xs uppercase tracking-widest">Control de Acceso 2025</span>
                 </div>
-                <h1 className="text-5xl md:text-6xl font-black text-slate-800 tracking-tight animate-in fade-in zoom-in duration-700 drop-shadow-sm">
+                <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-800 tracking-tight animate-in fade-in zoom-in duration-700 drop-shadow-sm">
                     Registro de <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600">Asistencia</span>
                 </h1>
-                <p className="text-slate-500 text-lg max-w-2xl mx-auto font-medium animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+                <p className="text-slate-500 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto font-medium animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100 px-4">
                     Control en tiempo real de ingreso a la asamblea.
                 </p>
 
                 {/* KPI Cards Vividos */}
-                <div className="grid grid-cols-2 max-w-lg mx-auto gap-4 pt-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-                    <div className="bg-white/80 backdrop-blur-sm p-5 rounded-2xl shadow-xl shadow-emerald-500/10 border border-emerald-100 hover:scale-105 transition-transform duration-300">
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                            <div className="p-2 bg-emerald-100 rounded-lg">
-                                <Users className="w-6 h-6 text-emerald-600" />
+                <div className="grid grid-cols-2 max-w-xs sm:max-w-lg mx-auto gap-3 sm:gap-4 pt-4 sm:pt-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+                    <div className="bg-white/80 backdrop-blur-sm p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-xl shadow-emerald-500/10 border border-emerald-100 hover:scale-105 transition-transform duration-300">
+                        <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+                            <div className="p-1.5 sm:p-2 bg-emerald-100 rounded-lg">
+                                <Users className="w-4 h-4 sm:w-6 sm:h-6 text-emerald-600" />
                             </div>
-                            <span className="text-slate-500 text-xs font-black uppercase tracking-wider">Presentes</span>
+                            <span className="text-slate-500 text-[9px] sm:text-xs font-black uppercase tracking-wider">Presentes</span>
                         </div>
-                        <p className="text-4xl font-black text-emerald-600">{totalPresentes}</p>
+                        <p className="text-2xl sm:text-4xl font-black text-emerald-600">{totalPresentes}</p>
                     </div>
-                    <div className="bg-white/80 backdrop-blur-sm p-5 rounded-2xl shadow-xl shadow-blue-500/10 border border-blue-100 hover:scale-105 transition-transform duration-300">
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                            <div className="p-2 bg-blue-100 rounded-lg">
-                                <CheckCircle className="w-6 h-6 text-blue-600" />
+                    <div className="bg-white/80 backdrop-blur-sm p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-xl shadow-blue-500/10 border border-blue-100 hover:scale-105 transition-transform duration-300">
+                        <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+                            <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
+                                <CheckCircle className="w-4 h-4 sm:w-6 sm:h-6 text-blue-600" />
                             </div>
-                            <span className="text-slate-500 text-xs font-black uppercase tracking-wider">Votan</span>
+                            <span className="text-slate-500 text-[9px] sm:text-xs font-black uppercase tracking-wider">Votan</span>
                         </div>
-                        <p className="text-4xl font-black text-blue-600">{conVoto}</p>
+                        <p className="text-2xl sm:text-4xl font-black text-blue-600">{conVoto}</p>
                     </div>
                 </div>
             </div>
 
             {/* Buscador Flotante Vivido */}
-            <div className="sticky top-6 z-40 max-w-3xl mx-auto">
-                <div className="bg-white p-2 rounded-[2.5rem] shadow-2xl shadow-indigo-500/20 ring-4 ring-white/50 border border-indigo-100 transition-all focus-within:ring-violet-500/30 focus-within:shadow-violet-500/40 focus-within:scale-105 duration-300">
-                    <div className="relative group flex items-center bg-slate-50/50 rounded-[2rem] hover:bg-white transition-colors">
-                        <div className="pl-6 pr-4 pointer-events-none">
-                            <Search className="h-7 w-7 text-slate-400 group-focus-within:text-violet-600 transition-colors" />
+            <div className="sticky top-4 sm:top-6 z-40 max-w-3xl mx-auto">
+                <div className="bg-white p-1.5 sm:p-2 rounded-2xl sm:rounded-[2.5rem] shadow-2xl shadow-indigo-500/20 ring-2 sm:ring-4 ring-white/50 border border-indigo-100 transition-all focus-within:ring-violet-500/30 focus-within:shadow-violet-500/40 focus-within:scale-[1.02] sm:focus-within:scale-105 duration-300">
+                    <div className="relative group flex items-center bg-slate-50/50 rounded-xl sm:rounded-[2rem] hover:bg-white transition-colors">
+                        <div className="pl-4 sm:pl-6 pr-2 sm:pr-4 pointer-events-none">
+                            <Search className="h-5 w-5 sm:h-7 sm:w-7 text-slate-400 group-focus-within:text-violet-600 transition-colors" />
                         </div>
                         <input
                             autoFocus
                             type="text"
-                            className="w-full py-5 bg-transparent text-xl font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none"
-                            placeholder="Buscar socio (Nombre, CI, N°)..."
+                            className="w-full py-3 sm:py-5 bg-transparent text-base sm:text-xl font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                            placeholder="Buscar socio..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         {loading && (
-                            <div className="pr-6">
-                                <Loader2 className="h-7 w-7 text-violet-600 animate-spin" />
+                            <div className="pr-4 sm:pr-6">
+                                <Loader2 className="h-5 w-5 sm:h-7 sm:w-7 text-violet-600 animate-spin" />
                             </div>
                         )}
-                        <div className="absolute right-4 hidden group-focus-within:flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            <span className="bg-white border border-slate-200 px-2 py-1 rounded-md shadow-sm">Enter</span>
-                            para buscar
-                        </div>
                     </div>
                 </div>
             </div>
@@ -236,42 +232,42 @@ export default function AsistenciaPage() {
                     {foundSocios.map((socio) => (
                         <div
                             key={socio.id}
-                            className={`group relative bg-white border rounded-[2rem] p-6 shadow-sm hover:shadow-xl transition-all duration-300 ${socio.asistenciaConfirmada
+                            className={`group relative bg-white border rounded-xl sm:rounded-[2rem] p-4 sm:p-6 shadow-sm hover:shadow-xl transition-all duration-300 ${socio.asistenciaConfirmada
                                 ? 'border-emerald-200 bg-emerald-50/20'
                                 : 'border-slate-100 hover:border-violet-200'
                                 }`}
                         >
-                            <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
 
                                 {/* Avatar / Estado */}
-                                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 shadow-inner transition-colors ${socio.asistenciaConfirmada
+                                <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-inner transition-colors ${socio.asistenciaConfirmada
                                     ? 'bg-emerald-100 text-emerald-600'
                                     : 'bg-slate-50 text-slate-400 group-hover:bg-violet-50 group-hover:text-violet-500'
                                     }`}>
                                     {socio.asistenciaConfirmada
-                                        ? <CheckCircle className="w-10 h-10" />
-                                        : <User className="w-10 h-10" />
+                                        ? <CheckCircle className="w-7 h-7 sm:w-10 sm:h-10" />
+                                        : <User className="w-7 h-7 sm:w-10 sm:h-10" />
                                     }
                                 </div>
 
                                 {/* Info */}
-                                <div className="flex-1 min-w-0 space-y-2">
+                                <div className="flex-1 min-w-0 space-y-1 sm:space-y-2">
                                     <div>
-                                        <div className="flex items-center gap-3 flex-wrap">
-                                            <h3 className="text-xl font-black text-slate-800">
+                                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                                            <h3 className="text-base sm:text-xl font-black text-slate-800 truncate">
                                                 {socio.nombreCompleto}
                                             </h3>
-                                            <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-black border border-slate-200">
+                                            <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-black border border-slate-200">
                                                 N° {socio.numeroSocio}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-4 text-sm font-medium text-slate-500 mt-1">
-                                            <span className="flex items-center gap-1.5">
-                                                <CreditCard className="w-4 h-4" />
+                                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm font-medium text-slate-500 mt-1">
+                                            <span className="flex items-center gap-1">
+                                                <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
                                                 {socio.cedula}
                                             </span>
                                             {socio.sucursal && (
-                                                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white border border-slate-200 shadow-sm">
+                                                <span className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white border border-slate-200 shadow-sm">
                                                     {socio.sucursal.nombre}
                                                 </span>
                                             )}
@@ -279,25 +275,25 @@ export default function AsistenciaPage() {
                                     </div>
 
                                     {/* Badges Estado */}
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                                         {socio.conVozYVoto ? (
-                                            <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-wider">
+                                            <span className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-blue-100 text-blue-700 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
                                                 Voz y Voto
                                             </span>
                                         ) : (
-                                            <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
-                                                <AlertCircle className="w-3 h-3" /> Solo Voz (Observado)
+                                            <span className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-amber-100 text-amber-700 text-[9px] sm:text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                                                <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Solo Voz
                                             </span>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Botón Acción */}
-                                <div className="w-full md:w-auto">
+                                <div className="w-full sm:w-auto mt-2 sm:mt-0">
                                     {socio.asistenciaConfirmada ? (
-                                        <div className="flex flex-col items-center gap-1">
-                                            <span className="px-6 py-3 bg-emerald-500 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-emerald-200 cursor-default">
-                                                <Check className="w-5 h-5" strokeWidth={3} />
+                                        <div className="flex flex-row sm:flex-col items-center justify-center gap-2 sm:gap-1">
+                                            <span className="px-4 sm:px-6 py-2 sm:py-3 bg-emerald-500 text-white rounded-xl sm:rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-emerald-200 cursor-default text-sm sm:text-base">
+                                                <Check className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={3} />
                                                 Ingresó
                                             </span>
                                             <span className="text-[10px] font-bold text-emerald-600">
@@ -308,14 +304,14 @@ export default function AsistenciaPage() {
                                         <button
                                             onClick={() => marcarAsistencia(socio.id)}
                                             disabled={marking === socio.id}
-                                            className="w-full md:w-auto px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-violet-600 hover:scale-105 active:scale-95 transition-all shadow-xl hover:shadow-violet-500/20 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
+                                            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-slate-900 text-white rounded-xl sm:rounded-2xl font-bold hover:bg-violet-600 hover:scale-105 active:scale-95 transition-all shadow-xl hover:shadow-violet-500/20 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2 text-sm sm:text-base"
                                         >
                                             {marking === socio.id ? (
-                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                                             ) : (
-                                                <CheckCircle className="w-5 h-5" />
+                                                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                                             )}
-                                            <span>Registrar Ingreso</span>
+                                            <span>Registrar</span>
                                         </button>
                                     )}
                                 </div>
@@ -341,8 +337,8 @@ export default function AsistenciaPage() {
                     )}
                 </div>
 
-                {/* Columna Recientes (1/3) */}
-                <div className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100 sticky top-24">
+                {/* Columna Recientes (1/3) - Oculta en móvil pequeño */}
+                <div className="hidden lg:block bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100 sticky top-24">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="font-black text-slate-800 uppercase text-sm tracking-wider flex items-center gap-2">
                             <Clock className="w-4 h-4 text-violet-500" />

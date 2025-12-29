@@ -17,8 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 import java.time.LocalDateTime;
-import java.time.Duration;
-import com.asamblea.service.AvisoService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,7 +34,6 @@ public class AuthController {
         private final ListaAsignacionRepository listaAsignacionRepository;
         private final ImportacionHistorialRepository importacionHistorialRepository;
         private final com.asamblea.service.LogAuditoriaService auditService;
-        private final AvisoService avisoService;
 
         @PostMapping("/login")
         public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
@@ -58,15 +55,15 @@ public class AuthController {
                                         user.getUsername(),
                                         httpRequest.getRemoteAddr());
 
-
                         // DESACTIVADO: Detectar acceso duplicado - generaba falsos positivos
                         // if (user.getLastLogin() != null) {
-                        //         long minutesSinceLast = Duration.between(user.getLastLogin(), LocalDateTime.now())
-                        //                         .toMinutes();
-                        //         if (minutesSinceLast < 30) {
-                        //                 avisoService.crearAvisoSeguridad(user,
-                        //                                 "Intento de acceso duplicado detectado en tu cuenta.");
-                        //         }
+                        // long minutesSinceLast = Duration.between(user.getLastLogin(),
+                        // LocalDateTime.now())
+                        // .toMinutes();
+                        // if (minutesSinceLast < 30) {
+                        // avisoService.crearAvisoSeguridad(user,
+                        // "Intento de acceso duplicado detectado en tu cuenta.");
+                        // }
                         // }
 
                         user.setLastLogin(LocalDateTime.now());
@@ -184,13 +181,15 @@ public class AuthController {
                         auditService.registrar(
                                         "USUARIOS",
                                         "LOGOUT_ALL_SESSIONS",
-                                        "Cerró todas las sesiones activas. Token version incrementado a " + user.getTokenVersion(),
+                                        "Cerró todas las sesiones activas. Token version incrementado a "
+                                                        + user.getTokenVersion(),
                                         user.getUsername(),
                                         httpRequest.getRemoteAddr());
 
                         return ResponseEntity.ok(Map.of(
                                         "success", true,
-                                        "message", "Todas las sesiones han sido cerradas. Debes iniciar sesión nuevamente."));
+                                        "message",
+                                        "Todas las sesiones han sido cerradas. Debes iniciar sesión nuevamente."));
                 } catch (Exception e) {
                         return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
                 }

@@ -46,7 +46,9 @@ public interface SocioRepository extends JpaRepository<Socio, Long> {
         List<Socio> buscarExacto(String term);
 
         // Buscar parcial por nombre, cédula o número socio - CON SUCURSAL
-        @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE LOWER(s.nombreCompleto) LIKE LOWER(CONCAT('%', :term, '%')) OR s.cedula LIKE CONCAT('%', :term, '%') OR s.numeroSocio LIKE CONCAT('%', :term, '%') ORDER BY s.nombreCompleto ASC")
+        // Ordenado para que coincidencias exactas o que empiecen con el término
+        // aparezcan primero
+        @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE LOWER(s.nombreCompleto) LIKE LOWER(CONCAT('%', :term, '%')) OR s.cedula LIKE CONCAT('%', :term, '%') OR s.numeroSocio LIKE CONCAT('%', :term, '%') ORDER BY CASE WHEN s.numeroSocio = :term THEN 0 WHEN s.cedula = :term THEN 0 WHEN s.numeroSocio LIKE CONCAT(:term, '%') THEN 1 WHEN s.cedula LIKE CONCAT(:term, '%') THEN 1 ELSE 2 END, s.nombreCompleto ASC")
         List<Socio> buscarParcial(String term);
 
         // Buscar socios que NO están en ninguna asignación (Sin asignar)

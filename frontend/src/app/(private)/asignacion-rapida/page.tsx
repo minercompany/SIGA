@@ -115,7 +115,7 @@ export default function AsignacionRapidaPage() {
 
     // Búsqueda automática con debounce
     useEffect(() => {
-        if (searchTerm.length >= 3) {
+        if (searchTerm.length >= 1) {
             const timer = setTimeout(() => {
                 handleSearch();
             }, 500);
@@ -126,7 +126,7 @@ export default function AsignacionRapidaPage() {
     }, [searchTerm]);
 
     const handleSearch = async () => {
-        if (!searchTerm || searchTerm.length < 3) return;
+        if (!searchTerm || searchTerm.length < 1) return;
         setSearching(true);
         setErrorMessage("");
         setSearchedSocio(null);
@@ -339,21 +339,21 @@ export default function AsignacionRapidaPage() {
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
-                                className="mt-5 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border-2 border-emerald-300 p-5"
+                                className="mt-4 sm:mt-5 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl sm:rounded-2xl border-2 border-emerald-300 p-3 sm:p-5"
                             >
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-emerald-500 rounded-xl">
-                                            <CheckCircle2 className="w-7 h-7 text-white" />
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                                    <div className="flex items-center gap-3 sm:gap-4">
+                                        <div className="p-2 sm:p-3 bg-emerald-500 rounded-lg sm:rounded-xl flex-shrink-0">
+                                            <CheckCircle2 className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-emerald-600 font-bold uppercase tracking-wide">Socio Encontrado</p>
-                                            <p className="text-2xl font-black text-slate-800">{searchedSocio.nombreCompleto}</p>
-                                            <div className="flex gap-4 mt-1">
-                                                <span className="text-sm text-slate-600">CI: <span className="font-bold">{searchedSocio.cedula}</span></span>
-                                                <span className="text-sm text-slate-600">Nro: <span className="font-bold">{searchedSocio.numeroSocio}</span></span>
-                                                <span className={`text-sm font-bold ${tieneVozYVoto(searchedSocio) ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                                    {tieneVozYVoto(searchedSocio) ? '✓ VOZ Y VOTO' : '⚠ SOLO VOZ'}
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[10px] sm:text-xs text-emerald-600 font-bold uppercase tracking-wide">Socio Encontrado</p>
+                                            <p className="text-base sm:text-2xl font-black text-slate-800 truncate">{searchedSocio.nombreCompleto}</p>
+                                            <div className="flex flex-wrap gap-2 sm:gap-4 mt-1">
+                                                <span className="text-xs sm:text-sm text-slate-600">CI: <span className="font-bold">{searchedSocio.cedula}</span></span>
+                                                <span className="text-xs sm:text-sm text-slate-600">Nro: <span className="font-bold">{searchedSocio.numeroSocio}</span></span>
+                                                <span className={`text-xs sm:text-sm font-bold ${tieneVozYVoto(searchedSocio) ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                                    {tieneVozYVoto(searchedSocio) ? '✓ V&V' : '⚠ SV'}
                                                 </span>
                                             </div>
                                         </div>
@@ -362,9 +362,9 @@ export default function AsignacionRapidaPage() {
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         onClick={handleAddSocio}
-                                        className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-black text-lg transition-all flex items-center gap-2 shadow-lg shadow-emerald-200"
+                                        className="w-full sm:w-auto px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-black text-sm sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-200"
                                     >
-                                        <Plus className="w-6 h-6" />
+                                        <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
                                         AGREGAR
                                     </motion.button>
                                 </div>
@@ -403,28 +403,28 @@ export default function AsignacionRapidaPage() {
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: index * 0.02 }}
-                                        className="p-4 hover:bg-slate-50 transition-colors group flex items-center justify-between"
+                                        className="p-3 sm:p-4 hover:bg-slate-50 transition-colors group flex items-center justify-between gap-2"
                                     >
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-sm ${esVyV ? 'bg-emerald-500' : 'bg-amber-500'
+                                        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+                                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex-shrink-0 flex items-center justify-center font-bold text-white text-xs sm:text-sm ${esVyV ? 'bg-emerald-500' : 'bg-amber-500'
                                                 }`}>
                                                 {index + 1}
                                             </div>
-                                            <div>
-                                                <p className="font-bold text-slate-800">{socio.nombreCompleto}</p>
-                                                <p className="text-sm text-slate-500">
+                                            <div className="min-w-0 flex-1">
+                                                <p className="font-bold text-slate-800 text-sm sm:text-base truncate">{socio.nombreCompleto}</p>
+                                                <p className="text-[10px] sm:text-sm text-slate-500 truncate">
                                                     CI: {socio.cedula} | Nro: {socio.numeroSocio}
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${esVyV ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                        <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
+                                            <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold ${esVyV ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                                                 }`}>
                                                 {esVyV ? 'V&V' : 'SV'}
                                             </span>
                                             <button
                                                 onClick={() => handleRemoveSocio(socio.id)}
-                                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                className="p-1.5 sm:p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all sm:opacity-0 sm:group-hover:opacity-100"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>

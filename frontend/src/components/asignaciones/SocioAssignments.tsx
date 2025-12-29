@@ -113,7 +113,7 @@ export function SocioAssignments({
     // Búsqueda automática (Debounce)
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (socioSearchTerm.length >= 3) {
+            if (socioSearchTerm.length >= 1) {
                 onSearchSocio();
             }
         }, 600);

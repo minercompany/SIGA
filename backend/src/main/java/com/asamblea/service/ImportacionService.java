@@ -474,24 +474,6 @@ public class ImportacionService {
         return c == 'S' || c == '1' || c == 'T'; // S(I), S(I), 1, T(RUE)
     }
 
-    private int countTotalRows(File file) {
-        int count = 0;
-        try (InputStream is = new FileInputStream(file);
-                Workbook workbook = StreamingReader.builder()
-                        .rowCacheSize(1000)
-                        .bufferSize(8192)
-                        .open(is)) {
-            for (@SuppressWarnings("unused")
-            Row row : workbook.getSheetAt(0)) {
-                count++;
-            }
-        } catch (Exception e) {
-            log.error("Error contando filas", e);
-            return 10000; // Fallback
-        }
-        return count;
-    }
-
     // === LÓGICA DE PARSEO DE CELULARES ===
     private String procesarTelefonoParaguayo(String raw) {
         if (raw == null || raw.trim().isEmpty()) {

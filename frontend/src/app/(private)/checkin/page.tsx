@@ -126,7 +126,7 @@ export default function CheckInPage() {
     // Effect para búsqueda automática (Debounce)
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (query.trim().length >= 3) {
+            if (query.trim().length >= 1) {
                 performSearch(query);
             } else if (query.trim().length === 0) {
                 setSocioEncontrado(null);

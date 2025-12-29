@@ -84,6 +84,7 @@ const menuItems = [
         submenu: [
             { id: "reportes-general", name: "Reportes Generales", href: "/reportes", icon: ClipboardList },
             { id: "reportes-sucursal", name: "Reportes Específicos", href: "/reportes/por-sucursal", icon: Building2 },
+            { id: "reportes-funcionarios", name: "Funcionarios", href: "/reportes/funcionarios", icon: Briefcase },
         ]
     },
     {
@@ -161,7 +162,7 @@ export function Sidebar() {
             return hasPermission("asistencia") || hasPermission("checkin");
         }
         if (itemId === "reportes") {
-            return hasPermission("reportes-general") || hasPermission("reportes-sucursal");
+            return hasPermission("reportes-general") || hasPermission("reportes-sucursal") || hasPermission("reportes-funcionarios");
         }
         if (itemId === "comunicacion") {
             return hasPermission("mensajes-chat") || hasPermission("mensajes-avisos");
@@ -202,6 +203,8 @@ export function Sidebar() {
             case "reportes-general":
                 return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
             case "reportes-sucursal":
+                return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
+            case "reportes-funcionarios":
                 return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
 
             // Comunicacion
