@@ -4,6 +4,8 @@ import com.asamblea.model.Asistencia;
 import com.asamblea.model.Socio;
 import com.asamblea.model.Usuario;
 import com.asamblea.repository.AsistenciaRepository;
+import com.asamblea.repository.AsignacionRepository;
+import com.asamblea.model.Asignacion;
 import com.asamblea.repository.SocioRepository;
 import com.asamblea.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +25,10 @@ import java.util.*;
 public class AsistenciaController {
 
     private final AsistenciaRepository asistenciaRepository;
+    private final AsignacionRepository asignacionRepository;
     private final SocioRepository socioRepository;
     private final UsuarioRepository usuarioRepository;
-    private final com.asamblea.repository.AsambleaRepository asambleaRepository; // Inyectado
+    private final com.asamblea.repository.AsambleaRepository asambleaRepository;
     private final com.asamblea.service.LogAuditoriaService auditService;
 
     @GetMapping("/hoy")
@@ -203,8 +206,28 @@ public class AsistenciaController {
                 item.put("nombreCompleto",
                         socio.getNombreCompleto() != null ? socio.getNombreCompleto() : "Sin Nombre");
                 item.put("numeroSocio", socio.getNumeroSocio() != null ? socio.getNumeroSocio() : "-");
-                item.put("fechaHora", a.getFechaHora());
-                item.put("horaFormateada", a.getFechaHora() != null ? a.getFechaHora().toLocalTime().toString() : "-");
+
+                // Fecha/Hora Ingreso Asamblea
+                item.put("fechaHoraIngreso", a.getFechaHora());
+                item.put("horaIngreso", a.getFechaHora() != null ? a.getFechaHora().toLocalTime().toString() : "-");
+
+                // Buscar fecha de asignación a lista
+                java.util.Optional<Asignacion> asignacionOpt = asignacionRepository.findBySocioId(socio.getId());
+                LocalDateTime fechaAsignacion = null;
+                String asignadoPor = "-";
+                if (asignacionOpt.isPresent()) {
+                    Asignacion asig = asignacionOpt.get();
+                    fechaAsignacion = asig.getFechaAsignacion();
+                    if (asig.getAsignadoPor() != null) {
+                        asignadoPor = asig.getAsignadoPor().getNombreCompleto();
+                    }
+                }
+                item.put("fechaHoraLista", fechaAsignacion);
+                item.put("asignadoPor", asignadoPor);
+
+                // Registrado por (quien marcó asistencia)
+                item.put("registradoPor", a.getOperador() != null ? a.getOperador().getNombreCompleto() : "Sistema");
+
                 boolean esVyV = Boolean.TRUE.equals(a.getEstadoVozVoto());
                 item.put("condicion", esVyV ? "VOZ Y VOTO" : "SOLO VOZ");
                 item.put("esVyV", esVyV);
@@ -219,8 +242,8 @@ public class AsistenciaController {
 
         // Ordenar por hora de registro
         sociosAsistencia.sort((a, b) -> {
-            LocalDateTime fa = (LocalDateTime) a.get("fechaHora");
-            LocalDateTime fb = (LocalDateTime) b.get("fechaHora");
+            LocalDateTime fa = (LocalDateTime) a.get("fechaHoraIngreso");
+            LocalDateTime fb = (LocalDateTime) b.get("fechaHoraIngreso");
             if (fa == null)
                 return 1;
             if (fb == null)
@@ -268,8 +291,28 @@ public class AsistenciaController {
                 item.put("nombreCompleto",
                         socio.getNombreCompleto() != null ? socio.getNombreCompleto() : "Sin Nombre");
                 item.put("numeroSocio", socio.getNumeroSocio() != null ? socio.getNumeroSocio() : "-");
-                item.put("fechaHora", a.getFechaHora());
-                item.put("horaFormateada", a.getFechaHora() != null ? a.getFechaHora().toLocalTime().toString() : "-");
+
+                // Fecha/Hora Ingreso Asamblea
+                item.put("fechaHoraIngreso", a.getFechaHora());
+                item.put("horaIngreso", a.getFechaHora() != null ? a.getFechaHora().toLocalTime().toString() : "-");
+
+                // Buscar fecha de asignación a lista
+                java.util.Optional<Asignacion> asignacionOpt2 = asignacionRepository.findBySocioId(socio.getId());
+                LocalDateTime fechaAsignacion = null;
+                String asignadoPor = "-";
+                if (asignacionOpt2.isPresent()) {
+                    Asignacion asig = asignacionOpt2.get();
+                    fechaAsignacion = asig.getFechaAsignacion();
+                    if (asig.getAsignadoPor() != null) {
+                        asignadoPor = asig.getAsignadoPor().getNombreCompleto();
+                    }
+                }
+                item.put("fechaHoraLista", fechaAsignacion);
+                item.put("asignadoPor", asignadoPor);
+
+                // Registrado por (quien marcó asistencia)
+                item.put("registradoPor", a.getOperador() != null ? a.getOperador().getNombreCompleto() : "Sistema");
+
                 boolean esVyV = Boolean.TRUE.equals(a.getEstadoVozVoto());
                 item.put("condicion", esVyV ? "VOZ Y VOTO" : "SOLO VOZ");
                 item.put("esVyV", esVyV);
@@ -284,8 +327,8 @@ public class AsistenciaController {
 
         // Ordenar por hora de registro
         misRegistros.sort((a, b) -> {
-            LocalDateTime fa = (LocalDateTime) a.get("fechaHora");
-            LocalDateTime fb = (LocalDateTime) b.get("fechaHora");
+            LocalDateTime fa = (LocalDateTime) a.get("fechaHoraIngreso");
+            LocalDateTime fb = (LocalDateTime) b.get("fechaHoraIngreso");
             if (fa == null)
                 return 1;
             if (fb == null)

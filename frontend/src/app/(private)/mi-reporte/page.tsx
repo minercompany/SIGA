@@ -24,8 +24,9 @@ interface MiRegistro {
     cedula: string;
     nombreCompleto: string;
     numeroSocio: string;
-    fechaHora: string;
-    horaFormateada: string;
+    fechaHoraLista: string | null;
+    fechaHoraIngreso: string;
+    registradoPor: string;
     condicion: string;
     esVyV: boolean;
 }
@@ -69,29 +70,25 @@ export default function MiReportePage() {
         }
     };
 
-    const formatHora = (fechaHora: string) => {
+    const formatFechaHora = (fechaHora: string | null) => {
         if (!fechaHora) return '-';
         const date = new Date(fechaHora);
-        return date.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    };
-
-    const formatFecha = (fechaHora: string) => {
-        if (!fechaHora) return '-';
-        const date = new Date(fechaHora);
-        return date.toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        return date.toLocaleString('es-PY', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
     };
 
     const handleExportCSV = () => {
         if (!reporte) return;
 
-        const headers = ['#', 'CÉDULA', 'SOCIO', 'NRO', 'FECHA', 'HORA', 'CONDICIÓN'];
+        const headers = ['#', 'SOCIO', 'FECHA/HORA LISTA', 'FECHA/HORA INGRESO', 'REGISTRADO POR', 'CONDICIÓN'];
         const rows = reporte.registros.map((r, idx) => [
             String(idx + 1),
-            r.cedula,
             r.nombreCompleto,
-            r.numeroSocio,
-            formatFecha(r.fechaHora),
-            formatHora(r.fechaHora),
+            formatFechaHora(r.fechaHoraLista),
+            formatFechaHora(r.fechaHoraIngreso),
+            r.registradoPor,
             r.condicion
         ]);
 
@@ -237,16 +234,16 @@ export default function MiReportePage() {
         // Tabla
         const tableData = reporte.registros.map((r, idx) => [
             String(idx + 1),
-            r.cedula,
             r.nombreCompleto,
-            r.numeroSocio,
-            formatHora(r.fechaHora),
+            formatFechaHora(r.fechaHoraLista),
+            formatFechaHora(r.fechaHoraIngreso),
+            r.registradoPor,
             r.condicion
         ]);
 
         autoTable(doc, {
             startY: 98,
-            head: [['#', 'CÉDULA', 'SOCIO', 'NRO', 'HORA INGRESO', 'CONDICIÓN']],
+            head: [['#', 'SOCIO', 'FECHA/HORA LISTA', 'FECHA/HORA INGRESO', 'REGISTRADO POR', 'CONDICIÓN']],
             body: tableData,
             theme: 'grid',
             styles: { fontSize: 8, cellPadding: 3 },
@@ -258,11 +255,11 @@ export default function MiReportePage() {
             },
             columnStyles: {
                 0: { cellWidth: 10, halign: 'center' },
-                1: { cellWidth: 25 },
-                2: { cellWidth: 'auto' },
-                3: { cellWidth: 18, halign: 'center' },
-                4: { cellWidth: 22, halign: 'center' },
-                5: { cellWidth: 26, halign: 'center', fontStyle: 'bold' }
+                1: { cellWidth: 'auto' },
+                2: { cellWidth: 38, halign: 'center', fontSize: 7 },
+                3: { cellWidth: 38, halign: 'center', fontSize: 7 },
+                4: { cellWidth: 30, halign: 'center', fontSize: 7 },
+                5: { cellWidth: 24, halign: 'center', fontStyle: 'bold' }
             },
             didParseCell: (data) => {
                 if (data.section === 'body' && data.column.index === 5) {
@@ -444,15 +441,14 @@ export default function MiReportePage() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                            <thead className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white">
                                 <tr>
-                                    <th className="px-4 py-4 text-left text-xs font-bold">#</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold">CÉDULA</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold">SOCIO</th>
-                                    <th className="px-4 py-4 text-center text-xs font-bold">NRO</th>
-                                    <th className="px-4 py-4 text-center text-xs font-bold">FECHA</th>
-                                    <th className="px-4 py-4 text-center text-xs font-bold">HORA INGRESO</th>
-                                    <th className="px-4 py-4 text-center text-xs font-bold">CONDICIÓN</th>
+                                    <th className="px-3 py-4 text-left text-xs font-bold">#</th>
+                                    <th className="px-3 py-4 text-left text-xs font-bold">SOCIO</th>
+                                    <th className="px-3 py-4 text-center text-xs font-bold">FECHA/HORA REGISTRO LISTA</th>
+                                    <th className="px-3 py-4 text-center text-xs font-bold">FECHA/HORA INGRESO ASAMBLEA</th>
+                                    <th className="px-3 py-4 text-center text-xs font-bold">REGISTRADO POR</th>
+                                    <th className="px-3 py-4 text-center text-xs font-bold">CONDICIÓN</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -464,15 +460,16 @@ export default function MiReportePage() {
                                         transition={{ delay: idx * 0.03 }}
                                         className="hover:bg-slate-50 transition-colors"
                                     >
-                                        <td className="px-4 py-4 text-sm font-bold text-indigo-600">{idx + 1}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-700">{registro.cedula}</td>
-                                        <td className="px-4 py-4 text-sm font-medium text-slate-800">{registro.nombreCompleto}</td>
-                                        <td className="px-4 py-4 text-sm text-center text-slate-600">{registro.numeroSocio}</td>
-                                        <td className="px-4 py-4 text-sm text-center text-slate-600">{formatFecha(registro.fechaHora)}</td>
-                                        <td className="px-4 py-4 text-sm text-center font-mono text-slate-700">
-                                            {formatHora(registro.fechaHora)}
+                                        <td className="px-3 py-4 text-sm font-bold text-teal-600">{idx + 1}</td>
+                                        <td className="px-3 py-4 text-sm font-medium text-slate-800">{registro.nombreCompleto}</td>
+                                        <td className="px-3 py-4 text-sm text-center font-mono text-slate-600">
+                                            {formatFechaHora(registro.fechaHoraLista)}
                                         </td>
-                                        <td className="px-4 py-4 text-center">
+                                        <td className="px-3 py-4 text-sm text-center font-mono text-slate-700">
+                                            {formatFechaHora(registro.fechaHoraIngreso)}
+                                        </td>
+                                        <td className="px-3 py-4 text-sm text-center text-slate-600">{registro.registradoPor}</td>
+                                        <td className="px-3 py-4 text-center">
                                             <span className={`px-3 py-1 rounded-lg text-xs font-bold ${registro.esVyV
                                                 ? 'bg-emerald-100 text-emerald-700'
                                                 : 'bg-amber-100 text-amber-700'
