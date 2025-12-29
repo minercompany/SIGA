@@ -324,7 +324,6 @@ export default function AsignacionesPage() {
 
     const handleRemoveSocio = async (socioId: number) => {
         if (!selectedLista) return;
-        if (!confirm("¿Estás seguro de quitar este socio de la lista?")) return;
 
         // Optimistic UI: remover inmediatamente para animación suave
         setSocios(prev => prev.filter(s => s.id !== socioId));

@@ -103,45 +103,41 @@ export default function ImportarPage() {
     const currentStep = getStep();
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-6 md:p-12 pb-32">
-            <div className="max-w-7xl mx-auto space-y-10">
+        <div className="min-h-screen bg-slate-50/50" style={{ padding: 'clamp(1rem, 3vw, 3rem)' }}>
+            <div className="mx-auto space-y-6" style={{ maxWidth: 'clamp(320px, 90vw, 1000px)' }}>
 
-                {/* Header Premium con Gradiente Vivo */}
-                <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 p-10 shadow-2xl shadow-emerald-500/20 text-white">
-                    <div className="absolute top-0 right-0 -mr-20 -mt-20 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-                    <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-64 w-64 rounded-full bg-black/10 blur-3xl" />
+                {/* Header Premium - Compacto y Responsivo */}
+                <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-emerald-600 via-green-500 to-teal-500 shadow-xl shadow-emerald-500/20 text-white" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
+                    <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+                    <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-48 w-48 rounded-full bg-black/10 blur-3xl" />
 
-                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div>
-                            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold uppercase tracking-wider backdrop-blur-md mb-4 border border-white/20 shadow-lg">
-                                <Zap className="h-3 w-3 text-yellow-300 fill-yellow-300" />
-                                Sistema de Importación Inteligente
-                            </div>
-                            <h1 className="text-5xl font-black tracking-tight drop-shadow-sm">
-                                Importar Padrón
-                            </h1>
-                            <p className="mt-3 text-lg font-medium text-emerald-50 max-w-xl leading-relaxed opacity-90">
-                                Actualiza masivamente la base de datos de socios.
-                                <br />Rápido, seguro y con validación automática en tiempo real.
-                            </p>
+                    <div className="relative z-10 flex flex-col gap-4">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-[10px] md:text-xs font-bold uppercase tracking-wider backdrop-blur-md border border-white/20 shadow-lg w-fit">
+                            <Zap className="h-3 w-3 text-yellow-300 fill-yellow-300" />
+                            Sistema de Importación Inteligente
                         </div>
 
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={() => window.open('/plantilla_padron.xlsx', '_blank')}
-                                className="group relative overflow-hidden rounded-2xl bg-white px-8 py-4 text-emerald-900 shadow-xl transition-all hover:scale-105 active:scale-95"
-                            >
-                                <div className="relative z-10 flex items-center gap-3 font-bold">
-                                    <Download className="h-5 w-5 text-emerald-600 transition-transform group-hover:-translate-y-1" />
-                                    <span>Descargar Plantilla</span>
-                                </div>
-                            </button>
-                        </div>
+                        <h1 style={{ fontSize: 'clamp(1.75rem, 5vw, 3rem)' }} className="font-black tracking-tight drop-shadow-sm leading-tight">
+                            Importar Padrón
+                        </h1>
+
+                        <p className="text-emerald-50 max-w-md leading-relaxed opacity-90" style={{ fontSize: 'clamp(0.875rem, 2vw, 1rem)' }}>
+                            Actualiza masivamente la base de datos de socios.<br className="hidden md:block" />
+                            Rápido, seguro y con validación automática.
+                        </p>
+
+                        <button
+                            onClick={() => window.open('/plantilla_padron.xlsx', '_blank')}
+                            className="group mt-2 inline-flex items-center gap-2 rounded-xl bg-white/95 px-5 py-3 text-emerald-800 shadow-lg transition-all hover:scale-105 active:scale-95 w-fit"
+                        >
+                            <Download className="h-4 w-4 text-emerald-600 transition-transform group-hover:-translate-y-1" />
+                            <span className="font-bold text-sm">Descargar Plantilla</span>
+                        </button>
                     </div>
                 </div>
 
-                {/* Stepper Interactivo */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Stepper Interactivo - Responsivo */}
+                <div className="flex overflow-x-auto gap-3 pb-2 snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-4 md:overflow-visible hide-scrollbar">
                     {[
                         { step: 1, label: "Cargar Archivo", desc: "Sube tu Excel", icon: Upload },
                         { step: 2, label: "Procesamiento", desc: "Validación de datos", icon: Loader2 },
@@ -151,21 +147,20 @@ export default function ImportarPage() {
                         const isPast = s.step < currentStep;
                         return (
                             <div key={s.step}
-                                className={`relative overflow-hidden rounded-2xl p-6 transition-all duration-500 border-2
-                                ${isActive ? "border-emerald-500 bg-white shadow-xl shadow-emerald-500/10 scale-105"
-                                        : isPast ? "border-transparent bg-emerald-500 text-white"
-                                            : "border-transparent bg-white text-slate-400 opacity-60"}`}
+                                className={`relative overflow-hidden rounded-xl md:rounded-2xl p-4 md:p-5 transition-all duration-500 border-2 flex-shrink-0 snap-center
+                                    ${isActive ? "border-emerald-500 bg-white shadow-lg shadow-emerald-500/10 min-w-[200px] md:min-w-0"
+                                        : isPast ? "border-transparent bg-emerald-500 text-white min-w-[160px] md:min-w-0"
+                                            : "border-transparent bg-white text-slate-400 opacity-60 min-w-[160px] md:min-w-0"}`}
                             >
-                                <div className="flex items-center gap-4 relative z-10">
-                                    <div className={`p-4 rounded-2xl shadow-sm ${isActive ? "bg-emerald-100 text-emerald-600" : isPast ? "bg-white/20 text-white" : "bg-slate-100"}`}>
-                                        <s.icon className={`h-6 w-6 ${isActive && s.step === 2 ? 'animate-spin' : ''}`} />
+                                <div className="flex items-center gap-3 relative z-10">
+                                    <div className={`p-3 rounded-xl shadow-sm ${isActive ? "bg-emerald-100 text-emerald-600" : isPast ? "bg-white/20 text-white" : "bg-slate-100"}`}>
+                                        <s.icon className={`h-5 w-5 ${isActive && s.step === 2 ? 'animate-spin' : ''}`} />
                                     </div>
                                     <div>
-                                        <span className={`text-[10px] font-black uppercase tracking-widest ${isActive ? "text-emerald-500" : isPast ? "text-emerald-200" : "text-slate-300"}`}>
+                                        <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest ${isActive ? "text-emerald-500" : isPast ? "text-emerald-200" : "text-slate-300"}`}>
                                             Paso 0{s.step}
                                         </span>
-                                        <h3 className="text-lg font-bold">{s.label}</h3>
-                                        {isActive && <p className="text-xs text-slate-500 font-medium mt-0.5">{s.desc}</p>}
+                                        <h3 className="text-sm md:text-base font-bold">{s.label}</h3>
                                     </div>
                                 </div>
                                 {isActive && <div className="absolute bottom-0 left-0 h-1 bg-emerald-500 w-full animate-pulse" />}
@@ -174,10 +169,11 @@ export default function ImportarPage() {
                     })}
                 </div>
 
-                <div className="grid lg:grid-cols-12 gap-8 items-start">
+                {/* Contenido Principal - Stack en móvil, Grid en desktop */}
+                <div className="flex flex-col lg:flex-row gap-6">
 
-                    {/* ZONA PRINCIPAL DE CARGA (8 Columnas) */}
-                    <div className="lg:col-span-8">
+                    {/* ZONA PRINCIPAL DE CARGA */}
+                    <div className="flex-1 min-w-0">
                         <AnimatePresence mode="wait">
                             {currentStep === 1 && (
                                 <motion.div
@@ -185,48 +181,49 @@ export default function ImportarPage() {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
-                                    className="group relative rounded-[2rem] bg-white p-2 shadow-xl shadow-slate-200/50"
+                                    className="group relative rounded-2xl md:rounded-3xl bg-white p-1.5 md:p-2 shadow-xl shadow-slate-200/50"
                                 >
-                                    <div className="absolute -inset-1 rounded-[2.1rem] bg-gradient-to-r from-emerald-400 via-teal-400 to-green-400 opacity-20 blur group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
+                                    <div className="absolute -inset-1 rounded-2xl md:rounded-3xl bg-gradient-to-r from-emerald-400 via-teal-400 to-green-400 opacity-20 blur group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
 
                                     <div
                                         onDragEnter={handleDrag}
                                         onDragLeave={handleDrag}
                                         onDragOver={handleDrag}
                                         onDrop={handleDrop}
-                                        className={`relative flex flex-col items-center justify-center rounded-[1.8rem] border-4 border-dashed p-16 text-center transition-all duration-300 bg-white
+                                        className={`relative flex flex-col items-center justify-center rounded-xl md:rounded-2xl border-3 md:border-4 border-dashed text-center transition-all duration-300 bg-white
                                             ${dragActive ? "border-emerald-500 bg-emerald-50/50 scale-[0.99]" : "border-slate-100 hover:border-emerald-300"}`}
+                                        style={{ padding: 'clamp(2rem, 6vw, 4rem)' }}
                                     >
-                                        <div className="mb-8 relative">
+                                        <div className="mb-6 relative">
                                             <div className="absolute inset-0 bg-emerald-400/30 blur-2xl rounded-full scale-150 animate-pulse" />
-                                            <div className="relative rounded-3xl bg-gradient-to-br from-white to-emerald-50 p-6 shadow-2xl ring-1 ring-black/5">
-                                                <Upload className="h-12 w-12 text-emerald-600" />
+                                            <div className="relative rounded-2xl bg-gradient-to-br from-white to-emerald-50 p-4 md:p-5 shadow-xl ring-1 ring-black/5">
+                                                <Upload className="h-8 w-8 md:h-10 md:w-10 text-emerald-600" />
                                             </div>
                                         </div>
 
-                                        <h3 className="text-2xl font-black text-slate-800">
+                                        <h3 style={{ fontSize: 'clamp(1.1rem, 3vw, 1.5rem)' }} className="font-black text-slate-800">
                                             Arrastra y suelta tu Excel
                                         </h3>
-                                        <p className="mt-3 text-slate-500 font-medium max-w-sm mx-auto">
+                                        <p className="mt-2 text-slate-500 font-medium text-sm md:text-base">
                                             Soporta archivos <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md">.xlsx</span> hasta 50MB
                                         </p>
 
-                                        <div className="mt-10 w-full max-w-xs">
+                                        <div className="mt-6 md:mt-8 w-full" style={{ maxWidth: 'clamp(200px, 80%, 280px)' }}>
                                             <button
                                                 onClick={() => fileInputRef.current?.click()}
-                                                className="w-full rounded-2xl bg-slate-900 py-4 text-sm font-bold text-white shadow-xl shadow-slate-900/20 transition-all hover:bg-emerald-600 hover:shadow-emerald-500/30 active:scale-95 flex items-center justify-center gap-2 group/btn"
+                                                className="w-full rounded-xl md:rounded-2xl bg-slate-900 py-3 md:py-4 text-sm font-bold text-white shadow-xl shadow-slate-900/20 transition-all hover:bg-emerald-600 hover:shadow-emerald-500/30 active:scale-95 flex items-center justify-center gap-2 group/btn"
                                             >
-                                                Elegir Archivo Manualmente
+                                                Elegir Archivo
                                                 <ChevronRight className="h-4 w-4 opacity-50 group-hover/btn:translate-x-1 transition-transform" />
                                             </button>
                                         </div>
                                         <input ref={fileInputRef} type="file" accept=".xlsx" onChange={handleFileChange} className="hidden" />
 
                                         {error && (
-                                            <div className="absolute bottom-6 left-0 right-0 max-w-md mx-auto">
-                                                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="flex items-center gap-3 p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100 shadow-lg shadow-red-500/10">
-                                                    <AlertCircle className="h-5 w-5 shrink-0" />
-                                                    <span className="font-bold text-sm text-left">{error}</span>
+                                            <div className="mt-4 w-full">
+                                                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="flex items-center gap-3 p-3 bg-red-50 text-red-600 rounded-xl border border-red-100 shadow-lg shadow-red-500/10">
+                                                    <AlertCircle className="h-4 w-4 shrink-0" />
+                                                    <span className="font-bold text-xs md:text-sm text-left">{error}</span>
                                                 </motion.div>
                                             </div>
                                         )}
@@ -402,8 +399,8 @@ export default function ImportarPage() {
                         </AnimatePresence>
                     </div>
 
-                    {/* HISTORIAL LATERAL (4 Columnas) */}
-                    <div className="lg:col-span-4 space-y-8">
+                    {/* HISTORIAL LATERAL - Oculto en móvil, visible en escritorio */}
+                    <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 space-y-6">
                         <div className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100">
                             <div className="flex items-center gap-3 mb-8 px-2">
                                 <div className="p-3 bg-indigo-50 rounded-xl">

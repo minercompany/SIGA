@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:6001")
+@CrossOrigin(origins = "*")
 @Transactional
 public class ChatController {
 

@@ -120,9 +120,15 @@ function SocioRow({ socio, index, tieneVozYVoto, isSuperAdmin, onEdit, onDelete,
 
             {/* Teléfono */}
             <td className="p-4 md:p-5 hidden md:table-cell">
-                <span className="text-sm text-slate-600 font-mono">
-                    {socio.telefono || <span className="text-slate-300">—</span>}
-                </span>
+                {socio.telefono === "Actualizar Nro" ? (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold bg-red-50 text-red-600 border border-red-100">
+                        Actualizar Nro
+                    </span>
+                ) : (
+                    <span className="text-sm text-slate-600 font-mono">
+                        {socio.telefono || <span className="text-slate-300">—</span>}
+                    </span>
+                )}
             </td>
 
             {/* Sucursal */}
@@ -204,6 +210,15 @@ export default function SociosPage() {
     const [registradosVozYVoto, setRegistradosVozYVoto] = useState(0);
     const [registradosSoloVoz, setRegistradosSoloVoz] = useState(0);
 
+    // Column Filters
+    const [filterNumeroSocio, setFilterNumeroSocio] = useState("");
+    const [filterNombre, setFilterNombre] = useState("");
+    const [filterTelefono, setFilterTelefono] = useState("");
+    const [filterSucursal, setFilterSucursal] = useState("");
+    const [filterEstado, setFilterEstado] = useState<"todos" | "vozYVoto" | "soloVoz">("todos");
+    const [showFilters, setShowFilters] = useState(false);
+    const [sucursales, setSucursales] = useState<{ id: number; nombre: string; codigo: string }[]>([]);
+
     // Form state
     const [formData, setFormData] = useState({
         numeroSocio: "",
@@ -243,32 +258,67 @@ export default function SociosPage() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const fetchSocios = useCallback(async (page: number, term: string) => {
+    // Load sucursales
+    useEffect(() => {
+        const fetchSucursales = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get("http://localhost:8081/api/sucursales", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setSucursales(res.data);
+            } catch (err) {
+                console.error("Error loading sucursales:", err);
+            }
+        };
+        fetchSucursales();
+    }, []);
+
+    const fetchSocios = useCallback(async (page: number, term: string, estado: string, nSocio: string, nombre: string, tel: string, sucId: string) => {
         setLoading(true);
         setError(null);
         try {
             const token = localStorage.getItem("token");
             const headers = { Authorization: `Bearer ${token}` };
 
-            let url = `http://localhost:8081/api/socios?page=${page}&size=${pageSize}`;
             if (term) {
-                url = `http://localhost:8081/api/socios/buscar?term=${encodeURIComponent(term)}`;
-            }
+                const searchUrl = `http://localhost:8081/api/socios/buscar?term=${encodeURIComponent(term)}`;
+                const response = await axios.get(searchUrl, { headers });
 
-            const response = await axios.get(url, { headers });
-
-            if (response.data.content) {
-                setSocios(response.data.content);
-                setTotalPages(response.data.totalPages);
-                setTotalElements(response.data.totalElements);
-            } else if (Array.isArray(response.data)) {
-                setSocios(response.data);
-                setTotalElements(response.data.length);
-                setTotalPages(1);
+                if (response.data) {
+                    // Search returns a list, not a page
+                    setSocios(Array.isArray(response.data) ? response.data : response.data.content || []);
+                    setTotalElements(Array.isArray(response.data) ? response.data.length : response.data.totalElements || 0);
+                    setTotalPages(1);
+                } else {
+                    setSocios([]);
+                    setTotalElements(0);
+                    setTotalPages(0);
+                }
             } else {
-                setSocios([]);
-                setTotalElements(0);
-                setTotalPages(0);
+                const baseUrl = `http://localhost:8081/api/socios`;
+                const params: any = {
+                    page,
+                    size: pageSize
+                };
+
+                if (estado && estado !== "todos") params.estado = estado;
+                if (nSocio) params.numeroSocio = nSocio;
+                if (nombre) params.nombre = nombre;
+                if (tel) params.telefono = tel;
+                if (sucId) params.sucursalId = sucId;
+
+                const response = await axios.get(baseUrl, { headers, params });
+
+                if (response.data.content) {
+                    setSocios(response.data.content);
+                    setTotalPages(response.data.totalPages);
+                    setTotalElements(response.data.totalElements);
+                } else {
+                    setSocios([]);
+                    setTotalElements(0);
+                    setTotalPages(0);
+                }
             }
         } catch (err) {
             console.error("Error cargando socios:", err);
@@ -278,9 +328,21 @@ export default function SociosPage() {
         }
     }, [pageSize]);
 
+    // Trigger fetch when any filter changes (debounced for text inputs if we wanted, currently instant/effect based)
     useEffect(() => {
-        fetchSocios(currentPage, searchTerm);
-    }, [currentPage, fetchSocios]);
+        // Debounce only if typing text, but for selects it can be instant.
+        // For simplicity, we are debouncing everything via the timeout in handleSearchChange, 
+        // but parameters like filters need to be passed.
+
+        // Use a small timeout to avoid double fetching if multiple states change at once, 
+        // though React batching helps.
+
+        const timeoutId = setTimeout(() => {
+            fetchSocios(currentPage, searchTerm, filterEstado, filterNumeroSocio, filterNombre, filterTelefono, filterSucursal);
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+    }, [currentPage, searchTerm, filterEstado, filterNumeroSocio, filterNombre, filterTelefono, filterSucursal, fetchSocios]);
 
     // Fetch additional stats
     useEffect(() => {
@@ -319,7 +381,7 @@ export default function SociosPage() {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => {
             setCurrentPage(0);
-            fetchSocios(0, val);
+            fetchSocios(0, val, filterEstado, filterNumeroSocio, filterNombre, filterTelefono, filterSucursal);
         }, 500);
     };
 
@@ -327,11 +389,23 @@ export default function SociosPage() {
         return socio.aporteAlDia && socio.solidaridadAlDia && socio.fondoAlDia && socio.incoopAlDia && socio.creditoAlDia;
     };
 
-    const displayedSocios = searchTerm && Array.isArray(socios) && socios.length > pageSize
-        ? socios.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
-        : socios;
+    // Client-side filtering removed as we now filter on backend
+    const displayedSocios = socios;
 
-    const sociosConVoto = socios.filter(tieneVozYVoto).length;
+    const sociosConVoto = registradosVozYVoto; // Simplificado
+
+    // Check if any filter is active
+    const hasActiveFilters = filterNumeroSocio || filterNombre || filterTelefono || filterSucursal || filterEstado !== "todos";
+
+    // Clear all filters
+    const clearAllFilters = () => {
+        setFilterNumeroSocio("");
+        setFilterNombre("");
+        setFilterTelefono("");
+        setFilterSucursal("");
+        setFilterEstado("todos");
+        fetchSocios(0, "", "todos", "", "", "", "");
+    };
 
     // Export functions
     const handleExport = async (format: "excel" | "pdf") => {
@@ -421,7 +495,7 @@ export default function SociosPage() {
             }
 
             setShowModal(false);
-            fetchSocios(currentPage, searchTerm);
+            fetchSocios(currentPage, searchTerm, filterEstado, filterNumeroSocio, filterNombre, filterTelefono, filterSucursal);
         } catch (err: any) {
             console.error("Error saving:", err);
             const msg = err.response?.data?.error || "Error al guardar socio";
@@ -448,7 +522,7 @@ export default function SociosPage() {
             toast.success("Socio eliminado exitosamente");
             setShowDeleteConfirm(false);
             setSocioToDelete(null);
-            fetchSocios(currentPage, searchTerm);
+            fetchSocios(currentPage, searchTerm, filterEstado, filterNumeroSocio, filterNombre, filterTelefono, filterSucursal);
         } catch (err: any) {
             console.error("Error deleting:", err);
             toast.error(err.response?.data?.error || "Error al eliminar socio");
@@ -578,32 +652,150 @@ export default function SociosPage() {
                     </div>
                 </div>
 
-                {/* Barra de búsqueda Premium */}
-                <div className="group relative rounded-xl md:rounded-[2rem] bg-white p-2 shadow-xl shadow-slate-200/50">
-                    <div className="absolute -inset-1 rounded-[1.5rem] md:rounded-[2.1rem] bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 opacity-0 blur group-hover:opacity-20 transition duration-500" />
-                    <div className="relative flex items-center">
-                        <div className="pl-4 md:pl-5 pr-2 md:pr-3 text-slate-400">
-                            <Search className="h-5 w-5" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Buscar por nombre, cédula o número de socio..."
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                            className="w-full py-3 md:py-4 bg-transparent outline-none text-slate-700 font-medium placeholder:text-slate-400 text-base md:text-lg"
-                        />
-                        {searchTerm && (
+                {/* Barra de búsqueda Premium con Filtros */}
+                <div className="space-y-3">
+                    <div className="group relative rounded-xl md:rounded-[2rem] bg-white p-2 shadow-xl shadow-slate-200/50">
+                        <div className="absolute -inset-1 rounded-[1.5rem] md:rounded-[2.1rem] bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 opacity-0 blur group-hover:opacity-20 transition duration-500" />
+                        <div className="relative flex items-center">
+                            <div className="pl-4 md:pl-5 pr-2 md:pr-3 text-slate-400">
+                                <Search className="h-5 w-5" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Buscar por nombre, cédula o número de socio..."
+                                value={searchTerm}
+                                onChange={handleSearchChange}
+                                className="w-full py-3 md:py-4 bg-transparent outline-none text-slate-700 font-medium placeholder:text-slate-400 text-base md:text-lg"
+                            />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => {
+                                        setSearchTerm("");
+                                        fetchSocios(0, "", filterEstado, filterNumeroSocio, filterNombre, filterTelefono, filterSucursal);
+                                    }}
+                                    className="mr-2 p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            )}
                             <button
-                                onClick={() => {
-                                    setSearchTerm("");
-                                    fetchSocios(0, "");
-                                }}
-                                className="mr-4 p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"
+                                onClick={() => setShowFilters(!showFilters)}
+                                className={`mr-2 md:mr-4 px-3 md:px-4 py-2 rounded-xl flex items-center gap-2 transition-all text-sm font-bold
+                                    ${showFilters || hasActiveFilters
+                                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                    }`}
                             >
-                                <X className="h-5 w-5" />
+                                <Filter className="h-4 w-4" />
+                                <span className="hidden md:inline">Filtros</span>
+                                {hasActiveFilters && (
+                                    <span className="bg-white text-emerald-600 text-xs font-black px-1.5 py-0.5 rounded-md">!</span>
+                                )}
                             </button>
-                        )}
+                        </div>
                     </div>
+
+                    {/* Panel de Filtros Avanzados */}
+                    <AnimatePresence>
+                        {showFilters && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="overflow-hidden"
+                            >
+                                <div className="bg-white rounded-2xl p-4 md:p-5 shadow-xl shadow-slate-200/50 border border-slate-100">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h4 className="font-bold text-slate-700 flex items-center gap-2">
+                                            <Filter className="h-4 w-4 text-emerald-500" />
+                                            Filtros por Columna
+                                        </h4>
+                                        {hasActiveFilters && (
+                                            <button
+                                                onClick={clearAllFilters}
+                                                className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1"
+                                            >
+                                                <X className="h-3 w-3" />
+                                                Limpiar todo
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                                        {/* Filtro N° Socio */}
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">N° Socio</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Ej: 1234"
+                                                value={filterNumeroSocio}
+                                                onChange={(e) => setFilterNumeroSocio(e.target.value)}
+                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition-all"
+                                            />
+                                        </div>
+                                        {/* Filtro Nombre */}
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nombre</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Ej: Juan"
+                                                value={filterNombre}
+                                                onChange={(e) => setFilterNombre(e.target.value)}
+                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition-all"
+                                            />
+                                        </div>
+                                        {/* Filtro Teléfono */}
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Teléfono</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Ej: 0981"
+                                                value={filterTelefono}
+                                                onChange={(e) => setFilterTelefono(e.target.value)}
+                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition-all"
+                                            />
+                                        </div>
+                                        {/* Filtro Sucursal */}
+                                        <div className="col-span-1">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Sucursal</label>
+                                            <select
+                                                value={filterSucursal}
+                                                onChange={(e) => setFilterSucursal(e.target.value)}
+                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition-all bg-white"
+                                            >
+                                                <option value="">Todas</option>
+                                                {sucursales.map((sucursal) => (
+                                                    <option key={sucursal.id} value={sucursal.id}>
+                                                        {sucursal.nombre}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        {/* Filtro Estado */}
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Estado</label>
+                                            <select
+                                                value={filterEstado}
+                                                onChange={(e) => setFilterEstado(e.target.value as "todos" | "vozYVoto" | "soloVoz")}
+                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition-all bg-white"
+                                            >
+                                                <option value="todos">Todos</option>
+                                                <option value="vozYVoto">Voz y Voto</option>
+                                                <option value="soloVoz">Solo Voz</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    {hasActiveFilters && (
+                                        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2 text-sm text-slate-500">
+                                            <span className="font-medium">Mostrando:</span>
+                                            <span className="font-black text-emerald-600">{displayedSocios.length}</span>
+                                            <span>de {totalElements} resultados</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
 
                 {loading ? (

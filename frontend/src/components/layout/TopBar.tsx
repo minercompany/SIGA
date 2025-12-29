@@ -240,6 +240,14 @@ export function TopBar() {
                     </button>
                 </div>
 
+                {/* Brand Mobile - Logo & Text */}
+                <div className="flex md:hidden flex-1 items-center justify-center gap-2 px-2 animate-in fade-in duration-700">
+                    <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded-full bg-white p-1 shadow-sm border border-teal-50 flex-shrink-0" />
+                    <span className="text-[11px] font-black text-teal-800 tracking-tight whitespace-nowrap leading-none">
+                        ASAMBLEA REDUCTO 2026
+                    </span>
+                </div>
+
                 {/* Centro - Fecha y hora y countdown */}
                 <div className="hidden lg:flex items-center gap-6">
                     <div className="flex items-center gap-3 text-slate-500 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">

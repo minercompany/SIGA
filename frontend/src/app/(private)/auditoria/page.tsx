@@ -121,46 +121,48 @@ export default function AuditoriaPage() {
     };
 
     return (
-        <div className="p-6 max-w-[1600px] mx-auto space-y-8 pb-20">
-            {/* Header con Estética Premium */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-3 bg-slate-900 rounded-2xl shadow-lg shadow-slate-200">
-                            <History className="h-7 w-7 text-white" />
+        <div className="mx-auto space-y-4" style={{ maxWidth: 'clamp(320px, 98vw, 1200px)', padding: 'clamp(0.5rem, 2vw, 1.5rem)' }}>
+            {/* Header con Estética Premium - Compacto */}
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <div className="p-2 bg-slate-900 rounded-xl shadow-lg shadow-slate-200">
+                                <History className="h-5 w-5 text-white" />
+                            </div>
+                            <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)' }} className="font-black text-slate-900 tracking-tight flex items-center gap-2">
+                                AUDITORÍA <span className="italic text-teal-600">TOTAL</span>
+                            </h1>
                         </div>
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                            AUDITORÍA <span className="italic text-teal-600">TOTAL</span>
-                        </h1>
-                    </div>
-                    <p className="text-slate-500 font-medium">Registro inmutable de acciones. Para ver el historial de asignaciones de un socio, busca su número o cédula.</p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <div className="bg-white border border-slate-200 p-1 rounded-2xl flex shadow-sm mr-2 hidden md:flex">
-                        <button
-                            onClick={() => setRastreoMode(false)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${!rastreoMode ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'}`}
-                        >
-                            General
-                        </button>
-                        <button
-                            onClick={() => setRastreoMode(true)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${rastreoMode ? 'bg-teal-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'}`}
-                        >
-                            Rastrear
-                        </button>
+                        <p className="text-slate-500 font-medium text-xs hidden md:block">Registro inmutable de acciones. Para ver el historial de asignaciones de un socio, busca su número o cédula.</p>
                     </div>
 
-                    <button
-                        onClick={() => fetchLogs(page)}
-                        className="p-3 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all shadow-sm active:scale-95"
-                    >
-                        <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
-                    </button>
-                    <div className="bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-2xl flex items-center gap-3">
-                        <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-xs font-black text-emerald-700 uppercase tracking-widest">Sistema Protegido</span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <div className="bg-white border border-slate-200 p-1 rounded-xl flex shadow-sm">
+                            <button
+                                onClick={() => setRastreoMode(false)}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all ${!rastreoMode ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                General
+                            </button>
+                            <button
+                                onClick={() => setRastreoMode(true)}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all ${rastreoMode ? 'bg-teal-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                Rastrear
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={() => fetchLogs(page)}
+                            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all shadow-sm active:scale-95"
+                        >
+                            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                        </button>
+                        <div className="bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl hidden sm:flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Sistema Protegido</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -245,14 +247,14 @@ export default function AuditoriaPage() {
                                             <div key={log.id} className="relative pl-8 pb-10 last:pb-0">
                                                 {/* Bullet */}
                                                 <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-white ${log.accion.includes('FALLIDO') ? 'bg-red-500 shadow-red-200' :
-                                                        log.accion.includes('ASIGNAR') ? 'bg-emerald-500 shadow-emerald-200' : 'bg-slate-400'
+                                                    log.accion.includes('ASIGNAR') ? 'bg-emerald-500 shadow-emerald-200' : 'bg-slate-400'
                                                     } shadow-lgbox`} style={{ boxShadow: '0 0 0 4px white' }}></div>
 
                                                 <div className="flex flex-col gap-1">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <span className="text-xs font-black uppercase tracking-widest text-slate-400">{formatDate(log.createdAt)}</span>
                                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${log.accion.includes('FALLIDO') ? 'bg-red-100 text-red-700' :
-                                                                log.accion.includes('ASIGNAR') ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                                                            log.accion.includes('ASIGNAR') ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
                                                             }`}>
                                                             {log.accion.replace(/_/g, ' ')}
                                                         </span>

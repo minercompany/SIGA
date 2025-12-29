@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequestMapping("/api/avisos")
 @RequiredArgsConstructor
 @Transactional
-@CrossOrigin(origins = "http://localhost:6001")
+@CrossOrigin(origins = "*")
 public class AvisosController {
 
     private final AvisoRepository avisoRepository;

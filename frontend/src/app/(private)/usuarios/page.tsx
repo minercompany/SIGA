@@ -47,6 +47,7 @@ interface Usuario {
     sucursal: string | null;
     sucursalId: number | null;
     permisosEspeciales: string | null;
+    passwordVisible: string | null; // Contraseña visible para admins
     idSocio: number | null;
     tipo: "USUARIO" | "SOCIO";
     nroSocio?: string;
@@ -327,26 +328,26 @@ export default function UsuariosPage() {
     }
 
     return (
-        <div className="space-y-6">
-            {/* Header Premium */}
-            <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 rounded-3xl p-6 text-white shadow-xl">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="mx-auto space-y-4" style={{ maxWidth: 'clamp(320px, 98vw, 1100px)', padding: 'clamp(0.5rem, 2vw, 1.5rem)' }}>
+            {/* Header Premium - Compacto */}
+            <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 rounded-2xl p-4 text-white shadow-xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-black">Gestión de Usuarios y Roles</h1>
-                        <p className="text-rose-100 text-sm mt-1">Administra los accesos al sistema y permisos granulares</p>
+                        <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)' }} className="font-black">Gestión de Usuarios y Roles</h1>
+                        <p className="text-rose-100 text-xs mt-0.5">Administra los accesos al sistema</p>
                     </div>
                     <button
                         onClick={openNewModal}
-                        className="inline-flex items-center gap-2 rounded-2xl bg-white/20 backdrop-blur px-5 py-3 font-bold text-white hover:bg-white/30 border border-white/30 transition-all"
+                        className="inline-flex items-center gap-2 rounded-xl bg-white/20 backdrop-blur px-4 py-2.5 font-bold text-sm text-white hover:bg-white/30 border border-white/30 transition-all"
                     >
-                        <UserPlus className="h-5 w-5" />
-                        Crear Nuevo Usuario
+                        <UserPlus className="h-4 w-4" />
+                        Crear Usuario
                     </button>
                 </div>
             </div>
 
-            {/* Resumen de Roles - Premium Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Resumen de Roles - Grid Compacto */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {roles.map((rol) => {
                     const count = usuarios.filter(u => u.rol === rol.value && u.tipo === "USUARIO").length;
                     const colorConfig: Record<string, { gradient: string; bg: string; border: string; text: string; icon: string }> = {
@@ -358,15 +359,15 @@ export default function UsuariosPage() {
                     const colors = colorConfig[rol.value] || colorConfig['USUARIO_SOCIO'];
 
                     return (
-                        <div key={rol.value} className={`${colors.bg} rounded-2xl p-5 border-2 ${colors.border} hover:shadow-lg transition-all`}>
+                        <div key={rol.value} className={`${colors.bg} rounded-xl p-3 border ${colors.border} hover:shadow-md transition-all`}>
                             <div className="flex items-center justify-between">
-                                <div className={`p-2 rounded-xl bg-gradient-to-br ${colors.gradient}`}>
-                                    <Shield className="h-5 w-5 text-white" />
+                                <div className={`p-1.5 rounded-lg bg-gradient-to-br ${colors.gradient}`}>
+                                    <Shield className="h-4 w-4 text-white" />
                                 </div>
-                                <p className={`text-3xl font-black ${colors.text}`}>{count}</p>
+                                <p className={`text-xl md:text-2xl font-black ${colors.text}`}>{count}</p>
                             </div>
-                            <p className={`font-bold mt-3 ${colors.text}`}>{rol.nombre}</p>
-                            <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Usuarios Activos</p>
+                            <p className={`font-bold mt-2 text-sm ${colors.text}`}>{rol.nombre}</p>
+                            <p className="text-[9px] md:text-[10px] text-slate-400 font-medium uppercase tracking-wider">Usuarios Activos</p>
                         </div>
                     );
                 })}
@@ -598,7 +599,7 @@ export default function UsuariosPage() {
 
                                     <div>
                                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">
-                                            Contraseña {editingUser && "(campo opcional)"}
+                                            {editingUser ? "Nueva Contraseña (opcional)" : "Contraseña"}
                                         </label>
                                         <div className="relative">
                                             <input
@@ -606,7 +607,7 @@ export default function UsuariosPage() {
                                                 value={form.password}
                                                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                                                 className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none transition-all pr-12 font-mono"
-                                                placeholder="••••••••"
+                                                placeholder={editingUser ? "Dejar vacío para no cambiar" : "••••••••"}
                                                 required={!editingUser}
                                             />
                                             <button
@@ -617,6 +618,20 @@ export default function UsuariosPage() {
                                                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                             </button>
                                         </div>
+
+                                        {/* Mostrar contraseña actual si existe */}
+                                        {editingUser && editingUser.passwordVisible && (
+                                            <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">
+                                                        🔑 Contraseña Actual
+                                                    </span>
+                                                    <span className="font-mono font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-lg text-sm">
+                                                        {editingUser.passwordVisible}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

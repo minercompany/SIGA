@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/usuarios")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @SuppressWarnings("null")
 public class UsuarioController {
 
@@ -59,11 +60,16 @@ public class UsuarioController {
             map.put("id", u.getId());
             map.put("username", u.getUsername());
             map.put("nombreCompleto", u.getNombreCompleto());
+            map.put("email", u.getEmail());
+            map.put("telefono", u.getTelefono());
             map.put("rol", u.getRol().name());
             map.put("rolNombre", u.getRol().getNombre());
             map.put("activo", u.isActivo());
             map.put("permisosEspeciales", u.getPermisosEspeciales());
             map.put("idSocio", u.getIdSocio());
+            map.put("sucursalId", u.getSucursal() != null ? u.getSucursal().getId() : null);
+            map.put("sucursal", u.getSucursal() != null ? u.getSucursal().getNombre() : null);
+            map.put("passwordVisible", u.getPasswordVisible()); // Contraseña visible para admins
             map.put("tipo", "USUARIO");
 
             // Usamos username como clave de fusión (asumiendo que es la cédula)
@@ -235,6 +241,7 @@ public class UsuarioController {
             Usuario usuario = new Usuario();
             usuario.setUsername(username);
             usuario.setPassword(passwordEncoder.encode(password));
+            usuario.setPasswordVisible(password); // Guardar contraseña visible para admins
             usuario.setNombreCompleto(nombreCompleto);
             usuario.setEmail(email);
             usuario.setTelefono(telefono);
@@ -305,7 +312,9 @@ public class UsuarioController {
             }
             if (data.containsKey("password") && data.get("password") != null
                     && !((String) data.get("password")).isEmpty()) {
-                usuario.setPassword(passwordEncoder.encode((String) data.get("password")));
+                String newPassword = (String) data.get("password");
+                usuario.setPassword(passwordEncoder.encode(newPassword));
+                usuario.setPasswordVisible(newPassword); // Actualizar contraseña visible
             }
             if (data.containsKey("permisosEspeciales")) {
                 usuario.setPermisosEspeciales((String) data.get("permisosEspeciales"));
@@ -378,5 +387,41 @@ public class UsuarioController {
                     return ResponseEntity.ok(map);
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Listar operadores/funcionarios con CRUCE DE PADRÓN DE SOCIOS
+    @GetMapping("/operadores")
+    public ResponseEntity<List<Map<String, Object>>> listarOperadores() {
+        // Obtenemos solo usuarios que pueden ser operadores (excluimos socios puros)
+        List<Usuario> usuarios = usuarioRepository.findAll().stream()
+                .filter(u -> u.getRol() != Usuario.Rol.USUARIO_SOCIO)
+                .collect(Collectors.toList());
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Usuario u : usuarios) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", u.getId());
+            map.put("username", u.getUsername());
+            map.put("nombreCompleto", u.getNombreCompleto());
+            map.put("rol", u.getRol().name());
+
+            // LÓGICA DE CRUCE: Consultar el padrón de socios por cédula (username)
+            Optional<Socio> socioOpt = socioRepository.findByCedula(u.getUsername());
+            if (socioOpt.isPresent()) {
+                Socio s = socioOpt.get();
+                // Si es socio, la sucursal del padrón manda
+                map.put("sucursal", s.getSucursal() != null ? s.getSucursal().getNombre() : "Sin Sucursal");
+                map.put("sucursalId", s.getSucursal() != null ? s.getSucursal().getId() : null);
+                map.put("cedula", s.getCedula());
+                map.put("numeroSocio", s.getNumeroSocio());
+            } else {
+                // Fallback: Si no es socio, usamos su configuración de usuario
+                map.put("sucursal", u.getSucursal() != null ? u.getSucursal().getNombre() : "Sin Sucursal");
+                map.put("sucursalId", u.getSucursal() != null ? u.getSucursal().getId() : null);
+                map.put("cedula", u.getUsername());
+            }
+            result.add(map);
+        }
+        return ResponseEntity.ok(result);
     }
 }

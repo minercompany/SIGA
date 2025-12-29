@@ -219,29 +219,29 @@ export default function AsignacionRapidaPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-            {/* Header con identidad del usuario */}
+            {/* Header con identidad del usuario - Compacto */}
             <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 text-white">
-                <div className="max-w-4xl mx-auto px-4 py-6">
-                    <div className="flex items-center justify-between">
+                <div className="mx-auto" style={{ maxWidth: 'clamp(320px, 95vw, 900px)', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <div>
-                            <p className="text-violet-200 text-sm font-medium">Bienvenido</p>
-                            <h1 className="text-2xl md:text-3xl font-black">{user?.nombreCompleto || user?.username}</h1>
+                            <p className="text-violet-200 text-xs md:text-sm font-medium">Bienvenido</p>
+                            <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)' }} className="font-black">{user?.nombreCompleto || user?.username}</h1>
                         </div>
 
-                        {/* Estadísticas del usuario */}
+                        {/* Estadísticas del usuario - Compactas */}
                         {miLista && (
-                            <div className="flex gap-3">
-                                <div className="bg-white/15 backdrop-blur rounded-2xl px-5 py-3 text-center">
-                                    <p className="text-3xl font-black">{miLista.total}</p>
-                                    <p className="text-xs text-violet-200">Asignados</p>
+                            <div className="flex gap-2">
+                                <div className="bg-white/15 backdrop-blur rounded-xl px-3 py-2 text-center flex-1 md:flex-none">
+                                    <p className="text-xl md:text-2xl font-black">{miLista.total}</p>
+                                    <p className="text-[9px] md:text-xs text-violet-200">Asignados</p>
                                 </div>
-                                <div className="bg-emerald-500/40 backdrop-blur rounded-2xl px-5 py-3 text-center">
-                                    <p className="text-3xl font-black text-emerald-200">{miLista.vyv}</p>
-                                    <p className="text-xs text-emerald-100">Voz y Voto</p>
+                                <div className="bg-emerald-500/40 backdrop-blur rounded-xl px-3 py-2 text-center flex-1 md:flex-none">
+                                    <p className="text-xl md:text-2xl font-black text-emerald-200">{miLista.vyv}</p>
+                                    <p className="text-[9px] md:text-xs text-emerald-100">Voz y Voto</p>
                                 </div>
-                                <div className="bg-amber-500/40 backdrop-blur rounded-2xl px-5 py-3 text-center">
-                                    <p className="text-3xl font-black text-amber-200">{miLista.soloVoz}</p>
-                                    <p className="text-xs text-amber-100">Solo Voz</p>
+                                <div className="bg-amber-500/40 backdrop-blur rounded-xl px-3 py-2 text-center flex-1 md:flex-none">
+                                    <p className="text-xl md:text-2xl font-black text-amber-200">{miLista.soloVoz}</p>
+                                    <p className="text-[9px] md:text-xs text-amber-100">Solo Voz</p>
                                 </div>
                             </div>
                         )}
@@ -249,47 +249,46 @@ export default function AsignacionRapidaPage() {
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-                {/* Mensaje de advertencia */}
+            <div className="mx-auto space-y-4" style={{ maxWidth: 'clamp(320px, 95vw, 900px)', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
+                {/* Mensaje de advertencia - Compacto */}
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-4 flex items-start gap-4"
+                    className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-3 flex items-start gap-3"
                 >
-                    <div className="p-2 bg-amber-500 rounded-xl flex-shrink-0">
-                        <Zap className="w-5 h-5 text-white" />
+                    <div className="p-1.5 bg-amber-500 rounded-lg flex-shrink-0">
+                        <Zap className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                        <p className="font-bold text-amber-800">¡La velocidad importa!</p>
-                        <p className="text-sm text-amber-700 mt-1">
-                            Los socios se asignan por <strong>orden de registro</strong>. Si otro usuario registra un socio antes que tú,
-                            ese socio quedará asignado a su lista. <span className="font-bold">¡Agrega tus socios rápidamente!</span>
+                        <p className="font-bold text-amber-800 text-sm">¡La velocidad importa!</p>
+                        <p className="text-xs text-amber-700 mt-0.5">
+                            Los socios se asignan por <strong>orden de registro</strong>.
                         </p>
                     </div>
                 </motion.div>
 
-                {/* Buscador Principal - GRANDE Y PROMINENTE */}
+                {/* Buscador Principal - Responsivo */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-3xl shadow-xl border border-slate-100 p-6"
+                    className="bg-white rounded-2xl shadow-xl border border-slate-100 p-4 md:p-5"
                 >
-                    <div className="flex items-center gap-3 mb-5">
-                        <div className="p-3 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl shadow-lg shadow-violet-200">
-                            <Plus className="w-6 h-6 text-white" />
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="p-2 md:p-2.5 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg md:rounded-xl shadow-lg shadow-violet-200">
+                            <Plus className="w-4 h-4 md:w-5 md:h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-slate-800">Agregar Socio</h2>
-                            <p className="text-sm text-slate-500">Escribe el número de cédula o número de socio</p>
+                            <h2 className="text-base md:text-lg font-black text-slate-800">Agregar Socio</h2>
+                            <p className="text-xs text-slate-500 hidden md:block">Escribe el número de cédula o número de socio</p>
                         </div>
                     </div>
 
                     <div className="relative">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-400" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Ingresa CI o N° de Socio..."
-                            className="w-full pl-14 pr-6 py-5 bg-slate-50 border-2 border-slate-200 rounded-2xl font-bold text-xl text-slate-700 placeholder:text-slate-400 placeholder:font-normal focus:border-violet-500 focus:bg-white outline-none transition-all"
+                            placeholder="Buscar socio (CI, N°)..."
+                            className="w-full pl-12 pr-4 py-3 md:py-4 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-base md:text-lg text-slate-700 placeholder:text-slate-400 placeholder:font-normal focus:border-violet-500 focus:bg-white outline-none transition-all"
                             value={searchTerm}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
@@ -299,7 +298,7 @@ export default function AsignacionRapidaPage() {
                             autoFocus
                         />
                         {searching && (
-                            <Loader2 className="absolute right-5 top-1/2 -translate-y-1/2 h-6 w-6 text-violet-500 animate-spin" />
+                            <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-violet-500 animate-spin" />
                         )}
                     </div>
 

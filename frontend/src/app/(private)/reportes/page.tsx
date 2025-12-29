@@ -10,13 +10,24 @@ import {
     Users,
     ChevronDown,
     Search,
-    Loader2
+    Loader2,
+    Building2,
+    ClipboardList,
+    UserX,
+    BarChart3,
+    AlertCircle,
+    CheckCircle2,
+    ArrowRight,
+    LayoutGrid
 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
 import { Toaster, toast } from "sonner";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ReporteItem {
     id: number;
@@ -27,22 +38,69 @@ interface ReporteItem {
     sucursal: string;
     vozVoto: string;
     operador: string;
-    estado?: string; // Para reporte de padrón (PRESENTE/AUSENTE)
+    estado?: string;
     fechaAsignacion?: string;
     asignadoPor?: string;
     operadorId?: string | number;
+    motivos?: string;
+    totalPresentes?: number;
+    habilitados?: number;
+    soloVoz?: number;
+    fechaIngreso?: string;
 }
 
-type ReportType = 'ASISTENCIA' | 'PADRON' | 'SIN_ASIGNAR' | 'SUCURSALES' | 'OBSERVADOS' | 'POR_SUCURSAL';
+type ReportType = 'ASISTENCIA' | 'PADRON' | 'SIN_ASIGNAR' | 'SUCURSALES' | 'OBSERVADOS' | 'POR_SUCURSAL' | 'ASIGNACIONES';
 
-// Configuración de cada tipo de reporte
-const reportConfig: Record<ReportType, { title: string; description: string; adminOnly: boolean }> = {
-    'ASISTENCIA': { title: 'Asistencia General', description: 'Registro de ingreso a la asamblea', adminOnly: false },
-    'PADRON': { title: 'Mi Padrón (Asignados)', description: 'Lista de socios asignados y su asistencia', adminOnly: false },
-    'POR_SUCURSAL': { title: 'Por Sucursal', description: 'Asistencia filtrada por sucursal', adminOnly: true },
-    'SIN_ASIGNAR': { title: 'Socios Sin Asignar', description: 'Socios que no están en ninguna lista', adminOnly: true },
-    'SUCURSALES': { title: 'Estadísticas por Sucursal', description: 'Resumen agrupado por sucursal', adminOnly: true },
-    'OBSERVADOS': { title: 'Socios Solo Voz', description: 'Socios con Solo Voz y motivos', adminOnly: true },
+const reportConfig: Record<ReportType, { title: string; description: string; adminOnly: boolean; icon: any; color: string }> = {
+    'ASISTENCIA': {
+        title: 'Asistencia General',
+        description: 'Ingresos a la asamblea',
+        adminOnly: false,
+        icon: ClipboardList,
+        color: 'emerald'
+    },
+    'PADRON': {
+        title: 'Mi Padrón',
+        description: 'Socios asignados',
+        adminOnly: false,
+        icon: Users,
+        color: 'blue'
+    },
+    'POR_SUCURSAL': {
+        title: 'Por Sucursal',
+        description: 'Filtrado por sede',
+        adminOnly: true,
+        icon: Building2,
+        color: 'violet'
+    },
+    'SIN_ASIGNAR': {
+        title: 'Sin Asignar',
+        description: 'Socios pendientes',
+        adminOnly: true,
+        icon: UserX,
+        color: 'orange'
+    },
+    'SUCURSALES': {
+        title: 'Estadísticas',
+        description: 'Resumen agrupado',
+        adminOnly: true,
+        icon: BarChart3,
+        color: 'rose'
+    },
+    'OBSERVADOS': {
+        title: 'Solo Voz',
+        description: 'Observados con motivo',
+        adminOnly: true,
+        icon: AlertCircle,
+        color: 'slate'
+    },
+    'ASIGNACIONES': {
+        title: 'Asignaciones',
+        description: 'Distribución general',
+        adminOnly: true,
+        icon: LayoutGrid,
+        color: 'indigo'
+    },
 };
 
 export default function ReportesPage() {
@@ -56,9 +114,11 @@ export default function ReportesPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [reportView, setReportView] = useState<ReportType>('ASISTENCIA');
     const [sucursales, setSucursales] = useState<any[]>([]);
-    const [selectedSucursal, setSelectedSucursal] = useState<string>("");
     const [generating, setGenerating] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [selectedSucursalFilter, setSelectedSucursalFilter] = useState<string>("");
+    const [filteredOperadores, setFilteredOperadores] = useState<any[]>([]);
+    const [step, setStep] = useState(1);
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -66,8 +126,6 @@ export default function ReportesPage() {
             const parsedUser = JSON.parse(storedUser);
             setUser(parsedUser);
             cargarOperadores(parsedUser);
-
-            // Default view logic
             const initialView: ReportType = parsedUser.rol === 'USUARIO_SOCIO' ? 'PADRON' : 'ASISTENCIA';
             setReportView(initialView);
             fetchReporte(parsedUser, "", initialView);
@@ -75,81 +133,87 @@ export default function ReportesPage() {
     }, []);
 
     const cargarOperadores = async (usuario: any) => {
-        if (usuario.rol === "SUPER_ADMIN") {
+        if (usuario.rol === "SUPER_ADMIN" || usuario.rol === "DIRECTIVO") {
             try {
                 const token = localStorage.getItem("token");
-                const res = await axios.get("http://localhost:8081/api/usuarios", {
+                const res = await axios.get("http://localhost:8081/api/usuarios/operadores", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                // Filtramos para mostrar usuarios relevantes
                 setOperadores(res.data);
-            } catch (error) {
-                console.error("Error cargando operadores", error);
-            }
+            } catch (error) { console.error(error); }
 
-            // Cargar sucursales para el filtro
             try {
                 const token = localStorage.getItem("token");
                 const resSuc = await axios.get("http://localhost:8081/api/reportes/sucursales-lista", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setSucursales(resSuc.data);
-            } catch (error) {
-                console.error("Error cargando sucursales", error);
-            }
+            } catch (error) { console.error(error); }
         }
     };
 
-    const fetchReporte = async (currentUser: any, opId: string, view: ReportType = reportView) => {
+    useEffect(() => {
+        const lowerTerm = searchTerm.toLowerCase();
+        const filtered = operadores.filter(op => {
+            if (selectedSucursalFilter && op.sucursalId?.toString() !== selectedSucursalFilter) return false;
+            if (!lowerTerm) return true;
+            return (
+                op.nombreCompleto.toLowerCase().includes(lowerTerm) ||
+                (op.username && op.username.toString().toLowerCase().includes(lowerTerm)) ||
+                (op.cedula && op.cedula.toString().toLowerCase().includes(lowerTerm)) ||
+                (op.numeroSocio && op.numeroSocio.toString().toLowerCase().includes(lowerTerm))
+            );
+        });
+        setFilteredOperadores(filtered);
+
+        if (lowerTerm.length >= 2 && filtered.length === 1) {
+            const foundId = filtered[0].id.toString();
+            if (selectedOperador !== foundId) {
+                setSelectedOperador(foundId);
+                fetchReporte(user, foundId, reportView, selectedSucursalFilter);
+            }
+        } else if (lowerTerm === "" && selectedOperador !== "") {
+            setSelectedOperador("");
+            fetchReporte(user, "", reportView, selectedSucursalFilter);
+        }
+    }, [searchTerm, operadores, selectedSucursalFilter]);
+
+    const fetchReporte = async (currentUser: any, opId?: string, view: ReportType = reportView, sucursalIdOverride?: string) => {
         setLoading(true);
-        // Reset data to avoid showing old data while loading or on error
         setData([]);
         try {
             const token = localStorage.getItem("token");
             let url = "http://localhost:8081/api/reportes";
 
+            const finalOpId = opId !== undefined ? opId : selectedOperador;
+            const finalSucId = sucursalIdOverride !== undefined ? sucursalIdOverride : selectedSucursalFilter;
+
             switch (view) {
-                case 'PADRON':
-                    url += "/mis-asignados";
-                    break;
-                case 'SIN_ASIGNAR':
-                    url += "/socios-sin-asignar";
-                    break;
-                case 'SUCURSALES':
-                    url += "/estadisticas-sucursal";
-                    break;
-                case 'OBSERVADOS':
-                    url += "/socios-observados";
-                    break;
+                case 'PADRON': url += "/mis-asignados"; break;
+                case 'SIN_ASIGNAR': url += "/socios-sin-asignar"; break;
+                case 'SUCURSALES': url += "/estadisticas-sucursal"; break;
+                case 'OBSERVADOS': url += "/socios-observados"; break;
+                case 'ASIGNACIONES': url += "/asignaciones-general"; break;
                 case 'POR_SUCURSAL':
-                    if (selectedSucursal) {
-                        url += `/por-sucursal/${selectedSucursal}`;
-                    } else {
-                        setLoading(false);
-                        return; // No hacer fetch si no hay sucursal seleccionada
-                    }
+                    const sId = finalSucId || selectedSucursalFilter;
+                    if (!sId) { setLoading(false); return; }
+                    url += `/por-sucursal/${sId}`;
                     break;
-                default: // ASISTENCIA
-                    url += "/asistencia";
-                    if (opId) {
-                        url += `?operadorId=${opId}`;
-                    }
+                default: url += "/asistencia"; break;
             }
 
             const response = await axios.get(url, {
+                params: {
+                    operadorId: finalOpId || undefined,
+                    sucursalId: finalSucId || undefined
+                },
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             setData(response.data.data);
             setStats(response.data.stats);
-
         } catch (error: any) {
-            console.error("Error al obtener reporte", error);
-            if (error.response?.status === 403) {
-                toast.error("No tienes permisos para ver este reporte.");
-            } else {
-                toast.error("Error al cargar los datos del reporte.");
-            }
+            toast.error("Error al cargar los datos del reporte.");
         } finally {
             setLoading(false);
         }
@@ -161,670 +225,321 @@ export default function ReportesPage() {
         fetchReporte(user, newVal, reportView);
     };
 
+    const handleSucursalFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const val = e.target.value;
+        setSelectedSucursalFilter(val);
+        setSelectedOperador("");
+        fetchReporte(user, "", reportView, val);
+        if (val) setStep(3);
+    };
+
     const handleViewChange = (view: ReportType) => {
-        // POR_SUCURSAL tiene su propia página
-        if (view === 'POR_SUCURSAL') {
-            router.push('/reportes/por-sucursal');
-            return;
-        }
         setReportView(view);
+        setStep(2);
         fetchReporte(user, selectedOperador, view);
     };
 
-    const handleExportPDF = async () => {
-        if (!data || data.length === 0) {
-            toast.error("No hay datos para exportar en este reporte.");
-            return;
-        }
-
-        setGenerating(true);
-        setProgress(10);
-
+    const formatSafeTime = (dateValue: any) => {
+        if (!dateValue) return "-";
         try {
-            // Permitir que la UI muestre el modal antes de bloquear con jsPDF
-            await new Promise(resolve => setTimeout(resolve, 500));
+            let d = Array.isArray(dateValue) ? new Date(dateValue[0], dateValue[1] - 1, dateValue[2], dateValue[3] || 0, dateValue[4] || 0, dateValue[5] || 0) : new Date(dateValue);
+            return isNaN(d.getTime()) ? "-" : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch { return "-"; }
+    };
 
-            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
+    const formatSafeDateTime = (dateValue: any) => {
+        if (!dateValue) return "-";
+        try {
+            let d = Array.isArray(dateValue) ? new Date(dateValue[0], dateValue[1] - 1, dateValue[2], dateValue[3] || 0, dateValue[4] || 0, dateValue[5] || 0) : new Date(dateValue);
+            return isNaN(d.getTime()) ? "-" : format(d, "dd/MM/yyyy HH:mm", { locale: es });
+        } catch { return "-"; }
+    };
 
-            // --- CARGAR LOGO ---
+    const handleExportPDF = async () => {
+        if (!data || data.length === 0) { toast.error("No hay datos para exportar."); return; }
+        setGenerating(true); setProgress(10);
+        try {
+            await new Promise(r => setTimeout(r, 500));
+            const doc = new jsPDF('l', 'mm', 'a4');
             let logoBase64 = '';
             try {
-                const response = await fetch('/logo-cooperativa.png');
-                const blob = await response.blob();
-                logoBase64 = await new Promise((resolve) => {
+                const res = await fetch('/logo-cooperativa.png');
+                const blob = await res.blob();
+                logoBase64 = await new Promise((res) => {
                     const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.onloadend = () => res(reader.result as string);
                     reader.readAsDataURL(blob);
                 });
-            } catch (e) {
-                console.error("No se pudo cargar el logo", e);
-            }
+            } catch { }
 
-            // --- ENCABEZADO PREMIUM (UNIFORME PARA TODOS) ---
             doc.setFillColor(31, 41, 55);
             doc.rect(0, 0, 297, 45, 'F');
-
-            if (logoBase64) {
-                doc.addImage(logoBase64, 'PNG', 10, 5, 35, 35);
-            }
-
-            doc.setFontSize(22);
-            doc.setTextColor(255, 255, 255);
-            doc.setFont("helvetica", "bold");
+            if (logoBase64) doc.addImage(logoBase64, 'PNG', 10, 5, 35, 35);
+            doc.setFontSize(22); doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold");
             doc.text("COOPERATIVA REDUCTO LTDA", 50, 18);
-
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(16, 185, 129);
-            doc.text("SIGA - Sistema Integral de Gestión de Asamblea", 50, 26);
-
-            doc.setFontSize(9);
-            doc.setTextColor(200, 200, 200);
-            doc.text("Documento Oficial", 50, 33);
-
-            doc.setFontSize(9);
+            doc.setFontSize(11); doc.setTextColor(16, 185, 129); doc.text("SIGA - Sistema Integral de Gestión de Asamblea", 50, 26);
+            doc.setFontSize(9); doc.setTextColor(200, 200, 200); doc.text("Documento Oficial", 50, 33);
             doc.text(`Fecha: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 283, 38, { align: 'right' });
 
-            // --- TÍTULO DINÁMICO ---
             const titulos: Record<ReportType, string> = {
                 'ASISTENCIA': 'REPORTE OFICIAL DE ASISTENCIA',
-                'PADRON': 'REPORTE DE PADRÓN Y ASISTENCIA (MIS ASIGNADOS)',
+                'PADRON': 'REPORTE DE PADRÓN Y ASISTENCIA',
                 'POR_SUCURSAL': `REPORTE DE ASISTENCIA - ${stats.sucursalNombre || 'SUCURSAL'}`,
                 'SIN_ASIGNAR': 'REPORTE DE SOCIOS SIN ASIGNAR',
-                'SUCURSALES': 'ESTADÍSTICAS DE ASISTENCIA POR SUCURSAL',
-                'OBSERVADOS': 'REPORTE DE SOCIOS (SOLO VOZ)'
+                'SUCURSALES': 'ESTADÍSTICAS POR SUCURSAL',
+                'OBSERVADOS': 'REPORTE DE SOCIOS (SOLO VOZ)',
+                'ASIGNACIONES': 'REPORTE GENERAL DE ASIGNACIONES'
             };
+            doc.setFontSize(16); doc.setTextColor(31, 41, 55); doc.text(titulos[reportView], 14, 58);
+            doc.setFontSize(11); doc.text(`Total: ${stats.totalRegistros}`, 14, 66);
 
-            doc.setFontSize(16);
-            doc.setTextColor(31, 41, 55);
-            doc.setFont("helvetica", "bold");
-            doc.text(titulos[reportView], 14, 58);
-
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(75, 85, 99);
-            doc.text(`Total: ${stats.totalRegistros}`, 14, 66);
-
-            doc.setFontSize(9);
-            doc.setTextColor(120, 130, 140);
-            doc.text(`Operador: ${user?.nombreCompleto || 'Sistema'}`, 283, 66, { align: 'right' });
-
-            // --- COLUMNAS Y DATOS DINÁMICOS ---
-            setProgress(40);
-            await new Promise(resolve => setTimeout(resolve, 200));
             let columns: any[] = [];
             let rows: any[] = [];
 
             if (reportView === 'SUCURSALES') {
-                columns = [
-                    { header: 'SUCURSAL', dataKey: 'sucursal' },
-                    { header: 'TOTAL PRESENTES', dataKey: 'totalPresentes' },
-                    { header: 'VOZ Y VOTO', dataKey: 'habilitados' },
-                    { header: 'SOLO VOZ', dataKey: 'soloVoz' },
-                ];
-                rows = data.map((item: any) => ({
-                    sucursal: item.sucursal,
-                    totalPresentes: item.totalPresentes,
-                    habilitados: item.habilitados,
-                    soloVoz: item.soloVoz
-                }));
+                columns = [{ header: 'SUCURSAL', dataKey: 'suc' }, { header: 'TOTAL', dataKey: 'tot' }, { header: 'VOZ/VOTO', dataKey: 'vv' }, { header: 'SOLO VOZ', dataKey: 'sv' }];
+                rows = data.map((item: any) => ({ suc: item.sucursal, tot: item.totalPresentes, vv: item.habilitados, sv: item.soloVoz }));
             } else if (reportView === 'OBSERVADOS') {
-                columns = [
-                    { header: 'CÉDULA', dataKey: 'cedula' },
-                    { header: 'SOCIO', dataKey: 'socio' },
-                    { header: 'NRO', dataKey: 'nro' },
-                    { header: 'SUCURSAL', dataKey: 'sucursal' },
-                    { header: 'MOTIVO OBSERVACIÓN', dataKey: 'motivos' },
-                    { header: 'INGRESO', dataKey: 'fechaIngreso' },
-                ];
-                rows = data.map((item: any) => ({
-                    cedula: item.cedula,
-                    socio: item.socioNombre,
-                    nro: item.socioNro,
-                    sucursal: item.sucursal,
-                    motivos: item.motivos || 'Sin especificar',
-                    fechaIngreso: item.fechaIngreso ? new Date(item.fechaIngreso).toLocaleString() : '-'
-                }));
-            } else if (reportView === 'SIN_ASIGNAR') {
-                columns = [
-                    { header: 'CÉDULA', dataKey: 'cedula' },
-                    { header: 'SOCIO', dataKey: 'socio' },
-                    { header: 'NRO', dataKey: 'nro' },
-                    { header: 'SUCURSAL', dataKey: 'sucursal' },
-                    { header: 'CONDICIÓN', dataKey: 'condicion' },
-                ];
-                rows = data.map((item: any) => ({
-                    cedula: item.cedula,
-                    socio: item.socioNombre,
-                    nro: item.socioNro,
-                    sucursal: item.sucursal,
-                    condicion: item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ',
-                    rawStatus: item.vozVoto
-                }));
-            } else if (reportView === 'POR_SUCURSAL') {
-                columns = [
-                    { header: 'CÉDULA', dataKey: 'cedula' },
-                    { header: 'SOCIO', dataKey: 'socio' },
-                    { header: 'NRO', dataKey: 'nro' },
-                    { header: 'REGISTRADO EN LISTA', dataKey: 'fechaAsig' },
-                    { header: 'INGRESO ASAMBLEA', dataKey: 'fechaIngreso' },
-                    { header: 'OPERADOR', dataKey: 'operador' },
-                    { header: 'ESTADO', dataKey: 'estado' },
-                    { header: 'CONDICIÓN', dataKey: 'condicion' },
-                ];
-                rows = data.map((item: any) => ({
-                    cedula: item.cedula,
-                    socio: item.socioNombre,
-                    nro: item.socioNro,
-                    fechaAsig: item.fechaAsignacion ? new Date(item.fechaAsignacion).toLocaleString() : '-',
-                    fechaIngreso: item.fechaHora ? new Date(item.fechaHora).toLocaleString() : '-',
-                    operador: item.operador,
-                    estado: item.estado,
-                    condicion: item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ',
-                    rawStatus: item.vozVoto,
-                    rawPresence: item.estado
-                }));
+                columns = [{ header: 'CI', dataKey: 'ci' }, { header: 'SOCIO', dataKey: 'nom' }, { header: 'MOTIVO', dataKey: 'mot' }, { header: 'INGRESO', dataKey: 'f' }];
+                rows = data.map((item: any) => ({ ci: item.cedula, nom: item.socioNombre, mot: item.motivos || '-', f: item.fechaIngreso ? new Date(item.fechaIngreso).toLocaleString() : '-' }));
+            } else if (reportView === 'ASIGNACIONES' || reportView === 'ASISTENCIA') {
+                columns = [{ header: 'CÉDULA', dataKey: 'ci' }, { header: 'SOCIO', dataKey: 'nom' }, { header: 'COLABORADOR', dataKey: 'op' }, { header: 'INGRESO', dataKey: 'f' }, { header: 'CONDICIÓN', dataKey: 'c' }];
+                rows = data.map(item => ({ ci: item.cedula, nom: item.socioNombre, op: item.operador, f: item.fechaHora ? new Date(item.fechaHora).toLocaleString() : '-', c: item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ', rawStatus: item.vozVoto }));
             } else {
-                // ASISTENCIA y PADRON (ya existente)
-                columns = [
-                    { header: 'CÉDULA', dataKey: 'cedula' },
-                    { header: 'SOCIO', dataKey: 'socio' },
-                    { header: 'NRO', dataKey: 'nro' },
-                    { header: 'ASIGNADO EL', dataKey: 'fechaAsig' },
-                    { header: 'ASIGNADO POR', dataKey: 'asignadoPor' },
-                    { header: 'INGRESO ASAMBLEA', dataKey: 'fechaIngreso' },
-                    { header: 'REGISTRADO EN ASAMBLEA POR', dataKey: 'operador' },
-                    { header: 'CONDICIÓN', dataKey: 'condicion' },
-                ];
-                rows = data.map(item => {
-                    const esHabilitado = item.vozVoto === 'HABILITADO';
-                    return {
-                        cedula: item.cedula,
-                        socio: item.socioNombre,
-                        nro: item.socioNro,
-                        fechaAsig: item.fechaAsignacion ? new Date(item.fechaAsignacion).toLocaleString() : '-',
-                        asignadoPor: item.asignadoPor || '-',
-                        fechaIngreso: item.fechaHora ? new Date(item.fechaHora).toLocaleString() : '-',
-                        operador: item.operador,
-                        condicion: esHabilitado ? 'VOZ Y VOTO' : 'SOLO VOZ',
-                        rawStatus: item.vozVoto,
-                        rawPresence: item.estado || ''
-                    };
-                });
+                columns = [{ header: 'CÉDULA', dataKey: 'ci' }, { header: 'SOCIO', dataKey: 'nom' }, { header: 'NRO', dataKey: 'nro' }, { header: 'INGRESO', dataKey: 'f' }, { header: 'CONDICIÓN', dataKey: 'c' }];
+                rows = data.map(item => ({ ci: item.cedula, nom: item.socioNombre, nro: item.socioNro, f: item.fechaHora ? new Date(item.fechaHora).toLocaleString() : '-', c: item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ', rawStatus: item.vozVoto }));
             }
-
-            setProgress(70);
-            await new Promise(resolve => setTimeout(resolve, 200));
 
             autoTable(doc, {
-                startY: 75,
-                columns: columns,
-                body: rows,
-                headStyles: {
-                    fillColor: [31, 41, 55],
-                    textColor: [255, 255, 255],
-                    fontStyle: 'bold',
-                    halign: 'center'
-                },
-                bodyStyles: {
-                    valign: 'middle',
-                    fontSize: 8,
-                    textColor: [0, 0, 0] // NEGRO
-                },
-                alternateRowStyles: { fillColor: [248, 250, 252] },
-                didParseCell: function (cellData: any) {
-                    if (cellData.section === 'body') {
-                        const row = cellData.row.raw as any;
-                        if (row.rawStatus === 'HABILITADO') {
-                            cellData.cell.styles.fillColor = [209, 250, 229];
-                            cellData.cell.styles.textColor = [0, 0, 0]; // NEGRO
-                        } else if (row.rawStatus === 'OBSERVADO') {
-                            cellData.cell.styles.fillColor = [254, 243, 199];
-                            cellData.cell.styles.textColor = [0, 0, 0]; // NEGRO
-                        }
-                        if (row.rawPresence === 'AUSENTE') {
-                            cellData.cell.styles.textColor = [0, 0, 0]; // NEGRO
-                        }
-                    }
-                }
+                startY: 75, columns: columns, body: rows,
+                headStyles: { fillColor: [31, 41, 55], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+                bodyStyles: { fontSize: 8, textColor: [0, 0, 0] },
+                alternateRowStyles: { fillColor: [248, 250, 252] }
             });
 
-            // Pie de página
-            const pageCount = (doc as any).internal.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.setTextColor(150);
-                doc.text(`Página ${i} de ${pageCount} - SIGA - Sistema Integral de Gestión de Asamblea`, 148, 200, { align: 'center' });
-            }
-
-            const fileName = `reporte_${reportView.toLowerCase()}_${new Date().toISOString().split('T')[0]}.pdf`;
-            doc.save(fileName);
-
+            const pdfBlob = doc.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            const printWindow = window.open(pdfUrl, '_blank');
+            if (!printWindow) doc.save(`reporte_${reportView.toLowerCase()}.pdf`);
             setProgress(100);
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-        } catch (error) {
-            console.error("Error generando PDF:", error);
-            toast.error("Ocurrió un error al generar el PDF.");
-        } finally {
-            setGenerating(false);
-            setProgress(0);
-        }
+        } catch { toast.error("Error al generar PDF."); }
+        finally { setGenerating(false); setProgress(0); }
     };
 
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(data.map(item => ({
-            "Fecha": item.fechaHora ? new Date(item.fechaHora).toLocaleDateString() : '-',
-            "Hora": item.fechaHora ? new Date(item.fechaHora).toLocaleTimeString() : '-',
-            "Nro Socio": item.socioNro,
-            "Nombre Completo": item.socioNombre,
-            "Cédula": item.cedula,
-            "Sucursal": item.sucursal,
-            "Estado Asistencia": item.estado || 'PRESENTE',
-            "Condicion": item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ',
-            "Operador": item.operador
+            "CI": item.cedula, "Nombre": item.socioNombre, "Sucursal": item.sucursal, "Estado": item.estado || 'PRESENTE', "Condicion": item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ', "Operador": item.operador
         })));
-
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Reporte");
-        XLSX.writeFile(wb, "reporte_asistencia.xlsx");
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+        XLSX.writeFile(wb, "reporte_siga.xlsx");
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 pb-12">
-            {/* Modal de Progreso */}
-            {generating && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 animate-in fade-in zoom-in duration-300 border border-emerald-100">
-                        <div className="mx-auto w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center relative">
-                            <Loader2 className="w-10 h-10 text-emerald-600 animate-spin" />
-                            <div className="absolute inset-0 border-4 border-emerald-100 rounded-full" />
-                            <div
-                                className="absolute inset-0 border-4 border-emerald-500 rounded-full border-t-transparent animate-spin"
-                                style={{ animationDuration: '1.5s' }}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <h3 className="text-2xl font-black text-slate-800">Generando Reporte</h3>
-                            <p className="text-slate-500 font-medium">Procesando datos del sistema...</p>
-                        </div>
-
-                        <div className="space-y-2">
-                            <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                                <div
-                                    className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-                                    style={{ width: `${progress}%` }}
-                                />
-                            </div>
-                            <p className="text-emerald-600 font-bold text-sm tabular-nums text-right">{progress}% completado</p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Header Premium */}
+        <div className="max-w-6xl mx-auto space-y-6 pb-12">
             <Toaster position="top-center" richColors />
-            <div className="text-center space-y-3 py-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-full mb-2">
-                    <span className="text-emerald-600 font-bold text-xs uppercase tracking-wider">SIGA Premium</span>
+
+            {/* Minimal Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-black text-slate-800">Centro de Reportes</h1>
+                    <p className="text-slate-500 text-sm">Configura y genera documentos oficiales</p>
                 </div>
-                <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-800 to-slate-600">
-                    Centro de Reportes
-                </h1>
-                <p className="text-slate-500 max-w-lg mx-auto">Generación de documentos oficiales, estadísticas y actas de asamblea</p>
-            </div>
-
-            {/* Selector de Tipo de Reporte - Premium */}
-            <div className="bg-gradient-to-br from-white to-slate-50 p-8 rounded-[2rem] shadow-xl border border-slate-100/50 backdrop-blur-sm">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl shadow-lg shadow-violet-200">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 className="font-bold text-slate-800 text-lg">Seleccionar Tipo de Reporte</h2>
-                        <p className="text-slate-400 text-xs">Elige el documento que deseas generar</p>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {(Object.keys(reportConfig) as ReportType[])
-                        .filter(type => {
-                            const config = reportConfig[type];
-                            return !(config.adminOnly && user?.rol !== 'SUPER_ADMIN');
-                        })
-                        .map(type => {
-                            const config = reportConfig[type];
-                            const isActive = reportView === type;
-
-                            // Colores personalizados por tipo
-                            const colorSchemes: Record<ReportType, {
-                                gradient: string;
-                                border: string;
-                                shadow: string;
-                                icon: string;
-                                iconBg: string;
-                                hoverBg: string;
-                            }> = {
-                                'ASISTENCIA': {
-                                    gradient: 'from-blue-500 to-cyan-500',
-                                    border: 'border-blue-300',
-                                    shadow: 'shadow-blue-200',
-                                    icon: '📋',
-                                    iconBg: 'from-blue-500 to-cyan-600',
-                                    hoverBg: 'hover:bg-blue-50'
-                                },
-                                'PADRON': {
-                                    gradient: 'from-emerald-500 to-teal-500',
-                                    border: 'border-emerald-300',
-                                    shadow: 'shadow-emerald-200',
-                                    icon: '👥',
-                                    iconBg: 'from-emerald-500 to-teal-600',
-                                    hoverBg: 'hover:bg-emerald-50'
-                                },
-                                'POR_SUCURSAL': {
-                                    gradient: 'from-violet-500 to-purple-500',
-                                    border: 'border-violet-300',
-                                    shadow: 'shadow-violet-200',
-                                    icon: '🏛️',
-                                    iconBg: 'from-violet-500 to-purple-600',
-                                    hoverBg: 'hover:bg-violet-50'
-                                },
-                                'SIN_ASIGNAR': {
-                                    gradient: 'from-amber-500 to-orange-500',
-                                    border: 'border-amber-300',
-                                    shadow: 'shadow-amber-200',
-                                    icon: '❓',
-                                    iconBg: 'from-amber-500 to-orange-600',
-                                    hoverBg: 'hover:bg-amber-50'
-                                },
-                                'SUCURSALES': {
-                                    gradient: 'from-rose-500 to-pink-500',
-                                    border: 'border-rose-300',
-                                    shadow: 'shadow-rose-200',
-                                    icon: '📊',
-                                    iconBg: 'from-rose-500 to-pink-600',
-                                    hoverBg: 'hover:bg-rose-50'
-                                },
-                                'OBSERVADOS': {
-                                    gradient: 'from-slate-500 to-gray-600',
-                                    border: 'border-slate-300',
-                                    shadow: 'shadow-slate-200',
-                                    icon: '⚠️',
-                                    iconBg: 'from-slate-500 to-gray-700',
-                                    hoverBg: 'hover:bg-slate-50'
-                                }
-                            };
-
-                            const colors = colorSchemes[type];
-
-                            return (
-                                <button
-                                    key={type}
-                                    onClick={() => handleViewChange(type)}
-                                    className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 text-left overflow-hidden transform
-                                        ${isActive
-                                            ? `${colors.border} bg-gradient-to-br ${colors.gradient.replace('to-', 'to-').replace('from-', 'from-').split(' ')[0]}-50 ${colors.gradient.replace('to-', 'to-').replace('from-', 'from-').split(' ')[1]?.replace('-500', '-50') || ''} shadow-2xl ${colors.shadow} scale-[1.03] -translate-y-1`
-                                            : `border-slate-200 bg-white ${colors.hoverBg} hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02]`
-                                        }`}
-                                >
-                                    {/* Fondo gradiente sutil para activo */}
-                                    {isActive && (
-                                        <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-5`} />
-                                    )}
-
-                                    {/* Efecto de brillo hover */}
-                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-
-                                    {/* Indicador activo con color */}
-                                    {isActive && (
-                                        <div className="absolute top-4 right-4">
-                                            <span className="flex h-4 w-4">
-                                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-gradient-to-r ${colors.gradient} opacity-75`}></span>
-                                                <span className={`relative inline-flex rounded-full h-4 w-4 bg-gradient-to-r ${colors.gradient}`}></span>
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    <div className="relative z-10">
-                                        {/* Icono con fondo gradiente */}
-                                        <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${colors.iconBg} shadow-lg ${colors.shadow} mb-4`}>
-                                            <span className="text-2xl filter drop-shadow-sm">{colors.icon}</span>
-                                        </div>
-
-                                        <p className={`font-bold text-base leading-tight mb-2 ${isActive ? `bg-gradient-to-r ${colors.gradient} bg-clip-text text-transparent` : 'text-slate-800 group-hover:text-slate-900'}`}>
-                                            {config.title}
-                                        </p>
-                                        <p className="text-xs text-slate-400 leading-relaxed">{config.description}</p>
-
-                                        {/* Barra de progreso decorativa */}
-                                        <div className={`mt-4 h-1 rounded-full overflow-hidden ${isActive ? `bg-gradient-to-r ${colors.gradient}` : 'bg-slate-100'}`}>
-                                            <div className={`h-full ${isActive ? 'w-full' : 'w-0 group-hover:w-full'} bg-gradient-to-r ${colors.gradient} transition-all duration-500`} />
-                                        </div>
-                                    </div>
-                                </button>
-                            );
-                        })}
+                <div className="flex gap-2">
+                    <button onClick={handleExportPDF} className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-600 transition-all flex items-center gap-2 text-sm font-bold">
+                        <Printer className="w-4 h-4" /> PDF
+                    </button>
+                    <button onClick={handleExportExcel} className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all flex items-center gap-2 text-sm font-bold shadow-lg shadow-emerald-100">
+                        <FileSpreadsheet className="w-4 h-4" /> Excel
+                    </button>
                 </div>
             </div>
 
-            {/* Panel de Control Simplificado */}
-            <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-8">
+            {/* Re-invented Configurator Card */}
+            <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
 
-                {/* Selector de Usuario (Solo Admin) */}
-                <div className="w-full md:w-1/2 space-y-3">
-                    <label className="text-sm font-bold text-slate-600 uppercase tracking-wide flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        Filtrar por Operador / Terminal
-                    </label>
-                    <div className="space-y-2">
-                        {user?.rol === "SUPER_ADMIN" && (
+                    {/* Step 1: Type */}
+                    <div className="p-6 space-y-4">
+                        <div className="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-widest">
+                            <span className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center border border-indigo-100">1</span>
+                            Tipo de Reporte
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            {(Object.keys(reportConfig) as ReportType[]).map(t => {
+                                const active = reportView === t;
+                                const Icon = reportConfig[t].icon;
+                                return (
+                                    <button
+                                        key={t}
+                                        onClick={() => handleViewChange(t)}
+                                        className={`flex items-center gap-2.5 p-3 rounded-xl transition-all text-left ${active
+                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 scale-105'
+                                            : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+                                    >
+                                        <Icon className={`w-5 h-5 ${active ? 'text-white' : 'text-slate-400'}`} />
+                                        <div className="min-w-0">
+                                            <p className="text-xs font-black truncate">{reportConfig[t].title}</p>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Step 2: Sucursal */}
+                    <div className={`p-6 space-y-4 transition-opacity ${step < 2 ? 'opacity-30' : 'opacity-100'}`}>
+                        <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-widest">
+                            <span className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100">2</span>
+                            Sucursal
+                        </div>
+                        <div className="relative">
+                            <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <select
+                                disabled={user?.rol !== 'SUPER_ADMIN' || step < 2}
+                                value={selectedSucursalFilter}
+                                onChange={handleSucursalFilterChange}
+                                className="w-full pl-10 pr-10 py-3.5 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-700 appearance-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                            >
+                                <option value="">🏢 Todas las Sucursales</option>
+                                {sucursales.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-2 italic px-2">Selecciona una para filtrar por una sede específica</p>
+                    </div>
+
+                    {/* Step 3: Specific Collaborator */}
+                    <div className={`p-6 space-y-4 transition-opacity ${step < 3 ? 'opacity-30' : 'opacity-100'}`}>
+                        <div className="flex items-center gap-2 text-violet-600 font-bold text-xs uppercase tracking-widest">
+                            <span className="w-6 h-6 rounded-full bg-violet-50 flex items-center justify-center border border-violet-100">3</span>
+                            Colaborador
+                        </div>
+                        <div className="space-y-3">
                             <div className="relative">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                 <input
+                                    disabled={step < 3}
                                     type="text"
-                                    placeholder="Buscar por Nombre, CI o Socio..."
-                                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm font-bold text-slate-700 placeholder:font-normal"
+                                    placeholder="Buscar por Nombre o CI..."
+                                    className="w-full pl-10 pr-4 py-3.5 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-violet-500 outline-none"
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={e => setSearchTerm(e.target.value)}
                                 />
                             </div>
-                        )}
-                        <div className="relative">
-                            {user?.rol === "SUPER_ADMIN" ? (
+                            <div className="relative">
+                                <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                 <select
-                                    className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-lg rounded-xl px-6 py-4 focus:outline-none focus:ring-4 focus:ring-emerald-100 transition-all font-medium cursor-pointer"
+                                    disabled={step < 3}
                                     value={selectedOperador}
                                     onChange={handleOperadorChange}
+                                    className="w-full pl-10 pr-10 py-3.5 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-700 appearance-none focus:ring-2 focus:ring-violet-500 cursor-pointer"
                                 >
-                                    <option value="">★ CONSOLIDADO GENERAL (TODOS)</option>
-                                    {operadores
-                                        .filter(op => {
-                                            if (!searchTerm) return true;
-                                            const term = searchTerm.toLowerCase();
-                                            return (
-                                                op.nombreCompleto.toLowerCase().includes(term) ||
-                                                (op.cedula && op.cedula.includes(term)) ||
-                                                (op.numeroSocio && op.numeroSocio.includes(term))
-                                            );
-                                        })
-                                        .map(op => (
-                                            <option key={op.id} value={op.id}>
-                                                {op.nombreCompleto} {op.cedula ? `(CI: ${op.cedula})` : ''}
-                                            </option>
-                                        ))}
+                                    <option value="">👤 Todos los de esta sucursal</option>
+                                    {filteredOperadores.map(op => <option key={op.id} value={op.id}>{op.nombreCompleto}</option>)}
                                 </select>
-                            ) : (
-                                <div className="w-full bg-slate-50 border border-slate-200 text-slate-500 text-lg rounded-xl px-6 py-4 font-medium flex items-center gap-2">
-                                    <User className="w-5 h-5 text-emerald-500" />
-                                    {user?.nombreCompleto || "Mi Terminal"} {user?.rol === "USUARIO_SOCIO" ? "(Mis Asignados)" : "(Mis Registros)"}
-                                </div>
-                            )}
-                            {/* Icono flecha para select */}
-                            {user?.rol === "SUPER_ADMIN" && (
-                                <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                            )}
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Botones de Acción */}
-                <div className="w-full md:w-1/2 flex flex-col gap-3">
-                    <label className="text-sm font-bold text-slate-600 uppercase tracking-wide flex items-center gap-2">
-                        <Download className="w-4 h-4" />
-                        Exportar Documentos
-                    </label>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={handleExportPDF}
-                            className="flex-1 bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-4 rounded-xl shadow-lg shadow-red-200 font-bold flex items-center justify-center gap-3 transition-transform hover:-translate-y-1 active:scale-95"
-                        >
-                            <Printer className="w-6 h-6" />
-                            <div>
-                                <span className="block text-xs opacity-80 uppercase tracking-wider">Acta / Listado</span>
-                                <span className="text-lg">PDF</span>
-                            </div>
-                        </button>
-                        <button
-                            onClick={handleExportExcel}
-                            className="flex-1 bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-6 py-4 rounded-xl shadow-lg shadow-emerald-200 font-bold flex items-center justify-center gap-3 transition-transform hover:-translate-y-1 active:scale-95"
-                        >
-                            <FileSpreadsheet className="w-6 h-6" />
-                            <div>
-                                <span className="block text-xs opacity-80 uppercase tracking-wider">Planilla de Control</span>
-                                <span className="text-lg">Excel</span>
-                            </div>
-                        </button>
+            {/* Results Header / Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Registros</p>
+                    <p className="text-2xl font-black text-slate-800">{stats.totalRegistros}</p>
+                </div>
+                <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 shadow-sm">
+                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">Habilitados</p>
+                    <p className="text-2xl font-black text-emerald-700">{stats.habilitados}</p>
+                </div>
+                <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 shadow-sm">
+                    <p className="text-[10px] font-black text-amber-600 uppercase tracking-wider">Observados</p>
+                    <p className="text-2xl font-black text-amber-700">{stats.observados}</p>
+                </div>
+                <div className="bg-slate-900 p-4 rounded-2xl shadow-xl shadow-slate-200">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Carga Activa</p>
+                    <div className="flex items-center gap-2 mt-1">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                        <span className="text-white font-bold text-sm">Sincronizado</span>
                     </div>
                 </div>
             </div>
 
-            {/* Selector de VISTA (Solo USUARIO_SOCIO) */}
-            {user?.rol === 'USUARIO_SOCIO' && (
-                <div className="flex p-1 bg-slate-100 rounded-xl w-fit mx-auto">
-                    <button
-                        onClick={() => handleViewChange('PADRON')}
-                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${reportView === 'PADRON'
-                            ? 'bg-white text-indigo-600 shadow-sm'
-                            : 'text-slate-500 hover:text-slate-700'
-                            }`}
-                    >
-                        Mi Padrón (Total Asignados)
-                    </button>
-                    <button
-                        onClick={() => handleViewChange('ASISTENCIA')}
-                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${reportView === 'ASISTENCIA'
-                            ? 'bg-white text-emerald-600 shadow-sm'
-                            : 'text-slate-500 hover:text-slate-700'
-                            }`}
-                    >
-                        Asistencia Confirmada
-                    </button>
+            {/* Table Area */}
+            {loading ? (
+                <div className="py-20 text-center">
+                    <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mx-auto mb-4" />
+                    <p className="text-slate-400 font-medium">Buscando información...</p>
+                </div>
+            ) : data.length > 0 ? (
+                <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-500">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-slate-50/50">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Socio / Información</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Cédula</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Ingreso</th>
+                                    <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
+                                    {(reportView === 'ASIGNACIONES' || reportView === 'ASISTENCIA') && (
+                                        <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Colaborador</th>
+                                    )}
+                                    <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Condición</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {data.map((item, idx) => (
+                                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <p className="font-bold text-slate-800">{item.socioNombre}</p>
+                                            <p className="text-[10px] text-slate-400">SOCIO NRO: {item.socioNro}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="font-mono text-sm font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-md">{item.cedula}</span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-slate-700">{formatSafeTime(item.fechaHora || item.fechaIngreso)}</span>
+                                                <span className="text-[10px] text-slate-400">{formatSafeDateTime(item.fechaHora || item.fechaIngreso).split(' ')[0]}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${item.estado === 'AUSENTE' ? 'bg-red-50 text-red-600' :
+                                                item.estado === 'SIN ASIGNAR' ? 'bg-slate-100 text-slate-500' :
+                                                    'bg-emerald-50 text-emerald-600'
+                                                }`}>
+                                                {item.estado || 'PRESENTE'}
+                                            </span>
+                                        </td>
+                                        {(reportView === 'ASIGNACIONES' || reportView === 'ASISTENCIA') && (
+                                            <td className="px-6 py-4 text-center">
+                                                <div className="flex flex-col items-center">
+                                                    <span className="text-sm font-bold text-slate-700 leading-tight">{item.operador}</span>
+                                                    <span className="text-[9px] text-slate-400 uppercase font-black">{item.sucursal}</span>
+                                                </div>
+                                            </td>
+                                        )}
+                                        <td className="px-6 py-4 text-center">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${item.vozVoto === 'HABILITADO' ? 'bg-blue-50 text-indigo-600' : 'bg-amber-50 text-amber-600'
+                                                }`}>
+                                                {item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            ) : (
+                <div className="py-20 text-center bg-white rounded-3xl border-2 border-dashed border-slate-100">
+                    <LayoutGrid className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+                    <p className="text-slate-400 font-bold">No hay registros para los filtros seleccionados</p>
+                    <p className="text-slate-300 text-sm">Prueba ajustando el tipo de reporte o la sucursal</p>
                 </div>
             )}
-
-            {/* Resumen Visual */}
-            <div className="grid grid-cols-3 gap-6">
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm text-center">
-                    <p className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-1">
-                        {reportView === 'PADRON' ? 'Total Asignados' : 'Total Registrados'}
-                    </p>
-                    <p className="text-4xl font-black text-slate-800">{stats.totalRegistros}</p>
-                </div>
-                <div className="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 text-center">
-                    <p className="text-emerald-600 text-sm font-medium uppercase tracking-wider mb-1">
-                        {reportView === 'PADRON' ? 'Presentes' : 'Habilitados'}
-                    </p>
-                    <p className="text-4xl font-black text-emerald-700">{stats.habilitados}</p>
-                </div>
-                <div className={`p-5 rounded-2xl border text-center ${reportView === 'PADRON' ? 'bg-red-50 border-red-100' : 'bg-amber-50 border-amber-100'}`}>
-                    <p className={`text-sm font-medium uppercase tracking-wider mb-1 ${reportView === 'PADRON' ? 'text-red-600' : 'text-amber-600'}`}>
-                        {reportView === 'PADRON' ? 'Ausentes' : 'Solo Voz'}
-                    </p>
-                    <p className={`text-4xl font-black ${reportView === 'PADRON' ? 'text-red-700' : 'text-amber-700'}`}>{stats.observados}</p>
-                </div>
-            </div>
-
-            {/* Tabla Simple (Preview) */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="p-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
-                    <h3 className="font-bold text-slate-700">Previsualización de Datos ({data.length})</h3>
-                </div>
-                <div className="overflow-x-auto max-h-[500px]">
-                    <table className="w-full">
-                        <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Hora Ingreso</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Socio</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Estado</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Asignado Por</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Registrado (Asistencia)</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                            {loading && (
-                                <tr><td colSpan={5} className="p-8 text-center text-slate-400">Cargando...</td></tr>
-                            )}
-
-                            {!loading && data.length > 0 && data.map((item) => (
-                                <tr key={item.id} className={`hover:bg-slate-50 border-b border-slate-100/50 ${item.estado === 'AUSENTE' ? 'bg-red-50/50' : ''}`}>
-                                    <td className="px-6 py-3 text-sm text-black font-mono">
-                                        {item.fechaHora
-                                            ? new Date(item.fechaHora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                            : <span className="text-black">-</span>
-                                        }
-                                    </td>
-                                    <td className="px-6 py-3 text-sm">
-                                        <div className="font-bold text-black">{item.socioNombre}</div>
-                                        <div className="text-xs text-black font-semibold">CI: {item.cedula}</div>
-                                    </td>
-                                    <td className="px-6 py-3">
-                                        {reportView === 'PADRON' ? (
-                                            <div className="flex flex-col gap-1">
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold w-fit border ${item.estado === "PRESENTE" ? "bg-emerald-100 text-black border-emerald-200" : "bg-red-100 text-black border-red-200"
-                                                    }`}>
-                                                    {item.estado}
-                                                </span>
-                                                <span className="text-[10px] text-black font-bold">
-                                                    {item.vozVoto === "OBSERVADO" ? "SOLO VOZ" : item.vozVoto}
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            <span className={`px-2 py-1 rounded text-xs font-bold border ${item.vozVoto === "HABILITADO"
-                                                ? "bg-emerald-100 text-black border-emerald-200"
-                                                : "bg-amber-100 text-black border-amber-200"
-                                                }`}>
-                                                {item.vozVoto === "OBSERVADO" ? "SOLO VOZ" : item.vozVoto}
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-3 text-sm text-black font-bold">
-                                        {item.asignadoPor || '-'}
-                                    </td>
-                                    <td className="px-6 py-3 text-sm text-black font-medium">
-                                        {item.operador}
-                                    </td>
-                                </tr>
-                            ))}
-
-                            {!loading && data.length === 0 && (
-                                <tr>
-                                    <td colSpan={5} className="py-12 text-center">
-                                        <div className="flex flex-col items-center justify-center text-slate-400">
-                                            <FileSpreadsheet className="w-12 h-12 mb-3 opacity-20" />
-                                            <p className="font-medium">No hay registros para mostrar</p>
-                                            <p className="text-xs mt-1">Intenta cambiar los filtros o el tipo de reporte</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     );
 }

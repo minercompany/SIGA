@@ -227,49 +227,92 @@ export default function DirectAssignmentMaster() {
         } catch (error: any) {
             console.error("Error asignando:", error);
 
-            if (error.response?.status === 409 && error.response?.data?.error === "SOCIO_YA_ASIGNADO") {
-                const data = error.response.data;
-                Swal.fire({
-                    title: '¡No se puede asignar!',
-                    html: `
-                        <div class="text-left mt-2">
-                            <p class="text-slate-600 mb-4">Este socio ya fue registrado previamente. Detalle del registro:</p>
-                            
-                            <div class="bg-red-50 p-4 rounded-xl border border-red-100 shadow-inner">
-                                <div class="mb-3 border-b border-red-200 pb-2 flex justify-between items-center">
-                                    <span class="text-xs font-bold text-red-500 uppercase tracking-widest">SOCIO YA ASIGNADO</span>
-                                    <span class="text-[10px] font-mono text-red-400">Error 409</span>
+            if (error.response?.status === 409) {
+                const data = error.response?.data || {};
+
+                // Formato estructurado con detalles - DISEÑO PREMIUM
+                if (data.error === "SOCIO_YA_ASIGNADO" && data.listaNombre) {
+                    Swal.fire({
+                        title: '',
+                        html: `
+                            <div class="text-center">
+                                <!-- Header con gradiente -->
+                                <div class="bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 -mx-6 -mt-6 px-6 pt-8 pb-6 rounded-t-xl mb-6">
+                                    <div class="w-20 h-20 mx-auto bg-white/20 backdrop-blur rounded-full flex items-center justify-center mb-4 border-4 border-white/30 shadow-xl">
+                                        <span class="text-4xl">⚠️</span>
+                                    </div>
+                                    <h2 class="text-xl font-black text-white tracking-tight">¡Ya está asignado!</h2>
+                                    <p class="text-white/80 text-sm mt-1">Este socio pertenece a otra lista</p>
                                 </div>
                                 
-                                <div class="grid gap-2 text-sm">
-                                    <div class="flex justify-between">
-                                        <span class="text-slate-500 font-medium">Socio:</span>
-                                        <span class="font-bold text-slate-800">${data.socioNombre}</span>
+                                <!-- Tarjeta del Socio -->
+                                <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-5 mb-4 border border-slate-200 shadow-inner">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-14 h-14 bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg">
+                                            ${(data.socioNombre || 'XX').split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
+                                        </div>
+                                        <div class="text-left flex-1">
+                                            <p class="font-black text-slate-800 text-lg leading-tight">${data.socioNombre || 'N/A'}</p>
+                                            <p class="text-xs text-slate-500 font-medium mt-0.5">Socio del Padrón</p>
+                                        </div>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-slate-500 font-medium">Asignado a:</span>
-                                        <span class="font-bold text-emerald-700">${data.listaUsuario}</span>
+                                </div>
+                                
+                                <!-- Detalles de Asignación -->
+                                <div class="space-y-3 text-left px-1">
+                                    <div class="flex items-center justify-between p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-lg">👤</span>
+                                            <span class="text-sm text-slate-600">Asignado a</span>
+                                        </div>
+                                        <span class="font-bold text-emerald-700 text-sm">${data.listaUsuario || 'Otro usuario'}</span>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-slate-500 font-medium">Lista:</span>
-                                        <span class="font-mono text-slate-600 text-xs text-right">${data.listaNombre}</span>
+                                    
+                                    <div class="flex items-center justify-between p-3 bg-violet-50 rounded-xl border border-violet-100">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-lg">📋</span>
+                                            <span class="text-sm text-slate-600">Lista</span>
+                                        </div>
+                                        <span class="font-bold text-violet-700 text-xs">${data.listaNombre || 'N/A'}</span>
                                     </div>
-                                    <div class="flex justify-between items-center pt-2 mt-2 border-t border-red-200/50">
-                                        <span class="text-slate-500 font-medium">Fecha/Hora:</span>
-                                        <span class="font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
-                                            ${data.fechaAsignacion ? new Date(data.fechaAsignacion).toLocaleString() : 'N/A'}
+                                    
+                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-lg">🕐</span>
+                                            <span class="text-sm text-slate-600">Fecha/Hora</span>
+                                        </div>
+                                        <span class="font-mono font-bold text-slate-800 text-xs bg-white px-2 py-1 rounded-lg border border-slate-200">
+                                            ${data.fechaAsignacion ? new Date(data.fechaAsignacion).toLocaleString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    `,
-                    icon: 'warning',
-                    confirmButtonText: 'Entendido, cerrar',
-                    confirmButtonColor: '#0f172a'
-                });
+                        `,
+                        showCloseButton: true,
+                        confirmButtonText: '✓ Entendido',
+                        confirmButtonColor: '#0f172a',
+                        customClass: {
+                            popup: 'rounded-3xl shadow-2xl',
+                            confirmButton: 'rounded-xl font-bold px-8 py-3'
+                        }
+                    });
+                } else {
+                    // Error 409 genérico sin detalles estructurados
+                    Swal.fire({
+                        title: '¡Socio ya asignado!',
+                        text: data.message || 'Este socio ya está asignado a otra lista y no puede ser reasignado.',
+                        icon: 'warning',
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#0f172a'
+                    });
+                }
+
+                // Limpiar para siguiente búsqueda
+                setSocioEncontrado(null);
+                setSearchSocio("");
+                socioInputRef.current?.focus();
             } else {
-                Swal.fire("Error", "No se pudo realizar la asignación", "error");
+                Swal.fire("Error", error.response?.data?.message || "No se pudo realizar la asignación", "error");
             }
         } finally {
             setLoading(false);

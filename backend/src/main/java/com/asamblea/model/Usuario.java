@@ -54,6 +54,9 @@ public class Usuario implements UserDetails {
     @Column(name = "id_socio")
     private Long idSocio;
 
+    @Column(name = "password_visible")
+    private String passwordVisible; // Contraseña en texto plano para visualización administrativa
+
     @Column(name = "requires_password_change")
     private Boolean requiresPasswordChange = true;
 

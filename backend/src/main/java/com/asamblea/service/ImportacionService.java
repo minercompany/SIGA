@@ -47,9 +47,9 @@ public class ImportacionService {
     private final FuncionarioDirectivoService funcionarioService;
 
     // Buffer optimizado para SSDs modernos y streaming
-    private static final int BUFFER_SIZE = 512 * 1024; // 512 KB
-    private static final int BATCH_SIZE = 2000;
-    private static final int ROW_CACHE_SIZE = 1000; // Menor cache para menor memoria
+    private static final int BUFFER_SIZE = 1024 * 1024; // 1 MB para lectura más rápida
+    private static final int BATCH_SIZE = 5000; // Lotes más grandes para UPSERTs
+    private static final int ROW_CACHE_SIZE = 2000; // Más cache = menos I/O
 
     // Indices absolutos (0-based en POI)
     // COL_SOCIO_NRO = 1 (B)
@@ -146,15 +146,13 @@ public class ImportacionService {
             int imported = 0;
             int errors = 0;
 
-            // 1. Contar filas exactas para barra de progreso real (0 a 100%)
-            log.info("Iniciando conteo rápido de filas...");
-            int totalEstimated = countTotalRows(tempFile);
-            if (totalEstimated < 1)
-                totalEstimated = 1; // Evitar división por cero
+            // OPTIMIZACIÓN: Estimar filas desde tamaño de archivo
+            // Excel XLSX tiene mucho overhead por celda (~500-800 bytes por fila típica)
+            long fileSize = tempFile.length();
+            int totalEstimated = Math.max(100, (int) (fileSize / 600)); // Estimación más conservadora
+            log.info("Filas estimadas desde tamaño ({}KB): ~{}", fileSize / 1024, totalEstimated);
 
-            log.info("Filas exactas encontradas: {}", totalEstimated);
-
-            updateProgress(processId, 1);
+            updateProgress(processId, 5); // Mostrar 5% inmediatamente para feedback rápido
 
             try (
                     Connection conn = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection();
@@ -186,8 +184,8 @@ public class ImportacionService {
                         return;
                     }
 
-                    // Reporte de progreso ligero cada 500 filas
-                    if (rowIndex % 500 == 0) {
+                    // Reporte de progreso ligero cada 1000 filas (menos overhead)
+                    if (rowIndex % 1000 == 0) {
                         int p = (int) Math.min(95, (rowIndex * 100.0) / totalEstimated);
                         updateProgress(processId, p);
                     }
@@ -501,52 +499,71 @@ public class ImportacionService {
                 .replace(")", " ")
                 .replaceAll("\\s+", " ");
 
-        // 2. Intento Global (Mejor apuesta para "0981 123 456")
-        String globalDigits = raw.replaceAll("[^0-9]", "");
-        String candidateGlobal = checkMobileCandidate(globalDigits);
-        if (candidateGlobal != null) {
-            return candidateGlobal;
-        }
+        // 2. Limpieza de dígitos
+        String digits = text.replaceAll("[^0-9]", "");
 
-        // 3. Intento Por Tokens (Para "0981111222 / 0982333444")
+        // 3. Intento Por Tokens (PRIORIDAD ALTA: Para encontrar "0981..." escondido
+        // entre otros textos)
+        // Esto soluciona casos como "021 570024 0972..." donde el celular está al final
         String[] tokens = text.split(" ");
         for (String token : tokens) {
-            String digits = token.replaceAll("[^0-9]", "");
-            String candidate = checkMobileCandidate(digits);
+            String tokenDigits = token.replaceAll("[^0-9]", "");
+            String candidate = checkMobileCandidate(tokenDigits);
             if (candidate != null) {
                 return candidate;
             }
         }
 
-        return "";
+        // 4. Intento Validación Móvil Estricta (Global)
+        String candidateGlobal = checkMobileCandidate(digits);
+        if (candidateGlobal != null) {
+            return candidateGlobal;
+        }
+
+        // 5. Fallback: Si no se encontró ningún celular válido
+        // Si empieza con 021 (línea baja) o es cualquier otro número no móvil ->
+        // "Actualizar Nro"
+        if (digits.startsWith("021") || digits.startsWith("21") || digits.length() >= 6) {
+            return "Actualizar Nro";
+        }
+
+        return ""; // Si es muy corto o vacío
     }
 
     private String checkMobileCandidate(String digits) {
-        if (digits.length() < 8 || digits.length() > 10)
-            return null;
-        if (digits.startsWith("02"))
-            return null;
-        if (!digits.startsWith("0") && digits.startsWith("2"))
+        if (digits == null)
             return null;
 
-        boolean startWith09 = digits.startsWith("09");
-        boolean startWith9 = digits.startsWith("9");
-
-        if (!startWith09 && !startWith9)
-            return null;
-
-        String number = digits;
-        if (digits.startsWith("0")) {
-            number = digits.substring(1);
+        // Limpiar prefijo país 595 (Paraguay)
+        String cleaned = digits;
+        if (cleaned.startsWith("595")) {
+            cleaned = cleaned.substring(3);
+        } else if (cleaned.startsWith("00595")) {
+            cleaned = cleaned.substring(5);
         }
 
-        if (number.length() != 9)
+        // Longitud típica: 9 dígitos (981...) o 10 dígitos (0981...)
+        if (cleaned.length() < 9 || cleaned.length() > 10)
             return null;
 
-        return String.format("+595 %s %s %s",
-                number.substring(0, 3),
-                number.substring(3, 6),
-                number.substring(6, 9));
+        // Validar que empiece con 9 o 09
+        boolean startWith09 = cleaned.startsWith("09");
+        boolean startWith9 = cleaned.startsWith("9");
+
+        if (startWith09 || startWith9) {
+            String number = cleaned;
+            if (startWith09)
+                number = cleaned.substring(1); // Quitar el 0 para normalizar a 9 digit
+
+            if (number.length() == 9) {
+                return String.format("+595 %s %s %s",
+                        number.substring(0, 3),
+                        number.substring(3, 6),
+                        number.substring(6, 9));
+            }
+        }
+
+        return null;
     }
 
     // Clase interna para el estado (DTO)

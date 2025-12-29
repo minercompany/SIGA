@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
@@ -11,6 +11,7 @@ import ForcePasswordChange from "@/components/auth/ForcePasswordChange";
 import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
 import { TourProvider, TourOverlay } from "@/components/tour";
 import ChatFAB from "@/components/ChatFAB";
+import PageTransition from "@/components/PageTransition";
 
 export default function PrivateLayout({
     children,
@@ -71,6 +72,9 @@ export default function PrivateLayout({
                     </div>
                 </div>
                 <TourOverlay />
+                <Suspense fallback={null}>
+                    <PageTransition />
+                </Suspense>
             </ImportProvider>
         </TourProvider>
     );

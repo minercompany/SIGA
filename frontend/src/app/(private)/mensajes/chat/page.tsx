@@ -126,41 +126,41 @@ export default function AdminChatPage() {
     };
 
     return (
-        <div className="p-6 max-w-[1600px] mx-auto space-y-6 pb-20">
-            {/* Header Premium */}
+        <div className="mx-auto space-y-4" style={{ maxWidth: 'clamp(320px, 98vw, 1200px)', padding: 'clamp(0.5rem, 2vw, 1.5rem)' }}>
+            {/* Header Premium - Compacto */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
             >
                 <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-3 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-2xl shadow-lg shadow-teal-200">
-                            <MessageCircle className="h-7 w-7 text-white" />
+                    <div className="flex items-center gap-2 mb-1">
+                        <div className="p-2 md:p-2.5 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-xl shadow-lg shadow-teal-200">
+                            <MessageCircle className="h-5 w-5 md:h-6 md:w-6 text-white" />
                         </div>
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                        <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)' }} className="font-black text-slate-900 tracking-tight">
                             Centro de <span className="text-teal-600 italic">Mensajería</span>
                         </h1>
                     </div>
-                    <p className="text-slate-500 font-medium">Conversaciones con socios en tiempo real</p>
+                    <p className="text-slate-500 font-medium text-xs md:text-sm">Conversaciones con socios en tiempo real</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-2xl flex items-center gap-3">
-                        <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-xs font-black text-emerald-700 uppercase tracking-widest">En Línea</span>
+                    <div className="bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">En Línea</span>
                     </div>
                 </div>
             </motion.div>
 
-            {/* Chat Container */}
+            {/* Chat Container - Responsivo */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="h-[calc(100vh-14rem)] flex bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden"
+                className="h-[calc(100vh-10rem)] flex flex-col md:flex-row bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden"
             >
-                {/* Sidebar Lista de Conversaciones */}
-                <div className="w-80 border-r border-slate-100 flex flex-col bg-slate-50/50">
+                {/* Sidebar Lista de Conversaciones - Ancho responsivo */}
+                <div className="w-full md:w-72 lg:w-80 border-b md:border-b-0 md:border-r border-slate-100 flex flex-col bg-slate-50/50 max-h-[40vh] md:max-h-none">
                     {/* Search Header */}
                     <div className="p-5 border-b border-slate-100 bg-white">
                         <div className="relative">
@@ -195,14 +195,14 @@ export default function AdminChatPage() {
                                         loadMensajes(conv.id);
                                     }}
                                     className={`w-full p-4 flex items-start gap-4 border-b border-slate-50 transition-all ${selectedConv?.id === conv.id
-                                            ? 'bg-teal-50 border-l-4 border-l-teal-500'
-                                            : 'border-l-4 border-l-transparent hover:border-l-slate-200'
+                                        ? 'bg-teal-50 border-l-4 border-l-teal-500'
+                                        : 'border-l-4 border-l-transparent hover:border-l-slate-200'
                                         }`}
                                 >
                                     <div className="relative flex-shrink-0">
                                         <div className={`h-12 w-12 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-lg ${selectedConv?.id === conv.id
-                                                ? 'bg-gradient-to-br from-teal-500 to-emerald-500 shadow-teal-200'
-                                                : 'bg-gradient-to-br from-slate-400 to-slate-500 shadow-slate-200'
+                                            ? 'bg-gradient-to-br from-teal-500 to-emerald-500 shadow-teal-200'
+                                            : 'bg-gradient-to-br from-slate-400 to-slate-500 shadow-slate-200'
                                             }`}>
                                             {conv.usuarioNombre?.charAt(0)}
                                         </div>
@@ -280,8 +280,8 @@ export default function AdminChatPage() {
                                         >
                                             <div
                                                 className={`max-w-[70%] px-5 py-3 ${msg.senderRole === 'ADMIN'
-                                                        ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-2xl rounded-br-md shadow-lg shadow-teal-200'
-                                                        : 'bg-white text-slate-700 rounded-2xl rounded-bl-md border border-slate-100 shadow-sm'
+                                                    ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-2xl rounded-br-md shadow-lg shadow-teal-200'
+                                                    : 'bg-white text-slate-700 rounded-2xl rounded-bl-md border border-slate-100 shadow-sm'
                                                     }`}
                                             >
                                                 <p className="text-sm leading-relaxed">{msg.contenido}</p>

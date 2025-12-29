@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Search, Users, Loader2, ClipboardList, Trash2, Plus, Shield, CheckCircle2, UserPlus, Bell, X } from "lucide-react";
 
 interface Socio {
@@ -133,34 +133,33 @@ export function SocioAssignments({
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-            {/* Header Premium con Estadísticas */}
-            {/* Header Premium con Estadísticas */}
+            {/* Header Premium con Estadísticas - Compacto */}
             <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white">
-                <div className="max-w-5xl mx-auto px-4 py-4 md:py-6">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="mx-auto" style={{ maxWidth: 'clamp(320px, 95vw, 900px)', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <div data-tour="asignaciones-header">
-                            <h1 className="text-xl md:text-3xl font-black leading-tight">
+                            <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)' }} className="font-black leading-tight">
                                 Mi Lista de Asignaciones
                             </h1>
-                            <p className="text-violet-200 text-xs md:text-sm mt-1">
+                            <p className="text-violet-200 text-xs mt-0.5">
                                 {miLista?.nombre || "Cargando..."}
                             </p>
                         </div>
 
-                        {/* Estadísticas */}
+                        {/* Estadísticas - Compactas */}
                         {miLista && (
-                            <div className="flex gap-2 md:gap-4 overflow-x-auto pb-1 md:pb-0">
-                                <div className="bg-white/10 backdrop-blur rounded-xl md:rounded-2xl px-3 py-2 md:px-5 md:py-3 text-center min-w-[70px]">
-                                    <p className="text-lg md:text-2xl font-black">{miLista.total}</p>
-                                    <p className="text-[10px] md:text-xs text-violet-200 uppercase tracking-wide">Total</p>
+                            <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+                                <div className="bg-white/10 backdrop-blur rounded-xl px-3 py-2 text-center min-w-[60px] flex-shrink-0">
+                                    <p className="text-lg md:text-xl font-black">{miLista.total}</p>
+                                    <p className="text-[9px] md:text-[10px] text-violet-200 uppercase tracking-wide">Total</p>
                                 </div>
-                                <div className="bg-emerald-500/30 backdrop-blur rounded-xl md:rounded-2xl px-3 py-2 md:px-5 md:py-3 text-center min-w-[70px]">
-                                    <p className="text-lg md:text-2xl font-black text-emerald-300">{miLista.vyv}</p>
-                                    <p className="text-[10px] md:text-xs text-emerald-200 uppercase tracking-wide">V&V</p>
+                                <div className="bg-emerald-500/30 backdrop-blur rounded-xl px-3 py-2 text-center min-w-[60px] flex-shrink-0">
+                                    <p className="text-lg md:text-xl font-black text-emerald-300">{miLista.vyv}</p>
+                                    <p className="text-[9px] md:text-[10px] text-emerald-200 uppercase tracking-wide">V&V</p>
                                 </div>
-                                <div className="bg-amber-500/30 backdrop-blur rounded-xl md:rounded-2xl px-3 py-2 md:px-5 md:py-3 text-center min-w-[70px]">
-                                    <p className="text-lg md:text-2xl font-black text-amber-300">{miLista.soloVoz}</p>
-                                    <p className="text-[10px] md:text-xs text-amber-200 uppercase tracking-wide">Solo</p>
+                                <div className="bg-amber-500/30 backdrop-blur rounded-xl px-3 py-2 text-center min-w-[60px] flex-shrink-0">
+                                    <p className="text-lg md:text-xl font-black text-amber-300">{miLista.soloVoz}</p>
+                                    <p className="text-[9px] md:text-[10px] text-amber-200 uppercase tracking-wide">Solo</p>
                                 </div>
                             </div>
                         )}
@@ -168,7 +167,7 @@ export function SocioAssignments({
                 </div>
             </div>
 
-            <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+            <div className="mx-auto space-y-4" style={{ maxWidth: 'clamp(320px, 95vw, 900px)', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
                 {/* Mensaje Amable: Mínimo 5 Socios */}
                 {miLista && miLista.total < 10 && (
                     <motion.div
@@ -276,23 +275,33 @@ export function SocioAssignments({
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <span className={`px-4 py-2 rounded-xl text-sm font-bold ${tieneVozYVoto(searchedSocio) ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
-                                            {tieneVozYVoto(searchedSocio) ? '✓ VOZ Y VOTO' : '⚠ SOLO VOZ'}
-                                        </span>
-                                        <button
-                                            onClick={onConfirmAddSocio}
-                                            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all flex items-center gap-2"
-                                        >
-                                            <Plus className="w-5 h-5" />
-                                            Agregar
-                                        </button>
-                                        <button
-                                            onClick={onCancelAdd}
-                                            className="px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-xl font-bold transition-all"
-                                        >
-                                            Cancelar
-                                        </button>
+                                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                                        <div className={`px-4 py-2 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest flex items-center gap-2 border-2 ${tieneVozYVoto(searchedSocio)
+                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                            : 'bg-amber-50 text-amber-600 border-amber-100'
+                                            }`}>
+                                            {tieneVozYVoto(searchedSocio) ? (
+                                                <><CheckCircle2 className="w-4 h-4" /> VOZ Y VOTO</>
+                                            ) : (
+                                                <><Shield className="w-4 h-4" /> SOLO VOZ</>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                                            <button
+                                                onClick={onConfirmAddSocio}
+                                                className="flex-1 sm:flex-none px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-200/50"
+                                            >
+                                                <Plus className="w-5 h-5" />
+                                                Agregar
+                                            </button>
+                                            <button
+                                                onClick={onCancelAdd}
+                                                className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl font-bold transition-all"
+                                                title="Cancelar"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </motion.div>
@@ -335,73 +344,92 @@ export function SocioAssignments({
                         </div>
                     </div>
 
-                    {/* Lista */}
+                    {/* Lista con Animaciones */}
                     {loadingSocios ? (
                         <div className="p-12 text-center">
                             <Loader2 className="w-10 h-10 text-violet-500 animate-spin mx-auto mb-3" />
-                            <p className="text-slate-500">Cargando socios...</p>
+                            <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Actualizando nómina...</p>
                         </div>
                     ) : socios.length > 0 ? (
-                        <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
-                            {socios.map((socio, index) => {
-                                const esVyV = tieneVozYVoto(socio);
-                                return (
-                                    <motion.div
-                                        key={`${socio.id}-${index}`}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: index * 0.02 }}
-                                        className="p-3 md:p-4 hover:bg-slate-50 transition-colors group relative"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            {/* Número / Avatar */}
-                                            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex-shrink-0 flex items-center justify-center font-bold text-white text-xs md:text-sm shadow-sm mt-0.5 ${esVyV ? 'bg-gradient-to-br from-emerald-500 to-teal-500' : 'bg-gradient-to-br from-amber-500 to-orange-500'
-                                                }`}>
-                                                {index + 1}
-                                            </div>
-
-                                            {/* Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex justify-between items-start gap-2">
-                                                    <p className="font-bold text-slate-800 text-sm md:text-base leading-tight">
-                                                        {socio.nombreCompleto}
-                                                    </p>
-                                                    {/* Badge Desktop / Mobile Compact */}
-                                                    <span className={`flex-shrink-0 px-1.5 py-0.5 md:px-3 md:py-1 roundedmd md:rounded-lg text-[9px] md:text-xs font-bold border ${esVyV
-                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                                        : 'bg-amber-50 text-amber-700 border-amber-100'
-                                                        }`}>
-                                                        {esVyV ? 'V&V' : 'SOLO VOZ'}
-                                                    </span>
+                        <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto custom-scrollbar">
+                            <AnimatePresence mode="popLayout">
+                                {socios.map((socio, index) => {
+                                    const esVyV = tieneVozYVoto(socio);
+                                    return (
+                                        <motion.div
+                                            key={socio.id}
+                                            layout
+                                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            exit={{
+                                                opacity: 0,
+                                                scale: 0.9,
+                                                x: -20,
+                                                transition: { duration: 0.2, ease: "easeIn" }
+                                            }}
+                                            transition={{
+                                                type: "spring",
+                                                stiffness: 400,
+                                                damping: 30,
+                                                delay: index * 0.01
+                                            }}
+                                            className="p-3 md:p-5 hover:bg-slate-50/80 transition-all group relative border-l-4 border-transparent hover:border-violet-500"
+                                        >
+                                            <div className="flex items-center gap-3 md:gap-4">
+                                                {/* Número Identificador */}
+                                                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex-shrink-0 flex items-center justify-center font-black text-white text-sm md:text-lg shadow-lg rotate-3 group-hover:rotate-0 transition-transform ${esVyV ? 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-100' : 'bg-gradient-to-br from-amber-500 to-orange-500 shadow-amber-100'
+                                                    }`}>
+                                                    {index + 1}
                                                 </div>
 
-                                                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-[11px] md:text-sm text-slate-500">
-                                                    <span className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded">
-                                                        CI: <span className="font-bold text-slate-700">{socio.cedula}</span>
-                                                    </span>
-                                                    <span className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded">
-                                                        N°: <span className="font-bold text-slate-700">{socio.numeroSocio}</span>
-                                                    </span>
+                                                {/* Información Principal */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-1 mb-1">
+                                                        <p className="font-black text-slate-800 text-sm md:text-lg leading-tight truncate tracking-tight">
+                                                            {socio.nombreCompleto}
+                                                        </p>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`px-2 py-0.5 rounded-lg text-[9px] md:text-xs font-black uppercase tracking-wider border-2 ${esVyV
+                                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                                : 'bg-amber-50 text-amber-600 border-amber-100'
+                                                                }`}>
+                                                                {esVyV ? 'Derecho a Voto' : 'Solo Voz'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex flex-wrap gap-2 text-[10px] md:text-sm">
+                                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 text-slate-500 rounded-lg font-bold">
+                                                            <Shield className="w-3 h-3 text-slate-400" />
+                                                            CI: <span className="text-slate-800">{socio.cedula}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 text-slate-500 rounded-lg font-bold">
+                                                            <Users className="w-3 h-3 text-slate-400" />
+                                                            N°: <span className="text-slate-800">{socio.numeroSocio}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Acción de Quitar (Botón Progresivo) */}
+                                                <div className="flex-shrink-0">
+                                                    <ConfirmRemoveButton onConfirm={() => onRemoveSocio(socio.id)} />
                                                 </div>
                                             </div>
-
-                                            {/* Botón Eliminar (Visible en hover o swipe en touch - mejor dejar botón siempre visible en móvil si hay espacio, o solo desktop) */}
-                                            <button
-                                                onClick={() => onRemoveSocio(socio.id)}
-                                                className="p-1.5 text-slate-300 hover:text-red-500 transition-colors md:opacity-0 md:group-hover:opacity-100"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                );
-                            })}
+                                        </motion.div>
+                                    );
+                                })}
+                            </AnimatePresence>
                         </div>
                     ) : (
-                        <div className="p-12 text-center">
-                            <Users className="w-16 h-16 text-slate-200 mx-auto mb-4" />
-                            <p className="text-slate-500 font-medium">Tu lista no tiene socios aún</p>
-                            <p className="text-sm text-slate-400 mt-1">Usa el buscador de arriba para agregar socios</p>
+                        <div className="p-20 text-center">
+                            <div className="relative inline-block mb-6">
+                                <Users className="w-20 h-20 text-slate-100" />
+                                <Plus className="w-8 h-8 text-emerald-400 absolute -bottom-2 -right-2 animate-bounce" />
+                            </div>
+                            <h3 className="text-lg font-black text-slate-800 uppercase italic">Tu lista está vacía</h3>
+                            <p className="text-slate-400 font-medium max-w-xs mx-auto mt-2">
+                                Comienza agregando socios a tu lista de trabajo usando el buscador superior.
+                            </p>
                         </div>
                     )}
                 </motion.div>
@@ -429,6 +457,68 @@ export function SocioAssignments({
                     </div>
                 </motion.div>
             )}
+        </div>
+    );
+}
+
+// Componente Interno para botón de borrado con confirmación premium
+function ConfirmRemoveButton({ onConfirm }: { onConfirm: () => void }) {
+    const [isConfirming, setIsConfirming] = useState(false);
+
+    useEffect(() => {
+        if (isConfirming) {
+            const timer = setTimeout(() => setIsConfirming(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [isConfirming]);
+
+    return (
+        <div className="relative flex items-center justify-end min-w-[40px] md:min-w-[120px]">
+            <AnimatePresence mode="wait">
+                {!isConfirming ? (
+                    <motion.button
+                        key="delete"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsConfirming(true);
+                        }}
+                        className="p-2 md:p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all md:opacity-0 md:group-hover:opacity-100"
+                        title="Quitar socio"
+                    >
+                        <Trash2 className="w-5 h-5" />
+                    </motion.button>
+                ) : (
+                    <motion.div
+                        key="confirm"
+                        initial={{ opacity: 0, x: 20, scale: 0.9 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 20, scale: 0.9 }}
+                        className="flex items-center gap-2 bg-red-500 rounded-xl p-1 md:pr-4 overflow-hidden shadow-lg shadow-red-200"
+                    >
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsConfirming(false);
+                            }}
+                            className="p-2 hover:bg-white/20 rounded-lg text-white transition-colors"
+                        >
+                            <X className="w-4 h-4 md:w-5 md:h-5" />
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onConfirm();
+                            }}
+                            className="text-white text-[10px] md:text-sm font-black uppercase tracking-widest whitespace-nowrap py-2 pr-2"
+                        >
+                            Confirmar
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

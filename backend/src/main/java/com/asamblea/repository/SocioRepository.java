@@ -8,43 +8,88 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SocioRepository extends JpaRepository<Socio, Long> {
-    @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal ORDER BY CAST(s.numeroSocio AS int) ASC")
-    List<Socio> findAllByOrderByNumeroSocioAsc();
+        @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal ORDER BY CAST(s.numeroSocio AS int) ASC")
+        List<Socio> findAllByOrderByNumeroSocioAsc();
 
-    // Paginación con sucursal cargada y ordenamiento numérico
-    @Query(value = "SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal ORDER BY CAST(s.numeroSocio AS int) ASC", countQuery = "SELECT COUNT(s) FROM Socio s")
-    org.springframework.data.domain.Page<Socio> findAllWithSucursal(org.springframework.data.domain.Pageable pageable);
+        // Paginación con sucursal cargada y ordenamiento numérico
+        @Query(value = "SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal ORDER BY CAST(s.numeroSocio AS int) ASC", countQuery = "SELECT COUNT(s) FROM Socio s")
+        org.springframework.data.domain.Page<Socio> findAllWithSucursal(
+                        org.springframework.data.domain.Pageable pageable);
 
-    @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE s.numeroSocio = :numeroSocio")
-    Optional<Socio> findByNumeroSocio(String numeroSocio);
+        @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE s.numeroSocio = :numeroSocio")
+        Optional<Socio> findByNumeroSocio(String numeroSocio);
 
-    @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE s.cedula = :cedula")
-    Optional<Socio> findByCedula(String cedula);
+        @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE s.cedula = :cedula")
+        Optional<Socio> findByCedula(String cedula);
 
-    @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE s.sucursal.id = :sucursalId")
-    List<Socio> findBySucursalId(Long sucursalId);
+        @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE s.sucursal.id = :sucursalId")
+        List<Socio> findBySucursalId(Long sucursalId);
 
-    // Contar total con Voz y Voto (los 4 campos en SI)
-    @Query("SELECT COUNT(s) FROM Socio s WHERE s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true")
-    Long countConVozYVoto();
+        // Contar total con Voz y Voto (los 4 campos en SI)
+        @Query("SELECT COUNT(s) FROM Socio s WHERE s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true")
+        Long countConVozYVoto();
 
-    // Contar solo voz (al menos 1 campo en NO)
-    @Query("SELECT COUNT(s) FROM Socio s WHERE NOT (s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true)")
-    Long countSoloVoz();
+        // Contar solo voz (al menos 1 campo en NO)
+        @Query("SELECT COUNT(s) FROM Socio s WHERE NOT (s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true)")
+        Long countSoloVoz();
 
-    // Contar por sucursal
-    @Query("SELECT COUNT(s) FROM Socio s WHERE s.sucursal.id = :sucursalId")
-    Long countBySucursalId(Long sucursalId);
+        // Contar por sucursal
+        @Query("SELECT COUNT(s) FROM Socio s WHERE s.sucursal.id = :sucursalId")
+        Long countBySucursalId(Long sucursalId);
 
-    // Contar con voz y voto por sucursal
-    @Query("SELECT COUNT(s) FROM Socio s WHERE s.sucursal.id = :sucursalId AND s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true")
-    Long countConVozYVotoBySucursalId(Long sucursalId);
+        // Contar con voz y voto por sucursal
+        @Query("SELECT COUNT(s) FROM Socio s WHERE s.sucursal.id = :sucursalId AND s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true")
+        Long countConVozYVotoBySucursalId(Long sucursalId);
 
-    // Buscar exacto por número de socio o cédula - CON SUCURSAL
-    @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE s.numeroSocio = :term OR s.cedula = :term")
-    List<Socio> buscarExacto(String term);
+        // Buscar exacto por número de socio o cédula - CON SUCURSAL
+        @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE s.numeroSocio = :term OR s.cedula = :term")
+        List<Socio> buscarExacto(String term);
 
-    // Buscar parcial por nombre, cédula o número socio - CON SUCURSAL
-    @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE LOWER(s.nombreCompleto) LIKE LOWER(CONCAT('%', :term, '%')) OR s.cedula LIKE CONCAT('%', :term, '%') OR s.numeroSocio LIKE CONCAT('%', :term, '%') ORDER BY s.nombreCompleto ASC")
-    List<Socio> buscarParcial(String term);
+        // Buscar parcial por nombre, cédula o número socio - CON SUCURSAL
+        @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE LOWER(s.nombreCompleto) LIKE LOWER(CONCAT('%', :term, '%')) OR s.cedula LIKE CONCAT('%', :term, '%') OR s.numeroSocio LIKE CONCAT('%', :term, '%') ORDER BY s.nombreCompleto ASC")
+        List<Socio> buscarParcial(String term);
+
+        // Buscar socios que NO están en ninguna asignación (Sin asignar)
+        @Query("SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE NOT EXISTS (SELECT 1 FROM Asignacion a WHERE a.socio.id = s.id) ORDER BY s.nombreCompleto ASC")
+        List<Socio> findSociosSinAsignar();
+
+        // Paginación con filtro Voz y Voto (todos los campos en SI)
+        @Query(value = "SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true ORDER BY CAST(s.numeroSocio AS int) ASC", countQuery = "SELECT COUNT(s) FROM Socio s WHERE s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true")
+        org.springframework.data.domain.Page<Socio> findAllConVozYVoto(
+                        org.springframework.data.domain.Pageable pageable);
+
+        // Paginación con filtro Solo Voz (al menos 1 campo en NO)
+        @Query(value = "SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE NOT (s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true) ORDER BY CAST(s.numeroSocio AS int) ASC", countQuery = "SELECT COUNT(s) FROM Socio s WHERE NOT (s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true)")
+        org.springframework.data.domain.Page<Socio> findAllSoloVoz(org.springframework.data.domain.Pageable pageable);
+
+        @Query(value = "SELECT s FROM Socio s LEFT JOIN FETCH s.sucursal WHERE " +
+                        "(:numeroSocio IS NULL OR s.numeroSocio = :numeroSocio) AND " +
+                        "(:nombre IS NULL OR LOWER(s.nombreCompleto) LIKE LOWER(CONCAT('%', :nombre, '%'))) AND " +
+                        "(:telefono IS NULL OR s.telefono LIKE CONCAT('%', :telefono, '%')) AND " +
+                        "(:sucursalId IS NULL OR s.sucursal.id = :sucursalId) AND " +
+                        "(:estado IS NULL OR " +
+                        "  (:estado = 'vozYVoto' AND s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true) OR "
+                        +
+                        "  (:estado = 'soloVoz' AND NOT(s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true))"
+                        +
+                        ") ORDER BY CAST(s.numeroSocio AS int) ASC", countQuery = "SELECT COUNT(s) FROM Socio s WHERE "
+                                        +
+                                        "(:numeroSocio IS NULL OR s.numeroSocio = :numeroSocio) AND " +
+                                        "(:nombre IS NULL OR LOWER(s.nombreCompleto) LIKE LOWER(CONCAT('%', :nombre, '%'))) AND "
+                                        +
+                                        "(:telefono IS NULL OR s.telefono LIKE CONCAT('%', :telefono, '%')) AND " +
+                                        "(:sucursalId IS NULL OR s.sucursal.id = :sucursalId) AND " +
+                                        "(:estado IS NULL OR " +
+                                        "  (:estado = 'vozYVoto' AND s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true) OR "
+                                        +
+                                        "  (:estado = 'soloVoz' AND NOT(s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true))"
+                                        +
+                                        ")")
+        org.springframework.data.domain.Page<Socio> findWithFilters(
+                        @org.springframework.data.repository.query.Param("numeroSocio") String numeroSocio,
+                        @org.springframework.data.repository.query.Param("nombre") String nombre,
+                        @org.springframework.data.repository.query.Param("telefono") String telefono,
+                        @org.springframework.data.repository.query.Param("sucursalId") Long sucursalId,
+                        @org.springframework.data.repository.query.Param("estado") String estado,
+                        org.springframework.data.domain.Pageable pageable);
 }

@@ -1,13 +1,14 @@
 package com.asamblea.controller;
 
+import com.asamblea.model.Socio;
 import com.asamblea.model.Asistencia;
 import com.asamblea.model.Usuario;
 import com.asamblea.repository.AsistenciaRepository;
-
 import com.asamblea.repository.UsuarioRepository;
 import com.asamblea.repository.ListaAsignacionRepository;
 import com.asamblea.repository.AsignacionRepository;
 import com.asamblea.repository.SucursalRepository;
+import com.asamblea.repository.SocioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,7 @@ public class ReporteController {
         private final ListaAsignacionRepository listaAsignacionRepository;
         private final AsignacionRepository asignacionRepository;
         private final SucursalRepository sucursalRepository;
+        private final SocioRepository socioRepository;
 
         @GetMapping("/asistencia")
         public ResponseEntity<?> obtenerReporteAsistencia(
@@ -201,43 +203,24 @@ public class ReporteController {
         public ResponseEntity<?> reporteSociosSinAsignar(Authentication auth) {
                 Usuario currentUser = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
 
-                if (currentUser.getRol() != Usuario.Rol.SUPER_ADMIN) {
-                        return ResponseEntity.status(403).body(Map.of("error", "Acceso denegado. Solo SUPER_ADMIN."));
+                if (currentUser.getRol() != Usuario.Rol.SUPER_ADMIN && currentUser.getRol() != Usuario.Rol.DIRECTIVO) {
+                        return ResponseEntity.status(403).body(Map.of("error", "Acceso denegado."));
                 }
 
-                // Obtener IDs de socios asignados
-                Set<Long> sociosAsignados = asignacionRepository.findAll().stream()
-                                .map(a -> a.getSocio().getId())
-                                .collect(Collectors.toSet());
+                // Obtener socios que no están en ninguna asignación usando la nueva query
+                List<Socio> sinAsignar = socioRepository.findSociosSinAsignar();
 
-                // Obtener todos los socios y filtrar los no asignados
-                List<Map<String, Object>> result = new java.util.ArrayList<>();
-
-                // Necesitamos el SocioRepository - usamos una query alternativa
-                var asistencias = asistenciaRepository.findAll();
-
-                // Por simplicidad, retornamos socios que tienen asistencia pero no asignación
-                // (Esto es una aproximación - en producción usarías SocioRepository
-                // directamente)
-                for (Asistencia a : asistencias) {
-                        if (!sociosAsignados.contains(a.getSocio().getId())) {
-                                Map<String, Object> fila = new HashMap<>();
-                                fila.put("id", a.getSocio().getId());
-                                fila.put("socioNombre", a.getSocio().getNombreCompleto());
-                                fila.put("socioNro", a.getSocio().getNumeroSocio());
-                                fila.put("cedula", a.getSocio().getCedula());
-                                fila.put("sucursal",
-                                                a.getSocio().getSucursal() != null
-                                                                ? a.getSocio().getSucursal().getNombre()
-                                                                : "Sin Sucursal");
-                                fila.put("vozVoto", a.getSocio().isEstadoVozVoto() ? "HABILITADO" : "OBSERVADO");
-                                result.add(fila);
-                        }
-                }
-
-                // Eliminar duplicados
-                Set<Long> seen = new HashSet<>();
-                result.removeIf(r -> !seen.add((Long) r.get("id")));
+                List<Map<String, Object>> result = sinAsignar.stream().map(s -> {
+                        Map<String, Object> fila = new HashMap<>();
+                        fila.put("id", s.getId());
+                        fila.put("socioNombre", s.getNombreCompleto());
+                        fila.put("socioNro", s.getNumeroSocio());
+                        fila.put("cedula", s.getCedula());
+                        fila.put("sucursal", s.getSucursal() != null ? s.getSucursal().getNombre() : "Sin Sucursal");
+                        fila.put("vozVoto", s.isEstadoVozVoto() ? "HABILITADO" : "OBSERVADO");
+                        fila.put("estado", "SIN ASIGNAR"); // Para coherencia visual en el frontend
+                        return fila;
+                }).collect(Collectors.toList());
 
                 Map<String, Object> stats = new HashMap<>();
                 stats.put("totalRegistros", result.size());
@@ -359,7 +342,10 @@ public class ReporteController {
         // Reporte de SOCIOS ASIGNADOS filtrado por sucursal (con todos los datos)
         // Cada socio aparece UNA sola vez (solo la primera asignación)
         @GetMapping("/por-sucursal/{sucursalId}")
-        public ResponseEntity<?> reportePorSucursal(@PathVariable Long sucursalId, Authentication auth) {
+        public ResponseEntity<?> reportePorSucursal(
+                        @PathVariable Long sucursalId,
+                        @RequestParam(required = false) Long operadorId,
+                        Authentication auth) {
                 var asignaciones = asignacionRepository.findAll();
                 var asistencias = asistenciaRepository.findAll();
 
@@ -374,6 +360,13 @@ public class ReporteController {
 
                 for (var asig : asignaciones) {
                         var socio = asig.getSocio();
+
+                        // Filtro de Operador (opcional)
+                        if (operadorId != null
+                                        && asig.getListaAsignacion().getUsuario().getId().equals(operadorId) == false) {
+                                continue;
+                        }
+
                         // Solo procesar si es de esta sucursal y NO ha sido procesado antes
                         if (socio.getSucursal() != null &&
                                         socio.getSucursal().getId().equals(sucursalId) &&
@@ -415,6 +408,55 @@ public class ReporteController {
                 stats.put("sucursalNombre",
                                 sucursalId != null ? sucursalRepository.findById(sucursalId).map(s -> s.getNombre())
                                                 .orElse("Desconocida") : "Todas");
+
+                return ResponseEntity.ok(Map.of("data", result, "stats", stats));
+        }
+
+        // Reporte de TODAS las asignaciones del padrón
+        @GetMapping("/asignaciones-general")
+        public ResponseEntity<?> reporteAsignacionesGenerales(Authentication auth) {
+                Usuario currentUser = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
+
+                if (currentUser.getRol() != Usuario.Rol.SUPER_ADMIN && currentUser.getRol() != Usuario.Rol.DIRECTIVO) {
+                        return ResponseEntity.status(403).body(Map.of("error", "Acceso denegado."));
+                }
+
+                var asignaciones = asignacionRepository.findAll();
+                var asistencias = asistenciaRepository.findAll();
+
+                Map<Long, Asistencia> asistenciaPorSocio = new HashMap<>();
+                for (Asistencia a : asistencias) {
+                        asistenciaPorSocio.put(a.getSocio().getId(), a);
+                }
+
+                List<Map<String, Object>> result = new ArrayList<>();
+                for (var asig : asignaciones) {
+                        var socio = asig.getSocio();
+                        Map<String, Object> fila = new HashMap<>();
+                        fila.put("id", socio.getId());
+                        fila.put("socioNombre", socio.getNombreCompleto());
+                        fila.put("socioNro", socio.getNumeroSocio());
+                        fila.put("cedula", socio.getCedula());
+                        fila.put("sucursal",
+                                        socio.getSucursal() != null ? socio.getSucursal().getNombre() : "Sin Sucursal");
+                        fila.put("vozVoto", socio.isEstadoVozVoto() ? "HABILITADO" : "OBSERVADO");
+                        fila.put("operador", asig.getListaAsignacion().getUsuario().getNombreCompleto());
+                        fila.put("fechaAsignacion", asig.getFechaAsignacion());
+
+                        Asistencia asist = asistenciaPorSocio.get(socio.getId());
+                        if (asist != null) {
+                                fila.put("estado", "PRESENTE");
+                                fila.put("fechaHora", asist.getFechaHora());
+                        } else {
+                                fila.put("estado", "AUSENTE");
+                                fila.put("fechaHora", null);
+                        }
+                        result.add(fila);
+                }
+
+                Map<String, Object> stats = new HashMap<>();
+                stats.put("totalRegistros", result.size());
+                stats.put("totalAsignados", result.size());
 
                 return ResponseEntity.ok(Map.of("data", result, "stats", stats));
         }

@@ -7,6 +7,10 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import Link from "next/link";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Toaster, toast } from "sonner";
+import { Loader2, Printer } from "lucide-react";
 
 interface SocioAsignado {
     id: number;
@@ -77,6 +81,39 @@ export default function ReportePorSucursalPage() {
         } else {
             setData([]);
             setStats({});
+        }
+    };
+
+    // Función auxiliar para formatear fechas de forma segura
+    const formatSafeTime = (dateValue: any) => {
+        if (!dateValue) return "-";
+        try {
+            let date: Date;
+            if (Array.isArray(dateValue)) {
+                date = new Date(dateValue[0], dateValue[1] - 1, dateValue[2], dateValue[3] || 0, dateValue[4] || 0, dateValue[5] || 0);
+            } else {
+                date = new Date(dateValue);
+            }
+            if (isNaN(date.getTime())) return "-";
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+            return "-";
+        }
+    };
+
+    const formatSafeDateTime = (dateValue: any) => {
+        if (!dateValue) return "-";
+        try {
+            let date: Date;
+            if (Array.isArray(dateValue)) {
+                date = new Date(dateValue[0], dateValue[1] - 1, dateValue[2], dateValue[3] || 0, dateValue[4] || 0, dateValue[5] || 0);
+            } else {
+                date = new Date(dateValue);
+            }
+            if (isNaN(date.getTime())) return "-";
+            return format(date, "dd/MM/yyyy HH:mm", { locale: es });
+        } catch (e) {
+            return "-";
         }
     };
 
@@ -200,7 +237,19 @@ export default function ReportePorSucursalPage() {
             doc.text(`Página ${i} de ${pageCount} - SIGA - Sistema Integral de Gestión de Asamblea`, 148, 200, { align: 'center' });
         }
 
-        doc.save(`reporte_sucursal_${stats.sucursalNombre || 'desconocida'}_${new Date().toISOString().split('T')[0]}.pdf`);
+        const fileName = `reporte_sucursal_${stats.sucursalNombre || 'desconocida'}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+        // --- LÓGICA DE PREVISUALIZACIÓN ---
+        const pdfBlob = doc.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const printWindow = window.open(pdfUrl, '_blank');
+
+        if (!printWindow) {
+            doc.save(fileName);
+            toast.info("Se ha descargado el PDF porque se bloqueó la ventana emergente.");
+        } else {
+            toast.success("Vista de impresión generada correctamente.");
+        }
     };
 
     const handleExportExcel = () => {
@@ -231,6 +280,7 @@ export default function ReportePorSucursalPage() {
                     <ArrowLeft className="w-5 h-5 text-slate-600" />
                 </Link>
                 <div>
+                    <Toaster position="top-center" richColors />
                     <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-purple-600">
                         Reporte por Sucursal
                     </h1>
@@ -341,25 +391,25 @@ export default function ReportePorSucursalPage() {
                                             <p className="text-xs text-slate-400">Nro: {item.socioNro}</p>
                                         </td>
                                         <td className="px-4 py-4 text-slate-600">{item.cedula}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500">
-                                            {item.fechaAsignacion ? new Date(item.fechaAsignacion).toLocaleString() : '-'}
+                                        <td className="px-4 py-4 text-sm font-mono font-bold text-slate-700">
+                                            {formatSafeDateTime(item.fechaAsignacion)}
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-slate-500">
-                                            {item.fechaHora ? new Date(item.fechaHora).toLocaleString() : '-'}
+                                        <td className="px-4 py-4 text-sm font-mono font-bold text-emerald-600">
+                                            {formatSafeDateTime(item.fechaHora)}
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-slate-600">{item.operador}</td>
+                                        <td className="px-4 py-4 text-xs font-bold text-slate-600">{item.operador}</td>
                                         <td className="px-4 py-4 text-center">
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold ${item.estado === 'PRESENTE'
-                                                    ? 'bg-emerald-100 text-emerald-700'
-                                                    : 'bg-red-100 text-red-700'
+                                                ? 'bg-emerald-100 text-emerald-700'
+                                                : 'bg-red-100 text-red-700'
                                                 }`}>
                                                 {item.estado}
                                             </span>
                                         </td>
                                         <td className="px-4 py-4 text-center">
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold ${item.vozVoto === 'HABILITADO'
-                                                    ? 'bg-blue-100 text-blue-700'
-                                                    : 'bg-amber-100 text-amber-700'
+                                                ? 'bg-blue-100 text-blue-700'
+                                                : 'bg-amber-100 text-amber-700'
                                                 }`}>
                                                 {item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ'}
                                             </span>

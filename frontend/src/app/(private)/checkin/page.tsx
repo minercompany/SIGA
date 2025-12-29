@@ -267,52 +267,56 @@ export default function CheckInPage() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8">
+        <div className="mx-auto space-y-6" style={{ maxWidth: 'clamp(320px, 95vw, 900px)', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
             {/* Header con stats */}
-            <div className="flex flex-col md:flex-row justify-between gap-6">
-                <div className="text-center md:text-left">
-                    <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Registro de Asistencia</h1>
-                    <p className="text-slate-500">Busca al socio para confirmar su ingreso</p>
+            <div className="flex flex-col gap-4">
+                <div className="text-center">
+                    <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)' }} className="font-extrabold text-slate-800 tracking-tight">Registro de Asistencia</h1>
+                    <p className="text-slate-500 text-sm">Busca al socio para confirmar su ingreso</p>
                 </div>
-                <div className="flex gap-4 justify-center">
-                    <div className="bg-white rounded-xl px-6 py-4 border border-slate-100 text-center">
-                        <p className="text-3xl font-bold text-slate-800">{stats.total.toLocaleString()}</p>
-                        <p className="text-xs text-slate-500 uppercase tracking-wide">Padrón Total</p>
+                <div className="flex gap-2 justify-center">
+                    <div className="bg-white rounded-xl px-4 py-3 border border-slate-100 text-center flex-1 max-w-[140px]">
+                        <p className="text-xl md:text-2xl font-bold text-slate-800">{stats.total.toLocaleString()}</p>
+                        <p className="text-[9px] md:text-xs text-slate-500 uppercase tracking-wide">Padrón Total</p>
                     </div>
-                    <div className="bg-emerald-50 rounded-xl px-6 py-4 border border-emerald-200 text-center">
-                        <p className="text-3xl font-bold text-emerald-600">{stats.presentes}</p>
-                        <p className="text-xs text-emerald-600 uppercase tracking-wide">Presentes</p>
+                    <div className="bg-emerald-50 rounded-xl px-4 py-3 border border-emerald-200 text-center flex-1 max-w-[140px]">
+                        <p className="text-xl md:text-2xl font-bold text-emerald-600">{stats.presentes}</p>
+                        <p className="text-[9px] md:text-xs text-emerald-600 uppercase tracking-wide">Presentes</p>
                     </div>
                 </div>
             </div>
 
-            {/* Buscador Central */}
-            <div className="bg-white rounded-3xl shadow-xl shadow-emerald-900/5 p-8 border border-emerald-100">
+            {/* Buscador Central - Responsivo */}
+            <div className="bg-white rounded-2xl md:rounded-3xl shadow-xl shadow-emerald-900/5 p-4 md:p-6 border border-emerald-100">
                 <form onSubmit={handleSearch} className="relative group">
-                    <div className="absolute left-6 top-1/2 -translate-y-1/2">
-                        {searching ? (
-                            <Loader2 className="h-6 w-6 text-emerald-500 animate-spin" />
-                        ) : (
-                            <Search className="h-6 w-6 text-emerald-500 group-focus-within:text-emerald-600 transition-colors" />
-                        )}
+                    <div className="flex flex-col md:flex-row gap-3">
+                        <div className="relative flex-1">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                                {searching ? (
+                                    <Loader2 className="h-5 w-5 text-emerald-500 animate-spin" />
+                                ) : (
+                                    <Search className="h-5 w-5 text-emerald-500 group-focus-within:text-emerald-600 transition-colors" />
+                                )}
+                            </div>
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                placeholder="Introduce Cédula o N° Socio..."
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl py-3 md:py-4 pl-12 pr-4 text-base md:text-lg font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                                autoFocus
+                                disabled={searching}
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={searching || !query.trim()}
+                            className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold py-3 md:py-4 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-200 text-sm md:text-base"
+                        >
+                            {searching ? "Buscando..." : "Buscar Socio"}
+                        </button>
                     </div>
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        placeholder="Introduce Cédula o Número de Socio..."
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-6 pl-16 pr-40 text-xl font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all shadow-inner"
-                        autoFocus
-                        disabled={searching}
-                    />
-                    <button
-                        type="submit"
-                        disabled={searching || !query.trim()}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold py-3.5 px-8 rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-200"
-                    >
-                        {searching ? "Buscando..." : "Buscar Socio"}
-                    </button>
                 </form>
             </div>
 

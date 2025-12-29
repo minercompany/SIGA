@@ -64,13 +64,31 @@ public class SocioController {
         return ResponseEntity.ok(importacionHistorialRepository.findTop10ByOrderByFechaImportacionDesc());
     }
 
-    // Listar todos los socios con paginación
+    // Listar todos los socios con paginación y filtros
     @GetMapping
     public ResponseEntity<org.springframework.data.domain.Page<com.asamblea.dto.SocioDTO>> listarTodos(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String numeroSocio,
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String telefono,
+            @RequestParam(required = false) Long sucursalId) {
         Pageable pageable = PageRequest.of(page, size);
-        org.springframework.data.domain.Page<Socio> sociosPage = socioRepository.findAllWithSucursal(pageable);
+        org.springframework.data.domain.Page<Socio> sociosPage;
+
+        // Filtrar por estado si se especifica
+        if (numeroSocio != null || nombre != null || telefono != null || sucursalId != null
+                || (estado != null && !"todos".equals(estado))) {
+            String nSocio = (numeroSocio != null && !numeroSocio.isEmpty()) ? numeroSocio : null;
+            String nNombre = (nombre != null && !nombre.isEmpty()) ? nombre : null;
+            String nTel = (telefono != null && !telefono.isEmpty()) ? telefono : null;
+            String nEstado = (estado != null && !"todos".equals(estado)) ? estado : null;
+
+            sociosPage = socioRepository.findWithFilters(nSocio, nNombre, nTel, sucursalId, nEstado, pageable);
+        } else {
+            sociosPage = socioRepository.findAllWithSucursal(pageable);
+        }
 
         // Convertir a DTOs para GARANTIZAR que sucursal.nombre se serialice
         org.springframework.data.domain.Page<com.asamblea.dto.SocioDTO> dtoPage = sociosPage
@@ -104,6 +122,17 @@ public class SocioController {
             dto.put("nombreCompleto", socio.getNombreCompleto());
             dto.put("numeroSocio", socio.getNumeroSocio());
             dto.put("cedula", socio.getCedula());
+            dto.put("telefono", socio.getTelefono());
+            // SUCURSAL - devolver como objeto para compatibilidad con frontend
+            if (socio.getSucursal() != null) {
+                Map<String, Object> sucursalObj = new HashMap<>();
+                sucursalObj.put("id", socio.getSucursal().getId());
+                sucursalObj.put("nombre", socio.getSucursal().getNombre());
+                sucursalObj.put("codigo", socio.getSucursal().getCodigo());
+                dto.put("sucursal", sucursalObj);
+            } else {
+                dto.put("sucursal", null);
+            }
             dto.put("aporteAlDia", socio.isAporteAlDia());
             dto.put("solidaridadAlDia", socio.isSolidaridadAlDia());
             dto.put("fondoAlDia", socio.isFondoAlDia());
