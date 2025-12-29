@@ -169,4 +169,142 @@ public class AsistenciaController {
 
         return ResponseEntity.ok(ranking);
     }
+
+    // ===== REPORTE ADMIN: Asistencias registradas por un operador específico =====
+    @GetMapping("/admin/por-operador/{operadorId}")
+    public ResponseEntity<?> asistenciasPorOperador(@PathVariable Long operadorId, Authentication auth) {
+        // Verificar permisos (SUPER_ADMIN o DIRECTIVO)
+        Usuario currentUser = usuarioRepository.findByUsername(auth.getName()).orElse(null);
+        if (currentUser == null ||
+                (!currentUser.getRol().equals("SUPER_ADMIN") && !currentUser.getRol().equals("DIRECTIVO"))) {
+            return ResponseEntity.status(403).body(Map.of("error", "No tiene permisos para ver este reporte"));
+        }
+
+        // Obtener operador
+        Optional<Usuario> operadorOpt = usuarioRepository.findById(operadorId);
+        if (operadorOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Operador no encontrado"));
+        }
+        Usuario operador = operadorOpt.get();
+
+        // Obtener asistencias registradas por este operador
+        List<Asistencia> asistencias = asistenciaRepository.findByOperadorId(operadorId);
+
+        List<Map<String, Object>> sociosAsistencia = new ArrayList<>();
+        int totalVyV = 0;
+        int totalSoloVoz = 0;
+
+        for (Asistencia a : asistencias) {
+            Socio socio = a.getSocio();
+            if (socio != null) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", a.getId());
+                item.put("cedula", socio.getCedula() != null ? socio.getCedula() : "-");
+                item.put("nombreCompleto",
+                        socio.getNombreCompleto() != null ? socio.getNombreCompleto() : "Sin Nombre");
+                item.put("numeroSocio", socio.getNumeroSocio() != null ? socio.getNumeroSocio() : "-");
+                item.put("fechaHora", a.getFechaHora());
+                item.put("horaFormateada", a.getFechaHora() != null ? a.getFechaHora().toLocalTime().toString() : "-");
+                boolean esVyV = Boolean.TRUE.equals(a.getEstadoVozVoto());
+                item.put("condicion", esVyV ? "VOZ Y VOTO" : "SOLO VOZ");
+                item.put("esVyV", esVyV);
+                sociosAsistencia.add(item);
+
+                if (esVyV)
+                    totalVyV++;
+                else
+                    totalSoloVoz++;
+            }
+        }
+
+        // Ordenar por hora de registro
+        sociosAsistencia.sort((a, b) -> {
+            LocalDateTime fa = (LocalDateTime) a.get("fechaHora");
+            LocalDateTime fb = (LocalDateTime) b.get("fechaHora");
+            if (fa == null)
+                return 1;
+            if (fb == null)
+                return -1;
+            return fa.compareTo(fb);
+        });
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("operador", Map.of(
+                "id", operador.getId(),
+                "nombre", operador.getNombreCompleto() != null ? operador.getNombreCompleto() : "Sin Nombre",
+                "username", operador.getUsername(),
+                "rol", operador.getRol()));
+        response.put("asistencias", sociosAsistencia);
+        response.put("stats", Map.of(
+                "total", sociosAsistencia.size(),
+                "vyv", totalVyV,
+                "soloVoz", totalSoloVoz));
+
+        return ResponseEntity.ok(response);
+    }
+
+    // ===== MI REPORTE: Asistencias registradas por el usuario autenticado =====
+    @GetMapping("/mi-reporte")
+    public ResponseEntity<?> miReporte(Authentication auth) {
+        // Obtener usuario autenticado
+        Usuario operador = usuarioRepository.findByUsername(auth.getName()).orElse(null);
+        if (operador == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "Usuario no autenticado"));
+        }
+
+        // Obtener asistencias registradas por este usuario
+        List<Asistencia> asistencias = asistenciaRepository.findByOperadorId(operador.getId());
+
+        List<Map<String, Object>> misRegistros = new ArrayList<>();
+        int totalVyV = 0;
+        int totalSoloVoz = 0;
+
+        for (Asistencia a : asistencias) {
+            Socio socio = a.getSocio();
+            if (socio != null) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", a.getId());
+                item.put("cedula", socio.getCedula() != null ? socio.getCedula() : "-");
+                item.put("nombreCompleto",
+                        socio.getNombreCompleto() != null ? socio.getNombreCompleto() : "Sin Nombre");
+                item.put("numeroSocio", socio.getNumeroSocio() != null ? socio.getNumeroSocio() : "-");
+                item.put("fechaHora", a.getFechaHora());
+                item.put("horaFormateada", a.getFechaHora() != null ? a.getFechaHora().toLocalTime().toString() : "-");
+                boolean esVyV = Boolean.TRUE.equals(a.getEstadoVozVoto());
+                item.put("condicion", esVyV ? "VOZ Y VOTO" : "SOLO VOZ");
+                item.put("esVyV", esVyV);
+                misRegistros.add(item);
+
+                if (esVyV)
+                    totalVyV++;
+                else
+                    totalSoloVoz++;
+            }
+        }
+
+        // Ordenar por hora de registro
+        misRegistros.sort((a, b) -> {
+            LocalDateTime fa = (LocalDateTime) a.get("fechaHora");
+            LocalDateTime fb = (LocalDateTime) b.get("fechaHora");
+            if (fa == null)
+                return 1;
+            if (fb == null)
+                return -1;
+            return fa.compareTo(fb);
+        });
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("usuario", Map.of(
+                "id", operador.getId(),
+                "nombre", operador.getNombreCompleto() != null ? operador.getNombreCompleto() : "Sin Nombre",
+                "username", operador.getUsername(),
+                "rol", operador.getRol()));
+        response.put("registros", misRegistros);
+        response.put("stats", Map.of(
+                "total", misRegistros.size(),
+                "vyv", totalVyV,
+                "soloVoz", totalSoloVoz));
+
+        return ResponseEntity.ok(response);
+    }
 }

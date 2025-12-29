@@ -21,6 +21,9 @@ public interface AsistenciaRepository extends JpaRepository<Asistencia, Long> {
 
     java.util.Optional<Asistencia> findFirstBySocioId(Long socioId);
 
+    // Buscar asistencias por operador
+    java.util.List<Asistencia> findByOperadorId(Long operadorId);
+
     // Eliminar asistencias por socio ID
     void deleteBySocioId(Long socioId);
 }

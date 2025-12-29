@@ -151,7 +151,7 @@ export default function ReporteFuncionariosPage() {
         link.click();
     };
 
-    const handleExportPDF = () => {
+    const handleExportPDF = async () => {
         if (!selectedFuncionario?.idListaReal || !listaDetalle) return;
 
         const doc = new jsPDF();
@@ -166,91 +166,124 @@ export default function ReporteFuncionariosPage() {
         // ===== HEADER PREMIUM CON GRADIENTE SIMULADO =====
         // Barra superior principal (teal oscuro)
         doc.setFillColor(17, 94, 89); // teal-800
-        doc.rect(0, 0, pageWidth, 8, 'F');
+        doc.rect(0, 0, pageWidth, 10, 'F');
         // Barra principal (teal)
         doc.setFillColor(13, 148, 136); // teal-600
-        doc.rect(0, 8, pageWidth, 32, 'F');
+        doc.rect(0, 10, pageWidth, 30, 'F');
         // Línea decorativa dorada
         doc.setFillColor(245, 158, 11); // amber-500
         doc.rect(0, 40, pageWidth, 2, 'F');
 
-        // Logo/Ícono circular simulado
+        // Logo/Ícono circular simulado con iniciales
         doc.setFillColor(255, 255, 255);
-        doc.circle(22, 24, 10, 'F');
-        doc.setFillColor(13, 148, 136);
-        doc.setFontSize(14);
+        doc.circle(23, 25, 12, 'F');
+        doc.setTextColor(13, 148, 136);
+        doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text('S', 19, 28);
+        doc.text('CR', 17, 28);
 
-        // Título principal
+        // Título COOPERATIVA REDUCTO
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(16);
+        doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
-        doc.text('SIGA - SISTEMA INTEGRAL DE GESTIÓN', 38, 20);
+        doc.text('COOPERATIVA REDUCTO LTDA', 42, 22);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
-        doc.text('Sistema Integral de Gestión de Asamblea • Documento Oficial', 38, 28);
+        doc.text('SIGA - Sistema Integral de Gestión de Asamblea', 42, 30);
+        doc.setFontSize(8);
+        doc.text('Documento Oficial', 42, 36);
 
         // Fecha a la derecha con estilo
         doc.setFontSize(8);
-        doc.text(`Generado: ${fechaHora}`, pageWidth - 14, 36, { align: 'right' });
+        doc.text(`Fecha: ${fechaHora}`, pageWidth - 14, 36, { align: 'right' });
 
         // ===== TÍTULO DEL REPORTE =====
         doc.setTextColor(17, 94, 89);
-        doc.setFontSize(14);
+        doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.text('REPORTE DE ASIGNACIONES', 14, 55);
+        doc.text('REPORTE OFICIAL DE ASIGNACIONES', 14, 55);
 
         // Línea decorativa bajo título
         doc.setDrawColor(13, 148, 136);
-        doc.setLineWidth(0.5);
-        doc.line(14, 58, 85, 58);
+        doc.setLineWidth(0.8);
+        doc.line(14, 59, 120, 59);
 
         // ===== TARJETA DE INFO DEL OPERADOR =====
         doc.setFillColor(240, 253, 250); // teal-50
-        doc.roundedRect(14, 63, pageWidth - 28, 22, 3, 3, 'F');
-        doc.setDrawColor(204, 251, 241); // teal-100
-        doc.roundedRect(14, 63, pageWidth - 28, 22, 3, 3, 'S');
+        doc.roundedRect(14, 64, pageWidth - 28, 28, 3, 3, 'F');
+        doc.setDrawColor(153, 246, 228); // teal-200
+        doc.setLineWidth(0.3);
+        doc.roundedRect(14, 64, pageWidth - 28, 28, 3, 3, 'S');
 
         doc.setTextColor(100, 116, 139);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        doc.text('OPERADOR:', 20, 72);
+        doc.text('OPERADOR RESPONSABLE:', 20, 73);
         doc.setTextColor(17, 94, 89);
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.text(selectedFuncionario.responsable.toUpperCase(), 20, 80);
-
-        // Stats en la tarjeta
-        const statsX = pageWidth - 100;
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(100, 116, 139);
-        doc.text('TOTAL', statsX, 72);
-        doc.text('VOZ Y VOTO', statsX + 30, 72);
-        doc.text('SOLO VOZ', statsX + 60, 72);
-
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(13, 148, 136);
-        doc.text(String(listaDetalle.stats.total), statsX, 80);
-        doc.setTextColor(4, 120, 87);
-        doc.text(String(listaDetalle.stats.vyv), statsX + 30, 80);
-        doc.setTextColor(180, 83, 9);
-        doc.text(String(listaDetalle.stats.soloVoz), statsX + 60, 80);
+        doc.text(selectedFuncionario.responsable.toUpperCase(), 20, 82);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 116, 139);
+        doc.text(`Usuario: @${selectedFuncionario.responsableUser}`, 20, 88);
+
+        // Stats con porcentajes y badges
+        const total = listaDetalle.stats.total;
+        const vyv = listaDetalle.stats.vyv;
+        const soloVoz = listaDetalle.stats.soloVoz;
+        const porcVyV = total > 0 ? Math.round((vyv / total) * 100) : 0;
+        const porcSoloVoz = total > 0 ? Math.round((soloVoz / total) * 100) : 0;
+
+        const statsX = pageWidth - 115;
+
+        // TOTAL badge
+        doc.setFillColor(13, 148, 136);
+        doc.roundedRect(statsX, 68, 30, 20, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.text('TOTAL', statsX + 7, 74);
+        doc.setFontSize(14);
+        doc.text(String(total), statsX + 10, 84);
+
+        // VOZ Y VOTO badge
+        doc.setFillColor(4, 120, 87);
+        doc.roundedRect(statsX + 35, 68, 35, 20, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(6);
+        doc.text('VOZ Y VOTO', statsX + 38, 74);
+        doc.setFontSize(11);
+        doc.text(`${vyv} (${porcVyV}%)`, statsX + 38, 84);
+
+        // SOLO VOZ badge
+        doc.setFillColor(180, 83, 9);
+        doc.roundedRect(statsX + 75, 68, 35, 20, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(6);
+        doc.text('SOLO VOZ', statsX + 80, 74);
+        doc.setFontSize(11);
+        doc.text(`${soloVoz} (${porcSoloVoz}%)`, statsX + 80, 84);
 
         // ===== TABLA PREMIUM =====
+        const formatFecha = (fecha: string) => {
+            if (!fecha) return '-';
+            const d = new Date(fecha);
+            return d.toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        };
+
         const tableData = listaDetalle.socios.map((s, idx) => [
             String(idx + 1),
             s.cedula,
             s.nombreCompleto,
             s.numeroSocio,
+            formatFecha(s.fechaAsignacion),
             s.condicion
         ]);
 
         autoTable(doc, {
-            startY: 92,
-            head: [['#', 'CÉDULA', 'SOCIO', 'NRO', 'CONDICIÓN']],
+            startY: 98,
+            head: [['#', 'CÉDULA', 'SOCIO', 'NRO', 'FECHA ASIG.', 'CONDICIÓN']],
             body: tableData,
             theme: 'grid',
             styles: {
@@ -273,11 +306,12 @@ export default function ReporteFuncionariosPage() {
                 fillColor: [248, 250, 252],
             },
             columnStyles: {
-                0: { cellWidth: 12, halign: 'center', fontStyle: 'bold' },
-                1: { cellWidth: 30 },
+                0: { cellWidth: 10, halign: 'center', fontStyle: 'bold' },
+                1: { cellWidth: 25 },
                 2: { cellWidth: 'auto' },
-                3: { cellWidth: 20, halign: 'center' },
-                4: { cellWidth: 32, halign: 'center', fontStyle: 'bold' }
+                3: { cellWidth: 18, halign: 'center' },
+                4: { cellWidth: 25, halign: 'center', fontSize: 7 },
+                5: { cellWidth: 26, halign: 'center', fontStyle: 'bold' }
             },
             didParseCell: (data) => {
                 // Estilo para columna #
@@ -286,7 +320,7 @@ export default function ReporteFuncionariosPage() {
                     data.cell.styles.textColor = [13, 148, 136];
                 }
                 // Colores para condición
-                if (data.section === 'body' && data.column.index === 4) {
+                if (data.section === 'body' && data.column.index === 5) {
                     const condicion = data.cell.raw as string;
                     if (condicion === 'VOZ Y VOTO') {
                         data.cell.styles.fillColor = [209, 250, 229];
@@ -304,23 +338,31 @@ export default function ReporteFuncionariosPage() {
         const finalY = (doc as any).lastAutoTable.finalY + 8;
 
         // Solo agregar pie si hay espacio
-        if (finalY < pageHeight - 30) {
+        if (finalY < pageHeight - 35) {
+            // Línea separadora
+            doc.setDrawColor(226, 232, 240);
+            doc.setLineWidth(0.3);
+            doc.line(14, finalY - 3, pageWidth - 14, finalY - 3);
+
             doc.setFillColor(248, 250, 252);
-            doc.roundedRect(14, finalY, pageWidth - 28, 18, 3, 3, 'F');
+            doc.roundedRect(14, finalY, pageWidth - 28, 22, 3, 3, 'F');
 
             doc.setFontSize(7);
-            doc.setTextColor(148, 163, 184);
-            doc.text('Documento generado automáticamente por SIGA', 20, finalY + 7);
-            doc.text(`Usuario: ${selectedFuncionario.responsableUser}`, 20, finalY + 13);
+            doc.setTextColor(100, 116, 139);
+            doc.text('Documento generado automáticamente por SIGA - Sistema Integral de Gestión de Asamblea', 20, finalY + 7);
+            doc.text(`Operador: ${selectedFuncionario.responsable} | Usuario: @${selectedFuncionario.responsableUser}`, 20, finalY + 13);
+            doc.text(`Generado el: ${fechaHora}`, 20, finalY + 18);
 
-            // Marca de agua mini
-            doc.setTextColor(203, 213, 225);
-            doc.setFontSize(8);
+            // Logo mini SIGA
+            doc.setFillColor(13, 148, 136);
+            doc.roundedRect(pageWidth - 45, finalY + 4, 25, 14, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
-            doc.text('SIGA', pageWidth - 25, finalY + 11);
+            doc.text('SIGA', pageWidth - 40, finalY + 13);
         }
 
-        doc.save(`asignaciones_${selectedFuncionario.responsableUser}.pdf`);
+        doc.save(`reporte_asignaciones_${selectedFuncionario.responsableUser}_${now.toISOString().slice(0, 10)}.pdf`);
     };
 
     const formatDate = (dateStr: string) => {
