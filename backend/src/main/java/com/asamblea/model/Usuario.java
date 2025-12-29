@@ -80,7 +80,8 @@ public class Usuario implements UserDetails {
         SUPER_ADMIN("Super Administrador", "Acceso total al sistema"),
         DIRECTIVO("Directivo", "Ver todo, asignar, sin editar"),
         OPERADOR("Operador Check-in", "Registro de asistencia"),
-        USUARIO_SOCIO("Usuario Socio", "Acceso limitado personal");
+        USUARIO_SOCIO("Usuario Socio", "Acceso limitado personal"),
+        ASESOR_DE_CREDITO("Asesor de Crédito", "Gestión de créditos y asignaciones");
 
         private final String nombre;
         private final String descripcion;
@@ -153,5 +154,21 @@ public class Usuario implements UserDetails {
 
     public boolean puedeHacerCheckin() {
         return rol == Rol.SUPER_ADMIN || rol == Rol.DIRECTIVO || rol == Rol.OPERADOR;
+    }
+
+    /**
+     * Verifica si el usuario tiene un rol básico (USUARIO_SOCIO o
+     * ASESOR_DE_CREDITO)
+     * Ambos roles tienen exactamente los mismos permisos
+     */
+    public boolean esUsuarioBasico() {
+        return rol == Rol.USUARIO_SOCIO || rol == Rol.ASESOR_DE_CREDITO;
+    }
+
+    /**
+     * Verifica si el usuario es un asesor de crédito
+     */
+    public boolean esAsesor() {
+        return rol == Rol.ASESOR_DE_CREDITO;
     }
 }

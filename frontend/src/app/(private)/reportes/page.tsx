@@ -153,26 +153,37 @@ export default function ReportesPage() {
     };
 
     useEffect(() => {
-        const lowerTerm = searchTerm.toLowerCase();
+        const lowerTerm = searchTerm.toLowerCase().trim();
         const filtered = operadores.filter(op => {
             if (selectedSucursalFilter && op.sucursalId?.toString() !== selectedSucursalFilter) return false;
+
             if (!lowerTerm) return true;
+
+            const nombre = op.nombreCompleto?.toLowerCase() || "";
+            const username = op.username?.toString().toLowerCase() || "";
+            const cedula = op.cedula?.toString().toLowerCase() || "";
+            const nroSocio = op.numeroSocio?.toString().toLowerCase() || "";
+
             return (
-                op.nombreCompleto.toLowerCase().includes(lowerTerm) ||
-                (op.username && op.username.toString().toLowerCase().includes(lowerTerm)) ||
-                (op.cedula && op.cedula.toString().toLowerCase().includes(lowerTerm)) ||
-                (op.numeroSocio && op.numeroSocio.toString().toLowerCase().includes(lowerTerm))
+                nombre.includes(lowerTerm) ||
+                username.includes(lowerTerm) ||
+                cedula.includes(lowerTerm) ||
+                nroSocio.includes(lowerTerm)
             );
         });
         setFilteredOperadores(filtered);
 
+        // Auto-select logic if exact match or single result
         if (lowerTerm.length >= 2 && filtered.length === 1) {
             const foundId = filtered[0].id.toString();
+            // Avoid loop if already selected
             if (selectedOperador !== foundId) {
                 setSelectedOperador(foundId);
                 fetchReporte(user, foundId, reportView, selectedSucursalFilter);
             }
-        } else if (lowerTerm === "" && selectedOperador !== "") {
+        }
+        // If user clears search, reset selection but keep filtered list (handled above)
+        else if (searchTerm === "" && selectedOperador !== "") {
             setSelectedOperador("");
             fetchReporte(user, "", reportView, selectedSucursalFilter);
         }
@@ -255,12 +266,15 @@ export default function ReportesPage() {
         } catch { return "-"; }
     };
 
+    const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
+
     const handleExportPDF = async () => {
         if (!data || data.length === 0) { toast.error("No hay datos para exportar."); return; }
         setGenerating(true); setProgress(10);
         try {
             await new Promise(r => setTimeout(r, 500));
-            const doc = new jsPDF('l', 'mm', 'a4');
+            // @ts-ignore
+            const doc = new jsPDF(orientation === 'landscape' ? 'l' : 'p', 'mm', 'a4');
             let logoBase64 = '';
             try {
                 const res = await fetch('/logo-cooperativa.png');
@@ -272,14 +286,17 @@ export default function ReportesPage() {
                 });
             } catch { }
 
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+
             doc.setFillColor(31, 41, 55);
-            doc.rect(0, 0, 297, 45, 'F');
+            doc.rect(0, 0, pageWidth, 45, 'F');
             if (logoBase64) doc.addImage(logoBase64, 'PNG', 10, 5, 35, 35);
             doc.setFontSize(22); doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold");
             doc.text("COOPERATIVA REDUCTO LTDA", 50, 18);
             doc.setFontSize(11); doc.setTextColor(16, 185, 129); doc.text("SIGA - Sistema Integral de Gestión de Asamblea", 50, 26);
             doc.setFontSize(9); doc.setTextColor(200, 200, 200); doc.text("Documento Oficial", 50, 33);
-            doc.text(`Fecha: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 283, 38, { align: 'right' });
+            doc.text(`Fecha: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, pageWidth - 14, 38, { align: 'right' });
 
             const titulos: Record<ReportType, string> = {
                 'ASISTENCIA': 'REPORTE OFICIAL DE ASISTENCIA',
@@ -303,26 +320,136 @@ export default function ReportesPage() {
                 columns = [{ header: 'CI', dataKey: 'ci' }, { header: 'SOCIO', dataKey: 'nom' }, { header: 'MOTIVO', dataKey: 'mot' }, { header: 'INGRESO', dataKey: 'f' }];
                 rows = data.map((item: any) => ({ ci: item.cedula, nom: item.socioNombre, mot: item.motivos || '-', f: item.fechaIngreso ? new Date(item.fechaIngreso).toLocaleString() : '-' }));
             } else if (reportView === 'ASIGNACIONES' || reportView === 'ASISTENCIA') {
-                columns = [{ header: 'CÉDULA', dataKey: 'ci' }, { header: 'SOCIO', dataKey: 'nom' }, { header: 'COLABORADOR', dataKey: 'op' }, { header: 'INGRESO', dataKey: 'f' }, { header: 'CONDICIÓN', dataKey: 'c' }];
-                rows = data.map(item => ({ ci: item.cedula, nom: item.socioNombre, op: item.operador, f: item.fechaHora ? new Date(item.fechaHora).toLocaleString() : '-', c: item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ', rawStatus: item.vozVoto }));
+                // ADDED: sucursal column
+                columns = [
+                    { header: 'CÉDULA', dataKey: 'ci' },
+                    { header: 'NRO SOCIO', dataKey: 'nro' },
+                    { header: 'SOCIO', dataKey: 'nom' },
+                    { header: 'SUCURSAL', dataKey: 'suc' },
+                    { header: 'COLABORADOR', dataKey: 'op' },
+                    { header: 'INGRESO', dataKey: 'f' },
+                    { header: 'CONDICIÓN', dataKey: 'c' }
+                ];
+                rows = data.map(item => ({
+                    ci: item.cedula,
+                    nro: item.socioNro,
+                    nom: item.socioNombre,
+                    suc: item.sucursal,
+                    op: item.operador,
+                    f: item.fechaHora ? new Date(item.fechaHora).toLocaleString() : '-',
+                    c: item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ',
+                    rawStatus: item.vozVoto
+                }));
             } else {
                 columns = [{ header: 'CÉDULA', dataKey: 'ci' }, { header: 'SOCIO', dataKey: 'nom' }, { header: 'NRO', dataKey: 'nro' }, { header: 'INGRESO', dataKey: 'f' }, { header: 'CONDICIÓN', dataKey: 'c' }];
                 rows = data.map(item => ({ ci: item.cedula, nom: item.socioNombre, nro: item.socioNro, f: item.fechaHora ? new Date(item.fechaHora).toLocaleString() : '-', c: item.vozVoto === 'HABILITADO' ? 'VOZ Y VOTO' : 'SOLO VOZ', rawStatus: item.vozVoto }));
             }
 
+            // @ts-ignore
             autoTable(doc, {
                 startY: 75, columns: columns, body: rows,
                 headStyles: { fillColor: [31, 41, 55], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
                 bodyStyles: { fontSize: 8, textColor: [0, 0, 0] },
-                alternateRowStyles: { fillColor: [248, 250, 252] }
+                alternateRowStyles: { fillColor: [248, 250, 252] },
+                margin: { top: 75 }
             });
+
+            // === PIE CHART GENERATION (Only for ASISTENCIA and if data exists) ===
+            if (reportView === 'ASISTENCIA' && data.length > 0) {
+                // Calculate Stats
+                const sucursalStats: Record<string, number> = {};
+                let totalForChart = 0;
+                data.forEach(d => {
+                    const s = d.sucursal || 'Sin Sucursal';
+                    sucursalStats[s] = (sucursalStats[s] || 0) + 1;
+                    totalForChart++;
+                });
+
+                // Check space
+                // @ts-ignore
+                let finalY = doc.lastAutoTable.finalY + 10;
+                if (finalY + 70 > pageHeight) {
+                    doc.addPage();
+                    finalY = 20;
+                }
+
+                doc.setFontSize(14);
+                doc.setTextColor(31, 41, 55);
+                doc.text("Distribución por Sucursal", 14, finalY);
+
+                const renderPie = (cx: number, cy: number, r: number, dataStats: Record<string, number>) => {
+                    let startAngle = 0;
+                    const colors = [
+                        [16, 185, 129], // Emerald
+                        [59, 130, 246], // Blue
+                        [245, 158, 11], // Amber
+                        [239, 68, 68],  // Red
+                        [139, 92, 246], // Violet
+                        [236, 72, 153], // Pink
+                        [99, 102, 241], // Indigo
+                        [100, 116, 139] // Slate
+                    ];
+                    let colorIdx = 0;
+
+                    // Legend setup
+                    let legendY = cy - r + 10;
+                    const legendX = cx + r + 20;
+
+                    Object.entries(dataStats).forEach(([suc, count]) => {
+                        const percent = count / totalForChart;
+                        const angle = percent * 360;
+                        const endAngle = startAngle + angle;
+
+                        // Pick color
+                        const rgb = colors[colorIdx % colors.length];
+                        doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+
+                        // Draw Sector (Triangle Fan approximation for PDF)
+                        // Center is (cx, cy)
+                        // We step every 5 degrees for smoothness
+                        const steps = Math.ceil(angle / 2); // 2 degree precision
+
+                        // We need to construct a path
+                        // Using triangle fan manually
+                        for (let i = 0; i < steps; i++) {
+                            const a1 = (startAngle + (i * (angle / steps))) * (Math.PI / 180);
+                            const a2 = (startAngle + ((i + 1) * (angle / steps))) * (Math.PI / 180);
+
+                            const x1 = cx + r * Math.cos(a1);
+                            const y1 = cy + r * Math.sin(a1);
+                            const x2 = cx + r * Math.cos(a2);
+                            const y2 = cy + r * Math.sin(a2);
+
+                            doc.triangle(cx, cy, x1, y1, x2, y2, 'F');
+                        }
+
+                        // Legend
+                        doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+                        doc.rect(legendX, legendY, 5, 5, 'F');
+                        doc.setFontSize(9);
+                        doc.setTextColor(50, 50, 50);
+                        const percentStr = (percent * 100).toFixed(1);
+                        doc.text(`${suc} - ${count} (${percentStr}%)`, legendX + 8, legendY + 4);
+
+                        legendY += 8;
+                        startAngle += angle;
+                        colorIdx++;
+                    });
+                };
+
+                // Draw centered
+                renderPie(50, finalY + 35, 25, sucursalStats);
+            }
 
             const pdfBlob = doc.output('blob');
             const pdfUrl = URL.createObjectURL(pdfBlob);
             const printWindow = window.open(pdfUrl, '_blank');
             if (!printWindow) doc.save(`reporte_${reportView.toLowerCase()}.pdf`);
             setProgress(100);
-        } catch { toast.error("Error al generar PDF."); }
+        } catch (e) {
+            console.error(e);
+            toast.error("Error al generar PDF.");
+        }
         finally { setGenerating(false); setProgress(0); }
     };
 
@@ -345,6 +472,14 @@ export default function ReportesPage() {
                     <p className="text-slate-500 text-sm">Configura y genera documentos oficiales</p>
                 </div>
                 <div className="flex gap-2">
+                    <select
+                        value={orientation}
+                        onChange={(e) => setOrientation(e.target.value as 'portrait' | 'landscape')}
+                        className="bg-white border border-slate-200 text-slate-600 text-sm rounded-xl focus:ring-emerald-500 focus:border-emerald-500 block p-2.5 font-bold cursor-pointer"
+                    >
+                        <option value="landscape">Horizontal</option>
+                        <option value="portrait">Vertical</option>
+                    </select>
                     <button onClick={handleExportPDF} className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-600 transition-all flex items-center gap-2 text-sm font-bold">
                         <Printer className="w-4 h-4" /> PDF
                     </button>
@@ -435,7 +570,15 @@ export default function ReportesPage() {
                                     className="w-full pl-10 pr-10 py-3.5 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-700 appearance-none focus:ring-2 focus:ring-violet-500 cursor-pointer"
                                 >
                                     <option value="">👤 Todos los de esta sucursal</option>
-                                    {filteredOperadores.map(op => <option key={op.id} value={op.id}>{op.nombreCompleto}</option>)}
+                                    {filteredOperadores.length === 0 ? (
+                                        <option value="" disabled>No se encontraron resultados</option>
+                                    ) : (
+                                        filteredOperadores.map(op => (
+                                            <option key={op.id} value={op.id}>
+                                                {op.nombreCompleto} {op.cedula ? `(CI: ${op.cedula})` : ''} {op.numeroSocio ? `(Socio: ${op.numeroSocio})` : ''}
+                                            </option>
+                                        ))
+                                    )}
                                 </select>
                                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                             </div>

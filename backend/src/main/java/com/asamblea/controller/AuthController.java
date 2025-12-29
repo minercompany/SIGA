@@ -17,8 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 import java.time.LocalDateTime;
-import java.time.Duration;
-import com.asamblea.service.AvisoService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,54 +34,40 @@ public class AuthController {
         private final ListaAsignacionRepository listaAsignacionRepository;
         private final ImportacionHistorialRepository importacionHistorialRepository;
         private final com.asamblea.service.LogAuditoriaService auditService;
-        private final AvisoService avisoService;
 
         @PostMapping("/login")
         public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
                 try {
                         System.out.println("DEBUG: Intento de login para usuario: " + request.getUsername());
-                        authenticationManager.authenticate(
-                                        new UsernamePasswordAuthenticationToken(
-                                                        request.getUsername(),
-                                                        request.getPassword()));
-                        var user = usuarioRepository.findByUsername(request.getUsername())
-                                        .orElseThrow();
+                        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                                        request.getUsername(), request.getPassword()));
+                        var user = usuarioRepository.findByUsername(request.getUsername()).orElseThrow();
 
                         System.out.println("DEBUG: Usuario autenticado con éxito, generando token...");
 
-                        auditService.registrar(
-                                        "USUARIOS",
-                                        "LOGIN",
-                                        "Inició sesión exitosamente en el sistema.",
-                                        user.getUsername(),
-                                        httpRequest.getRemoteAddr());
-
+                        auditService.registrar("USUARIOS", "LOGIN", "Inició sesión exitosamente en el sistema.",
+                                        user.getUsername(), httpRequest.getRemoteAddr());
 
                         // DESACTIVADO: Detectar acceso duplicado - generaba falsos positivos
                         // if (user.getLastLogin() != null) {
-                        //         long minutesSinceLast = Duration.between(user.getLastLogin(), LocalDateTime.now())
-                        //                         .toMinutes();
-                        //         if (minutesSinceLast < 30) {
-                        //                 avisoService.crearAvisoSeguridad(user,
-                        //                                 "Intento de acceso duplicado detectado en tu cuenta.");
-                        //         }
+                        // long minutesSinceLast = Duration.between(user.getLastLogin(),
+                        // LocalDateTime.now())
+                        // .toMinutes();
+                        // if (minutesSinceLast < 30) {
+                        // avisoService.crearAvisoSeguridad(user,
+                        // "Intento de acceso duplicado detectado en tu cuenta.");
+                        // }
                         // }
 
                         user.setLastLogin(LocalDateTime.now());
                         usuarioRepository.save(user);
 
                         var jwtToken = jwtService.generateToken(user);
-                        return ResponseEntity.ok(AuthResponse.builder()
-                                        .token(jwtToken)
-                                        .id(user.getId())
-                                        .username(user.getUsername())
-                                        .nombreCompleto(user.getNombreCompleto())
-                                        .rol(user.getRol().name())
-                                        .permisosEspeciales(user.getPermisosEspeciales())
+                        return ResponseEntity.ok(AuthResponse.builder().token(jwtToken).id(user.getId())
+                                        .username(user.getUsername()).nombreCompleto(user.getNombreCompleto())
+                                        .rol(user.getRol().name()).permisosEspeciales(user.getPermisosEspeciales())
                                         .requiresPasswordChange(user.getRequiresPasswordChange())
-                                        .fotoPerfil(user.getFotoPerfil())
-                                        .telefono(user.getTelefono())
-                                        .build());
+                                        .fotoPerfil(user.getFotoPerfil()).telefono(user.getTelefono()).build());
                 } catch (Exception e) {
                         System.err.println("DEBUG: Error en login: " + e.getMessage());
                         e.printStackTrace();
@@ -121,12 +105,11 @@ public class AuthController {
                         response.put("telefono", user.getTelefono());
 
                         // Permisos basados en rol
-                        response.put("permisos", Map.of(
-                                        "puedeEditar", user.puedeEditar(),
-                                        "puedeCargarPadron", user.puedeCargarPadron(),
-                                        "puedeAsignar", user.puedeAsignar(),
-                                        "puedeVerReportes", user.puedeVerReportes(),
-                                        "puedeHacerCheckin", user.puedeHacerCheckin()));
+                        response.put("permisos",
+                                        Map.of("puedeEditar", user.puedeEditar(), "puedeCargarPadron",
+                                                        user.puedeCargarPadron(), "puedeAsignar", user.puedeAsignar(),
+                                                        "puedeVerReportes", user.puedeVerReportes(),
+                                                        "puedeHacerCheckin", user.puedeHacerCheckin()));
 
                         return ResponseEntity.ok(response);
                 } catch (Exception e) {
@@ -181,16 +164,13 @@ public class AuthController {
                         user.setTokenVersion(currentVersion + 1);
                         usuarioRepository.save(user);
 
-                        auditService.registrar(
-                                        "USUARIOS",
-                                        "LOGOUT_ALL_SESSIONS",
-                                        "Cerró todas las sesiones activas. Token version incrementado a " + user.getTokenVersion(),
-                                        user.getUsername(),
-                                        httpRequest.getRemoteAddr());
+                        auditService.registrar("USUARIOS", "LOGOUT_ALL_SESSIONS",
+                                        "Cerró todas las sesiones activas. Token version incrementado a "
+                                                        + user.getTokenVersion(),
+                                        user.getUsername(), httpRequest.getRemoteAddr());
 
-                        return ResponseEntity.ok(Map.of(
-                                        "success", true,
-                                        "message", "Todas las sesiones han sido cerradas. Debes iniciar sesión nuevamente."));
+                        return ResponseEntity.ok(Map.of("success", true, "message",
+                                        "Todas las sesiones han sido cerradas. Debes iniciar sesión nuevamente."));
                 } catch (Exception e) {
                         return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
                 }
@@ -211,9 +191,8 @@ public class AuthController {
                 // Validar código de autorización
                 if (!"226118".equals(code)) {
                         System.out.println("DEBUG: Código RECHAZADO");
-                        return ResponseEntity.status(403).body(Map.of(
-                                        "success", false,
-                                        "error", "Código de autorización inválido"));
+                        return ResponseEntity.status(403)
+                                        .body(Map.of("success", false, "error", "Código de autorización inválido"));
                 }
 
                 try {
@@ -242,12 +221,9 @@ public class AuthController {
 
                         System.out.println("✅ RESET COMPLETADO!");
 
-                        auditService.registrar(
-                                        "CONFIGURACION",
-                                        "SYSTEM_RESET_CODE",
+                        auditService.registrar("CONFIGURACION", "SYSTEM_RESET_CODE",
                                         "Ejecutó un reinicio total de datos usando código de autorización 226118.",
-                                        "ADMIN_BY_CODE",
-                                        httpRequest.getRemoteAddr());
+                                        "ADMIN_BY_CODE", httpRequest.getRemoteAddr());
                         System.out.println("   - Socios: " + socios);
                         System.out.println("   - Asistencias: " + asistencias);
                         System.out.println("   - Asignaciones: " + asignaciones);
@@ -255,21 +231,17 @@ public class AuthController {
                         Map<String, Object> result = new HashMap<>();
                         result.put("success", true);
                         result.put("message", "Sistema reiniciado correctamente");
-                        result.put("eliminados", Map.of(
-                                        "socios", socios,
-                                        "sucursales", sucursales,
-                                        "asistencias", asistencias,
-                                        "asignaciones", asignaciones,
-                                        "listas", listas,
-                                        "historial", historial));
+                        result.put("eliminados",
+                                        Map.of("socios", socios, "sucursales", sucursales, "asistencias", asistencias,
+                                                        "asignaciones", asignaciones, "listas", listas, "historial",
+                                                        historial));
 
                         return ResponseEntity.ok(result);
                 } catch (Exception e) {
                         System.err.println("❌ Error en reset: " + e.getMessage());
                         e.printStackTrace();
-                        return ResponseEntity.internalServerError().body(Map.of(
-                                        "success", false,
-                                        "error", e.getMessage()));
+                        return ResponseEntity.internalServerError()
+                                        .body(Map.of("success", false, "error", e.getMessage()));
                 }
         }
 }

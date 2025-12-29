@@ -46,6 +46,31 @@ public class FuncionarioDirectivoController {
     }
 
     /**
+     * Importar Excel de Asesores de Crédito
+     */
+    @PostMapping("/importar/asesores")
+    // @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<?> importarAsesores(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "El archivo está vacío"));
+            }
+
+            String filename = file.getOriginalFilename();
+            if (filename == null || !filename.endsWith(".xlsx")) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Solo se permiten archivos .xlsx"));
+            }
+
+            Map<String, Object> resultado = funcionarioService.importarAsesores(file);
+            return ResponseEntity.ok(resultado);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Error al importar asesores: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Listar todos los funcionarios/directivos registrados
      */
     @GetMapping
@@ -71,5 +96,15 @@ public class FuncionarioDirectivoController {
     @GetMapping("/count")
     public ResponseEntity<Map<String, Long>> contar() {
         return ResponseEntity.ok(Map.of("total", funcionarioService.contarTotal()));
+    }
+
+    @GetMapping("/count/funcionarios")
+    public ResponseEntity<Map<String, Long>> contarFuncionarios() {
+        return ResponseEntity.ok(Map.of("total", funcionarioService.contarFuncionarios()));
+    }
+
+    @GetMapping("/count/asesores")
+    public ResponseEntity<Map<String, Long>> contarAsesores() {
+        return ResponseEntity.ok(Map.of("total", funcionarioService.contarAsesores()));
     }
 }

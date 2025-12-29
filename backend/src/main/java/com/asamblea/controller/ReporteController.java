@@ -414,7 +414,9 @@ public class ReporteController {
 
         // Reporte de TODAS las asignaciones del padrón
         @GetMapping("/asignaciones-general")
-        public ResponseEntity<?> reporteAsignacionesGenerales(Authentication auth) {
+        public ResponseEntity<?> reporteAsignacionesGenerales(
+                        @RequestParam(required = false) Long operadorId,
+                        Authentication auth) {
                 Usuario currentUser = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
 
                 if (currentUser.getRol() != Usuario.Rol.SUPER_ADMIN && currentUser.getRol() != Usuario.Rol.DIRECTIVO) {
@@ -431,6 +433,11 @@ public class ReporteController {
 
                 List<Map<String, Object>> result = new ArrayList<>();
                 for (var asig : asignaciones) {
+                        // Filtro por colaborador (operadorId) si fue solicitado
+                        if (operadorId != null && !asig.getListaAsignacion().getUsuario().getId().equals(operadorId)) {
+                                continue;
+                        }
+
                         var socio = asig.getSocio();
                         Map<String, Object> fila = new HashMap<>();
                         fila.put("id", socio.getId());

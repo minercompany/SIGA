@@ -104,98 +104,121 @@ export default function LoginPage() {
                         </div>
 
                         {/* Panel derecho - Formulario */}
-                        <div className="p-8 md:p-12 flex flex-col justify-center min-h-[500px] md:min-h-auto">
-                            {/* Logo Mobile */}
-                            <div className="md:hidden flex flex-col items-center mb-8">
-                                <div className="h-24 w-24 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-                                    <img src="/logo-cooperativa.png" alt="Logo" className="h-20 w-20 object-contain" />
+                        {/* Panel derecho - Formulario */}
+                        <div className="relative flex flex-col justify-center min-h-[500px] md:min-h-auto bg-white/50 md:bg-transparent">
+
+                            {/* Header Móvil - Diseño Premium Compacto */}
+                            <div className="md:hidden relative bg-gradient-to-br from-emerald-600 to-teal-700 pb-8 pt-8 px-6 -mx-0 rounded-b-[2.5rem] shadow-lg mb-6 overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl transform translate-x-8 -translate-y-8"></div>
+                                <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-400/20 rounded-full blur-2xl transform -translate-x-4 translate-y-4"></div>
+
+                                <div className="relative z-10 flex flex-col items-center text-center">
+                                    <div className="h-24 w-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-3 shadow-xl border-[3px] border-white/30">
+                                        <img src="/logo-cooperativa.png" alt="Logo" className="h-20 w-20 object-contain drop-shadow-md" />
+                                    </div>
+                                    <h1 className="text-2xl font-black text-white drop-shadow-sm tracking-tight leading-none mb-2">
+                                        Cooperativa<br />Reducto Ltda.
+                                    </h1>
+
+                                    <div className="h-0.5 w-12 bg-white/30 my-2 rounded-full"></div>
+
+                                    <div className="space-y-0.5">
+                                        <p className="text-emerald-50 text-xl font-black tracking-[0.2em] drop-shadow-sm">
+                                            SIGA
+                                        </p>
+                                        <p className="text-emerald-100/90 text-[10px] font-bold tracking-wide">
+                                            San Lorenzo Reducto - 2026
+                                        </p>
+                                    </div>
                                 </div>
-                                <h1 className="text-2xl font-black text-slate-800 text-center">Cooperativa<br />Reducto Ltda.</h1>
                             </div>
 
-                            <div className="space-y-8">
-                                <div>
-                                    <h3 className="text-3xl font-black text-slate-800 mb-2">Iniciar Sesión</h3>
-                                    <p className="text-slate-500 font-medium">Ingresa tus credenciales para continuar</p>
-                                </div>
-
-                                <form onSubmit={handleLogin} className="space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Usuario</label>
-                                        <div className="relative group">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors">
-                                                <User className="h-5 w-5" />
-                                            </div>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={username}
-                                                onChange={(e) => setUsername(e.target.value)}
-                                                className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 py-4 pl-12 pr-4 text-slate-700 outline-none focus:border-teal-500 focus:bg-white transition-all font-bold"
-                                                placeholder="Ingresa tu usuario"
-                                            />
-                                        </div>
+                            <div className="px-6 pb-8 md:p-12 md:pt-12">
+                                <div className="space-y-6">
+                                    <div className="text-center md:text-left">
+                                        <h3 className="text-xl md:text-3xl font-black text-slate-800 mb-1 tracking-tight">¡Bienvenido!</h3>
+                                        <p className="text-slate-500 font-medium text-xs md:text-base">Ingresa a tu cuenta para gestionar el sistema</p>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Contraseña</label>
-                                        <div className="relative group">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors">
-                                                <Lock className="h-5 w-5" />
+                                    <form onSubmit={handleLogin} className="space-y-4">
+                                        <div className="space-y-1.5">
+                                            <label className="ml-1 text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest">Usuario</label>
+                                            <div className="relative group">
+                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-600 transition-colors duration-300">
+                                                    <User className="h-4 w-4 md:h-5 md:w-5" />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    value={username}
+                                                    onChange={(e) => setUsername(e.target.value)}
+                                                    className="w-full rounded-xl border-2 border-slate-100 bg-white/80 py-3 pl-10 pr-4 text-sm md:text-base text-slate-700 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all font-bold placeholder:text-slate-300 shadow-sm hover:border-slate-200"
+                                                    placeholder="Ej. 4.567.890"
+                                                />
                                             </div>
-                                            <input
-                                                type={showPassword ? "text" : "password"}
-                                                required
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 py-4 pl-12 pr-12 text-slate-700 outline-none focus:border-teal-500 focus:bg-white transition-all font-bold"
-                                                placeholder="Ingresa tu contraseña"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-500 transition-colors"
-                                            >
-                                                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                            </button>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="ml-1 text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest">Contraseña</label>
+                                            <div className="relative group">
+                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-600 transition-colors duration-300">
+                                                    <Lock className="h-4 w-4 md:h-5 md:w-5" />
+                                                </div>
+                                                <input
+                                                    type={showPassword ? "text" : "password"}
+                                                    required
+                                                    value={password}
+                                                    onChange={(e) => setPassword(e.target.value)}
+                                                    className="w-full rounded-xl border-2 border-slate-100 bg-white/80 py-3 pl-10 pr-10 text-sm md:text-base text-slate-700 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all font-bold placeholder:text-slate-300 shadow-sm hover:border-slate-200"
+                                                    placeholder="••••••••••••"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 transition-colors p-1 hover:bg-slate-100 rounded-full"
+                                                >
+                                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {error && (
+                                            <div className="rounded-xl bg-red-50 p-3 text-xs font-bold text-red-600 border border-red-100 animate-shake flex items-center gap-2 shadow-sm">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
+                                                {error}
+                                            </div>
+                                        )}
+
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="group w-full rounded-xl bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-600 bg-[length:200%_auto] hover:bg-right transition-all duration-500 py-3.5 font-black text-white shadow-lg shadow-teal-500/20 hover:shadow-xl hover:shadow-teal-500/30 hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 disabled:opacity-50 flex items-center justify-center gap-2 overflow-hidden text-sm md:text-base"
+                                        >
+                                            <span className="relative flex items-center gap-2">
+                                                {loading ? (
+                                                    <>
+                                                        <RefreshCcw className="h-4 w-4 animate-spin" />
+                                                        <span className="tracking-widest">INGRESANDO...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="tracking-widest">INICIAR SESIÓN</span>
+                                                        <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                                    </>
+                                                )}
+                                            </span>
+                                        </button>
+                                    </form>
+
+                                    <div className="pt-6 border-t border-slate-100 flex flex-col items-center gap-1">
+                                        <p className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                            Sistema Integral de Gestión
+                                        </p>
+                                        <div className="flex items-center gap-1.5 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+                                            <span className="text-[9px] font-semibold text-slate-400">Powered by</span>
+                                            <span className="text-[9px] font-black text-slate-600">AVANZANTEC</span>
                                         </div>
                                     </div>
-
-                                    {error && (
-                                        <div className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-600 border-2 border-red-100 animate-shake">
-                                            {error}
-                                        </div>
-                                    )}
-
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="group w-full rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 py-5 font-black text-white shadow-xl shadow-teal-200 hover:shadow-2xl hover:shadow-teal-300 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3 relative overflow-hidden"
-                                    >
-                                        <span className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                                        <span className="relative flex items-center gap-3">
-                                            {loading ? (
-                                                <>
-                                                    <RefreshCcw className="h-5 w-5 animate-spin" />
-                                                    INGRESANDO...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    CONTINUAR
-                                                    <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                                                </>
-                                            )}
-                                        </span>
-                                    </button>
-                                </form>
-
-                                <div className="pt-6 border-t border-slate-100 flex flex-col items-center gap-1">
-                                    <p className="text-center text-xs text-slate-600 font-bold uppercase tracking-widest">
-                                        SIGA - Sistema Integral de Gestión de Asamblea
-                                    </p>
-                                    <p className="text-center text-[10px] text-slate-400 font-semibold tracking-wide">
-                                        Desarrollado por Avanzantec Group SRL
-                                    </p>
                                 </div>
                             </div>
                         </div>
