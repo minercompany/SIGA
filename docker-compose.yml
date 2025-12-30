@@ -78,8 +78,12 @@ services:
       - /home/SIGA/frontend/.next/standalone:/app
       - /home/SIGA/frontend/.next/static:/app/.next/static
       - /home/SIGA/frontend/public:/app/public
-    depends_on:
-      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6001"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
       - asamblea-network
 
