@@ -40,7 +40,9 @@ export default function LoginScreen() {
 
     return (
         <LinearGradient
-            colors={['#059669', '#0d9488', '#047857']}
+            colors={['#009900', '#00cc00', '#006600']} // Colores Web Custom
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.container}
         >
             <KeyboardAvoidingView
@@ -51,7 +53,11 @@ export default function LoginScreen() {
                     {/* Logo/Header */}
                     <View style={styles.header}>
                         <View style={styles.logoContainer}>
-                            <Text style={styles.logoText}>SIGA</Text>
+                            <Image
+                                source={require('../../assets/images/logo-cooperativa.png')}
+                                style={styles.logoImage}
+                                resizeMode="contain"
+                            />
                         </View>
                         <Text style={styles.title}>Sistema de Gestión{'\n'}de Asambleas</Text>
                         <Text style={styles.subtitle}>Versión Móvil para Funcionarios</Text>
@@ -124,19 +130,17 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     logoContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.2)',
+        width: 120, // Más grande
+        height: 120,
+        marginBottom: 16,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 16,
     },
-    logoText: {
-        fontSize: 28,
-        fontWeight: '900',
-        color: '#fff',
+    logoImage: {
+        width: '100%',
+        height: '100%',
     },
+    // ... Eliminado logoText ya que usamos imagen
     title: {
         fontSize: 28,
         fontWeight: '800',
@@ -146,7 +150,7 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontSize: 14,
-        color: 'rgba(255,255,255,0.8)',
+        color: 'rgba(255,255,255,0.9)',
         textAlign: 'center',
     },
     form: {
@@ -178,7 +182,7 @@ const styles = StyleSheet.create({
         borderColor: '#e2e8f0',
     },
     button: {
-        backgroundColor: '#059669',
+        backgroundColor: '#009900', // emerald-600 custom
         borderRadius: 12,
         padding: 18,
         alignItems: 'center',
@@ -194,7 +198,7 @@ const styles = StyleSheet.create({
     },
     footer: {
         textAlign: 'center',
-        color: 'rgba(255,255,255,0.6)',
+        color: 'rgba(255,255,255,0.8)',
         fontSize: 12,
         marginTop: 32,
     },

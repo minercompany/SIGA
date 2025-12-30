@@ -12,7 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useConfig } from '../../context/ConfigContext';
 import { Ionicons } from '@expo/vector-icons';
 
-const API_URL = 'https://asamblea.cloud/api';
+const API_URL = 'http://10.0.2.2:8080/api';
 
 interface Stats {
     totalPadron: number;
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     roleBadge: {
-        backgroundColor: '#dcfce7',
+        backgroundColor: '#e6ffe6', // emerald-50 custom
         paddingHorizontal: 12,
         paddingVertical: 4,
         borderRadius: 20,
@@ -210,12 +210,12 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     roleText: {
-        color: '#059669',
+        color: '#009900', // emerald-600 custom
         fontWeight: '700',
         fontSize: 12,
     },
     countdownCard: {
-        backgroundColor: '#059669',
+        backgroundColor: '#009900', // emerald-600 custom
         margin: 16,
         marginTop: 8,
         padding: 20,
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     },
     countdownDate: {
         fontSize: 13,
-        color: 'rgba(255,255,255,0.8)',
+        color: 'rgba(255,255,255,0.9)',
         marginBottom: 16,
     },
     timerRow: {
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     timerNumber: {
         fontSize: 24,
         fontWeight: '900',
-        color: '#059669',
+        color: '#009900', // emerald-600
     },
     timerLabel: {
         fontSize: 10,
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     kpiLabel: {
         fontSize: 12,
         fontWeight: '600',
-        color: 'rgba(255,255,255,0.8)',
+        color: 'rgba(255,255,255,0.9)',
         marginTop: 2,
     },
     quorumCard: {
@@ -295,6 +295,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2,
+        marginBottom: 40, // Espacio extra para que no se corte con el menú
     },
     quorumHeader: {
         flexDirection: 'row',
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
     quorumPercent: {
         fontSize: 20,
         fontWeight: '900',
-        color: '#059669',
+        color: '#009900',
     },
     progressBar: {
         height: 12,
@@ -320,7 +321,7 @@ const styles = StyleSheet.create({
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#059669',
+        backgroundColor: '#009900',
         borderRadius: 10,
     },
     quorumInfo: {
@@ -337,7 +338,7 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     quorumSuccessText: {
-        color: '#059669',
+        color: '#009900',
         fontWeight: '800',
         fontSize: 14,
     },

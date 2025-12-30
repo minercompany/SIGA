@@ -14,14 +14,14 @@ import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const API_URL = 'https://asamblea.cloud/api';
+const API_URL = 'http://10.0.2.2:8080/api';
 
 interface SocioResult {
     id: number;
     cedula: string;
     nombreCompleto: string;
     numeroSocio: string;
-    sucursal: string;
+    sucursal: any; // Puede ser string o objeto {id, nombre, ...}
     tieneVozYVoto: boolean;
     presente: boolean;
 }
@@ -193,7 +193,9 @@ export default function AsistenciaScreen() {
                             </View>
                             <View style={styles.tagSucursal}>
                                 <Ionicons name="business" size={14} color="#64748b" />
-                                <Text style={styles.tagTextSucursal}>{socioFound.sucursal}</Text>
+                                <Text style={styles.tagTextSucursal}>
+                                    {typeof socioFound.sucursal === 'object' ? socioFound.sucursal.nombre : socioFound.sucursal}
+                                </Text>
                             </View>
                             <View style={styles.tagSocio}>
                                 <Ionicons name="person" size={14} color="#64748b" />

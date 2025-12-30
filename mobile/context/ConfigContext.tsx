@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
 
-const API_URL = 'https://asamblea.cloud/api';
+const API_URL = 'http://10.0.2.2:8080/api';
 
 interface Config {
     nombreAsamblea: string;
@@ -25,7 +25,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
 
     const loadConfig = async () => {
         try {
-            const response = await axios.get(`${API_URL}/config`);
+            const response = await axios.get(`${API_URL}/configuracion`);
             setConfig(response.data);
         } catch (error) {
             console.error('Error cargando configuración:', error);

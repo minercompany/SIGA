@@ -1,0 +1,18 @@
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+
+export default function AsignacionRapidaScreen() {
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Asignación Rápida</Text>
+            <Text style={styles.subtitle}>Funcionalidad para Operadores/Admins</Text>
+            {/* Aquí iría la lógica de escaneo o búsqueda rápida */}
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f1f5f9' },
+    title: { fontSize: 20, fontWeight: 'bold', color: '#1e293b' },
+    subtitle: { fontSize: 14, color: '#64748b', marginTop: 8 }
+});

@@ -13,17 +13,27 @@ import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import { debounce } from '../../hooks/useDebounce';
 
-const API_URL = 'https://asamblea.cloud/api';
+const API_URL = 'http://10.0.2.2:8080/api';
 
 interface Socio {
     id: number;
     cedula: string;
     nombreCompleto: string;
     numeroSocio: string;
-    sucursal: string;
+    sucursal: any; // Puede venir como string o como objeto {nombre: ...}
     tieneVozYVoto: boolean;
     presente: boolean;
 }
+
+// ... (código intermedio sin cambios no se debe incluir en replace si es lejano) 
+// Espera, replace_file_content no soporta saltos grandes en un solo bloque.
+// Haré dos bloques si la herramienta lo permite, o dos llamadas.
+// La herramienta replace_file_content es UN solo bloque. 
+// Modificaré primero la Interfaz y luego el Renderizado con dos llamadas o una si están cerca.
+// Están lejos (Línea 23 vs 122).
+// Usaré multi_replace_file_content o dos llamadas. 
+// No tengo multi_replace disponible aquí? Sí tengo "multi_replace_file_content".
+
 
 export default function SociosScreen() {
     const [socios, setSocios] = useState<Socio[]>([]);
@@ -38,57 +48,83 @@ export default function SociosScreen() {
         loadSocios();
     }, []);
 
-    const loadSocios = async (reset = false) => {
+    const loadSocios = async (reset = false, search = '') => {
         try {
+            // Evitar múltiples cargas simultáneas si no es un reset
+            if (!reset && isLoading && page > 0) return;
+
             const currentPage = reset ? 0 : page;
-            const response = await axios.get(`${API_URL}/socios?page=${currentPage}&size=50`);
-            const newSocios = response.data.content || response.data;
+
+            let url;
+            let isSearch = false;
+
+            if (search.trim()) {
+                // Búsqueda en servidor (endpoint específico que busca por todo)
+                url = `${API_URL}/socios/buscar?term=${encodeURIComponent(search.trim())}`;
+                isSearch = true;
+            } else {
+                // Carga normal paginada
+                url = `${API_URL}/socios?page=${currentPage}&size=50`;
+            }
+
+            const response = await axios.get(url);
+
+            // Adaptar respuesta: si es búsqueda devuelve array directo, si es paginado devuelve objeto con content
+            const newSocios = Array.isArray(response.data) ? response.data : (response.data.content || []);
 
             if (reset) {
                 setSocios(newSocios);
                 setFilteredSocios(newSocios);
                 setPage(1);
+                // Si es búsqueda, asumimos que devuelve todo lo relevante de una vez (limitado por backend a 50)
+                setHasMore(!isSearch && newSocios.length === 50);
             } else {
-                setSocios(prev => [...prev, ...newSocios]);
-                setFilteredSocios(prev => [...prev, ...newSocios]);
+                setSocios(prev => {
+                    // Filtrar duplicados por ID para evitar errores de "same key"
+                    const existingIds = new Set(prev.map(s => s.id));
+                    const uniqueNewSocios = newSocios.filter((s: Socio) => !existingIds.has(s.id));
+                    return [...prev, ...uniqueNewSocios];
+                });
+                setFilteredSocios(prev => {
+                    // Misma lógica para filtered (aunque en este diseño filtered == socios prácticamente)
+                    const existingIds = new Set(prev.map(s => s.id));
+                    const uniqueNewSocios = newSocios.filter((s: Socio) => !existingIds.has(s.id));
+                    return [...prev, ...uniqueNewSocios];
+                });
                 setPage(currentPage + 1);
+                setHasMore(newSocios.length === 50);
             }
 
-            setHasMore(newSocios.length === 50);
         } catch (error) {
             console.error('Error cargando socios:', error);
         } finally {
             setIsLoading(false);
+            setRefreshing(false);
         }
     };
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await loadSocios(true);
-        setRefreshing(false);
+        await loadSocios(true, searchTerm);
     };
 
+    // Debounce para la búsqueda en servidor
     const handleSearch = useCallback(
         debounce((text: string) => {
-            if (!text.trim()) {
-                setFilteredSocios(socios);
-                return;
-            }
-
-            const term = text.toLowerCase();
-            const filtered = socios.filter(s =>
-                s.cedula?.toLowerCase().includes(term) ||
-                s.nombreCompleto?.toLowerCase().includes(term) ||
-                s.numeroSocio?.toLowerCase().includes(term)
-            );
-            setFilteredSocios(filtered);
-        }, 300),
-        [socios]
+            setIsLoading(true);
+            loadSocios(true, text);
+        }, 500), // 500ms de espera para no saturar al escribir
+        []
     );
 
     const onSearchChange = (text: string) => {
         setSearchTerm(text);
-        handleSearch(text);
+        if (text.trim() === '') {
+            // Si borra todo, recargar la lista normal inmediatamente
+            loadSocios(true, '');
+        } else {
+            handleSearch(text);
+        }
     };
 
     const renderSocio = ({ item }: { item: Socio }) => (
@@ -119,7 +155,9 @@ export default function SociosScreen() {
                     </View>
                     {item.sucursal && (
                         <View style={styles.tagSucursal}>
-                            <Text style={styles.tagTextSucursal}>{item.sucursal}</Text>
+                            <Text style={styles.tagTextSucursal}>
+                                {typeof item.sucursal === 'object' ? item.sucursal.nombre : item.sucursal}
+                            </Text>
                         </View>
                     )}
                 </View>
