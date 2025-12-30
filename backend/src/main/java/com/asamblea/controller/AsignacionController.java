@@ -346,18 +346,26 @@ public class AsignacionController {
                     m.put("responsable", u.getNombreCompleto());
                     m.put("responsableUser", u.getUsername());
 
-                    // Buscar lista activa real
+                    // Buscar lista activa real y contar asignados
                     List<ListaAsignacion> listas = listaRepository.findByUsuarioId(u.getId());
                     Optional<ListaAsignacion> activa = listas.stream().filter(l -> Boolean.TRUE.equals(l.getActiva()))
                             .findFirst();
 
-                    m.put("activa", activa.isPresent());
+                    int totalAsignados = 0;
                     if (activa.isPresent()) {
-                        m.put("total", asignacionRepository.findByListaAsignacionId(activa.get().getId()).size());
+                        totalAsignados = asignacionRepository.findByListaAsignacionId(activa.get().getId()).size();
                         m.put("idListaReal", activa.get().getId());
-                    } else {
-                        m.put("total", 0);
                     }
+
+                    // Contar asistencias realizadas por el operador
+                    int totalRegistrados = asistenciaRepository.findByOperadorId(u.getId()).size();
+
+                    // Total combinado (aproximado, el detalle filtra duplicados)
+                    m.put("total", totalAsignados + totalRegistrados);
+
+                    // Consideramos activa si tiene lista activa O tiene registros
+                    m.put("activa", activa.isPresent() || totalRegistrados > 0);
+
                     return m;
                 }).collect(Collectors.toList());
 
@@ -605,7 +613,101 @@ public class AsignacionController {
         }
     }
 
-    @GetMapping("/admin/lista/{listaId}/socios-detalle")
+    @GetMapping("/admin/usuario/{userId}/detalle-completo")
+    public ResponseEntity<?> getDetalleCompletoUsuario(@PathVariable Long userId, Authentication auth) {
+        if (auth == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Usuario admin = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
+        if (admin.getRol() != Usuario.Rol.SUPER_ADMIN && admin.getRol() != Usuario.Rol.DIRECTIVO) {
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permisos"));
+        }
+
+        Usuario targetUser = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        List<Map<String, Object>> sociosDetalle = new ArrayList<>();
+        Set<Long> procesados = new HashSet<>();
+
+        // 1. Obtener Asignados (si tiene lista)
+        List<ListaAsignacion> listas = listaRepository.findByUsuarioId(userId);
+        Optional<ListaAsignacion> listaActiva = listas.stream().filter(l -> Boolean.TRUE.equals(l.getActiva()))
+                .findFirst();
+
+        if (listaActiva.isPresent()) {
+            List<Asignacion> asignaciones = asignacionRepository.findByListaAsignacionId(listaActiva.get().getId());
+            for (Asignacion a : asignaciones) {
+                if (a.getSocio() != null && !procesados.contains(a.getSocio().getId())) {
+                    procesados.add(a.getSocio().getId());
+                    sociosDetalle.add(mapSocioDetalle(a.getSocio(), a.getFechaAsignacion(), "Asignación Lista",
+                            a.getAsignadoPor()));
+                }
+            }
+        }
+
+        // 2. Obtener Registrados (asistencias realizadas por este operador)
+        List<com.asamblea.model.Asistencia> asistencias = asistenciaRepository.findByOperadorId(userId);
+        for (com.asamblea.model.Asistencia asist : asistencias) {
+            if (asist.getSocio() != null) {
+                if (!procesados.contains(asist.getSocio().getId())) {
+                    // Es un registro nuevo (no estaba asignado)
+                    procesados.add(asist.getSocio().getId());
+                    sociosDetalle
+                            .add(mapSocioDetalle(asist.getSocio(), asist.getFechaHora(), "Registro en Mesa", null));
+                } else {
+                    // Ya estaba, actualizamos info de ingreso si es necesario (se hace en el
+                    // mapSocioDetalle si consultamos)
+                    // Pero como ya lo agregamos arriba, ya está.
+                    // Podríamos querer actualizar que SÍ INGRESÓ.
+                }
+            }
+        }
+
+        // Re-procesar para asegurar fechas de ingreso correctas en todos
+        for (Map<String, Object> item : sociosDetalle) {
+            Long socioId = (Long) item.get("id");
+            Optional<com.asamblea.model.Asistencia> asisOpt = asistenciaRepository.findFirstBySocioId(socioId);
+            if (asisOpt.isPresent()) {
+                item.put("fechaHoraIngreso", asisOpt.get().getFechaHora());
+            } else {
+                item.put("fechaHoraIngreso", null);
+            }
+        }
+
+        // Stats
+        long vyv = sociosDetalle.stream().filter(s -> Boolean.TRUE.equals(s.get("esVyV"))).count();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("usuario", Map.of(
+                "id", targetUser.getId(),
+                "nombre", targetUser.getNombreCompleto(),
+                "username", targetUser.getUsername()));
+        response.put("socios", sociosDetalle);
+        response.put("stats", Map.of(
+                "total", sociosDetalle.size(),
+                "vyv", vyv,
+                "soloVoz", sociosDetalle.size() - vyv));
+
+        return ResponseEntity.ok(response);
+    }
+
+    private Map<String, Object> mapSocioDetalle(Socio socio, java.time.LocalDateTime fechaRef, String origen,
+            Usuario asignadoPorObj) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("id", socio.getId());
+        m.put("cedula", socio.getCedula());
+        m.put("nombreCompleto", socio.getNombreCompleto());
+        m.put("numeroSocio", socio.getNumeroSocio());
+        m.put("fechaAsignacion", fechaRef); // Usamos fecha de asignacion o de registro como referencia
+        m.put("esVyV", socio.isEstadoVozVoto());
+        m.put("condicion", socio.isEstadoVozVoto() ? "VOZ Y VOTO" : "SOLO VOZ");
+        m.put("origen", origen);
+        m.put("asignadoPor", asignadoPorObj != null ? asignadoPorObj.getNombreCompleto()
+                : (origen.equals("Registro en Mesa") ? "Mesa de Entrada" : "Sistema"));
+        return m;
+    }
+
     public ResponseEntity<?> verSociosListaAdmin(@PathVariable Long listaId, Authentication auth) {
         if (auth == null) {
             return ResponseEntity.status(401).build();

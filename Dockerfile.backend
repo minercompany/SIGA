@@ -3,7 +3,7 @@ FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /app
 
-# Copy Maven wrapper and pom.xml
+# Copy Maven wrapper and pom.xml first (for dependency caching)
 COPY backend/mvnw backend/mvnw
 COPY backend/.mvn backend/.mvn
 COPY backend/pom.xml backend/pom.xml
@@ -18,7 +18,7 @@ COPY backend/src src
 # Build the application
 RUN ./mvnw package -DskipTests -B
 
-# Runtime stage
+# Runtime stage (minimal JRE image)
 FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app

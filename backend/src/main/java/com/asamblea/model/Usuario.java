@@ -38,6 +38,12 @@ public class Usuario implements UserDetails {
     @Column(columnDefinition = "LONGTEXT")
     private String fotoPerfil;
 
+    @Column(columnDefinition = "VARCHAR(100)")
+    private String cargo;
+
+    @Column(name = "meta_registro", columnDefinition = "INT DEFAULT 20")
+    private Integer meta = 20;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     private Rol rol;

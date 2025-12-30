@@ -326,7 +326,7 @@ export default function ReportesPage() {
                     { header: 'NRO SOCIO', dataKey: 'nro' },
                     { header: 'SOCIO', dataKey: 'nom' },
                     { header: 'SUCURSAL', dataKey: 'suc' },
-                    { header: 'COLABORADOR', dataKey: 'op' },
+                    { header: 'ASIGNADO POR', dataKey: 'op' },
                     { header: 'INGRESO', dataKey: 'f' },
                     { header: 'CONDICIÓN', dataKey: 'c' }
                 ];
@@ -547,7 +547,7 @@ export default function ReportesPage() {
                     <div className={`p-6 space-y-4 transition-opacity ${step < 3 ? 'opacity-30' : 'opacity-100'}`}>
                         <div className="flex items-center gap-2 text-violet-600 font-bold text-xs uppercase tracking-widest">
                             <span className="w-6 h-6 rounded-full bg-violet-50 flex items-center justify-center border border-violet-100">3</span>
-                            Colaborador
+                            Asignado Por
                         </div>
                         <div className="space-y-3">
                             <div className="relative">
@@ -627,7 +627,7 @@ export default function ReportesPage() {
                                     <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Ingreso</th>
                                     <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
                                     {(reportView === 'ASIGNACIONES' || reportView === 'ASISTENCIA') && (
-                                        <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Colaborador</th>
+                                        <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Asignado Por</th>
                                     )}
                                     <th className="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Condición</th>
                                 </tr>

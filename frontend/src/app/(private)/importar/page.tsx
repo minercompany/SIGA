@@ -15,7 +15,7 @@ interface ImportHistorial {
 }
 
 export default function ImportarPage() {
-    const { isImporting, isUploading, progress, error, stats, startImport, cancelImport, resetImport } = useImport();
+    const { isImporting, isUploading, progress, error, errorDetails, stats, startImport, cancelImport, resetImport } = useImport();
     const [file, setFile] = useState<File | null>(null);
     const [dragActive, setDragActive] = useState(false);
     const [historial, setHistorial] = useState<ImportHistorial[]>([]);
@@ -386,6 +386,30 @@ export default function ImportarPage() {
                                                 </div>
                                             ))}
                                         </div>
+
+                                        {/* Detalle de Errores (Si existen) */}
+                                        {errorDetails && errorDetails.length > 0 && (
+                                            <div className="mb-8 p-6 bg-red-50/50 rounded-2xl border border-red-100/50">
+                                                <h3 className="text-sm font-black text-red-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                    <AlertCircle className="h-4 w-4" />
+                                                    Detalle de errores encontrados ({errorDetails.length})
+                                                </h3>
+                                                <div className="max-h-60 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                                                    {errorDetails.map((err, idx) => (
+                                                        <div key={idx} className="flex gap-4 p-3 bg-white rounded-xl border border-red-50 shadow-sm text-xs">
+                                                            <div className="font-bold text-red-600 bg-red-50 px-2 py-1 rounded-lg h-fit">Fila {err.row}</div>
+                                                            <div className="flex-1">
+                                                                <div className="font-black text-slate-800">Socio/Cédula: {err.cedula}</div>
+                                                                <div className="text-slate-500 mt-0.5">{err.message}</div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                {errorDetails.length >= 100 && (
+                                                    <p className="mt-4 text-[10px] text-red-500 font-bold italic text-center">Solo se muestran los primeros 100 errores para optimizar el rendimiento.</p>
+                                                )}
+                                            </div>
+                                        )}
 
                                         <button
                                             onClick={resetImport}

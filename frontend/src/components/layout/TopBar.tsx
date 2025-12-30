@@ -5,6 +5,9 @@ import { useState, useEffect, useRef } from "react";
 import { WelcomeModal } from "../onboarding/WelcomeModal";
 import AvisosBell from "../AvisosBell";
 import { ManualUsuarioModal } from "../ManualUsuarioModal";
+import { useConfig } from "@/context/ConfigContext";
+import { Database, AlertTriangle, Loader2 } from "lucide-react";
+import Swal from "sweetalert2";
 
 export function TopBar() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -15,6 +18,9 @@ export function TopBar() {
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
+    const [isDeactivating, setIsDeactivating] = useState(false);
+
+    const { isTestMode, deactivateTestMode } = useConfig();
 
     const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -127,8 +133,63 @@ export function TopBar() {
         setMobileSearchOpen(false);
     };
 
+    const handleQuickDeactivate = async () => {
+        const result = await Swal.fire({
+            title: '⚠️ ¿Desactivar Modo de Prueba?',
+            text: 'Se perderán todos los cambios temporales y se restaurarán los datos originales.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Sí, Restaurar Todo',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            setIsDeactivating(true);
+            const response = await deactivateTestMode();
+            setIsDeactivating(false);
+
+            if (response.success) {
+                Swal.fire({
+                    title: '✅ Restaurado',
+                    text: 'El sistema ha vuelto a su estado original.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        }
+    };
+
     return (
         <>
+            {/* Banner de Modo Prueba */}
+            {isTestMode && (
+                <div className="bg-violet-600 text-white px-4 py-2 flex items-center justify-between shadow-lg z-50 animate-in slide-in-from-top duration-500">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="flex-shrink-0 bg-violet-500 p-1.5 rounded-lg border border-violet-400 animate-pulse">
+                            <Database className="h-4 w-4 text-white" />
+                        </div>
+                        <div className="flex flex-col md:flex-row md:items-center md:gap-3">
+                            <span className="text-xs md:text-sm font-black uppercase tracking-widest whitespace-nowrap italic">
+                                🧪 Modo de Prueba Activo
+                            </span>
+                            <span className="hidden md:inline text-[10px] text-violet-200 font-bold uppercase tracking-wider">
+                                • Los cambios realizados son temporales y no afectan los datos reales
+                            </span>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleQuickDeactivate}
+                        disabled={isDeactivating}
+                        className="flex-shrink-0 bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-[10px] md:text-xs font-black uppercase tracking-wider transition-all border border-white/20 flex items-center gap-2"
+                    >
+                        {isDeactivating ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertTriangle className="h-3 w-3" />}
+                        Desactivar
+                    </button>
+                </div>
+            )}
+
             <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-teal-100/50 px-4 md:px-8 bg-white/90 backdrop-blur-md shadow-sm">
 
                 {/* Search Mobile Overlay */}

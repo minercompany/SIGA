@@ -13,6 +13,11 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const router = useRouter();
 
+    // New state for password change
+    const [showChangePassword, setShowChangePassword] = useState(false);
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -24,16 +29,114 @@ export default function LoginPage() {
                 password,
             });
 
-            localStorage.setItem("token", response.data.token);
-            localStorage.setItem("user", JSON.stringify(response.data));
+            const userData = response.data;
+            localStorage.setItem("token", userData.token);
+            localStorage.setItem("user", JSON.stringify(userData));
 
-            router.push("/dashboard");
+            if (userData.requiresPasswordChange) {
+                setShowChangePassword(true);
+            } else {
+                router.push("/dashboard");
+            }
         } catch (err: any) {
             setError("Usuario o contraseña incorrectos");
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
         } finally {
             setLoading(false);
         }
     };
+
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newPassword.length < 4) {
+            setError("La contraseña debe tener al menos 4 caracteres");
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setError("Las contraseñas no coinciden");
+            return;
+        }
+
+        setLoading(true);
+        setError("");
+
+        try {
+            const token = localStorage.getItem("token");
+            await axios.post("/api/auth/change-password",
+                { password: newPassword },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            // Update user in local storage to remove flag
+            const userStr = localStorage.getItem("user");
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                user.requiresPasswordChange = false;
+                localStorage.setItem("user", JSON.stringify(user));
+            }
+
+            router.push("/dashboard");
+        } catch (err: any) {
+            setError("Error al cambiar contraseña: " + (err.response?.data?.error || err.message));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (showChangePassword) {
+        return (
+            <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-teal-100 via-emerald-50 to-amber-50 px-3 py-4 sm:p-4 md:p-6">
+                <div className="relative z-10 w-full max-w-md animate-fade-in">
+                    <div className="overflow-hidden rounded-3xl bg-white/95 backdrop-blur-xl shadow-2xl border border-white/50 p-8">
+                        <div className="text-center mb-8">
+                            <h3 className="text-2xl font-black text-slate-800 mb-2">Cambio Requerido</h3>
+                            <p className="text-slate-500 font-medium text-sm">Por seguridad, debes cambiar tu contraseña inicial</p>
+                        </div>
+
+                        <form onSubmit={handleChangePassword} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Nueva Contraseña</label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    className="w-full rounded-xl border-2 border-slate-100 bg-slate-50 py-3 px-4 font-bold text-slate-700 outline-none focus:border-teal-500 transition-all"
+                                    placeholder="Nueva contraseña"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Confirmar Contraseña</label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="w-full rounded-xl border-2 border-slate-100 bg-slate-50 py-3 px-4 font-bold text-slate-700 outline-none focus:border-teal-500 transition-all"
+                                    placeholder="Confirmar contraseña"
+                                />
+                            </div>
+
+                            {error && (
+                                <div className="rounded-xl bg-red-50 p-4 text-xs font-bold text-red-600 border-2 border-red-100 animate-shake">
+                                    {error}
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 py-4 font-black text-white shadow-xl hover:shadow-2xl active:scale-[0.98] transition-all disabled:opacity-50"
+                            >
+                                {loading ? "ACTUALIZANDO..." : "CAMBIAR Y CONTINUAR"}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-teal-100 via-emerald-50 to-amber-50 px-3 py-4 sm:p-4 md:p-6">

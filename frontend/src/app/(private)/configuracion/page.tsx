@@ -19,7 +19,8 @@ import {
     Phone,
     Upload,
     HelpCircle,
-    RotateCcw
+    RotateCcw,
+    Hammer
 } from "lucide-react";
 import axios from "axios";
 import { useEffect, useCallback } from "react";
@@ -109,6 +110,237 @@ const ConfiguracionEvento = () => {
                     className="rounded-xl bg-slate-900 px-8 py-3 font-bold text-white hover:bg-black shadow-lg shadow-slate-200 transition-all active:scale-95 disabled:opacity-50"
                 >
                     {saving ? "Guardando..." : "Guardar Configuración"}
+                </button>
+            </div>
+        </>
+    );
+};
+
+const ConfiguracionMantenimiento = () => {
+    const { isMaintenanceMode, updateConfig } = useConfig();
+    const [enabled, setEnabled] = useState(isMaintenanceMode);
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        setEnabled(isMaintenanceMode);
+    }, [isMaintenanceMode]);
+
+    const handleToggle = async () => {
+        const newValue = !enabled;
+        setSaving(true);
+        try {
+            await updateConfig("MODO_MANTENIMIENTO", newValue ? "true" : "false");
+            setEnabled(newValue);
+
+            Swal.fire({
+                title: newValue ? '¡Modo Mantenimiento ACTIVADO!' : '¡Modo Mantenimiento DESACTIVADO!',
+                text: newValue
+                    ? 'El sistema ha sido bloqueado para todos los usuarios excepto Super Administradores.'
+                    : 'El sistema ya está disponible nuevamente para todos los usuarios.',
+                icon: newValue ? 'warning' : 'success',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: newValue ? '#f59e0b' : '#10b981',
+                padding: '2em',
+                customClass: {
+                    popup: 'rounded-[2rem] shadow-2xl'
+                }
+            });
+        } catch (error) {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo actualizar el estado de mantenimiento',
+                icon: 'error',
+                confirmButtonColor: '#ef4444'
+            });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <>
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 italic uppercase border-t border-slate-100 pt-6 mt-6">
+                <ShieldAlert className="h-5 w-5 text-amber-500" />
+                Control de Acceso / Mantenimiento
+            </h2>
+
+            <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-xl transition-colors ${enabled ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                        <Hammer className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-800">Modo Mantenimiento</h3>
+                        <p className="text-sm text-slate-500 max-w-md">
+                            Si activas esto, <strong>nadie podrá acceder al sistema</strong> excepto los usuarios con rol de <strong>Super Admin</strong>.
+                            Los demás verán una pantalla de "En Mantenimiento".
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    onClick={handleToggle}
+                    disabled={saving}
+                    className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 ${enabled ? 'bg-amber-500' : 'bg-slate-300'}`}
+                >
+                    <span className="sr-only">Activar Mantenimiento</span>
+                    <span
+                        aria-hidden="true"
+                        className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-8' : 'translate-x-0'}`}
+                    >
+                        {saving && <Loader2 className="h-6 w-6 m-2.5 animate-spin text-amber-500" />}
+                    </span>
+                </button>
+            </div>
+        </>
+    );
+};
+
+// Componente para Modo de Prueba (Test Mode)
+const ConfiguracionModoPrueba = () => {
+    const { isTestMode, testModeInfo, activateTestMode, deactivateTestMode } = useConfig();
+    const [saving, setSaving] = useState(false);
+
+    const handleActivate = async () => {
+        const result = await Swal.fire({
+            title: '¿Activar Modo de Prueba?',
+            html: `
+                <div class="text-left space-y-3">
+                    <p class="text-slate-600">Se creará una <strong>copia de seguridad</strong> de todos los datos actuales:</p>
+                    <ul class="text-sm text-slate-500 list-disc list-inside space-y-1">
+                        <li>Padrón de Socios</li>
+                        <li>Asignaciones a Listas</li>
+                        <li>Registros de Asistencia</li>
+                        <li>Usuarios del Sistema</li>
+                    </ul>
+                    <p class="text-violet-600 font-bold mt-4">🧪 Podrás usar el sistema normalmente. Los cambios NO serán permanentes.</p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#8b5cf6',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, Activar Modo Prueba',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) return;
+
+        setSaving(true);
+        const response = await activateTestMode();
+        setSaving(false);
+
+        if (response.success) {
+            Swal.fire({
+                title: '🧪 Modo de Prueba ACTIVADO',
+                text: response.message || 'Ahora puedes usar el sistema libremente. Al desactivar, todo volverá a como estaba.',
+                icon: 'success',
+                confirmButtonColor: '#8b5cf6'
+            });
+        } else {
+            Swal.fire({
+                title: 'Error',
+                text: response.error || 'No se pudo activar el modo de prueba',
+                icon: 'error',
+                confirmButtonColor: '#ef4444'
+            });
+        }
+    };
+
+    const handleDeactivate = async () => {
+        const result = await Swal.fire({
+            title: '⚠️ ¿Desactivar Modo de Prueba?',
+            html: `
+                <div class="text-left space-y-3">
+                    <p class="text-red-600 font-bold">ADVERTENCIA: Se perderán TODOS los cambios realizados durante la prueba:</p>
+                    <ul class="text-sm text-slate-500 list-disc list-inside space-y-1">
+                        <li>Nuevos socios importados</li>
+                        <li>Asignaciones realizadas</li>
+                        <li>Asistencias marcadas</li>
+                        <li>Usuarios creados</li>
+                    </ul>
+                    <p class="text-emerald-600 font-bold mt-4">✅ Los datos originales serán restaurados.</p>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, Restaurar Datos Originales',
+            cancelButtonText: 'Seguir en Modo Prueba'
+        });
+
+        if (!result.isConfirmed) return;
+
+        setSaving(true);
+        const response = await deactivateTestMode();
+        setSaving(false);
+
+        if (response.success) {
+            Swal.fire({
+                title: '✅ Datos Restaurados',
+                text: response.message || 'El sistema ha vuelto a su estado original.',
+                icon: 'success',
+                confirmButtonColor: '#10b981'
+            });
+        } else {
+            Swal.fire({
+                title: 'Error',
+                text: response.error || 'No se pudieron restaurar los datos',
+                icon: 'error',
+                confirmButtonColor: '#ef4444'
+            });
+        }
+    };
+
+    return (
+        <>
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 italic uppercase border-t border-slate-100 pt-6 mt-6">
+                <Database className="h-5 w-5 text-violet-500" />
+                Modo de Prueba / Sandbox
+            </h2>
+
+            <div className={`rounded-2xl p-6 border flex flex-col md:flex-row items-center justify-between gap-6 transition-all ${isTestMode ? 'bg-violet-100 border-violet-300' : 'bg-violet-50 border-violet-100'}`}>
+                <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-xl transition-colors ${isTestMode ? 'bg-violet-600 text-white animate-pulse' : 'bg-slate-200 text-slate-400'}`}>
+                        <Database className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            Modo de Prueba
+                            {isTestMode && <span className="px-2 py-0.5 bg-violet-600 text-white text-[10px] font-black uppercase rounded-full animate-pulse">ACTIVO</span>}
+                        </h3>
+                        <p className="text-sm text-slate-500 max-w-md">
+                            {isTestMode ? (
+                                <>
+                                    <strong className="text-violet-700">Los cambios NO son permanentes.</strong> Al desactivar, todo volverá a como estaba antes.
+                                    {testModeInfo?.activatedBy && (
+                                        <span className="block mt-1 text-xs text-violet-600">
+                                            Activado por: {testModeInfo.activatedBy}
+                                        </span>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    Activa para probar el sistema sin afectar los datos reales. Se creará una copia de seguridad automática.
+                                </>
+                            )}
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    onClick={isTestMode ? handleDeactivate : handleActivate}
+                    disabled={saving}
+                    className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-offset-2 ${isTestMode ? 'bg-violet-600' : 'bg-slate-300'}`}
+                >
+                    <span className="sr-only">Activar Modo Prueba</span>
+                    <span
+                        aria-hidden="true"
+                        className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isTestMode ? 'translate-x-8' : 'translate-x-0'}`}
+                    >
+                        {saving && <Loader2 className="h-6 w-6 m-2.5 animate-spin text-violet-600" />}
+                    </span>
                 </button>
             </div>
         </>
@@ -730,7 +962,10 @@ export default function ConfiguracionPage() {
                     {/* Otras Configuraciones de Asamblea */}
                     <div className="rounded-2xl bg-white p-8 shadow-sm border border-slate-100 space-y-6">
                         <ConfiguracionEvento />
+                        <ConfiguracionMantenimiento />
+                        <ConfiguracionModoPrueba />
                     </div>
+
 
                     <ResetOptionsPanel isAdminMode={isAdminMode} accessCode={accessCode} setAccessCode={setAccessCode} checkAccess={checkAccess} setIsAdminMode={setIsAdminMode} loading={loading} handleReset={handleSimpleReset} />
 

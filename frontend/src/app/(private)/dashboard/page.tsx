@@ -16,6 +16,7 @@ interface Estadisticas {
     totalPadron: number;
     conVozYVoto: number;
     soloVoz: number;
+    totalMeta?: number;
 }
 
 interface DesempenoSucursal {

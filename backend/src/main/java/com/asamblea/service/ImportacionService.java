@@ -82,7 +82,6 @@ public class ImportacionService {
         }
 
         progressMap.put(processId, new ImportStatus(0, false, null, null));
-        progressMap.put(processId, new ImportStatus(0, false, null, null));
 
         // Ejecutar en hilo separado manual (evitando problemas de proxy @Async
         // self-invocation)
@@ -105,6 +104,7 @@ public class ImportacionService {
     protected void procesarAsync(String processId, File tempFile, String usuario) {
         log.info("[{}] Iniciando importación optimizada", processId);
         long start = System.currentTimeMillis();
+        ImportStatus status = progressMap.get(processId);
 
         try {
             // 1. Pre-cargar sucursales en memoria (Map<Codigo, ID> y Map<Nombre, ID>)
@@ -178,12 +178,11 @@ public class ImportacionService {
                         continue; // Skip header
 
                     // Verificar cancelación
-                    if (progressMap.get(processId).isCancelled()) {
+                    if (status.isCancelled()) {
                         log.warn("Proceso {} cancelado por usuario", processId);
                         conn.rollback();
-                        ImportStatus s = progressMap.get(processId);
-                        s.setError("Cancelado por el usuario");
-                        s.setCompleted(true);
+                        status.setError("Cancelado por el usuario");
+                        status.setCompleted(true);
                         return;
                     }
 
@@ -208,10 +207,12 @@ public class ImportacionService {
                         // Validación mínima crítica
                         if (cedula == null || cedula.isEmpty()) {
                             sinCedula++;
+                            status.addErrorDetail(rowIndex, "N/A", "Cédula vacía o no válida");
                             continue;
                         }
                         if (nombre == null || nombre.trim().isEmpty()) {
                             sinNombre++;
+                            status.addErrorDetail(rowIndex, cedula, "Nombre del socio vacío");
                             continue;
                         }
                         if (nroSocio == null || nroSocio.isEmpty())
@@ -322,8 +323,8 @@ public class ImportacionService {
                         }
 
                     } catch (Exception ex) {
-                        // log.trace("Error row {}: {}", rowIndex, ex.getMessage());
                         errors++;
+                        status.addErrorDetail(rowIndex, "FILA ERROR", ex.getMessage());
                     }
                 }
 
@@ -566,6 +567,7 @@ public class ImportacionService {
         private boolean cancelled;
         private String error;
         private Map<String, Object> result;
+        private List<ErrorDetail> errorDetails = new ArrayList<>();
 
         public ImportStatus() {
         }
@@ -576,6 +578,16 @@ public class ImportacionService {
             this.error = error;
             this.result = result;
             this.cancelled = false;
+        }
+
+        public void addErrorDetail(int row, String cedula, String message) {
+            if (this.errorDetails.size() < 100) {
+                this.errorDetails.add(new ErrorDetail(row, cedula, message));
+            }
+        }
+
+        public List<ErrorDetail> getErrorDetails() {
+            return errorDetails;
         }
 
         public int getProgress() {
@@ -617,5 +629,8 @@ public class ImportacionService {
         public void setResult(Map<String, Object> result) {
             this.result = result;
         }
+    }
+
+    public static record ErrorDetail(int row, String cedula, String message) {
     }
 }

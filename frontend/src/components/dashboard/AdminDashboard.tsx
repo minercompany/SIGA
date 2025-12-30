@@ -19,11 +19,14 @@ interface AdminDashboardProps {
         soloVoz: number;
         presentes?: number;
         presentesVyV?: number;
+        totalMeta?: number;
     } | null;
     desempeno: any[];
     ranking?: any[];
     onRefresh: (silent?: boolean) => void;
 }
+
+import { MetasWidgets } from "./MetasWidgets";
 
 // Contador animado premium
 const AnimatedCounter = ({ value, duration = 3.5 }: { value: number; duration?: number }) => {
@@ -216,61 +219,68 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                 </div>
             </motion.div>
 
+            {/* WIDGETS DE METAS DE REGISTRO (New Feature) */}
+            <MetasWidgets />
+
             {/* KPIs Premium 'Nano' Style */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-                {[
-                    { label: "Total Padrón", value: stats.totalPadron, icon: Users, gradient: "from-blue-500 via-blue-600 to-blue-700", shadow: "shadow-blue-500/40", ring: "ring-blue-400/30" },
-                    { label: "Habilitados V&V", value: stats.conVozYVoto, icon: ShieldCheck, gradient: "from-emerald-500 via-emerald-600 to-emerald-700", shadow: "shadow-emerald-500/40", ring: "ring-emerald-400/30" },
-                    { label: "Presentes Ahora", value: presentes, icon: UserCheck, gradient: "from-violet-500 via-purple-600 to-purple-700", shadow: "shadow-purple-500/40", ring: "ring-purple-400/30" },
-                    { label: "Solo Voz", value: stats.soloVoz, icon: AlertCircle, gradient: "from-amber-400 via-orange-500 to-orange-600", shadow: "shadow-orange-500/40", ring: "ring-orange-400/30" },
-                ].map((stat, i) => (
-                    <motion.div
-                        key={i}
-                        variants={cardVariants}
-                        initial="hidden"
-                        animate="visible"
-                        transition={{ delay: i * 0.05 }}
-                        whileHover={{ y: -5, scale: 1.02 }}
-                        className={`relative overflow-hidden rounded-[2rem] p-6 lg:p-8 text-white shadow-2xl bg-gradient-to-br ${stat.shadow} ${stat.gradient} group`}
-                    >
-                        {/* Glossy Overlay/Reflection */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10 pointer-events-none" />
-                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none group-hover:bg-white/20 transition-colors" />
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6">
+                {
+                    [
+                        { label: "Meta Global", value: stats.totalMeta || 0, icon: Target, gradient: "from-pink-500 via-rose-600 to-rose-700", shadow: "shadow-rose-500/40", ring: "ring-rose-400/30" },
+                        { label: "Total Padrón", value: stats.totalPadron, icon: Users, gradient: "from-blue-500 via-blue-600 to-blue-700", shadow: "shadow-blue-500/40", ring: "ring-blue-400/30" },
+                        { label: "Habilitados V&V", value: stats.conVozYVoto, icon: ShieldCheck, gradient: "from-emerald-500 via-emerald-600 to-emerald-700", shadow: "shadow-emerald-500/40", ring: "ring-emerald-400/30" },
+                        { label: "Presentes Ahora", value: presentes, icon: UserCheck, gradient: "from-violet-500 via-purple-600 to-purple-700", shadow: "shadow-purple-500/40", ring: "ring-purple-400/30" },
+                        { label: "Solo Voz", value: stats.soloVoz, icon: AlertCircle, gradient: "from-amber-400 via-orange-500 to-orange-600", shadow: "shadow-orange-500/40", ring: "ring-orange-400/30" },
+                    ].map((stat, i) => (
+                        <motion.div
+                            key={i}
+                            variants={cardVariants}
+                            initial="hidden"
+                            animate="visible"
+                            transition={{ delay: i * 0.05 }}
+                            whileHover={{ y: -5, scale: 1.02 }}
+                            className={`relative overflow-hidden rounded-[2rem] p-6 lg:p-8 text-white shadow-2xl bg-gradient-to-br ${stat.shadow} ${stat.gradient} group`}
+                        >
+                            {/* Glossy Overlay/Reflection */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10 pointer-events-none" />
+                            <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none group-hover:bg-white/20 transition-colors" />
 
-                        {/* Inner Highlight Ring */}
-                        <div className={`absolute inset-0 rounded-[2rem] border border-white/20 ${stat.ring} pointer-events-none`} />
+                            {/* Inner Highlight Ring */}
+                            <div className={`absolute inset-0 rounded-[2rem] border border-white/20 ${stat.ring} pointer-events-none`} />
 
-                        {/* Background Icon */}
-                        <div className="absolute -right-6 -bottom-6 opacity-10 rotate-12 transition-transform duration-500 group-hover:rotate-0 group-hover:scale-110">
-                            <stat.icon className="h-32 w-32" />
-                        </div>
+                            {/* Background Icon */}
+                            <div className="absolute -right-6 -bottom-6 opacity-10 rotate-12 transition-transform duration-500 group-hover:rotate-0 group-hover:scale-110">
+                                <stat.icon className="h-32 w-32" />
+                            </div>
 
-                        {/* Content */}
-                        <div className="relative z-10 flex flex-col h-full justify-between gap-4">
-                            {/* Header: Icon + Label */}
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl shadow-inner border border-white/20">
-                                    <stat.icon className="h-5 w-5 text-white" />
+                            {/* Content */}
+                            <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                                {/* Header: Icon + Label */}
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl shadow-inner border border-white/20">
+                                        <stat.icon className="h-5 w-5 text-white" />
+                                    </div>
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/90 drop-shadow-sm">
+                                        {stat.label}
+                                    </span>
                                 </div>
-                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/90 drop-shadow-sm">
-                                    {stat.label}
-                                </span>
-                            </div>
 
-                            {/* Value */}
-                            <div className="mt-auto">
-                                <p className="text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-lg leading-none">
-                                    <AnimatedCounter value={stat.value} />
-                                </p>
+                                {/* Value */}
+                                <div className="mt-auto">
+                                    <p className="text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-lg leading-none">
+                                        <AnimatedCounter value={stat.value} />
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
+                        </motion.div>
+                    ))
+                }
+            </div >
 
             {/* Barra de Progreso Quórum Premium */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
+            < motion.div
+                initial={{ opacity: 0, y: 20 }
+                }
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100"
             >
@@ -300,13 +310,13 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                     </motion.div>
                 </div>
 
-            </motion.div>
+            </motion.div >
 
             {/* Grid Principal de Estadísticas */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            < div className="grid grid-cols-1 lg:grid-cols-3 gap-6" >
 
                 {/* Gráfico Radial de Quórum */}
-                <motion.div
+                < motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100"
@@ -340,10 +350,10 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                             <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Ausentes</p>
                         </div>
                     </div>
-                </motion.div>
+                </motion.div >
 
                 {/* Gráfico de Habilitación */}
-                <motion.div
+                < motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1 }}
@@ -392,7 +402,7 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                             <p className="text-amber-600/70 text-xs font-bold uppercase tracking-widest">Solo Voz</p>
                         </div>
                     </div>
-                </motion.div>
+                </motion.div >
 
                 {/* Ranking de Operadores */}
                 {/* Ranking de Operadores - DISEÑO PREMIUM */}
@@ -472,12 +482,12 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                         )}
                     </div>
                 </motion.div>
-            </div>
+            </div >
 
             {/* Segunda Fila - Gráficos Grandes */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            < div className="grid grid-cols-1 lg:grid-cols-2 gap-6" >
                 {/* Gráfico Torta Composición por Sucursal (Voz y Voto vs Solo Voz) */}
-                <motion.div
+                < motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100"
@@ -534,10 +544,10 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                             <p className="text-white/60 text-[10px] font-bold mt-1">{(100 - parseFloat(porcentajeHabilitacion)).toFixed(1)}%</p>
                         </div>
                     </div>
-                </motion.div>
+                </motion.div >
 
                 {/* Tabla de Ranking Regional */}
-                <motion.div
+                < motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
@@ -596,35 +606,37 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                             </tbody>
                         </table>
                     </div>
-                </motion.div>
-            </div>
+                </motion.div >
+            </div >
 
             {/* Mini Stats Footer */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                    { label: "Sucursales", value: desempeno.length, icon: Building2, color: "text-indigo-600", bg: "bg-indigo-50" },
-                    { label: "Operadores Activos", value: ranking?.length || 0, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-                    { label: "Ratio VyV", value: `${porcentajeHabilitacion}%`, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
-                    { label: "Meta Quórum", value: quorumNecesario.toLocaleString(), icon: Target, color: "text-purple-600", bg: "bg-purple-50" },
-                ].map((stat, i) => (
-                    <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 + i * 0.1 }}
-                        whileHover={{ y: -3 }}
-                        className="bg-white rounded-2xl p-5 shadow-lg shadow-slate-200/50 border border-slate-100 flex items-center gap-4"
-                    >
-                        <div className={`p-3 ${stat.bg} rounded-xl`}>
-                            <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                        </div>
-                        <div>
-                            <p className="text-2xl font-black text-slate-800">{stat.value}</p>
-                            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">{stat.label}</p>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
-        </div>
+            < div className="grid grid-cols-2 lg:grid-cols-4 gap-4" >
+                {
+                    [
+                        { label: "Sucursales", value: desempeno.length, icon: Building2, color: "text-indigo-600", bg: "bg-indigo-50" },
+                        { label: "Operadores Activos", value: ranking?.length || 0, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
+                        { label: "Ratio VyV", value: `${porcentajeHabilitacion}%`, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
+                        { label: "Meta Quórum", value: quorumNecesario.toLocaleString(), icon: Target, color: "text-purple-600", bg: "bg-purple-50" },
+                    ].map((stat, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 + i * 0.1 }}
+                            whileHover={{ y: -3 }}
+                            className="bg-white rounded-2xl p-5 shadow-lg shadow-slate-200/50 border border-slate-100 flex items-center gap-4"
+                        >
+                            <div className={`p-3 ${stat.bg} rounded-xl`}>
+                                <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-black text-slate-800">{stat.value}</p>
+                                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">{stat.label}</p>
+                            </div>
+                        </motion.div>
+                    ))
+                }
+            </div >
+        </div >
     );
 }

@@ -59,19 +59,25 @@ services:
       retries: 5
       start_period: 120s
 
-  # Next.js Frontend
+  # Next.js Frontend - Fast deploy with bind mounts
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.frontend
-      args:
-        NEXT_PUBLIC_API_URL: https://asamblea.cloud
+      dockerfile: Dockerfile.frontend.fast
     container_name: asamblea-frontend
     restart: unless-stopped
     ports:
-      - "6002:6001"  # Port 6002 on host -> 6001 in container
+      - "6002:6001"
     environment:
       NEXT_PUBLIC_API_URL: https://asamblea.cloud
+      NODE_ENV: production
+      PORT: 6001
+      HOSTNAME: "0.0.0.0"
+    volumes:
+      # Bind mounts for fast deployment
+      - /home/SIGA/frontend/.next/standalone:/app
+      - /home/SIGA/frontend/.next/static:/app/.next/static
+      - /home/SIGA/frontend/public:/app/public
     depends_on:
       - backend
     networks:

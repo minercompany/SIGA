@@ -11,6 +11,12 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        premium: {
+          dark: "var(--premium-dark)",
+          green: "var(--premium-green)",
+          light: "var(--premium-light)",
+          gold: "var(--premium-gold)",
+        },
         emerald: {
           50: "var(--emerald-50)",
           100: "var(--emerald-100)",

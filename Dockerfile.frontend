@@ -1,13 +1,13 @@
-# Build stage - Dependencies
+# Build stage - Dependencies (cached)
 FROM node:20-alpine AS deps
 
 WORKDIR /app
 
-# Copy package files
+# Copy only package files first for better caching
 COPY frontend/package.json frontend/package-lock.json ./
 
 # Install dependencies
-RUN npm ci --only=production=false
+RUN npm ci --prefer-offline
 
 # Build stage
 FROM node:20-alpine AS builder
@@ -16,7 +16,15 @@ WORKDIR /app
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY frontend/ ./
+
+# Copy only necessary source files
+COPY frontend/package.json frontend/package-lock.json ./
+COPY frontend/tsconfig.json ./
+COPY frontend/tailwind.config.ts ./
+COPY frontend/postcss.config.mjs ./
+COPY frontend/next.config.ts ./
+COPY frontend/public ./public
+COPY frontend/src ./src
 
 # Set environment variable for backend URL
 ARG NEXT_PUBLIC_API_URL=http://backend:8081
@@ -25,7 +33,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 # Build the application
 RUN npm run build
 
-# Production stage
+# Production stage (minimal)
 FROM node:20-alpine AS runner
 
 WORKDIR /app
@@ -36,13 +44,10 @@ ENV NODE_ENV=production
 RUN addgroup -g 1001 -S nodejs && \
     adduser -u 1001 -S nextjs -G nodejs
 
-# Copy built assets
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
-# Set ownership
-RUN chown -R nextjs:nodejs /app
+# Copy only production assets
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 

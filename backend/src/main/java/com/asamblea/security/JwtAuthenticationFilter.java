@@ -22,20 +22,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final com.asamblea.service.ConfiguracionService configuracionService;
 
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
         String path = request.getRequestURI();
-        System.out.println(">>> JWT shouldNotFilter checking path: " + path);
+        // System.out.println(">>> JWT shouldNotFilter checking path: " + path);
         // No filtrar rutas públicas
         boolean skip = path.equals("/api/auth/login") ||
                 path.equals("/api/auth/system-reset") ||
                 path.equals("/api/socios/reset-padron") ||
-                path.equals("/api/configuracion") ||
+                path.equals("/api/configuracion") || // Necesario para saber si hay mantenimiento
                 path.startsWith("/public") ||
                 path.startsWith("/v3/api-docs") ||
                 path.startsWith("/swagger-ui");
-        System.out.println(">>> JWT shouldNotFilter result: " + skip);
+        // System.out.println(">>> JWT shouldNotFilter result: " + skip);
         return skip;
     }
 
@@ -45,13 +46,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
-        System.out.println("DEBUG: Request URI: " + request.getRequestURI());
-        System.out.println("DEBUG: Auth Header: " + (authHeader != null ? "Present" : "Missing"));
+        // System.out.println("DEBUG: Request URI: " + request.getRequestURI());
 
         final String jwt;
         final String username;
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("DEBUG: No Bearer token found, skipping JWT filter");
             filterChain.doFilter(request, response);
             return;
         }
@@ -59,12 +58,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             jwt = authHeader.substring(7).trim();
             username = jwtService.extractUsername(jwt);
-            System.out.println("DEBUG: Username from JWT: " + username);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-                System.out.println(
-                        "DEBUG: UserDetails loaded for: " + username + " with roles: " + userDetails.getAuthorities());
+
+                // --- MAINTENANCE MODE CHECK ---
+                boolean maintenanceMode = "true".equals(configuracionService.obtener("MODO_MANTENIMIENTO", "false"));
+                if (maintenanceMode) {
+                    boolean isSuperAdmin = userDetails.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+
+                    if (!isSuperAdmin) {
+                        response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\": \"El sistema se encuentra en mantenimiento.\"}");
+                        return; // Bloquear petición
+                    }
+                }
+                // ------------------------------
+
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
@@ -76,11 +88,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            // Log authentication error but don't fail the request (let SecurityFilterChain
-            // handle 403)
-            // This allows us to see WHY it failed in the logs
             System.err.println("JWT Authentication Error: " + e.getMessage());
-            e.printStackTrace();
+            // don't stack trace to keep logs clean in prod
         }
 
         filterChain.doFilter(request, response);

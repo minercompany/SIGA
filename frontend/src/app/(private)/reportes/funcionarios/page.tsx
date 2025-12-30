@@ -44,14 +44,20 @@ interface SocioAsignado {
     condicion: string;
     esVyV: boolean;
     asignadoPor: string;
+    origen?: string;
 }
 
 interface ListaDetalle {
-    lista: {
+    lista?: {
         id: number;
         nombre: string;
         responsable: string;
         responsableUser: string;
+    };
+    usuario?: {
+        id: number;
+        nombre: string;
+        username: string;
     };
     socios: SocioAsignado[];
     stats: {
@@ -88,15 +94,12 @@ export default function ReporteFuncionariosPage() {
     };
 
     const loadListaDetalle = async (funcionario: Funcionario) => {
-        if (!funcionario.idListaReal) {
-            setListaDetalle(null);
-            return;
-        }
-
         setLoadingDetalle(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`/api/asignaciones/admin/lista/${funcionario.idListaReal}/socios-detalle`, {
+            // Usar endpoint unificado de detalle
+            const userId = funcionario.idUsuario || funcionario.id;
+            const res = await axios.get(`/api/asignaciones/admin/usuario/${userId}/detalle-completo`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setListaDetalle(res.data);
@@ -125,11 +128,10 @@ export default function ReporteFuncionariosPage() {
     );
 
     const handleExportExcel = async () => {
-        if (!selectedFuncionario?.idListaReal || !listaDetalle) return;
+        if (!listaDetalle) return;
 
         // Crear CSV manualmente
-        // Crear CSV manualmente
-        const headers = ['#', 'NRO SOCIO', 'CÉDULA', 'SOCIO', 'FECHA/HORA LISTA', 'FECHA/HORA INGRESO', 'CONDICIÓN'];
+        const headers = ['#', 'NRO SOCIO', 'CÉDULA', 'SOCIO', 'FECHA/HORA LISTA', 'FECHA/HORA INGRESO', 'CONDICIÓN', 'ORIGEN'];
         const rows = listaDetalle.socios.map((s, idx) => [
             String(idx + 1),
             s.numeroSocio,
@@ -137,12 +139,17 @@ export default function ReporteFuncionariosPage() {
             s.nombreCompleto,
             formatDate(s.fechaAsignacion),
             formatDate(s.fechaHoraIngreso || ''),
-            s.condicion
+            s.condicion,
+            s.origen || 'Asignación'
         ]);
 
+        const opNombre = listaDetalle.usuario?.nombre || listaDetalle.lista?.responsable || 'Desconocido';
+        const opUser = listaDetalle.usuario?.username || listaDetalle.lista?.responsableUser || 'user';
+
         const csvContent = [
-            `REPORTE DE ASIGNACIONES - ${selectedFuncionario.responsable}`,
+            `REPORTE DE ASIGNACIONES/REGISTROS - ${opNombre}`,
             `Total: ${listaDetalle.stats.total} | Voz y Voto: ${listaDetalle.stats.vyv} | Solo Voz: ${listaDetalle.stats.soloVoz}`,
+            `Usuario: @${opUser}`,
             '',
             headers.join(','),
             ...rows.map(r => r.join(','))
@@ -150,13 +157,17 @@ export default function ReporteFuncionariosPage() {
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `asignaciones_${selectedFuncionario.responsableUser}.csv`;
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `funcionarios_report_${opUser}_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
     };
 
     const handleExportPDF = async () => {
-        if (!selectedFuncionario?.idListaReal || !listaDetalle) return;
+        if (!listaDetalle) return;
 
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -166,6 +177,9 @@ export default function ReporteFuncionariosPage() {
             day: '2-digit', month: '2-digit', year: 'numeric',
             hour: '2-digit', minute: '2-digit', second: '2-digit'
         });
+
+        const opNombre = listaDetalle.usuario?.nombre || listaDetalle.lista?.responsable || 'Desconocido';
+        const opUser = listaDetalle.usuario?.username || listaDetalle.lista?.responsableUser || 'user';
 
         // ===== HEADER PREMIUM CON GRADIENTE SIMULADO =====
         // Barra superior principal (teal oscuro)
@@ -187,64 +201,44 @@ export default function ReporteFuncionariosPage() {
             await new Promise<void>((resolve) => {
                 img.onload = () => {
                     try {
-                        doc.addImage(img, 'PNG', 10, 8, 28, 28);
+                        doc.addImage(img, 'PNG', 15, 12, 26, 26);
                     } catch (e) {
-                        doc.setFillColor(255, 255, 255);
-                        doc.circle(23, 25, 12, 'F');
-                        doc.setTextColor(13, 148, 136);
-                        doc.setFontSize(12);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('CR', 17, 28);
+                        console.error('Error adding image to PDF', e);
                     }
                     resolve();
                 };
-                img.onerror = () => {
-                    doc.setFillColor(255, 255, 255);
-                    doc.circle(23, 25, 12, 'F');
-                    doc.setTextColor(13, 148, 136);
-                    doc.setFontSize(12);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('CR', 17, 28);
-                    resolve();
-                };
-                setTimeout(() => resolve(), 1500);
+                img.onerror = () => resolve();
             });
         } catch (e) {
-            doc.setFillColor(255, 255, 255);
-            doc.circle(23, 25, 12, 'F');
-            doc.setTextColor(13, 148, 136);
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'bold');
-            doc.text('CR', 17, 28);
+            console.error('Error loading logo', e);
         }
 
-        // Título COOPERATIVA REDUCTO
+        // Títulos Header
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
-        doc.text('COOPERATIVA REDUCTO LTDA', 42, 22);
-        doc.setFontSize(9);
+        doc.text('COOPERATIVA REDUCTO LTDA', 50, 22);
+
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text('SIGA - Sistema Integral de Gestión de Asamblea', 42, 30);
+        doc.text('SIGA - Sistema Integral de Gestión de Asamblea', 50, 28);
         doc.setFontSize(8);
-        doc.text('Documento Oficial', 42, 36);
+        doc.text('Documento Oficial', 50, 33);
 
-        // Fecha a la derecha con estilo
-        doc.setFontSize(8);
-        doc.text(`Fecha: ${fechaHora}`, pageWidth - 14, 36, { align: 'right' });
+        doc.setFontSize(9);
+        doc.text(`Fecha: ${fechaHora} a. m.`, pageWidth - 15, 33, { align: 'right' });
 
-        // ===== TÍTULO DEL REPORTE =====
-        doc.setTextColor(17, 94, 89);
+        // ===== TÍTULO Y DATOS DEL OPERADOR =====
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.text('REPORTE OFICIAL DE ASIGNACIONES', 14, 55);
+        doc.setTextColor(13, 148, 136); // teal-600
+        doc.text('REPORTE OFICIAL DE ASIGNACIONES/REGISTROS', 14, 55);
 
-        // Línea decorativa bajo título
         doc.setDrawColor(13, 148, 136);
-        doc.setLineWidth(0.8);
-        doc.line(14, 59, 120, 59);
+        doc.setLineWidth(0.5);
+        doc.line(14, 58, 130, 58);
 
-        // ===== TARJETA DE INFO DEL OPERADOR =====
+        // Tarjeta de Operador
         doc.setFillColor(240, 253, 250); // teal-50
         doc.roundedRect(14, 64, pageWidth - 28, 28, 3, 3, 'F');
         doc.setDrawColor(153, 246, 228); // teal-200
@@ -258,11 +252,11 @@ export default function ReporteFuncionariosPage() {
         doc.setTextColor(17, 94, 89);
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text(selectedFuncionario.responsable.toUpperCase(), 20, 82);
+        doc.text(opNombre.toUpperCase(), 20, 82);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(100, 116, 139);
-        doc.text(`Usuario: @${selectedFuncionario.responsableUser}`, 20, 88);
+        doc.text(`Usuario: @${opUser}`, 20, 88);
 
         // Stats con porcentajes y badges
         const total = listaDetalle.stats.total;
@@ -271,7 +265,7 @@ export default function ReporteFuncionariosPage() {
         const porcVyV = total > 0 ? Math.round((vyv / total) * 100) : 0;
         const porcSoloVoz = total > 0 ? Math.round((soloVoz / total) * 100) : 0;
 
-        const statsX = pageWidth - 115;
+        const statsX = pageWidth - 110;
 
         // TOTAL badge
         doc.setFillColor(13, 148, 136);
@@ -285,7 +279,7 @@ export default function ReporteFuncionariosPage() {
 
         // VOZ Y VOTO badge
         doc.setFillColor(4, 120, 87);
-        doc.roundedRect(statsX + 35, 68, 35, 20, 2, 2, 'F');
+        doc.roundedRect(statsX + 35, 68, 30, 20, 2, 2, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(6);
         doc.text('VOZ Y VOTO', statsX + 38, 74);
@@ -294,18 +288,25 @@ export default function ReporteFuncionariosPage() {
 
         // SOLO VOZ badge
         doc.setFillColor(180, 83, 9);
-        doc.roundedRect(statsX + 75, 68, 35, 20, 2, 2, 'F');
+        doc.roundedRect(statsX + 70, 68, 30, 20, 2, 2, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(6);
-        doc.text('SOLO VOZ', statsX + 80, 74);
+        doc.text('SOLO VOZ', statsX + 75, 74);
         doc.setFontSize(11);
-        doc.text(`${soloVoz} (${porcSoloVoz}%)`, statsX + 80, 84);
+        doc.text(`${soloVoz} (${porcSoloVoz}%)`, statsX + 74, 84);
 
         // ===== TABLA PREMIUM =====
         const formatFecha = (fecha: string) => {
             if (!fecha) return '-';
             const d = new Date(fecha);
-            return d.toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            return d.toLocaleString('es-PY', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
         };
 
         const tableData = listaDetalle.socios.map((s, idx) => [
@@ -315,12 +316,13 @@ export default function ReporteFuncionariosPage() {
             s.nombreCompleto,
             formatFecha(s.fechaAsignacion),
             formatFecha(s.fechaHoraIngreso || ''),
-            s.condicion
+            s.condicion,
+            s.origen || 'Asignación'
         ]);
 
         autoTable(doc, {
             startY: 98,
-            head: [['#', 'NRO', 'CÉDULA', 'SOCIO', 'FECHA/HORA LISTA', 'FECHA/HORA INGRESO', 'CONDICIÓN']],
+            head: [['#', 'NRO', 'CÉDULA', 'SOCIO', 'FECHA/HORA REF', 'FECHA/HORA INGRESO', 'CONDICIÓN', 'ORIGEN']],
             body: tableData,
             theme: 'grid',
             styles: {
@@ -347,9 +349,10 @@ export default function ReporteFuncionariosPage() {
                 1: { cellWidth: 14, halign: 'center' },
                 2: { cellWidth: 20 },
                 3: { cellWidth: 'auto' },
-                4: { cellWidth: 32, halign: 'center', fontSize: 6 },
-                5: { cellWidth: 32, halign: 'center', fontSize: 6 },
-                6: { cellWidth: 22, halign: 'center', fontStyle: 'bold' }
+                4: { cellWidth: 28, halign: 'center', fontSize: 5 },
+                5: { cellWidth: 28, halign: 'center', fontSize: 5 },
+                6: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
+                7: { cellWidth: 20, halign: 'center', fontSize: 6 }
             },
             didParseCell: (data) => {
                 // Estilo para columna #
@@ -380,328 +383,328 @@ export default function ReporteFuncionariosPage() {
             // Línea separadora
             doc.setDrawColor(226, 232, 240);
             doc.setLineWidth(0.3);
-            doc.line(14, finalY - 3, pageWidth - 14, finalY - 3);
+            doc.line(14, pageHeight - 25, pageWidth - 14, pageHeight - 25);
 
-            doc.setFillColor(248, 250, 252);
-            doc.roundedRect(14, finalY, pageWidth - 28, 22, 3, 3, 'F');
+            // Información de generación
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
 
-            doc.setFontSize(7);
-            doc.setTextColor(100, 116, 139);
-            doc.text('Documento generado automáticamente por SIGA - Sistema Integral de Gestión de Asamblea', 20, finalY + 7);
-            doc.text(`Operador: ${selectedFuncionario.responsable} | Usuario: @${selectedFuncionario.responsableUser}`, 20, finalY + 13);
-            doc.text(`Generado el: ${fechaHora}`, 20, finalY + 18);
+            doc.text('Documento generado automáticamente por SIGA - Sistema Integral de Gestión de Asamblea', 14, pageHeight - 20);
+            doc.text(`Operador: ${opNombre}`, 14, pageHeight - 16);
+            doc.text(`Generado el: ${fechaHora} a. m.`, 14, pageHeight - 12);
+            doc.text(`| Usuario: @${opUser}`, 120, pageHeight - 16);
 
-            // Logo mini SIGA
-            doc.setFillColor(13, 148, 136);
-            doc.roundedRect(pageWidth - 45, finalY + 4, 25, 14, 2, 2, 'F');
+            // Marca SIGA
+            doc.setFillColor(65, 140, 120); // tono suave similar al logo
+            doc.roundedRect(pageWidth - 30, pageHeight - 18, 16, 8, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
+            doc.setFontSize(8);
             doc.setFont('helvetica', 'bold');
-            doc.text('SIGA', pageWidth - 40, finalY + 13);
+            doc.text('SIGA', pageWidth - 26, pageHeight - 12);
         }
 
-        doc.save(`reporte_asignaciones_${selectedFuncionario.responsableUser}_${now.toISOString().slice(0, 10)}.pdf`);
+        doc.save(`Reporte_Funcionarios_${opUser}_${new Date().toISOString().split('T')[0]}.pdf`);
     };
+const formatDate = (dateStr: string) => {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleString('es-PY', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+};
 
-    const formatDate = (dateStr: string) => {
-        if (!dateStr) return '-';
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('es-PY', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
+// Estadísticas globales
+const totalAsignados = funcionarios.reduce((sum, f) => sum + (f.total || 0), 0);
+const funcionariosConAsignaciones = funcionarios.filter(f => f.total > 0).length;
 
-    // Estadísticas globales
-    const totalAsignados = funcionarios.reduce((sum, f) => sum + (f.total || 0), 0);
-    const funcionariosConAsignaciones = funcionarios.filter(f => f.total > 0).length;
+return (
+    <div className="mx-auto space-y-6" style={{ maxWidth: 'clamp(320px, 98vw, 1400px)', padding: 'clamp(0.5rem, 2vw, 1.5rem)' }}>
+        {/* Header Premium */}
+        <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-600 via-emerald-600 to-teal-700 p-5 sm:p-8 shadow-2xl"
+        >
+            {/* Formas decorativas */}
+            <div className="absolute -left-10 -top-10 h-[150px] w-[150px] sm:h-[200px] sm:w-[200px] rounded-[60%_40%_70%_30%/50%_60%_40%_50%] bg-teal-500/30 blur-2xl"></div>
+            <div className="absolute -right-10 -bottom-10 h-[120px] w-[120px] sm:h-[180px] sm:w-[180px] rounded-[40%_60%_30%_70%/60%_40%_70%_30%] bg-emerald-400/30 blur-2xl"></div>
 
-    return (
-        <div className="mx-auto space-y-6" style={{ maxWidth: 'clamp(320px, 98vw, 1400px)', padding: 'clamp(0.5rem, 2vw, 1.5rem)' }}>
-            {/* Header Premium */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-600 via-emerald-600 to-teal-700 p-5 sm:p-8 shadow-2xl"
-            >
-                {/* Formas decorativas */}
-                <div className="absolute -left-10 -top-10 h-[150px] w-[150px] sm:h-[200px] sm:w-[200px] rounded-[60%_40%_70%_30%/50%_60%_40%_50%] bg-teal-500/30 blur-2xl"></div>
-                <div className="absolute -right-10 -bottom-10 h-[120px] w-[120px] sm:h-[180px] sm:w-[180px] rounded-[40%_60%_30%_70%/60%_40%_70%_30%] bg-emerald-400/30 blur-2xl"></div>
-
-                <div className="relative z-10">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full mb-3">
-                                <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-                                <span className="text-white font-bold text-[10px] sm:text-xs uppercase tracking-widest">Reporte Operadores</span>
-                            </div>
-                            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
-                                Asignaciones por <span className="text-emerald-100">Operador</span>
-                            </h1>
-                            <p className="text-emerald-100/80 text-sm sm:text-base mt-2 max-w-xl">
-                                Busca un operador para ver los socios asignados a su lista.
-                            </p>
+            <div className="relative z-10">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full mb-3">
+                            <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                            <span className="text-white font-bold text-[10px] sm:text-xs uppercase tracking-widest">Reporte Operadores</span>
                         </div>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
+                            Asignaciones por <span className="text-emerald-100">Operador</span>
+                        </h1>
+                        <p className="text-emerald-100/80 text-sm sm:text-base mt-2 max-w-xl">
+                            Busca un operador para ver los socios asignados a su lista.
+                        </p>
                     </div>
                 </div>
-            </motion.div>
+            </div>
+        </motion.div>
 
-            {/* Stats Cards */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
-            >
-                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                        <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-teal-100">
-                            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600" />
-                        </div>
-                        <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Operadores</span>
+        {/* Stats Cards */}
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+        >
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-teal-100">
+                        <Users className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600" />
                     </div>
-                    <p className="text-2xl sm:text-3xl font-black text-teal-600">{funcionarios.length}</p>
+                    <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Operadores</span>
                 </div>
-                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                        <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-emerald-100">
-                            <UserCheck className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
-                        </div>
-                        <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Con Asignaciones</span>
+                <p className="text-2xl sm:text-3xl font-black text-teal-600">{funcionarios.length}</p>
+            </div>
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-emerald-100">
+                        <UserCheck className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
                     </div>
-                    <p className="text-2xl sm:text-3xl font-black text-emerald-600">{funcionariosConAsignaciones}</p>
+                    <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Con Asignaciones</span>
                 </div>
-                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow col-span-2 lg:col-span-1">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                        <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-blue-100">
-                            <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-                        </div>
-                        <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Total Asignados</span>
+                <p className="text-2xl sm:text-3xl font-black text-emerald-600">{funcionariosConAsignaciones}</p>
+            </div>
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow col-span-2 lg:col-span-1">
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-blue-100">
+                        <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                     </div>
-                    <p className="text-2xl sm:text-3xl font-black text-blue-600">{totalAsignados}</p>
+                    <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Total Asignados</span>
                 </div>
-            </motion.div>
+                <p className="text-2xl sm:text-3xl font-black text-blue-600">{totalAsignados}</p>
+            </div>
+        </motion.div>
 
-            {/* Search & List */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-slate-100 overflow-hidden"
-            >
-                {/* Search Bar */}
-                <div className="p-4 sm:p-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                        <div className="relative flex-1 max-w-md w-full">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Buscar por nombre de operador..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-11 sm:pl-12 pr-4 py-3 sm:py-3.5 bg-white border border-slate-200 rounded-xl text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all shadow-sm"
-                            />
-                        </div>
-                        {selectedFuncionario && listaDetalle && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="flex items-center gap-2"
+        {/* Search & List */}
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-slate-100 overflow-hidden"
+        >
+            {/* Search Bar */}
+            <div className="p-4 sm:p-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                    <div className="relative flex-1 max-w-md w-full">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre de operador..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-11 sm:pl-12 pr-4 py-3 sm:py-3.5 bg-white border border-slate-200 rounded-xl text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all shadow-sm"
+                        />
+                    </div>
+                    {selectedFuncionario && listaDetalle && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="flex items-center gap-2"
+                        >
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={handleExportPDF}
+                                className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-rose-200"
                             >
-                                <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={handleExportPDF}
-                                    className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-rose-200"
-                                >
-                                    <FileText className="h-4 w-4" />
-                                    PDF
-                                </motion.button>
-                                <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={handleExportExcel}
-                                    className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-200"
-                                >
-                                    <FileSpreadsheet className="h-4 w-4" />
-                                    CSV
-                                </motion.button>
-                            </motion.div>
-                        )}
-                    </div>
+                                <FileText className="h-4 w-4" />
+                                PDF
+                            </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={handleExportExcel}
+                                className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-200"
+                            >
+                                <FileSpreadsheet className="h-4 w-4" />
+                                CSV
+                            </motion.button>
+                        </motion.div>
+                    )}
                 </div>
+            </div>
 
-                {/* Lista de Funcionarios */}
-                {loading ? (
-                    <div className="p-12 text-center">
-                        <Loader2 className="h-10 w-10 text-teal-500 animate-spin mx-auto mb-4" />
-                        <p className="text-slate-500 font-medium">Cargando operadores...</p>
+            {/* Lista de Funcionarios */}
+            {loading ? (
+                <div className="p-12 text-center">
+                    <Loader2 className="h-10 w-10 text-teal-500 animate-spin mx-auto mb-4" />
+                    <p className="text-slate-500 font-medium">Cargando operadores...</p>
+                </div>
+            ) : filteredFuncionarios.length === 0 ? (
+                <div className="p-12 text-center">
+                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Users className="h-10 w-10 text-slate-300" />
                     </div>
-                ) : filteredFuncionarios.length === 0 ? (
-                    <div className="p-12 text-center">
-                        <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Users className="h-10 w-10 text-slate-300" />
-                        </div>
-                        <p className="text-slate-500 font-medium text-lg">No se encontraron operadores</p>
-                        <p className="text-slate-400 text-sm mt-1">Intenta con otro término de búsqueda</p>
-                    </div>
-                ) : (
-                    <div className="divide-y divide-slate-100">
-                        {filteredFuncionarios.map((func) => (
-                            <div key={func.id}>
-                                {/* Fila del funcionario */}
-                                <motion.div
-                                    onClick={() => handleSelectFuncionario(func)}
-                                    className={`p-4 sm:p-5 cursor-pointer transition-all hover:bg-slate-50 ${selectedFuncionario?.id === func.id ? 'bg-teal-50 border-l-4 border-teal-500' : ''
-                                        }`}
-                                    whileHover={{ x: 4 }}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-teal-200">
-                                                {func.responsable?.charAt(0) || 'O'}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-slate-800 text-base sm:text-lg">{func.responsable}</p>
-                                                <p className="text-sm text-slate-500">@{func.responsableUser}</p>
-                                            </div>
+                    <p className="text-slate-500 font-medium text-lg">No se encontraron operadores</p>
+                    <p className="text-slate-400 text-sm mt-1">Intenta con otro término de búsqueda</p>
+                </div>
+            ) : (
+                <div className="divide-y divide-slate-100">
+                    {filteredFuncionarios.map((func) => (
+                        <div key={func.id}>
+                            {/* Fila del funcionario */}
+                            <motion.div
+                                onClick={() => handleSelectFuncionario(func)}
+                                className={`p-4 sm:p-5 cursor-pointer transition-all hover:bg-slate-50 ${selectedFuncionario?.id === func.id ? 'bg-teal-50 border-l-4 border-teal-500' : ''
+                                    }`}
+                                whileHover={{ x: 4 }}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-teal-200">
+                                            {func.responsable?.charAt(0) || 'O'}
                                         </div>
-                                        <div className="flex items-center gap-4">
-                                            <div className="text-right">
-                                                <p className="text-2xl font-black text-teal-600">{func.total}</p>
-                                                <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Asignados</p>
-                                            </div>
-                                            <div className={`p-2 rounded-xl transition-all ${selectedFuncionario?.id === func.id ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-400'
-                                                }`}>
-                                                {selectedFuncionario?.id === func.id ? (
-                                                    <ChevronUp className="h-5 w-5" />
-                                                ) : (
-                                                    <ChevronDown className="h-5 w-5" />
-                                                )}
-                                            </div>
+                                        <div>
+                                            <p className="font-bold text-slate-800 text-base sm:text-lg">{func.responsable}</p>
+                                            <p className="text-sm text-slate-500">@{func.responsableUser}</p>
                                         </div>
                                     </div>
-                                </motion.div>
-
-                                {/* Detalle expandido */}
-                                <AnimatePresence>
-                                    {selectedFuncionario?.id === func.id && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            transition={{ duration: 0.3 }}
-                                            className="overflow-hidden bg-gradient-to-br from-slate-50 to-teal-50/30"
-                                        >
-                                            {loadingDetalle ? (
-                                                <div className="p-8 text-center">
-                                                    <Loader2 className="h-8 w-8 text-teal-500 animate-spin mx-auto mb-3" />
-                                                    <p className="text-slate-500 text-sm">Cargando socios asignados...</p>
-                                                </div>
-                                            ) : !listaDetalle || listaDetalle.socios.length === 0 ? (
-                                                <div className="p-8 text-center">
-                                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                                        <Users className="h-8 w-8 text-slate-300" />
-                                                    </div>
-                                                    <p className="text-slate-500 font-medium">Sin socios asignados</p>
-                                                    <p className="text-slate-400 text-sm mt-1">Este operador no tiene socios en su lista</p>
-                                                </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-right">
+                                            <p className="text-2xl font-black text-teal-600">{func.total}</p>
+                                            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Asignados</p>
+                                        </div>
+                                        <div className={`p-2 rounded-xl transition-all ${selectedFuncionario?.id === func.id ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-400'
+                                            }`}>
+                                            {selectedFuncionario?.id === func.id ? (
+                                                <ChevronUp className="h-5 w-5" />
                                             ) : (
-                                                <div className="p-4 sm:p-6">
-                                                    {/* Stats del funcionario */}
-                                                    <div className="grid grid-cols-3 gap-3 mb-5">
-                                                        <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-slate-100">
-                                                            <p className="text-xl font-black text-teal-600">{listaDetalle.stats.total}</p>
-                                                            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Total</p>
-                                                        </div>
-                                                        <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-emerald-100">
-                                                            <p className="text-xl font-black text-emerald-600">{listaDetalle.stats.vyv}</p>
-                                                            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Voz y Voto</p>
-                                                        </div>
-                                                        <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-amber-100">
-                                                            <p className="text-xl font-black text-amber-600">{listaDetalle.stats.soloVoz}</p>
-                                                            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Solo Voz</p>
-                                                        </div>
-                                                    </div>
+                                                <ChevronDown className="h-5 w-5" />
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
 
-                                                    {/* Tabla de socios */}
-                                                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                                                        <div className="overflow-x-auto">
-                                                            <table className="w-full min-w-[600px]">
-                                                                <thead className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white">
-                                                                    <tr>
-                                                                        <th className="px-2 py-2 text-center text-xs font-bold">#</th>
-                                                                        <th className="px-2 py-2 text-center text-xs font-bold">NRO</th>
-                                                                        <th className="px-2 py-2 text-left text-xs font-bold">CÉDULA</th>
-                                                                        <th className="px-2 py-2 text-left text-xs font-bold">SOCIO</th>
-                                                                        <th className="px-2 py-2 text-center text-xs font-bold">FECHA/HORA LISTA</th>
-                                                                        <th className="px-2 py-2 text-center text-xs font-bold">FECHA/HORA INGRESO</th>
-                                                                        <th className="px-2 py-2 text-center text-xs font-bold">CONDICIÓN</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody className="divide-y divide-slate-100">
-                                                                    {listaDetalle.socios.map((socio, idx) => (
-                                                                        <motion.tr
-                                                                            key={socio.id}
-                                                                            initial={{ opacity: 0, x: -10 }}
-                                                                            animate={{ opacity: 1, x: 0 }}
-                                                                            transition={{ delay: idx * 0.02 }}
-                                                                            className={`${socio.esVyV ? 'bg-emerald-50/50' : 'bg-amber-50/50'} hover:bg-slate-50 transition-colors`}
-                                                                        >
-                                                                            <td className="px-2 py-2 text-sm text-center font-bold text-teal-600">{idx + 1}</td>
-                                                                            <td className="px-2 py-2 text-sm text-center font-bold text-teal-600">{socio.numeroSocio}</td>
-                                                                            <td className="px-2 py-2">
-                                                                                <span className="font-mono text-sm text-slate-700">{socio.cedula}</span>
-                                                                            </td>
-                                                                            <td className="px-2 py-2">
-                                                                                <span className="font-bold text-slate-800 text-sm">{socio.nombreCompleto}</span>
-                                                                            </td>
-                                                                            <td className="px-2 py-2 text-center">
-                                                                                <span className="text-xs font-mono text-slate-600">{formatDate(socio.fechaAsignacion)}</span>
-                                                                            </td>
-                                                                            <td className="px-2 py-2 text-center">
-                                                                                <span className="text-xs font-mono text-slate-600">{formatDate(socio.fechaHoraIngreso || '')}</span>
-                                                                            </td>
-                                                                            <td className="px-2 py-2 text-center">
-                                                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${socio.esVyV
-                                                                                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                                                                                    : 'bg-amber-100 text-amber-700 border border-amber-200'
-                                                                                    }`}>
-                                                                                    {socio.condicion}
-                                                                                </span>
-                                                                            </td>
-                                                                        </motion.tr>
-                                                                    ))}
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
+                            {/* Detalle expandido */}
+                            <AnimatePresence>
+                                {selectedFuncionario?.id === func.id && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="overflow-hidden bg-gradient-to-br from-slate-50 to-teal-50/30"
+                                    >
+                                        {loadingDetalle ? (
+                                            <div className="p-8 text-center">
+                                                <Loader2 className="h-8 w-8 text-teal-500 animate-spin mx-auto mb-3" />
+                                                <p className="text-slate-500 text-sm">Cargando socios asignados...</p>
+                                            </div>
+                                        ) : !listaDetalle || listaDetalle.socios.length === 0 ? (
+                                            <div className="p-8 text-center">
+                                                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                    <Users className="h-8 w-8 text-slate-300" />
+                                                </div>
+                                                <p className="text-slate-500 font-medium">Sin socios asignados</p>
+                                                <p className="text-slate-400 text-sm mt-1">Este operador no tiene socios en su lista</p>
+                                            </div>
+                                        ) : (
+                                            <div className="p-4 sm:p-6">
+                                                {/* Stats del funcionario */}
+                                                <div className="grid grid-cols-3 gap-3 mb-5">
+                                                    <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-slate-100">
+                                                        <p className="text-xl font-black text-teal-600">{listaDetalle.stats.total}</p>
+                                                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Total</p>
+                                                    </div>
+                                                    <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-emerald-100">
+                                                        <p className="text-xl font-black text-emerald-600">{listaDetalle.stats.vyv}</p>
+                                                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Voz y Voto</p>
+                                                    </div>
+                                                    <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-amber-100">
+                                                        <p className="text-xl font-black text-amber-600">{listaDetalle.stats.soloVoz}</p>
+                                                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Solo Voz</p>
                                                     </div>
                                                 </div>
-                                            )}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        ))}
-                    </div>
-                )}
 
-                {/* Footer */}
-                {filteredFuncionarios.length > 0 && (
-                    <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                        <p className="text-sm text-slate-500">
-                            Mostrando <span className="font-bold text-slate-700">{filteredFuncionarios.length}</span> de <span className="font-bold text-slate-700">{funcionarios.length}</span> operadores
-                        </p>
-                        <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-slate-400" />
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Reporte Asignaciones</span>
+                                                {/* Tabla de socios */}
+                                                <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                                                    <div className="overflow-x-auto">
+                                                        <table className="w-full min-w-[600px]">
+                                                            <thead className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white">
+                                                                <tr>
+                                                                    <th className="px-2 py-2 text-center text-xs font-bold">#</th>
+                                                                    <th className="px-2 py-2 text-center text-xs font-bold">NRO</th>
+                                                                    <th className="px-2 py-2 text-left text-xs font-bold">CÉDULA</th>
+                                                                    <th className="px-2 py-2 text-left text-xs font-bold">SOCIO</th>
+                                                                    <th className="px-2 py-2 text-center text-xs font-bold">FECHA/HORA LISTA</th>
+                                                                    <th className="px-2 py-2 text-center text-xs font-bold">FECHA/HORA INGRESO</th>
+                                                                    <th className="px-2 py-2 text-center text-xs font-bold">CONDICIÓN</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-slate-100">
+                                                                {listaDetalle.socios.map((socio, idx) => (
+                                                                    <motion.tr
+                                                                        key={socio.id}
+                                                                        initial={{ opacity: 0, x: -10 }}
+                                                                        animate={{ opacity: 1, x: 0 }}
+                                                                        transition={{ delay: idx * 0.02 }}
+                                                                        className={`${socio.esVyV ? 'bg-emerald-50/50' : 'bg-amber-50/50'} hover:bg-slate-50 transition-colors`}
+                                                                    >
+                                                                        <td className="px-2 py-2 text-sm text-center font-bold text-teal-600">{idx + 1}</td>
+                                                                        <td className="px-2 py-2 text-sm text-center font-bold text-teal-600">{socio.numeroSocio}</td>
+                                                                        <td className="px-2 py-2">
+                                                                            <span className="font-mono text-sm text-slate-700">{socio.cedula}</span>
+                                                                        </td>
+                                                                        <td className="px-2 py-2">
+                                                                            <span className="font-bold text-slate-800 text-sm">{socio.nombreCompleto}</span>
+                                                                        </td>
+                                                                        <td className="px-2 py-2 text-center">
+                                                                            <span className="text-xs font-mono text-slate-600">{formatDate(socio.fechaAsignacion)}</span>
+                                                                        </td>
+                                                                        <td className="px-2 py-2 text-center">
+                                                                            <span className="text-xs font-mono text-slate-600">{formatDate(socio.fechaHoraIngreso || '')}</span>
+                                                                        </td>
+                                                                        <td className="px-2 py-2 text-center">
+                                                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${socio.esVyV
+                                                                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                                                                : 'bg-amber-100 text-amber-700 border border-amber-200'
+                                                                                }`}>
+                                                                                {socio.condicion}
+                                                                            </span>
+                                                                        </td>
+                                                                    </motion.tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Footer */}
+            {filteredFuncionarios.length > 0 && (
+                <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                    <p className="text-sm text-slate-500">
+                        Mostrando <span className="font-bold text-slate-700">{filteredFuncionarios.length}</span> de <span className="font-bold text-slate-700">{funcionarios.length}</span> operadores
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-slate-400" />
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Reporte Asignaciones</span>
                     </div>
-                )}
-            </motion.div>
-        </div>
-    );
+                </div>
+            )}
+        </motion.div>
+    </div>
+);
 }

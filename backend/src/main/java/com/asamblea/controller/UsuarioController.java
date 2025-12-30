@@ -30,7 +30,8 @@ public class UsuarioController {
     private final com.asamblea.service.ArizarService arizarService;
 
     // Buscar unificado (Usuarios + Socios) con FUSIÓN INTELIGENTE
-    @GetMapping("/unificados")
+    // Buscar unificado (Usuarios + Socios) con FUSIÓN INTELIGENTE
+    // Este método maneja la búsqueda explícita.
     public ResponseEntity<List<Map<String, Object>>> buscarUnificado(@RequestParam(required = false) String term) {
         String query = (term != null) ? term.trim() : "";
 
@@ -40,13 +41,31 @@ public class UsuarioController {
 
         // 1. Usuarios del sistema
         List<Usuario> usuarios = usuarioRepository.findAll();
+
+        // Optimización: Cargar mapa de Socios (Only ID -> NumeroSocio) para evitar N+1
+        // En un sistema muy grande esto se debe paginar, pero para < 50k socios es
+        // manejable en memoria server-side filtrada
+        // O mejor: Buscar solo los necesarios si hay query.
+
+        Set<Long> socioIdsToFetch = usuarios.stream()
+                .map(Usuario::getIdSocio)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<Long, String> socioNumeroMap = new HashMap<>();
+        if (!socioIdsToFetch.isEmpty()) {
+            List<Socio> linkedSocios = socioRepository.findAllById(socioIdsToFetch);
+            linkedSocios.forEach(s -> socioNumeroMap.put(s.getId(), s.getNumeroSocio()));
+        }
+
         if (!query.isEmpty()) {
             final String qLower = query.toLowerCase();
             usuarios = usuarios.stream()
                     .filter(u -> u.getUsername().equalsIgnoreCase(query) ||
-                            u.getNombreCompleto().equalsIgnoreCase(query) ||
-                            u.getUsername().toLowerCase().contains(qLower) ||
-                            u.getNombreCompleto().toLowerCase().contains(qLower))
+                            u.getNombreCompleto().toLowerCase().contains(qLower) ||
+                            (u.getCargo() != null && u.getCargo().toLowerCase().contains(qLower)) ||
+                            (u.getIdSocio() != null && socioNumeroMap.get(u.getIdSocio()) != null
+                                    && socioNumeroMap.get(u.getIdSocio()).contains(query))) // Buscar por numero socio
                     .sorted((u1, u2) -> {
                         boolean exacto1 = u1.getUsername().equalsIgnoreCase(query);
                         boolean exacto2 = u2.getUsername().equalsIgnoreCase(query);
@@ -62,11 +81,15 @@ public class UsuarioController {
             map.put("nombreCompleto", u.getNombreCompleto());
             map.put("email", u.getEmail());
             map.put("telefono", u.getTelefono());
+            map.put("cargo", u.getCargo()); // Include cargo
+            map.put("meta", u.getMeta()); // Include meta
             map.put("rol", u.getRol().name());
             map.put("rolNombre", u.getRol().getNombre());
             map.put("activo", u.isActivo());
             map.put("permisosEspeciales", u.getPermisosEspeciales());
             map.put("idSocio", u.getIdSocio());
+            map.put("numeroSocio", u.getIdSocio() != null ? socioNumeroMap.get(u.getIdSocio()) : null); // Return
+                                                                                                        // numeroSocio
             map.put("sucursalId", u.getSucursal() != null ? u.getSucursal().getId() : null);
             map.put("sucursal", u.getSucursal() != null ? u.getSucursal().getNombre() : null);
             map.put("passwordVisible", u.getPasswordVisible()); // Contraseña visible para admins
@@ -86,6 +109,7 @@ public class UsuarioController {
         if (!query.isEmpty() || mergedResults.size() < 100) {
             List<Socio> socios;
             if (!query.isEmpty()) {
+                // Agregar búsqueda por numeroSocio también aquí si no lo hace ya
                 List<Socio> exactos = socioRepository.buscarExacto(query);
                 socios = !exactos.isEmpty() ? exactos : socioRepository.buscarParcial(query);
             } else {
@@ -180,13 +204,21 @@ public class UsuarioController {
 
     private final com.asamblea.repository.FuncionarioDirectivoRepository funcionarioRepository;
 
-
-
     // Listar todos los usuarios + Funcionarios importados
+    // Listar todos los usuarios + Funcionarios importados (Punto de entrada
+    // principal)
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> listarTodos() {
+    public ResponseEntity<List<Map<String, Object>>> listar(@RequestParam(required = false) String term) {
+        // Si hay término de búsqueda, delegamos a la búsqueda unificada
+        if (term != null && !term.trim().isEmpty()) {
+            return buscarUnificado(term);
+        }
+        return listarTodos();
+    }
+
+    private ResponseEntity<List<Map<String, Object>>> listarTodos() {
         List<Map<String, Object>> result = new ArrayList<>();
-        
+
         // 1. Obtener usuarios registrados
         List<Usuario> usuarios = usuarioRepository.findAll();
         Set<String> procesados = new HashSet<>(); // Para evitar duplicados (username/cedula)
@@ -205,6 +237,7 @@ public class UsuarioController {
             map.put("idSocio", u.getIdSocio());
             map.put("sucursal", u.getSucursal() != null ? u.getSucursal().getNombre() : null);
             map.put("sucursalId", u.getSucursal() != null ? u.getSucursal().getId() : null);
+            map.put("passwordVisible", u.getPasswordVisible()); // Contraseña visible para super admins
             map.put("tipo", "USUARIO");
 
             if (u.getIdSocio() != null) {
@@ -213,12 +246,12 @@ public class UsuarioController {
                     map.put("numeroSocio", s.getNumeroSocio());
                 });
             } else {
-                 // Intentar recuperar cédula del username si es numérico
-                 if (u.getUsername().matches("\\d+")) {
-                     map.put("cedula", u.getUsername());
-                 }
+                // Intentar recuperar cédula del username si es numérico
+                if (u.getUsername().matches("\\d+")) {
+                    map.put("cedula", u.getUsername());
+                }
             }
-            
+
             result.add(map);
             procesados.add(u.getUsername()); // Asumimos username como identificador clave
         }
@@ -229,11 +262,11 @@ public class UsuarioController {
             // Verificar si ya está procesado como usuario (por Cédula o NroSocio)
             // Normalizamos cédula quitando puntos
             String cedulaLimpia = f.getCedula() != null ? f.getCedula().replaceAll("[^0-9]", "") : "";
-            
+
             if (procesados.contains(cedulaLimpia) || procesados.contains(f.getNumeroSocio())) {
                 continue; // Ya está listado como Usuario
             }
-            
+
             Map<String, Object> map = new HashMap<>();
             map.put("id", null); // No tiene ID de Usuario
             map.put("idFuncionario", f.getId());
@@ -248,7 +281,7 @@ public class UsuarioController {
             map.put("cedula", f.getCedula());
             map.put("numeroSocio", f.getNumeroSocio());
             map.put("tipo", "FUNCIONARIO"); // Flag para UI
-            
+
             result.add(map);
         }
 
@@ -295,6 +328,11 @@ public class UsuarioController {
             usuario.setRol(Usuario.Rol.valueOf(rol));
             usuario.setActivo(true);
             usuario.setPermisosEspeciales((String) data.get("permisosEspeciales"));
+
+            // Nuevos campos
+            usuario.setCargo((String) data.get("cargo"));
+            usuario.setMeta(data.get("meta") != null ? ((Number) data.get("meta")).intValue() : 50);
+
             if (data.containsKey("idSocio") && data.get("idSocio") != null) {
                 usuario.setIdSocio(Long.parseLong(data.get("idSocio").toString()));
             }
@@ -304,6 +342,14 @@ public class UsuarioController {
             }
 
             usuarioRepository.save(usuario);
+
+            // SYNC SOCIO: Si tiene socio vinculado, actualizar teléfono también
+            if (usuario.getIdSocio() != null && usuario.getTelefono() != null && !usuario.getTelefono().isEmpty()) {
+                socioRepository.findById(usuario.getIdSocio()).ifPresent(s -> {
+                    s.setTelefono(usuario.getTelefono());
+                    socioRepository.save(s);
+                });
+            }
 
             auditService.registrar(
                     "USUARIOS",
@@ -346,6 +392,14 @@ public class UsuarioController {
                     // Guardamos primero para asegurar persistencia antes del async
                     usuarioRepository.save(usuario);
                     arizarService.notificarRegistro(usuario);
+
+                    // SYNC SOCIO: Actualizar teléfono en el socio vinculado
+                    if (usuario.getIdSocio() != null) {
+                        socioRepository.findById(usuario.getIdSocio()).ifPresent(s -> {
+                            s.setTelefono(nuevoTelefono);
+                            socioRepository.save(s);
+                        });
+                    }
                 }
             }
             if (data.containsKey("rol")) {
@@ -368,6 +422,12 @@ public class UsuarioController {
             }
             if (data.containsKey("idSocio")) {
                 usuario.setIdSocio(data.get("idSocio") != null ? Long.parseLong(data.get("idSocio").toString()) : null);
+            }
+            if (data.containsKey("cargo")) {
+                usuario.setCargo((String) data.get("cargo"));
+            }
+            if (data.containsKey("meta")) {
+                usuario.setMeta(data.get("meta") != null ? ((Number) data.get("meta")).intValue() : 50);
             }
             if (data.containsKey("sucursalId")) {
                 Long sucursalId = data.get("sucursalId") != null ? Long.parseLong(data.get("sucursalId").toString())
@@ -470,5 +530,41 @@ public class UsuarioController {
             result.add(map);
         }
         return ResponseEntity.ok(result);
+    }
+
+    // Cambiar contraseña del usuario actual (requiere contraseña actual)
+    @PostMapping("/cambiar-password-actual")
+    public ResponseEntity<?> cambiarPasswordActual(@RequestBody Map<String, String> data, Authentication auth) {
+        try {
+            String currentPassword = data.get("currentPassword");
+            String newPassword = data.get("newPassword");
+
+            if (currentPassword == null || currentPassword.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Debe proporcionar la contraseña actual"));
+            }
+            if (newPassword == null || newPassword.length() < 4) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "La nueva contraseña debe tener al menos 4 caracteres"));
+            }
+
+            String username = auth.getName();
+            Usuario usuario = usuarioRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+            // Verificar contraseña actual
+            if (!passwordEncoder.matches(currentPassword, usuario.getPassword())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "La contraseña actual es incorrecta"));
+            }
+
+            // Actualizar contraseña
+            usuario.setPassword(passwordEncoder.encode(newPassword));
+            usuario.setPasswordVisible(newPassword);
+            usuario.setRequiresPasswordChange(false);
+            usuarioRepository.save(usuario);
+
+            return ResponseEntity.ok(Map.of("message", "Contraseña actualizada correctamente"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }

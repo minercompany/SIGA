@@ -12,6 +12,12 @@ type ImportStats = {
     rowsPerSecond: number;
 };
 
+type ErrorDetail = {
+    row: number;
+    cedula: string;
+    message: string;
+};
+
 type ImportContextType = {
     isImporting: boolean;
     isUploading: boolean;
@@ -19,6 +25,7 @@ type ImportContextType = {
     processId: string | null;
     stats: ImportStats | null;
     error: string | null;
+    errorDetails: ErrorDetail[];
     startImport: (file: File) => Promise<void>;
     cancelImport: () => Promise<void>;
     resetImport: () => void;
@@ -34,6 +41,7 @@ export function ImportProvider({ children }: { children: React.ReactNode }) {
     const [processId, setProcessId] = useState<string | null>(null);
     const [stats, setStats] = useState<ImportStats | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [errorDetails, setErrorDetails] = useState<ErrorDetail[]>([]);
     const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // We don't have useAuth available globally easily without circular deps sometimes, relative import might fail if context doesn't exist.
@@ -121,6 +129,9 @@ export function ImportProvider({ children }: { children: React.ReactNode }) {
                     } else {
                         setStats(status.result);
                     }
+                    if (status.errorDetails && status.errorDetails.length > 0) {
+                        setErrorDetails(status.errorDetails);
+                    }
                 }
             } catch (error: any) {
                 console.error("Polling error", error);
@@ -168,12 +179,13 @@ export function ImportProvider({ children }: { children: React.ReactNode }) {
         setProcessId(null);
         setStats(null);
         setError(null);
+        setErrorDetails([]);
         localStorage.removeItem("import_processId");
         localStorage.removeItem("import_isImporting");
     };
 
     return (
-        <ImportContext.Provider value={{ isImporting, isUploading, progress, processId, stats, error, startImport, cancelImport, resetImport }}>
+        <ImportContext.Provider value={{ isImporting, isUploading, progress, processId, stats, error, errorDetails, startImport, cancelImport, resetImport }}>
             {children}
         </ImportContext.Provider>
     );

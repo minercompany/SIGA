@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConfigProvider } from "@/context/ConfigContext";
 
+import { MaintenanceGuard } from "@/components/MaintenanceGuard";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -30,7 +32,9 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ConfigProvider>
-          {children}
+          <MaintenanceGuard>
+            {children}
+          </MaintenanceGuard>
         </ConfigProvider>
       </body>
     </html>

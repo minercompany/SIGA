@@ -8,5 +8,7 @@ import java.util.Optional;
 public interface SucursalRepository extends JpaRepository<Sucursal, Long> {
     Optional<Sucursal> findByCodigo(String codigo);
 
+    Optional<Sucursal> findByNombre(String nombre);
+
     List<Sucursal> findAllByOrderByCodigoAsc();
 }

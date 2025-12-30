@@ -92,6 +92,15 @@ export default function DashboardEnVivoPage() {
     const [registrosSoloVoz, setRegistrosSoloVoz] = useState(0);
     const [registrosPorSucursal, setRegistrosPorSucursal] = useState<RegistrosPorSucursal[]>([]);
 
+    // METAS DATA (Asesores vs Funcionarios)
+    const [metasData, setMetasData] = useState<{
+        meta: number;
+        registradosVozYVoto: number;
+        porcentajeMeta: number;
+        asesores?: { meta: number; registradosVozYVoto: number; porcentajeMeta: number };
+        funcionarios?: { meta: number; registradosVozYVoto: number; porcentajeMeta: number };
+    } | null>(null);
+
     // Verificar permisos de acceso - redirigir USUARIO_SOCIO a su dashboard
     useEffect(() => {
         const userData = localStorage.getItem("user");
@@ -114,16 +123,18 @@ export default function DashboardEnVivoPage() {
             const token = localStorage.getItem("token");
             const headers = { Authorization: `Bearer ${token}` };
 
-            const [statsRes, asistenciasRes, rankingRes, sucursalesRes] = await Promise.all([
+            const [statsRes, asistenciasRes, rankingRes, sucursalesRes, metasRes] = await Promise.all([
                 axios.get("/api/socios/estadisticas", { headers }),
                 axios.get("/api/asistencia/hoy", { headers }),
                 axios.get("/api/asistencia/ranking-operadores", { headers }),
                 axios.get("/api/socios/estadisticas/por-sucursal", { headers }),
+                axios.get("/api/dashboard/metas", { headers }).catch(() => ({ data: null })),
             ]);
 
             setStats(statsRes.data);
             setRankingOperadores(rankingRes.data || []);
             setSucursalesStats(sucursalesRes.data || []);
+            if (metasRes.data) setMetasData(metasRes.data);
 
             const asistencias = asistenciasRes.data || [];
             const ordenadas = [...asistencias].sort((a: Asistencia, b: Asistencia) =>
@@ -306,6 +317,123 @@ export default function DashboardEnVivoPage() {
                         </div>
                     </div>
                 </motion.header>
+
+                {/* ========== MEGA PANEL: PROGRESO DE METAS (Para pantalla grande) ========== */}
+                {metasData && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mb-8 relative"
+                    >
+                        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-[2rem] p-8 text-white shadow-2xl shadow-slate-900/50 border border-slate-700/50 relative overflow-hidden">
+                            {/* Decorative elements */}
+                            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-teal-500/10 to-emerald-500/10 rounded-full blur-3xl" />
+                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-full blur-3xl" />
+
+                            <div className="relative z-10">
+                                {/* Header */}
+                                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-4 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl shadow-xl shadow-emerald-500/30">
+                                            <Target className="h-8 w-8 text-white" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-2xl lg:text-3xl font-black tracking-tight">Progreso de Metas</h2>
+                                            <p className="text-slate-400 text-sm">Registros de Voz y Voto hacia la meta global</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 bg-white/5 rounded-2xl px-6 py-3 border border-white/10">
+                                        <div className="text-right">
+                                            <p className="text-4xl lg:text-5xl font-black text-emerald-400">{metasData.registradosVozYVoto}</p>
+                                            <p className="text-xs text-slate-400 uppercase tracking-widest">de {metasData.meta} objetivo</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Main Progress Bar */}
+                                <div className="mb-8">
+                                    <div className="flex justify-between mb-3">
+                                        <span className="text-sm font-bold text-slate-300">Meta Global</span>
+                                        <span className="text-2xl font-black text-emerald-400">{metasData.porcentajeMeta.toFixed(1)}%</span>
+                                    </div>
+                                    <div className="h-6 bg-slate-700/50 rounded-full overflow-hidden relative shadow-inner">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${Math.min(metasData.porcentajeMeta, 100)}%` }}
+                                            transition={{ duration: 2, ease: "easeOut" }}
+                                            className="h-full bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 rounded-full relative"
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-shimmer" />
+                                        </motion.div>
+                                    </div>
+                                </div>
+
+                                {/* Segmented Progress: Asesores vs Funcionarios */}
+                                {(metasData.asesores || metasData.funcionarios) && (
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {metasData.asesores && (
+                                            <motion.div
+                                                whileHover={{ scale: 1.02 }}
+                                                className="bg-gradient-to-br from-blue-600/20 to-indigo-600/20 rounded-2xl p-6 border border-blue-500/20"
+                                            >
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 bg-blue-500/30 rounded-xl">
+                                                            <Users className="h-5 w-5 text-blue-300" />
+                                                        </div>
+                                                        <span className="font-bold text-blue-200">Asesores de Crédito</span>
+                                                    </div>
+                                                    <span className="text-2xl font-black text-blue-400">{metasData.asesores.porcentajeMeta.toFixed(1)}%</span>
+                                                </div>
+                                                <div className="flex items-baseline gap-2 mb-3">
+                                                    <span className="text-3xl font-black text-white">{metasData.asesores.registradosVozYVoto}</span>
+                                                    <span className="text-sm text-slate-400">de {metasData.asesores.meta}</span>
+                                                </div>
+                                                <div className="h-3 bg-slate-700/50 rounded-full overflow-hidden">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${Math.min(metasData.asesores.porcentajeMeta, 100)}%` }}
+                                                        transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
+                                                        className="h-full bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full"
+                                                    />
+                                                </div>
+                                            </motion.div>
+                                        )}
+
+                                        {metasData.funcionarios && (
+                                            <motion.div
+                                                whileHover={{ scale: 1.02 }}
+                                                className="bg-gradient-to-br from-emerald-600/20 to-teal-600/20 rounded-2xl p-6 border border-emerald-500/20"
+                                            >
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 bg-emerald-500/30 rounded-xl">
+                                                            <Award className="h-5 w-5 text-emerald-300" />
+                                                        </div>
+                                                        <span className="font-bold text-emerald-200">Funcionarios</span>
+                                                    </div>
+                                                    <span className="text-2xl font-black text-emerald-400">{metasData.funcionarios.porcentajeMeta.toFixed(1)}%</span>
+                                                </div>
+                                                <div className="flex items-baseline gap-2 mb-3">
+                                                    <span className="text-3xl font-black text-white">{metasData.funcionarios.registradosVozYVoto}</span>
+                                                    <span className="text-sm text-slate-400">de {metasData.funcionarios.meta}</span>
+                                                </div>
+                                                <div className="h-3 bg-slate-700/50 rounded-full overflow-hidden">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${Math.min(metasData.funcionarios.porcentajeMeta, 100)}%` }}
+                                                        transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
+                                                        className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full"
+                                                    />
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* KPIs Premium Grid - 6 Tarjetas */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">

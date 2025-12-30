@@ -1,0 +1,24 @@
+# Minimal runtime container for Next.js
+# Uses bind mounts for source - enables ultra-fast deploys
+FROM node:20-alpine
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=6001
+ENV HOSTNAME="0.0.0.0"
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -u 1001 -S nextjs -G nodejs
+
+USER nextjs
+
+EXPOSE 6001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:6001 || exit 1
+
+# The app files are mounted via docker-compose volumes
+CMD ["node", "server.js"]

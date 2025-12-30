@@ -51,7 +51,10 @@ interface Usuario {
     idSocio: number | null;
     tipo: "USUARIO" | "SOCIO";
     nroSocio?: string;
+    numeroSocio?: string; // New field from backend
     cedula?: string;
+    cargo?: string;
+    meta?: number;
 }
 
 interface Rol {
@@ -71,11 +74,13 @@ export default function UsuariosPage() {
     const [sucursales, setSucursales] = useState<Sucursal[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [activeRolFilter, setActiveRolFilter] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [editingUser, setEditingUser] = useState<Usuario | null>(null);
     const [saving, setSaving] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
 
     // Socio Search State
     const [socioQuery, setSocioQuery] = useState("");
@@ -97,7 +102,9 @@ export default function UsuariosPage() {
         rol: "OPERADOR",
         sucursalId: "",
         permisosEspeciales: "",
-        idSocio: "" as string | number
+        idSocio: "" as string | number,
+        cargo: "",
+        meta: 50
     });
 
     const AVAILABLE_SCREENS = [
@@ -112,6 +119,9 @@ export default function UsuariosPage() {
         { id: "asistencia", label: "Asistencia", icon: ClipboardList, color: "from-sky-500 to-blue-500", bgColor: "bg-sky-50", borderColor: "border-sky-200", textColor: "text-sky-700" },
         { id: "checkin", label: "Check-in", icon: CheckSquare, color: "from-green-500 to-emerald-500", bgColor: "bg-green-50", borderColor: "border-green-200", textColor: "text-green-700" },
         { id: "reportes", label: "Reportes", icon: FileText, color: "from-slate-500 to-gray-600", bgColor: "bg-slate-50", borderColor: "border-slate-200", textColor: "text-slate-700" },
+        { id: "mi-reporte", label: "Mi Reporte", icon: ClipboardList, color: "from-indigo-500 to-blue-600", bgColor: "bg-indigo-50", borderColor: "border-indigo-200", textColor: "text-indigo-700" },
+        { id: "mensajes-chat", label: "Mensajería", icon: Zap, color: "from-cyan-500 to-blue-500", bgColor: "bg-cyan-50", borderColor: "border-cyan-200", textColor: "text-cyan-700" },
+        { id: "mensajes-avisos", label: "Avisos/Notif.", icon: Zap, color: "from-orange-500 to-red-500", bgColor: "bg-orange-50", borderColor: "border-orange-200", textColor: "text-orange-700" },
         { id: "usuarios", label: "Usuarios y Roles", icon: Shield, color: "from-rose-500 to-pink-500", bgColor: "bg-rose-50", borderColor: "border-rose-200", textColor: "text-rose-700" },
         { id: "auditoria", label: "Auditoría", icon: History, color: "from-gray-500 to-slate-500", bgColor: "bg-gray-50", borderColor: "border-gray-200", textColor: "text-gray-700" },
         { id: "configuracion", label: "Configuración", icon: Settings, color: "from-zinc-500 to-gray-600", bgColor: "bg-zinc-50", borderColor: "border-zinc-200", textColor: "text-zinc-700" },
@@ -160,7 +170,9 @@ export default function UsuariosPage() {
             rol: "OPERADOR",
             sucursalId: "",
             permisosEspeciales: "",
-            idSocio: ""
+            idSocio: "",
+            cargo: "",
+            meta: 50
         });
         setShowModal(true);
     };
@@ -216,7 +228,9 @@ export default function UsuariosPage() {
             rol: "USUARIO_SOCIO",
             sucursalId: socio.sucursalId?.toString() || "", // Pre-fill sucursal
             permisosEspeciales: "dashboard,asignaciones,configuracion", // Default granular permissions
-            idSocio: socio.idSocio || ""
+            idSocio: socio.idSocio || "",
+            cargo: "",
+            meta: 50
         });
         setShowModal(true);
     };
@@ -232,7 +246,9 @@ export default function UsuariosPage() {
             rol: user.rol,
             sucursalId: user.sucursalId?.toString() || "",
             permisosEspeciales: user.permisosEspeciales || "",
-            idSocio: user.idSocio || ""
+            idSocio: user.idSocio || "",
+            cargo: user.cargo || "",
+            meta: user.meta || 50
         });
         setShowModal(true);
     };
@@ -360,13 +376,27 @@ export default function UsuariosPage() {
         }
     };
 
+    // Filter by active role
+    const filteredUsuarios = activeRolFilter
+        ? usuarios.filter(u => u.rol === activeRolFilter && u.tipo === "USUARIO")
+        : usuarios;
+
     // Pagination Logic
     const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
     const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
-    const currentUsers = usuarios.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(usuarios.length / ITEMS_PER_PAGE);
+    const currentUsers = filteredUsuarios.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredUsuarios.length / ITEMS_PER_PAGE);
 
     const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+    const handleRolFilter = (rol: string) => {
+        if (activeRolFilter === rol) {
+            setActiveRolFilter(null); // Toggle off
+        } else {
+            setActiveRolFilter(rol);
+        }
+        setCurrentPage(1); // Reset to first page
+    };
 
     if (loading && usuarios.length === 0) {
         return (
@@ -375,6 +405,80 @@ export default function UsuariosPage() {
             </div>
         );
     }
+
+    // ... (fetchData implementation remains same)
+
+    const handleExportPDF = async () => {
+        setIsExporting(true);
+        try {
+            const { default: jsPDF } = await import("jspdf");
+            const { default: autoTable } = await import("jspdf-autotable");
+
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFontSize(16);
+            doc.text("Reporte de Usuarios y Roles", 14, 20);
+            doc.setFontSize(10);
+            doc.text(`Generado el: ${new Date().toLocaleString()}`, 14, 28);
+            if (searchTerm) {
+                doc.text(`Filtro aplicado: "${searchTerm}"`, 14, 34);
+            }
+
+            const tableData = usuarios.map(u => [
+                u.numeroSocio || "-",
+                u.username || "-",
+                u.nombreCompleto,
+                u.rolNombre || u.rol,
+                u.sucursal || "General",
+                u.activo ? "Activo" : "Inactivo"
+            ]);
+
+            autoTable(doc, {
+                startY: 40,
+                head: [['N° Socio', 'Usuario', 'Nombre Completo', 'Rol / Cargo', 'Sucursal', 'Estado']],
+                body: tableData,
+                theme: 'grid',
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [41, 128, 185] }
+            });
+
+            doc.save("usuarios-sistema.pdf");
+        } catch (error) {
+            console.error("Error exporting PDF", error);
+            Swal.fire('Error', 'No se pudo generar el PDF', 'error');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    const handleExportExcel = async () => {
+        setIsExporting(true);
+        try {
+            const { utils, writeFile } = await import("xlsx");
+
+            const dataToExport = usuarios.map(u => ({
+                "N° Socio": u.numeroSocio || "-",
+                "Usuario": u.username,
+                "Nombre Completo": u.nombreCompleto,
+                "Rol": u.rolNombre || u.rol,
+                "Cargo": u.cargo || "",
+                "Sucursal": u.sucursal || "General",
+                "Meta": u.meta || 0,
+                "Estado": u.activo ? "Activo" : "Inactivo"
+            }));
+
+            const ws = utils.json_to_sheet(dataToExport);
+            const wb = utils.book_new();
+            utils.book_append_sheet(wb, ws, "Usuarios");
+            writeFile(wb, "usuarios-sistema.xlsx");
+        } catch (error) {
+            console.error("Error exporting Excel", error);
+            Swal.fire('Error', 'No se pudo generar el Excel', 'error');
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     return (
         <div className="mx-auto space-y-4" style={{ maxWidth: 'clamp(320px, 98vw, 1100px)', padding: 'clamp(0.5rem, 2vw, 1.5rem)' }}>
@@ -387,7 +491,7 @@ export default function UsuariosPage() {
                     </div>
                     <button
                         onClick={openNewModal}
-                        className="inline-flex items-center gap-2 rounded-xl bg-white/20 backdrop-blur px-4 py-2.5 font-bold text-sm text-white hover:bg-white/30 border border-white/30 transition-all"
+                        className="inline-flex items-center gap-2 rounded-xl bg-white/20 backdrop-blur px-4 py-2.5 font-bold text-sm text-white hover:bg-white/30 border border-white/30 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
                     >
                         <UserPlus className="h-4 w-4" />
                         Crear Usuario
@@ -395,80 +499,144 @@ export default function UsuariosPage() {
                 </div>
             </div>
 
-            {/* Resumen de Roles - Grid Compacto */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {/* Resumen de Roles - Cards Clickeables Premium */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {roles.map((rol) => {
                     const count = usuarios.filter(u => u.rol === rol.value && u.tipo === "USUARIO").length;
-                    const colorConfig: Record<string, { gradient: string; bg: string; border: string; text: string; icon: string }> = {
-                        'SUPER_ADMIN': { gradient: 'from-purple-500 to-violet-600', bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', icon: 'text-purple-500' },
-                        'DIRECTIVO': { gradient: 'from-blue-500 to-indigo-600', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', icon: 'text-blue-500' },
-                        'OPERADOR': { gradient: 'from-teal-500 to-emerald-600', bg: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700', icon: 'text-teal-500' },
-                        'USUARIO_SOCIO': { gradient: 'from-slate-500 to-gray-600', bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700', icon: 'text-slate-500' }
+                    const isActive = activeRolFilter === rol.value;
+                    const colorConfig: Record<string, { gradient: string; bg: string; bgActive: string; border: string; text: string; ring: string }> = {
+                        'SUPER_ADMIN': { gradient: 'from-purple-500 to-violet-600', bg: 'bg-purple-50', bgActive: 'bg-purple-600', border: 'border-purple-200', text: 'text-purple-700', ring: 'ring-purple-500' },
+                        'DIRECTIVO': { gradient: 'from-blue-500 to-indigo-600', bg: 'bg-blue-50', bgActive: 'bg-blue-600', border: 'border-blue-200', text: 'text-blue-700', ring: 'ring-blue-500' },
+                        'OPERADOR': { gradient: 'from-teal-500 to-emerald-600', bg: 'bg-teal-50', bgActive: 'bg-teal-600', border: 'border-teal-200', text: 'text-teal-700', ring: 'ring-teal-500' },
+                        'ASESOR_DE_CREDITO': { gradient: 'from-amber-500 to-orange-600', bg: 'bg-amber-50', bgActive: 'bg-amber-600', border: 'border-amber-200', text: 'text-amber-700', ring: 'ring-amber-500' },
+                        'USUARIO_SOCIO': { gradient: 'from-slate-500 to-gray-600', bg: 'bg-slate-50', bgActive: 'bg-slate-600', border: 'border-slate-200', text: 'text-slate-700', ring: 'ring-slate-500' }
                     };
                     const colors = colorConfig[rol.value] || colorConfig['USUARIO_SOCIO'];
 
                     return (
-                        <div key={rol.value} className={`${colors.bg} rounded-xl p-3 border ${colors.border} hover:shadow-md transition-all`}>
-                            <div className="flex items-center justify-between">
-                                <div className={`p-1.5 rounded-lg bg-gradient-to-br ${colors.gradient}`}>
-                                    <Shield className="h-4 w-4 text-white" />
+                        <button
+                            key={rol.value}
+                            onClick={() => handleRolFilter(rol.value)}
+                            className={`relative overflow-hidden rounded-2xl p-4 border-2 transition-all duration-300 cursor-pointer group
+                                ${isActive
+                                    ? `${colors.bgActive} border-transparent shadow-xl scale-[1.02] ring-4 ${colors.ring}/30`
+                                    : `${colors.bg} ${colors.border} hover:shadow-lg hover:scale-[1.01] hover:border-transparent`
+                                }`}
+                        >
+                            {/* Shine effect on hover */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+
+                            <div className="flex items-center justify-between relative z-10">
+                                <div className={`p-2 rounded-xl ${isActive ? 'bg-white/20' : `bg-gradient-to-br ${colors.gradient}`}`}>
+                                    <Shield className={`h-5 w-5 ${isActive ? 'text-white' : 'text-white'}`} />
                                 </div>
-                                <p className={`text-xl md:text-2xl font-black ${colors.text}`}>{count}</p>
+                                <p className={`text-3xl font-black ${isActive ? 'text-white' : colors.text}`}>{count}</p>
                             </div>
-                            <p className={`font-bold mt-2 text-sm ${colors.text}`}>{rol.nombre}</p>
-                            <p className="text-[9px] md:text-[10px] text-slate-400 font-medium uppercase tracking-wider">Usuarios Activos</p>
-                        </div>
+                            <p className={`font-bold mt-3 text-sm ${isActive ? 'text-white' : colors.text}`}>{rol.nombre}</p>
+                            <p className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${isActive ? 'text-white/70' : 'text-slate-400'}`}>
+                                {isActive ? '✓ Filtro Activo' : 'Click para filtrar'}
+                            </p>
+                        </button>
                     );
                 })}
             </div>
 
+            {/* Active Filter Indicator */}
+            {activeRolFilter && (
+                <div className="flex items-center justify-between bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl px-4 py-3">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-emerald-500 rounded-lg">
+                            <Shield className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Filtro Activo</p>
+                            <p className="text-sm font-black text-emerald-700">
+                                Mostrando: {roles.find(r => r.value === activeRolFilter)?.nombre} ({filteredUsuarios.length})
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setActiveRolFilter(null)}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 rounded-xl text-emerald-700 font-bold text-xs hover:bg-emerald-100 transition-all"
+                    >
+                        <X className="h-4 w-4" />
+                        Limpiar Filtro
+                    </button>
+                </div>
+            )}
+
             {/* Tabla Unificada */}
             <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-xl">
-                <div className="p-5 border-b border-slate-100 bg-slate-50/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="relative max-w-md w-full">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="Buscar por nombre, C.I., usuario o Nro. Socio..."
-                            className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 outline-none transition-all"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                <div className="p-5 border-b border-slate-100 bg-slate-50/30 flex flex-col justify-between gap-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="relative max-w-md w-full">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <input
+                                type="text"
+                                placeholder="Buscar: N° Socio, Nombre, Cédula, Usuario..."
+                                className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 outline-none transition-all font-medium"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleExportPDF}
+                                disabled={isExporting}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
+                            >
+                                <FileText className="h-4 w-4" />
+                                PDF
+                            </button>
+                            <button
+                                onClick={handleExportExcel}
+                                disabled={isExporting}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
+                            >
+                                <BarChart3 className="h-4 w-4" />
+                                Excel
+                            </button>
+                        </div>
                     </div>
-                    <div>
-                        {searchTerm.length > 0 && (
-                            <p className="text-xs text-slate-500 font-medium italic mb-1">
-                                Resultados: {usuarios.length}
+
+                    <div className="flex justify-between items-center">
+                        {(searchTerm.length > 0 || activeRolFilter) && (
+                            <p className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1 rounded-full">
+                                ✓ Mostrando {filteredUsuarios.length} de {usuarios.length} usuarios
                             </p>
                         )}
-                        <p className="text-xs text-slate-400 font-medium text-right">
-                            Total Registros: {usuarios.length}
+                        <p className="text-xs text-slate-400 font-medium ml-auto">
+                            Total Sistema: {usuarios.length}
                         </p>
                     </div>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-slate-50/50">
+                        <thead className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-200">
                             <tr>
-                                <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identificación</th>
-                                <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nombre y Detalles</th>
-                                <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estado de Acceso</th>
-                                <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Acciones</th>
+                                <th className="px-4 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Identificación</th>
+                                <th className="px-4 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Nombre y Detalles</th>
+                                <th className="px-4 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado / Rol</th>
+                                <th className="px-4 py-4 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Acciones Rápidas</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {currentUsers.map((user, idx) => (
-                                <tr key={user.id ? `u-${user.id}` : `s-${user.idSocio}-${idx}`} className="hover:bg-teal-50/20 transition-colors group">
+                                <tr key={user.id ? `u-${user.id}` : `s-${user.idSocio}-${idx}`} className="hover:bg-gradient-to-r hover:from-teal-50/50 hover:to-emerald-50/30 transition-all duration-200 group">
                                     <td className="px-6 py-4">
                                         {user.tipo === "USUARIO" ? (
                                             <div className="flex flex-col">
                                                 <span className="font-mono text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded w-fit mb-1">@{user.username}</span>
-                                                <span className="text-[10px] text-slate-400 font-bold uppercase">Sist. Operativo</span>
+                                                {(user.numeroSocio || user.nroSocio) && (
+                                                    <span className="text-[10px] text-teal-600 font-bold bg-teal-50 px-1 rounded w-fit">Socio #{user.numeroSocio || user.nroSocio}</span>
+                                                )}
+                                                {!user.numeroSocio && !user.nroSocio && <span className="text-[10px] text-slate-400 font-bold uppercase">Sist. Operativo</span>}
                                             </div>
                                         ) : (
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-slate-600">Socio #{user.nroSocio}</span>
+                                                <span className="text-sm font-bold text-slate-600">Socio #{user.nroSocio || user.numeroSocio}</span>
                                                 <span className="text-[10px] text-slate-400">Sin acceso activo</span>
                                             </div>
                                         )}
@@ -487,9 +655,9 @@ export default function UsuariosPage() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 py-3">
                                         <div className="flex items-center gap-2">
-                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold border ${getRolColor(user.rol)}`}>
+                                            <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-black border ${getRolColor(user.rol)}`}>
                                                 {user.tipo === "USUARIO" ? <CheckCircle2 className="h-3 w-3 mr-1.5" /> : <XCircle className="h-3 w-3 mr-1.5" />}
                                                 {user.rolNombre}
                                             </span>
@@ -503,34 +671,37 @@ export default function UsuariosPage() {
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center justify-center gap-2">
+                                    {/* Premium ABM Actions - Side Panel Style */}
+                                    <td className="px-2 py-3">
+                                        <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                                             {user.tipo === "USUARIO" ? (
                                                 <>
                                                     <button
                                                         onClick={() => openEditModal(user)}
-                                                        className="p-2.5 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-teal-600 transition-all border border-transparent hover:border-slate-200"
-                                                        title="Editar"
+                                                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-black tracking-wide hover:shadow-lg hover:shadow-blue-200 hover:scale-105 transition-all"
+                                                        title="Editar Usuario"
                                                     >
-                                                        <Edit2 className="h-4.5 w-4.5" />
+                                                        <Edit2 className="h-3.5 w-3.5" />
+                                                        <span className="hidden lg:inline">Editar</span>
                                                     </button>
                                                     <button
                                                         onClick={() => user.activo ? handleDelete(user) : handleActivate(user)}
-                                                        className={`p-2.5 rounded-xl transition-all border border-transparent ${user.activo
-                                                            ? 'text-slate-400 hover:bg-red-50 hover:text-red-600 hover:border-red-100'
-                                                            : 'text-emerald-500 hover:bg-emerald-50 hover:border-emerald-100'
+                                                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black tracking-wide transition-all hover:scale-105 ${user.activo
+                                                            ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white hover:shadow-lg hover:shadow-red-200'
+                                                            : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:shadow-lg hover:shadow-emerald-200'
                                                             }`}
-                                                        title={user.activo ? "Dar de Baja (Desactivar)" : "Reactivar Acceso"}
+                                                        title={user.activo ? "Dar de Baja" : "Reactivar"}
                                                     >
-                                                        {user.activo ? <Trash2 className="h-4.5 w-4.5" /> : <CheckCircle2 className="h-4.5 w-4.5" />}
+                                                        {user.activo ? <Trash2 className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                                                        <span className="hidden lg:inline">{user.activo ? 'Baja' : 'Activar'}</span>
                                                     </button>
                                                 </>
                                             ) : (
                                                 <button
                                                     onClick={() => openGiveAccessModal(user)}
-                                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-[10px] font-black tracking-widest hover:bg-emerald-700 shadow-lg shadow-emerald-100 hover:shadow-emerald-200 transition-all uppercase"
+                                                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-[10px] font-black tracking-widest hover:shadow-xl hover:shadow-emerald-200 hover:scale-105 transition-all uppercase"
                                                 >
-                                                    <UserPlus className="h-3.5 w-3.5" />
+                                                    <UserPlus className="h-4 w-4" />
                                                     Dar Acceso
                                                 </button>
                                             )}
@@ -723,15 +894,50 @@ export default function UsuariosPage() {
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Nombre de Usuario</label>
-                                        <input
-                                            type="text"
-                                            value={form.username}
-                                            onChange={(e) => setForm({ ...form, username: e.target.value })}
-                                            className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none transition-all font-mono text-sm"
-                                            placeholder="ej: jdoe"
-                                            required
-                                            disabled={!!editingUser}
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={form.username}
+                                                onChange={(e) => setForm({ ...form, username: e.target.value })}
+                                                className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none transition-all font-mono text-sm pl-12"
+                                                placeholder="ej: jdoe"
+                                                required
+                                                disabled={!!editingUser}
+                                            />
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                                <UserCircle2 className="h-5 w-5" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Nro Socio Display (Read Only) */}
+                                    {editingUser && (editingUser.numeroSocio || editingUser.nroSocio) && (
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">
+                                                N° Socio Vinculado
+                                            </label>
+                                            <div className="w-full px-5 py-3 bg-blue-50 border border-blue-100 rounded-2xl text-blue-800 font-bold font-mono">
+                                                {editingUser.numeroSocio || editingUser.nroSocio}
+                                            </div>
+                                        </div>
+                                    )}
+
+
+
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Teléfono</label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={form.telefono}
+                                                onChange={(e) => setForm({ ...form, telefono: e.target.value })}
+                                                className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none transition-all font-mono"
+                                                placeholder="ej: 0981..."
+                                            />
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                                <Users className="h-5 w-5" />
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div>
@@ -799,32 +1005,82 @@ export default function UsuariosPage() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Rol de Sistema</label>
-                                    <select
-                                        value={form.rol}
-                                        onChange={(e) => setForm({ ...form, rol: e.target.value })}
-                                        className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none transition-all font-bold"
-                                        required
-                                    >
-                                        {roles.map((rol) => (
-                                            <option key={rol.value} value={rol.value}>{rol.nombre}</option>
-                                        ))}
-                                    </select>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Rol de Sistema</label>
+                                        <div className="relative">
+                                            <select
+                                                value={form.rol}
+                                                onChange={(e) => setForm({ ...form, rol: e.target.value })}
+                                                className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none appearance-none transition-all font-bold text-slate-700"
+                                            >
+                                                {roles.map((rol) => (
+                                                    <option key={rol.value} value={rol.value}>
+                                                        {rol.nombre}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                <Shield className="h-4 w-4" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* NUEVO CAMPO: CARGO */}
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Cargo (Opcional)</label>
+                                        <input
+                                            type="text"
+                                            value={form.cargo || ""}
+                                            onChange={(e) => setForm({ ...form, cargo: e.target.value })}
+                                            className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-300"
+                                            placeholder="Ej: Asesor, Supervisor, Cajero"
+                                        />
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Sucursal Asignada</label>
-                                    <select
-                                        value={form.sucursalId}
-                                        onChange={(e) => setForm({ ...form, sucursalId: e.target.value })}
-                                        className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none transition-all font-bold"
-                                    >
-                                        <option value="">Sin Restricción (Todas)</option>
-                                        {sucursales.map((suc) => (
-                                            <option key={suc.sucursalId} value={suc.sucursalId}>{suc.sucursal}</option>
-                                        ))}
-                                    </select>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Sucursal Asignada</label>
+                                        <div className="relative">
+                                            <select
+                                                value={form.sucursalId}
+                                                onChange={(e) => setForm({ ...form, sucursalId: e.target.value })}
+                                                className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none appearance-none transition-all font-bold text-slate-700"
+                                            >
+                                                <option value="">Sin Restricción (Todas)</option>
+                                                {sucursales.map((suc) => (
+                                                    <option key={suc.sucursalId} value={suc.sucursalId}>
+                                                        {suc.sucursal}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                <Globe className="h-4 w-4" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* NUEVO CAMPO: META */}
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Meta de Registro</label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                value={form.meta || 50}
+                                                onChange={(e) => setForm({ ...form, meta: parseInt(e.target.value) || 0 })}
+                                                className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none transition-all font-bold text-slate-700"
+                                                disabled={form.rol !== 'SUPER_ADMIN'} // Solo Super Admin puede editar meta, O TODOS? "un campo de meta tambien en su perfil que puede ser modificable por el super admin"
+                                            // Asumo que si el usuario logueado NO es super admin, no puede verlo/editarlo en el frontend, 
+                                            // pero aquí estamos en la pantalla de gestión de usuarios que suele ser para admins.
+                                            // Dejaré editable para quien tenga acceso a esta pantalla.
+                                            />
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-1 text-slate-400">
+                                                <span className="text-[10px] uppercase font-bold">Socios</span>
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-slate-400 mt-1 ml-1">* Objetivo de registros V&V</p>
+                                    </div>
                                 </div>
                             </div>
 

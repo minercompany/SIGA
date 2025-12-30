@@ -183,6 +183,7 @@ public class SocioController {
         long soloVoz = socioRepository.countSoloVoz();
         long presentes = asistenciaRepository.count();
         long presentesVyV = asistenciaRepository.countByEstadoVozVoto(true);
+        Long totalMeta = usuarioRepository.sumTotalMetas();
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalPadron", total);
@@ -190,6 +191,8 @@ public class SocioController {
         stats.put("soloVoz", soloVoz);
         stats.put("presentes", presentes);
         stats.put("presentesVyV", presentesVyV);
+        stats.put("totalMeta", totalMeta != null ? totalMeta : 0);
+
         return ResponseEntity.ok(stats);
     }
 

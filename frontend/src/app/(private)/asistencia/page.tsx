@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import {
     Search, User, Users, CheckCircle, XCircle, AlertCircle,
-    ChevronDown, Menu, Loader2, QrCode, CreditCard, Clock, Check
+    ChevronDown, Menu, Loader2, QrCode, CreditCard, Clock, Check, Trash2
 } from "lucide-react";
 import { Toaster, toast } from "sonner";
 
@@ -42,18 +42,33 @@ export default function AsistenciaPage() {
     const [foundSocios, setFoundSocios] = useState<FoundSocio[]>([]);
     const [loading, setLoading] = useState(false);
     const [marking, setMarking] = useState<number | null>(null);
+    const [deleting, setDeleting] = useState<number | null>(null);
+    const [userRole, setUserRole] = useState<string>("");
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
 
     // Lista de asistencias del día
     const [asistenciasHoy, setAsistenciasHoy] = useState<AsistenciaItem[]>([]);
 
-    // Cargar asistencias al inicio y cada 10s
+    // Cargar asistencias y rol de usuario al inicio
     useEffect(() => {
         fetchAsistenciasHoy();
+        fetchUserRole();
         const interval = setInterval(fetchAsistenciasHoy, 10000);
         return () => clearInterval(interval);
     }, []);
+
+    const fetchUserRole = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await axios.get("/api/usuarios/me", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setUserRole(res.data.rol || "");
+        } catch (error) {
+            console.error("Error fetching user role", error);
+        }
+    };
 
     const fetchAsistenciasHoy = async () => {
         try {
@@ -150,9 +165,44 @@ export default function AsistenciaPage() {
         }
     };
 
+    const eliminarAsistencia = async (socioId: number, nombreSocio: string) => {
+        // Confirmar eliminación
+        if (!confirm(`¿Estás seguro de eliminar la asistencia de ${nombreSocio}?`)) {
+            return;
+        }
+
+        setDeleting(socioId);
+        try {
+            const token = localStorage.getItem("token");
+            await axios.delete(`/api/asistencia/eliminar/${socioId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // Actualizar estado local
+            setFoundSocios(prev => prev.map(s =>
+                s.id === socioId
+                    ? { ...s, asistenciaConfirmada: false, fechaAsistencia: undefined }
+                    : s
+            ));
+
+            toast.success("Asistencia eliminada correctamente");
+
+            // Recargar lista
+            fetchAsistenciasHoy();
+
+        } catch (error: any) {
+            console.error("Error eliminando asistencia", error);
+            const msg = error.response?.data?.error || "Error al eliminar asistencia";
+            toast.error(msg);
+        } finally {
+            setDeleting(null);
+        }
+    };
+
     // Estadísticas rápidas
     const totalPresentes = asistenciasHoy.length;
     const conVoto = asistenciasHoy.filter(a => a.vozVoto).length;
+    const isSuperAdmin = userRole === "SUPER_ADMIN";
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-20 px-4 min-h-screen relative">
@@ -291,7 +341,7 @@ export default function AsistenciaPage() {
                                 {/* Botón Acción */}
                                 <div className="w-full sm:w-auto mt-2 sm:mt-0">
                                     {socio.asistenciaConfirmada ? (
-                                        <div className="flex flex-row sm:flex-col items-center justify-center gap-2 sm:gap-1">
+                                        <div className="flex flex-col items-center justify-center gap-2">
                                             <span className="px-4 sm:px-6 py-2 sm:py-3 bg-emerald-500 text-white rounded-xl sm:rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-emerald-200 cursor-default text-sm sm:text-base">
                                                 <Check className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={3} />
                                                 Ingresó
@@ -299,6 +349,21 @@ export default function AsistenciaPage() {
                                             <span className="text-[10px] font-bold text-emerald-600">
                                                 {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
+                                            {/* Botón eliminar solo para SUPER_ADMIN */}
+                                            {isSuperAdmin && (
+                                                <button
+                                                    onClick={() => eliminarAsistencia(socio.id, socio.nombreCompleto)}
+                                                    disabled={deleting === socio.id}
+                                                    className="mt-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-red-500 text-white rounded-lg sm:rounded-xl font-bold hover:bg-red-600 hover:scale-105 active:scale-95 transition-all shadow-md hover:shadow-red-500/20 disabled:opacity-50 flex items-center justify-center gap-1.5 text-xs sm:text-sm"
+                                                >
+                                                    {deleting === socio.id ? (
+                                                        <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                                                    ) : (
+                                                        <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                    )}
+                                                    <span>Borrar Asistencia</span>
+                                                </button>
+                                            )}
                                         </div>
                                     ) : (
                                         <button

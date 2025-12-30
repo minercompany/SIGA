@@ -467,4 +467,24 @@ public class ReporteController {
 
                 return ResponseEntity.ok(Map.of("data", result, "stats", stats));
         }
+
+        // Reporte de Ranking Premium (con nombre completo y sucursal)
+        @GetMapping("/ranking-global")
+        public ResponseEntity<List<Map<String, Object>>> reporteRankingGlobal(Authentication auth) {
+                List<Object[]> ranking = usuarioRepository.findRankingByAsignaciones();
+                List<Map<String, Object>> result = new ArrayList<>();
+
+                for (Object[] row : ranking) {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("username", row[0]);
+                        map.put("cargo", row[1]);
+                        map.put("meta", row[2]);
+                        map.put("registrados", row[3]);
+                        map.put("porcentaje", row[4]);
+                        map.put("nombreCompleto", row[5] != null ? row[5] : row[0]); // Fallback to username
+                        map.put("sucursal", row[6] != null ? row[6] : "N/A");
+                        result.add(map);
+                }
+                return ResponseEntity.ok(result);
+        }
 }

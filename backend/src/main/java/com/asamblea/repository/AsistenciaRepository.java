@@ -11,6 +11,11 @@ public interface AsistenciaRepository extends JpaRepository<Asistencia, Long> {
 
     long countByEstadoVozVoto(Boolean estadoVozVoto);
 
+    // Conteo por Rol de Operador (Asesores vs Otros)
+    long countByOperador_RolAndEstadoVozVoto(com.asamblea.model.Usuario.Rol rol, Boolean estadoVozVoto);
+
+    long countByOperador_RolNotAndEstadoVozVoto(com.asamblea.model.Usuario.Rol rol, Boolean estadoVozVoto);
+
     // Contar presentes por sucursal
     @Query("SELECT COUNT(a) FROM Asistencia a WHERE a.socio.sucursal.id = :sucursalId")
     long countBySucursalId(Long sucursalId);
@@ -24,6 +29,16 @@ public interface AsistenciaRepository extends JpaRepository<Asistencia, Long> {
     // Buscar asistencias por operador
     java.util.List<Asistencia> findByOperadorId(Long operadorId);
 
+    long countByOperadorIdAndEstadoVozVoto(Long operadorId, Boolean estadoVozVoto);
+
     // Eliminar asistencias por socio ID
     void deleteBySocioId(Long socioId);
+
+    // Métodos para Dashboard Público
+    long countByFechaHoraBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
+
+    long countByFechaHoraBetweenAndEstadoVozVoto(java.time.LocalDateTime start, java.time.LocalDateTime end,
+            Boolean estadoVozVoto);
+
+    java.util.List<Asistencia> findByFechaHoraBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
 }

@@ -130,6 +130,53 @@ public class AsistenciaController {
         }
     }
 
+    // ===== ELIMINAR ASISTENCIA (Solo SUPER_ADMIN) =====
+    @DeleteMapping("/eliminar/{socioId}")
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<?> eliminarAsistencia(@PathVariable Long socioId, Authentication auth,
+            HttpServletRequest request) {
+        try {
+            // Verificar permisos - Solo SUPER_ADMIN puede eliminar
+            Usuario currentUser = usuarioRepository.findByUsername(auth.getName())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+            if (currentUser.getRol() != Usuario.Rol.SUPER_ADMIN) {
+                return ResponseEntity.status(403)
+                        .body(Map.of("error", "Solo el Super Administrador puede eliminar registros de asistencia"));
+            }
+
+            // Verificar que existe la asistencia
+            Optional<Asistencia> asistenciaOpt = asistenciaRepository.findFirstBySocioId(socioId);
+            if (asistenciaOpt.isEmpty()) {
+                return ResponseEntity.status(404)
+                        .body(Map.of("error", "No se encontró registro de asistencia para este socio"));
+            }
+
+            Asistencia asistencia = asistenciaOpt.get();
+            Socio socio = asistencia.getSocio();
+
+            // Eliminar la asistencia
+            asistenciaRepository.deleteBySocioId(socioId);
+
+            // Registrar en auditoría
+            auditService.registrar(
+                    "ASISTENCIA",
+                    "ELIMINAR_ASISTENCIA",
+                    String.format("Eliminó asistencia del socio #%s (%s)", socio.getNumeroSocio(),
+                            socio.getNombreCompleto()),
+                    auth.getName(),
+                    request.getRemoteAddr());
+
+            return ResponseEntity.ok(Map.of(
+                    "mensaje", "Asistencia eliminada correctamente",
+                    "socioNombre", socio.getNombreCompleto(),
+                    "socioNumero", socio.getNumeroSocio()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     // Ranking de operadores por cantidad de registros
     @GetMapping("/ranking-operadores")
     public ResponseEntity<?> rankingOperadores() {

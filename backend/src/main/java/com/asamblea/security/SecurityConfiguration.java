@@ -33,6 +33,8 @@ public class SecurityConfiguration {
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/public/**", "/api/auth/login", "/error").permitAll()
+                                                .requestMatchers("/api/public/**").permitAll() // Endpoints públicos
+                                                                                               // para pantalla
                                                 .requestMatchers("/api/configuracion").permitAll()
                                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                                                 .requestMatchers("/api/socios/reset-padron").permitAll()
