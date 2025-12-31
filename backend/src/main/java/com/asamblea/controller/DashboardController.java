@@ -2,7 +2,6 @@ package com.asamblea.controller;
 
 import com.asamblea.model.Usuario;
 import com.asamblea.repository.AsignacionRepository;
-import com.asamblea.repository.AsistenciaRepository;
 import com.asamblea.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +9,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,9 +18,6 @@ public class DashboardController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private AsistenciaRepository asistenciaRepository;
 
     @Autowired
     private AsignacionRepository asignacionRepository;
