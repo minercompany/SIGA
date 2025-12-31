@@ -233,11 +233,11 @@ export default function AsistenciaPage() {
                     <div className="bg-white/80 backdrop-blur-sm p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-xl shadow-emerald-500/10 border border-emerald-100 hover:scale-105 transition-transform duration-300">
                         <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
                             <div className="p-1.5 sm:p-2 bg-emerald-100 rounded-lg">
-                                <Users className="w-4 h-4 sm:w-6 sm:h-6 text-emerald-600" />
+                                <Users className="w-4 h-4 sm:w-6 sm:h-6 text-emerald-500" />
                             </div>
                             <span className="text-slate-500 text-[9px] sm:text-xs font-black uppercase tracking-wider">Presentes</span>
                         </div>
-                        <p className="text-2xl sm:text-4xl font-black text-emerald-600">{totalPresentes}</p>
+                        <p className="text-2xl sm:text-4xl font-black text-emerald-500">{totalPresentes}</p>
                     </div>
                     <div className="bg-white/80 backdrop-blur-sm p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-xl shadow-blue-500/10 border border-blue-100 hover:scale-105 transition-transform duration-300">
                         <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
@@ -291,7 +291,7 @@ export default function AsistenciaPage() {
 
                                 {/* Avatar / Estado */}
                                 <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-inner transition-colors ${socio.asistenciaConfirmada
-                                    ? 'bg-emerald-100 text-emerald-600'
+                                    ? 'bg-emerald-100 text-emerald-500'
                                     : 'bg-slate-50 text-slate-400 group-hover:bg-violet-50 group-hover:text-violet-500'
                                     }`}>
                                     {socio.asistenciaConfirmada
@@ -346,7 +346,7 @@ export default function AsistenciaPage() {
                                                 <Check className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={3} />
                                                 Ingresó
                                             </span>
-                                            <span className="text-[10px] font-bold text-emerald-600">
+                                            <span className="text-[10px] font-bold text-emerald-500">
                                                 {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                             {/* Botón eliminar solo para SUPER_ADMIN */}

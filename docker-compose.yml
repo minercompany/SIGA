@@ -47,6 +47,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/asamblea_db?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: asamblea_user
       SPRING_DATASOURCE_PASSWORD: asamblea_pass_2024
+    volumes:
+       - ./uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -70,14 +72,15 @@ services:
       - "6002:6001"
     environment:
       NEXT_PUBLIC_API_URL: https://asamblea.cloud
-      NODE_ENV: production
+      NODE_ENV: development
       PORT: 6001
       HOSTNAME: "0.0.0.0"
     volumes:
-      # Bind mounts for fast deployment
-      - /home/SIGA/frontend/.next/standalone:/app
-      - /home/SIGA/frontend/.next/static:/app/.next/static
-      - /home/SIGA/frontend/public:/app/public
+      # Dev Mode mounts
+      - /home/SIGA/frontend:/app
+      - /app/node_modules
+    user: root
+    command: sh -c "npm install && npm run dev"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6001"]
       interval: 30s

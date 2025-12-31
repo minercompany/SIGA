@@ -50,6 +50,9 @@ public class Socio {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "en_padron_actual")
+    private boolean enPadronActual = true;
+
     // El estado de voz y voto se calcula en la lógica de negocio o mediante una
     // columna persistida/virtual
     @Transient

@@ -395,11 +395,11 @@ export default function MiReportePage() {
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2.5 rounded-xl bg-emerald-100">
-                            <CheckCircle className="h-5 w-5 text-emerald-600" />
+                            <CheckCircle className="h-5 w-5 text-emerald-500" />
                         </div>
                         <span className="text-xs font-bold text-slate-400 uppercase">Voz y Voto</span>
                     </div>
-                    <p className="text-3xl font-black text-emerald-600">{reporte.stats.vyv}</p>
+                    <p className="text-3xl font-black text-emerald-500">{reporte.stats.vyv}</p>
                 </div>
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow">
                     <div className="flex items-center gap-3 mb-3">
@@ -443,7 +443,7 @@ export default function MiReportePage() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white">
+                            <thead className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
                                 <tr>
                                     <th className="px-2 py-3 text-center text-xs font-bold">#</th>
                                     <th className="px-2 py-3 text-center text-xs font-bold">NRO</th>
@@ -463,7 +463,7 @@ export default function MiReportePage() {
                                         transition={{ delay: idx * 0.03 }}
                                         className="hover:bg-slate-50 transition-colors"
                                     >
-                                        <td className="px-2 py-3 text-sm text-center font-bold text-teal-600">{idx + 1}</td>
+                                        <td className="px-2 py-3 text-sm text-center font-bold text-teal-500">{idx + 1}</td>
                                         <td className="px-2 py-3 text-sm text-center text-slate-600">{registro.numeroSocio}</td>
                                         <td className="px-2 py-3 text-sm text-slate-700">{registro.cedula}</td>
                                         <td className="px-2 py-3 text-sm font-medium text-slate-800">{registro.nombreCompleto}</td>
@@ -475,7 +475,7 @@ export default function MiReportePage() {
                                         </td>
                                         <td className="px-2 py-3 text-center">
                                             <span className={`px-2 py-1 rounded-lg text-xs font-bold ${registro.esVyV
-                                                ? 'bg-emerald-100 text-emerald-700'
+                                                ? 'bg-emerald-100 text-teal-500'
                                                 : 'bg-amber-100 text-amber-700'
                                                 }`}>
                                                 {registro.condicion}

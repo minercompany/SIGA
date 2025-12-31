@@ -67,8 +67,8 @@ export default function PrivateLayout({
         return (
             <div className="flex h-screen w-full items-center justify-center bg-gradient-to-br from-teal-50 to-emerald-100">
                 <div className="flex flex-col items-center gap-4">
-                    <RefreshCcw className="h-10 w-10 animate-spin text-teal-600" />
-                    <p className="text-teal-700 font-medium">Cargando...</p>
+                    <RefreshCcw className="h-10 w-10 animate-spin text-teal-500" />
+                    <p className="text-teal-500 font-medium">Cargando...</p>
                 </div>
             </div>
         );

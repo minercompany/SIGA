@@ -71,7 +71,7 @@ export default function RankingReportPage() {
                         </div>
                     </div>
                     <div className="text-right">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full font-bold text-sm mb-2 print:border print:border-emerald-200">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-teal-500 rounded-full font-bold text-sm mb-2 print:border print:border-emerald-200">
                             <Crown className="h-4 w-4" />
                             TOP FUNCIONARIOS
                         </div>

@@ -110,13 +110,14 @@ export function SocioAssignments({
         };
     }, [miLista?.total]);
 
-    // Búsqueda automática (Debounce)
+    // Búsqueda automática (Debounce) - Requiere mínimo 3 caracteres
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (socioSearchTerm.length >= 1) {
+            // Requiere mínimo 3 caracteres para evitar búsquedas prematuras
+            if (socioSearchTerm.length >= 3) {
                 onSearchSocio();
             }
-        }, 600);
+        }, 800); // 800ms de debounce para evitar búsquedas mientras escribe lento
         return () => clearTimeout(timer);
     }, [socioSearchTerm]);
 
@@ -136,30 +137,30 @@ export function SocioAssignments({
             {/* Header Premium con Estadísticas - Compacto */}
             <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white">
                 <div className="mx-auto" style={{ maxWidth: 'clamp(320px, 95vw, 900px)', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                        <div data-tour="asignaciones-header">
-                            <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)' }} className="font-black leading-tight">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-6">
+                        <div data-tour="asignaciones-header" className="text-center md:text-left">
+                            <h1 style={{ fontSize: 'clamp(1.25rem, 5vw, 1.75rem)' }} className="font-black leading-tight">
                                 Mi Lista de Asignaciones
                             </h1>
-                            <p className="text-violet-200 text-xs mt-0.5">
+                            <p className="text-violet-200 text-[10px] md:text-xs mt-0.5 font-bold uppercase tracking-wider">
                                 {miLista?.nombre || "Cargando..."}
                             </p>
                         </div>
 
-                        {/* Estadísticas - Compactas */}
+                        {/* Estadísticas - Compactas y centradas en móvil */}
                         {miLista && (
-                            <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
-                                <div className="bg-white/10 backdrop-blur rounded-xl px-3 py-2 text-center min-w-[60px] flex-shrink-0">
-                                    <p className="text-lg md:text-xl font-black">{miLista.total}</p>
-                                    <p className="text-[9px] md:text-[10px] text-violet-200 uppercase tracking-wide">Total</p>
+                            <div className="flex justify-center md:justify-end gap-2 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+                                <div className="bg-white/10 backdrop-blur rounded-xl px-2.5 py-1.5 md:px-3 md:py-2 text-center min-w-[55px] md:min-w-[60px] flex-shrink-0 border border-white/5">
+                                    <p className="text-base md:text-xl font-black">{miLista.total}</p>
+                                    <p className="text-[8px] md:text-[10px] text-violet-200 uppercase tracking-wide font-bold">Total</p>
                                 </div>
-                                <div className="bg-emerald-500/30 backdrop-blur rounded-xl px-3 py-2 text-center min-w-[60px] flex-shrink-0">
-                                    <p className="text-lg md:text-xl font-black text-emerald-300">{miLista.vyv}</p>
-                                    <p className="text-[9px] md:text-[10px] text-emerald-200 uppercase tracking-wide">V&V</p>
+                                <div className="bg-emerald-500/30 backdrop-blur rounded-xl px-2.5 py-1.5 md:px-3 md:py-2 text-center min-w-[55px] md:min-w-[60px] flex-shrink-0 border border-emerald-400/20">
+                                    <p className="text-base md:text-xl font-black text-emerald-300">{miLista.vyv}</p>
+                                    <p className="text-[8px] md:text-[10px] text-emerald-200 uppercase tracking-wide font-bold">V&V</p>
                                 </div>
-                                <div className="bg-amber-500/30 backdrop-blur rounded-xl px-3 py-2 text-center min-w-[60px] flex-shrink-0">
-                                    <p className="text-lg md:text-xl font-black text-amber-300">{miLista.soloVoz}</p>
-                                    <p className="text-[9px] md:text-[10px] text-amber-200 uppercase tracking-wide">Solo</p>
+                                <div className="bg-amber-500/30 backdrop-blur rounded-xl px-2.5 py-1.5 md:px-3 md:py-2 text-center min-w-[55px] md:min-w-[60px] flex-shrink-0 border border-amber-400/20">
+                                    <p className="text-base md:text-xl font-black text-amber-300">{miLista.soloVoz}</p>
+                                    <p className="text-[8px] md:text-[10px] text-amber-200 uppercase tracking-wide font-bold">Solo</p>
                                 </div>
                             </div>
                         )}
@@ -224,13 +225,13 @@ export function SocioAssignments({
                             </div>
                         </div>
 
-                        <form onSubmit={(e) => { e.preventDefault(); onSearchSocio(); }} className="flex gap-3">
+                        <form onSubmit={(e) => { e.preventDefault(); onSearchSocio(); }} className="flex flex-col sm:flex-row gap-3">
                             <div className="relative flex-1">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                                 <input
                                     type="text"
                                     placeholder="Ingresa Cédula o N° de Socio..."
-                                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl font-medium text-lg text-slate-700 placeholder:text-slate-400 focus:border-violet-500 focus:bg-white outline-none transition-all"
+                                    className="w-full pl-12 pr-4 py-3 md:py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl font-medium text-base md:text-lg text-slate-700 placeholder:text-slate-400 focus:border-violet-500 focus:bg-white outline-none transition-all"
                                     value={socioSearchTerm}
                                     onChange={(e) => onSearchTermChange(e.target.value)}
                                     autoComplete="off"
@@ -241,14 +242,14 @@ export function SocioAssignments({
                                 whileTap={{ scale: 0.98 }}
                                 type="submit"
                                 disabled={addingSocio || !socioSearchTerm}
-                                className="px-8 py-4 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-2xl font-bold hover:from-violet-700 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg shadow-violet-200"
+                                className="px-6 md:px-8 py-3.5 md:py-4 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-2xl font-bold hover:from-violet-700 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg shadow-violet-200"
                             >
                                 {addingSocio ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                 ) : (
                                     <>
                                         <Search className="h-5 w-5" />
-                                        Buscar
+                                        <span className="md:inline">Buscar Socio</span>
                                     </>
                                 )}
                             </motion.button>
@@ -267,7 +268,7 @@ export function SocioAssignments({
                                             <CheckCircle2 className="w-6 h-6 text-white" />
                                         </div>
                                         <div>
-                                            <p className="text-xs text-emerald-600 font-bold uppercase tracking-wide">Socio Encontrado</p>
+                                            <p className="text-xs text-emerald-500 font-bold uppercase tracking-wide">Socio Encontrado</p>
                                             <p className="text-xl font-black text-slate-800">{searchedSocio.nombreCompleto}</p>
                                             <div className="flex gap-4 mt-1">
                                                 <span className="text-sm text-slate-500">CI: <span className="font-bold text-slate-700">{searchedSocio.cedula}</span></span>
@@ -277,7 +278,7 @@ export function SocioAssignments({
                                     </div>
                                     <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                                         <div className={`px-4 py-2 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest flex items-center gap-2 border-2 ${tieneVozYVoto(searchedSocio)
-                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                            ? 'bg-emerald-50 text-emerald-500 border-emerald-100'
                                             : 'bg-amber-50 text-amber-600 border-amber-100'
                                             }`}>
                                             {tieneVozYVoto(searchedSocio) ? (
@@ -289,7 +290,7 @@ export function SocioAssignments({
                                         <div className="flex items-center gap-2 w-full sm:w-auto">
                                             <button
                                                 onClick={onConfirmAddSocio}
-                                                className="flex-1 sm:flex-none px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-200/50"
+                                                className="flex-1 sm:flex-none px-6 py-3 bg-emerald-500 hover:bg-teal-500 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-200/50"
                                             >
                                                 <Plus className="w-5 h-5" />
                                                 Agregar
@@ -375,42 +376,42 @@ export function SocioAssignments({
                                             }}
                                             className="p-3 md:p-5 hover:bg-slate-50/80 transition-all group relative border-l-4 border-transparent hover:border-violet-500"
                                         >
-                                            <div className="flex items-center gap-3 md:gap-4">
-                                                {/* Número Identificador */}
-                                                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex-shrink-0 flex items-center justify-center font-black text-white text-sm md:text-lg shadow-lg rotate-3 group-hover:rotate-0 transition-transform ${esVyV ? 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-100' : 'bg-gradient-to-br from-amber-500 to-orange-500 shadow-amber-100'
+                                            <div className="flex items-center gap-2.5 md:gap-4">
+                                                {/* Número Identificador - Más pequeño en móvil */}
+                                                <div className={`w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex-shrink-0 flex items-center justify-center font-black text-white text-xs md:text-lg shadow-lg rotate-2 group-hover:rotate-0 transition-transform ${esVyV ? 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-100' : 'bg-gradient-to-br from-amber-500 to-orange-500 shadow-amber-100'
                                                     }`}>
                                                     {index + 1}
                                                 </div>
 
                                                 {/* Información Principal */}
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-1 mb-1">
+                                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-0.5 md:gap-1 mb-1">
                                                         <p className="font-black text-slate-800 text-sm md:text-lg leading-tight truncate tracking-tight">
                                                             {socio.nombreCompleto}
                                                         </p>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className={`px-2 py-0.5 rounded-lg text-[9px] md:text-xs font-black uppercase tracking-wider border-2 ${esVyV
-                                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                        <div className="flex items-center">
+                                                            <span className={`px-1.5 py-0.5 rounded-lg text-[8px] md:text-xs font-black uppercase tracking-wider border-2 ${esVyV
+                                                                ? 'bg-emerald-50 text-emerald-500 border-emerald-100'
                                                                 : 'bg-amber-50 text-amber-600 border-amber-100'
                                                                 }`}>
-                                                                {esVyV ? 'Derecho a Voto' : 'Solo Voz'}
+                                                                {esVyV ? 'V&V' : 'S. Voz'}
                                                             </span>
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex flex-wrap gap-2 text-[10px] md:text-sm">
-                                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 text-slate-500 rounded-lg font-bold">
-                                                            <Shield className="w-3 h-3 text-slate-400" />
+                                                    <div className="flex flex-wrap gap-1.5 md:gap-2 text-[9px] md:text-sm">
+                                                        <div className="flex items-center gap-1 md:gap-1.5 px-1.5 py-0.5 md:px-2 md:py-1 bg-slate-100 text-slate-500 rounded-lg font-bold">
+                                                            <Shield className="w-2.5 h-2.5 md:w-3 md:h-3 text-slate-400" />
                                                             CI: <span className="text-slate-800">{socio.cedula}</span>
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 text-slate-500 rounded-lg font-bold">
-                                                            <Users className="w-3 h-3 text-slate-400" />
+                                                        <div className="flex items-center gap-1 md:gap-1.5 px-1.5 py-0.5 md:px-2 md:py-1 bg-slate-100 text-slate-500 rounded-lg font-bold">
+                                                            <Users className="w-2.5 h-2.5 md:w-3 md:h-3 text-slate-400" />
                                                             N°: <span className="text-slate-800">{socio.numeroSocio}</span>
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                {/* Acción de Quitar (Botón Progresivo) */}
+                                                {/* Acción de Quitar */}
                                                 <div className="flex-shrink-0">
                                                     <ConfirmRemoveButton onConfirm={() => onRemoveSocio(socio.id)} />
                                                 </div>

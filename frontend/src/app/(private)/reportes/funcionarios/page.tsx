@@ -186,7 +186,7 @@ export default function ReporteFuncionariosPage() {
         doc.setFillColor(17, 94, 89); // teal-800
         doc.rect(0, 0, pageWidth, 10, 'F');
         // Barra principal (teal)
-        doc.setFillColor(13, 148, 136); // teal-600
+        doc.setFillColor(13, 148, 136); // teal-500
         doc.rect(0, 10, pageWidth, 30, 'F');
         // Línea decorativa dorada
         doc.setFillColor(245, 158, 11); // amber-500
@@ -231,7 +231,7 @@ export default function ReporteFuncionariosPage() {
         // ===== TÍTULO Y DATOS DEL OPERADOR =====
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(13, 148, 136); // teal-600
+        doc.setTextColor(13, 148, 136); // teal-500
         doc.text('REPORTE OFICIAL DE ASIGNACIONES/REGISTROS', 14, 55);
 
         doc.setDrawColor(13, 148, 136);
@@ -428,7 +428,7 @@ return (
         <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-600 via-emerald-600 to-teal-700 p-5 sm:p-8 shadow-2xl"
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-500 via-emerald-500 to-teal-500 p-5 sm:p-8 shadow-2xl"
         >
             {/* Formas decorativas */}
             <div className="absolute -left-10 -top-10 h-[150px] w-[150px] sm:h-[200px] sm:w-[200px] rounded-[60%_40%_70%_30%/50%_60%_40%_50%] bg-teal-500/30 blur-2xl"></div>
@@ -462,20 +462,20 @@ return (
             <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                     <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-teal-100">
-                        <Users className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600" />
+                        <Users className="h-4 w-4 sm:h-5 sm:w-5 text-teal-500" />
                     </div>
                     <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Operadores</span>
                 </div>
-                <p className="text-2xl sm:text-3xl font-black text-teal-600">{funcionarios.length}</p>
+                <p className="text-2xl sm:text-3xl font-black text-teal-500">{funcionarios.length}</p>
             </div>
             <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                     <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-emerald-100">
-                        <UserCheck className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
+                        <UserCheck className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
                     </div>
                     <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Con Asignaciones</span>
                 </div>
-                <p className="text-2xl sm:text-3xl font-black text-emerald-600">{funcionariosConAsignaciones}</p>
+                <p className="text-2xl sm:text-3xl font-black text-emerald-500">{funcionariosConAsignaciones}</p>
             </div>
             <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow col-span-2 lg:col-span-1">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
@@ -527,7 +527,7 @@ return (
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={handleExportExcel}
-                                className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-200"
+                                className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-200"
                             >
                                 <FileSpreadsheet className="h-4 w-4" />
                                 CSV
@@ -574,7 +574,7 @@ return (
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="text-right">
-                                            <p className="text-2xl font-black text-teal-600">{func.total}</p>
+                                            <p className="text-2xl font-black text-teal-500">{func.total}</p>
                                             <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Asignados</p>
                                         </div>
                                         <div className={`p-2 rounded-xl transition-all ${selectedFuncionario?.id === func.id ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-400'
@@ -617,11 +617,11 @@ return (
                                                 {/* Stats del funcionario */}
                                                 <div className="grid grid-cols-3 gap-3 mb-5">
                                                     <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-slate-100">
-                                                        <p className="text-xl font-black text-teal-600">{listaDetalle.stats.total}</p>
+                                                        <p className="text-xl font-black text-teal-500">{listaDetalle.stats.total}</p>
                                                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Total</p>
                                                     </div>
                                                     <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-emerald-100">
-                                                        <p className="text-xl font-black text-emerald-600">{listaDetalle.stats.vyv}</p>
+                                                        <p className="text-xl font-black text-emerald-500">{listaDetalle.stats.vyv}</p>
                                                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Voz y Voto</p>
                                                     </div>
                                                     <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-amber-100">
@@ -634,7 +634,7 @@ return (
                                                 <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                                                     <div className="overflow-x-auto">
                                                         <table className="w-full min-w-[600px]">
-                                                            <thead className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white">
+                                                            <thead className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
                                                                 <tr>
                                                                     <th className="px-2 py-2 text-center text-xs font-bold">#</th>
                                                                     <th className="px-2 py-2 text-center text-xs font-bold">NRO</th>
@@ -654,8 +654,8 @@ return (
                                                                         transition={{ delay: idx * 0.02 }}
                                                                         className={`${socio.esVyV ? 'bg-emerald-50/50' : 'bg-amber-50/50'} hover:bg-slate-50 transition-colors`}
                                                                     >
-                                                                        <td className="px-2 py-2 text-sm text-center font-bold text-teal-600">{idx + 1}</td>
-                                                                        <td className="px-2 py-2 text-sm text-center font-bold text-teal-600">{socio.numeroSocio}</td>
+                                                                        <td className="px-2 py-2 text-sm text-center font-bold text-teal-500">{idx + 1}</td>
+                                                                        <td className="px-2 py-2 text-sm text-center font-bold text-teal-500">{socio.numeroSocio}</td>
                                                                         <td className="px-2 py-2">
                                                                             <span className="font-mono text-sm text-slate-700">{socio.cedula}</span>
                                                                         </td>
@@ -670,7 +670,7 @@ return (
                                                                         </td>
                                                                         <td className="px-2 py-2 text-center">
                                                                             <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${socio.esVyV
-                                                                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                                                                ? 'bg-emerald-100 text-teal-500 border border-emerald-200'
                                                                                 : 'bg-amber-100 text-amber-700 border border-amber-200'
                                                                                 }`}>
                                                                                 {socio.condicion}

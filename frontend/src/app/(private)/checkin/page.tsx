@@ -280,8 +280,8 @@ export default function CheckInPage() {
                         <p className="text-[9px] md:text-xs text-slate-500 uppercase tracking-wide">Padrón Total</p>
                     </div>
                     <div className="bg-emerald-50 rounded-xl px-4 py-3 border border-emerald-200 text-center flex-1 max-w-[140px]">
-                        <p className="text-xl md:text-2xl font-bold text-emerald-600">{stats.presentes}</p>
-                        <p className="text-[9px] md:text-xs text-emerald-600 uppercase tracking-wide">Presentes</p>
+                        <p className="text-xl md:text-2xl font-bold text-emerald-500">{stats.presentes}</p>
+                        <p className="text-[9px] md:text-xs text-emerald-500 uppercase tracking-wide">Presentes</p>
                     </div>
                 </div>
             </div>
@@ -295,7 +295,7 @@ export default function CheckInPage() {
                                 {searching ? (
                                     <Loader2 className="h-5 w-5 text-emerald-500 animate-spin" />
                                 ) : (
-                                    <Search className="h-5 w-5 text-emerald-500 group-focus-within:text-emerald-600 transition-colors" />
+                                    <Search className="h-5 w-5 text-emerald-500 group-focus-within:text-emerald-500 transition-colors" />
                                 )}
                             </div>
                             <input
@@ -312,7 +312,7 @@ export default function CheckInPage() {
                         <button
                             type="submit"
                             disabled={searching || !query.trim()}
-                            className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold py-3 md:py-4 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-200 text-sm md:text-base"
+                            className="bg-emerald-500 hover:bg-teal-500 disabled:bg-emerald-400 text-white font-bold py-3 md:py-4 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-200 text-sm md:text-base"
                         >
                             {searching ? "Buscando..." : "Buscar Socio"}
                         </button>
@@ -323,9 +323,9 @@ export default function CheckInPage() {
             {/* Resultado Check-in Exitoso */}
             {checkinSuccess && socioEncontrado && (
                 <div className="bg-emerald-50 rounded-3xl p-8 border-2 border-emerald-300 text-center animate-pulse">
-                    <CheckCircle2 className="h-16 w-16 text-emerald-600 mx-auto mb-4" />
-                    <h2 className="text-2xl font-black text-emerald-800">¡CHECK-IN EXITOSO!</h2>
-                    <p className="text-emerald-600 font-bold text-lg">{socioEncontrado.nombreCompleto}</p>
+                    <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
+                    <h2 className="text-2xl font-black text-emerald-500">¡CHECK-IN EXITOSO!</h2>
+                    <p className="text-emerald-500 font-bold text-lg">{socioEncontrado.nombreCompleto}</p>
                 </div>
             )}
 
@@ -355,7 +355,7 @@ export default function CheckInPage() {
                                             </span>
                                         </div>
                                         {tieneVozYVoto(socioEncontrado) ? (
-                                            <div className="bg-emerald-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm font-bold">
+                                            <div className="bg-emerald-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm font-bold">
                                                 <ShieldCheck className="h-4 w-4" />
                                                 VOZ Y VOTO
                                             </div>
@@ -374,31 +374,31 @@ export default function CheckInPage() {
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                             <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
                                 <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Aporte</p>
-                                <p className={`font-bold ${socioEncontrado.aporteAlDia ? 'text-emerald-600' : 'text-red-600'}`}>
+                                <p className={`font-bold ${socioEncontrado.aporteAlDia ? 'text-emerald-500' : 'text-red-600'}`}>
                                     {socioEncontrado.aporteAlDia ? 'AL DÍA' : 'PENDIENTE'}
                                 </p>
                             </div>
                             <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
                                 <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Solidaridad</p>
-                                <p className={`font-bold ${socioEncontrado.solidaridadAlDia ? 'text-emerald-600' : 'text-red-600'}`}>
+                                <p className={`font-bold ${socioEncontrado.solidaridadAlDia ? 'text-emerald-500' : 'text-red-600'}`}>
                                     {socioEncontrado.solidaridadAlDia ? 'AL DÍA' : 'PENDIENTE'}
                                 </p>
                             </div>
                             <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
                                 <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Fondo</p>
-                                <p className={`font-bold ${socioEncontrado.fondoAlDia ? 'text-emerald-600' : 'text-red-600'}`}>
+                                <p className={`font-bold ${socioEncontrado.fondoAlDia ? 'text-emerald-500' : 'text-red-600'}`}>
                                     {socioEncontrado.fondoAlDia ? 'AL DÍA' : 'PENDIENTE'}
                                 </p>
                             </div>
                             <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
                                 <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Incoop</p>
-                                <p className={`font-bold ${socioEncontrado.incoopAlDia ? 'text-emerald-600' : 'text-red-600'}`}>
+                                <p className={`font-bold ${socioEncontrado.incoopAlDia ? 'text-emerald-500' : 'text-red-600'}`}>
                                     {socioEncontrado.incoopAlDia ? 'AL DÍA' : 'PENDIENTE'}
                                 </p>
                             </div>
                             <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
                                 <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Crédito</p>
-                                <p className={`font-bold ${socioEncontrado.creditoAlDia ? 'text-emerald-600' : 'text-red-600'}`}>
+                                <p className={`font-bold ${socioEncontrado.creditoAlDia ? 'text-emerald-500' : 'text-red-600'}`}>
                                     {socioEncontrado.creditoAlDia ? 'AL DÍA' : 'PENDIENTE'}
                                 </p>
                             </div>
@@ -410,7 +410,7 @@ export default function CheckInPage() {
                         <button
                             onClick={handleCheckin}
                             disabled={checkinLoading}
-                            className="w-full h-24 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white rounded-3xl flex flex-col items-center justify-center gap-2 shadow-xl shadow-emerald-900/20 active:scale-95 transition-all text-xl font-black"
+                            className="w-full h-24 bg-emerald-500 hover:bg-teal-500 disabled:bg-emerald-400 text-white rounded-3xl flex flex-col items-center justify-center gap-2 shadow-xl shadow-emerald-900/20 active:scale-95 transition-all text-xl font-black"
                         >
                             {checkinLoading ? (
                                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -422,7 +422,7 @@ export default function CheckInPage() {
 
                         <button
                             onClick={handlePrint}
-                            className="w-full h-24 bg-white border-2 border-slate-100 hover:border-emerald-200 text-emerald-600 rounded-3xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-xl font-black shadow-sm group">
+                            className="w-full h-24 bg-white border-2 border-slate-100 hover:border-emerald-200 text-emerald-500 rounded-3xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-xl font-black shadow-sm group">
                             <Printer className="h-8 w-8 group-hover:scale-110 transition-transform" />
                             IMPRIMIR CARNET
                         </button>
@@ -456,7 +456,7 @@ export default function CheckInPage() {
             {ultimosCheckins.length > 0 && (
                 <div className="bg-white rounded-2xl p-6 border border-slate-100">
                     <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-emerald-600" />
+                        <Clock className="h-5 w-5 text-emerald-500" />
                         Últimos Ingresos
                     </h3>
                     <div className="space-y-3">
@@ -471,7 +471,7 @@ export default function CheckInPage() {
                                         <p className="text-xs text-slate-500">#{socio.numeroSocio}</p>
                                     </div>
                                 </div>
-                                <span className="text-sm font-medium text-emerald-600">{socio.horaIngreso}</span>
+                                <span className="text-sm font-medium text-emerald-500">{socio.horaIngreso}</span>
                             </div>
                         ))}
                     </div>

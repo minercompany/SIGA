@@ -33,6 +33,19 @@ public interface SocioRepository extends JpaRepository<Socio, Long> {
         @Query("SELECT COUNT(s) FROM Socio s WHERE NOT (s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true)")
         Long countSoloVoz();
 
+        // Contar socios en padrón actual (excluye los dados de baja / fuera del último
+        // padrón)
+        @Query("SELECT COUNT(s) FROM Socio s WHERE s.enPadronActual = true")
+        Long countEnPadronActual();
+
+        // Contar con Voz y Voto SOLO del padrón actual
+        @Query("SELECT COUNT(s) FROM Socio s WHERE s.enPadronActual = true AND s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true")
+        Long countConVozYVotoEnPadron();
+
+        // Contar solo voz SOLO del padrón actual
+        @Query("SELECT COUNT(s) FROM Socio s WHERE s.enPadronActual = true AND NOT (s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true)")
+        Long countSoloVozEnPadron();
+
         // Contar por sucursal
         @Query("SELECT COUNT(s) FROM Socio s WHERE s.sucursal.id = :sucursalId")
         Long countBySucursalId(Long sucursalId);

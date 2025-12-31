@@ -108,19 +108,19 @@ export default function UsuariosPage() {
     });
 
     const AVAILABLE_SCREENS = [
-        { id: "dashboard", label: "Dashboard", icon: BarChart3, color: "from-blue-500 to-cyan-500", bgColor: "bg-blue-50", borderColor: "border-blue-200", textColor: "text-blue-700" },
+        { id: "dashboard", label: "Dashboard", icon: BarChart3, color: "from-blue-500 to-emerald-500", bgColor: "bg-blue-50", borderColor: "border-blue-200", textColor: "text-blue-700" },
         { id: "dashboard-live", label: "Dashboard En Vivo", icon: Activity, color: "from-purple-500 to-pink-500", bgColor: "bg-purple-50", borderColor: "border-purple-200", textColor: "text-purple-700" },
         { id: "importar", label: "Importar Padrón", icon: Upload, color: "from-indigo-500 to-blue-500", bgColor: "bg-indigo-50", borderColor: "border-indigo-200", textColor: "text-indigo-700" },
         { id: "importar-funcionarios", label: "Importar Funcionarios", icon: Users, color: "from-violet-500 to-purple-500", bgColor: "bg-violet-50", borderColor: "border-violet-200", textColor: "text-violet-700" },
-        { id: "socios", label: "Padrón Socios", icon: Users, color: "from-teal-500 to-emerald-500", bgColor: "bg-teal-50", borderColor: "border-teal-200", textColor: "text-teal-700" },
+        { id: "socios", label: "Padrón Socios", icon: Users, color: "from-teal-500 to-emerald-500", bgColor: "bg-teal-50", borderColor: "border-teal-200", textColor: "text-teal-500" },
         { id: "asignacion-rapida", label: "Asignación Rápida", icon: Zap, color: "from-amber-500 to-orange-500", bgColor: "bg-amber-50", borderColor: "border-amber-200", textColor: "text-amber-700" },
-        { id: "asignaciones", label: "Mis Listas", icon: UserCheck, color: "from-emerald-500 to-teal-500", bgColor: "bg-emerald-50", borderColor: "border-emerald-200", textColor: "text-emerald-700" },
+        { id: "asignaciones", label: "Mis Listas", icon: UserCheck, color: "from-emerald-500 to-teal-500", bgColor: "bg-emerald-50", borderColor: "border-emerald-200", textColor: "text-teal-500" },
         { id: "asignaciones-admin", label: "Asignación Master", icon: ShieldAlert, color: "from-red-500 to-rose-500", bgColor: "bg-red-50", borderColor: "border-red-200", textColor: "text-red-700" },
         { id: "asistencia", label: "Asistencia", icon: ClipboardList, color: "from-sky-500 to-blue-500", bgColor: "bg-sky-50", borderColor: "border-sky-200", textColor: "text-sky-700" },
         { id: "checkin", label: "Check-in", icon: CheckSquare, color: "from-green-500 to-emerald-500", bgColor: "bg-green-50", borderColor: "border-green-200", textColor: "text-green-700" },
         { id: "reportes", label: "Reportes", icon: FileText, color: "from-slate-500 to-gray-600", bgColor: "bg-slate-50", borderColor: "border-slate-200", textColor: "text-slate-700" },
         { id: "mi-reporte", label: "Mi Reporte", icon: ClipboardList, color: "from-indigo-500 to-blue-600", bgColor: "bg-indigo-50", borderColor: "border-indigo-200", textColor: "text-indigo-700" },
-        { id: "mensajes-chat", label: "Mensajería", icon: Zap, color: "from-cyan-500 to-blue-500", bgColor: "bg-cyan-50", borderColor: "border-cyan-200", textColor: "text-cyan-700" },
+        { id: "mensajes-chat", label: "Mensajería", icon: Zap, color: "from-emerald-500 to-blue-500", bgColor: "bg-cyan-50", borderColor: "border-cyan-200", textColor: "text-cyan-700" },
         { id: "mensajes-avisos", label: "Avisos/Notif.", icon: Zap, color: "from-orange-500 to-red-500", bgColor: "bg-orange-50", borderColor: "border-orange-200", textColor: "text-orange-700" },
         { id: "usuarios", label: "Usuarios y Roles", icon: Shield, color: "from-rose-500 to-pink-500", bgColor: "bg-rose-50", borderColor: "border-rose-200", textColor: "text-rose-700" },
         { id: "auditoria", label: "Auditoría", icon: History, color: "from-gray-500 to-slate-500", bgColor: "bg-gray-50", borderColor: "border-gray-200", textColor: "text-gray-700" },
@@ -370,7 +370,7 @@ export default function UsuariosPage() {
         switch (rol) {
             case "SUPER_ADMIN": return "bg-purple-100 text-purple-700 border-purple-200";
             case "DIRECTIVO": return "bg-blue-100 text-blue-700 border-blue-200";
-            case "OPERADOR": return "bg-teal-100 text-teal-700 border-teal-200";
+            case "OPERADOR": return "bg-teal-100 text-teal-500 border-teal-200";
             case "USUARIO_SOCIO": return "bg-slate-100 text-slate-700 border-slate-200";
             default: return "bg-slate-100 text-slate-700 border-slate-200";
         }
@@ -401,7 +401,7 @@ export default function UsuariosPage() {
     if (loading && usuarios.length === 0) {
         return (
             <div className="flex items-center justify-center h-96">
-                <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+                <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
             </div>
         );
     }
@@ -507,7 +507,7 @@ export default function UsuariosPage() {
                     const colorConfig: Record<string, { gradient: string; bg: string; bgActive: string; border: string; text: string; ring: string }> = {
                         'SUPER_ADMIN': { gradient: 'from-purple-500 to-violet-600', bg: 'bg-purple-50', bgActive: 'bg-purple-600', border: 'border-purple-200', text: 'text-purple-700', ring: 'ring-purple-500' },
                         'DIRECTIVO': { gradient: 'from-blue-500 to-indigo-600', bg: 'bg-blue-50', bgActive: 'bg-blue-600', border: 'border-blue-200', text: 'text-blue-700', ring: 'ring-blue-500' },
-                        'OPERADOR': { gradient: 'from-teal-500 to-emerald-600', bg: 'bg-teal-50', bgActive: 'bg-teal-600', border: 'border-teal-200', text: 'text-teal-700', ring: 'ring-teal-500' },
+                        'OPERADOR': { gradient: 'from-teal-500 to-emerald-500', bg: 'bg-teal-50', bgActive: 'bg-teal-500', border: 'border-teal-200', text: 'text-teal-500', ring: 'ring-teal-500' },
                         'ASESOR_DE_CREDITO': { gradient: 'from-amber-500 to-orange-600', bg: 'bg-amber-50', bgActive: 'bg-amber-600', border: 'border-amber-200', text: 'text-amber-700', ring: 'ring-amber-500' },
                         'USUARIO_SOCIO': { gradient: 'from-slate-500 to-gray-600', bg: 'bg-slate-50', bgActive: 'bg-slate-600', border: 'border-slate-200', text: 'text-slate-700', ring: 'ring-slate-500' }
                     };
@@ -549,15 +549,15 @@ export default function UsuariosPage() {
                             <Shield className="h-4 w-4 text-white" />
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Filtro Activo</p>
-                            <p className="text-sm font-black text-emerald-700">
+                            <p className="text-xs font-bold text-emerald-500 uppercase tracking-wider">Filtro Activo</p>
+                            <p className="text-sm font-black text-teal-500">
                                 Mostrando: {roles.find(r => r.value === activeRolFilter)?.nombre} ({filteredUsuarios.length})
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={() => setActiveRolFilter(null)}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 rounded-xl text-emerald-700 font-bold text-xs hover:bg-emerald-100 transition-all"
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 rounded-xl text-teal-500 font-bold text-xs hover:bg-emerald-100 transition-all"
                     >
                         <X className="h-4 w-4" />
                         Limpiar Filtro
@@ -602,7 +602,7 @@ export default function UsuariosPage() {
 
                     <div className="flex justify-between items-center">
                         {(searchTerm.length > 0 || activeRolFilter) && (
-                            <p className="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1 rounded-full">
+                            <p className="text-xs text-emerald-500 font-bold bg-emerald-50 px-3 py-1 rounded-full">
                                 ✓ Mostrando {filteredUsuarios.length} de {usuarios.length} usuarios
                             </p>
                         )}
@@ -630,7 +630,7 @@ export default function UsuariosPage() {
                                             <div className="flex flex-col">
                                                 <span className="font-mono text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded w-fit mb-1">@{user.username}</span>
                                                 {(user.numeroSocio || user.nroSocio) && (
-                                                    <span className="text-[10px] text-teal-600 font-bold bg-teal-50 px-1 rounded w-fit">Socio #{user.numeroSocio || user.nroSocio}</span>
+                                                    <span className="text-[10px] text-teal-500 font-bold bg-teal-50 px-1 rounded w-fit">Socio #{user.numeroSocio || user.nroSocio}</span>
                                                 )}
                                                 {!user.numeroSocio && !user.nroSocio && <span className="text-[10px] text-slate-400 font-bold uppercase">Sist. Operativo</span>}
                                             </div>
@@ -643,7 +643,7 @@ export default function UsuariosPage() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${user.tipo === "USUARIO" ? 'bg-teal-50 text-teal-600' : 'bg-slate-100 text-slate-400'}`}>
+                                            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${user.tipo === "USUARIO" ? 'bg-teal-50 text-teal-500' : 'bg-slate-100 text-slate-400'}`}>
                                                 {user.tipo === "USUARIO" ? <Shield className="h-5 w-5" /> : <UserCircle2 className="h-5 w-5" />}
                                             </div>
                                             <div>
@@ -688,7 +688,7 @@ export default function UsuariosPage() {
                                                         onClick={() => user.activo ? handleDelete(user) : handleActivate(user)}
                                                         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black tracking-wide transition-all hover:scale-105 ${user.activo
                                                             ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white hover:shadow-lg hover:shadow-red-200'
-                                                            : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:shadow-lg hover:shadow-emerald-200'
+                                                            : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-lg hover:shadow-emerald-200'
                                                             }`}
                                                         title={user.activo ? "Dar de Baja" : "Reactivar"}
                                                     >
@@ -699,7 +699,7 @@ export default function UsuariosPage() {
                                             ) : (
                                                 <button
                                                     onClick={() => openGiveAccessModal(user)}
-                                                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-[10px] font-black tracking-widest hover:shadow-xl hover:shadow-emerald-200 hover:scale-105 transition-all uppercase"
+                                                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[10px] font-black tracking-widest hover:shadow-xl hover:shadow-emerald-200 hover:scale-105 transition-all uppercase"
                                                 >
                                                     <UserPlus className="h-4 w-4" />
                                                     Dar Acceso
@@ -751,7 +751,7 @@ export default function UsuariosPage() {
                                                 key={pageNum}
                                                 onClick={() => paginate(pageNum)}
                                                 className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${currentPage === pageNum
-                                                    ? "bg-teal-600 text-white shadow-md shadow-teal-200"
+                                                    ? "bg-teal-500 text-white shadow-md shadow-teal-200"
                                                     : "bg-white text-slate-600 hover:bg-slate-50"
                                                     }`}
                                             >
@@ -779,7 +779,7 @@ export default function UsuariosPage() {
                     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col">
                         <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 bg-teal-600 rounded-2xl shadow-lg shadow-teal-200">
+                                <div className="p-3 bg-teal-500 rounded-2xl shadow-lg shadow-teal-200">
                                     <Shield className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
@@ -796,7 +796,7 @@ export default function UsuariosPage() {
 
                         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
                             {message && (
-                                <div className={`p-4 rounded-2xl text-sm font-bold flex items-center gap-3 ${message.type === "success" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
+                                <div className={`p-4 rounded-2xl text-sm font-bold flex items-center gap-3 ${message.type === "success" ? "bg-emerald-50 text-teal-500 border border-emerald-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
                                     {message.type === "success" ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
                                     {message.text}
                                 </div>
@@ -824,7 +824,7 @@ export default function UsuariosPage() {
                                                     type="button"
                                                     onClick={searchSocios}
                                                     disabled={searchingSocio}
-                                                    className="px-6 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-all flex items-center gap-2"
+                                                    className="px-6 py-3 bg-teal-500 text-white font-bold rounded-xl hover:bg-teal-500 transition-all flex items-center gap-2"
                                                 >
                                                     {searchingSocio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                                                     Buscar
@@ -842,14 +842,14 @@ export default function UsuariosPage() {
                                                             className="w-full text-left p-3 hover:bg-teal-50 transition-colors flex items-center justify-between group"
                                                         >
                                                             <div>
-                                                                <p className="font-bold text-slate-700 text-sm group-hover:text-teal-700">{sobj.nombreCompleto}</p>
+                                                                <p className="font-bold text-slate-700 text-sm group-hover:text-teal-500">{sobj.nombreCompleto}</p>
                                                                 <div className="flex gap-2 text-xs text-slate-500">
                                                                     <span>C.I. {sobj.cedula}</span>
                                                                     <span>•</span>
                                                                     <span>Socio #{sobj.numeroSocio}</span>
                                                                 </div>
                                                             </div>
-                                                            <div className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 group-hover:bg-teal-600 group-hover:text-white group-hover:border-teal-600 transition-all">
+                                                            <div className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 group-hover:bg-teal-500 group-hover:text-white group-hover:border-teal-500 transition-all">
                                                                 Seleccionar
                                                             </div>
                                                         </button>
@@ -866,13 +866,13 @@ export default function UsuariosPage() {
                                     ) : (
                                         <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center justify-between animate-in fade-in slide-in-from-top-2">
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-emerald-100 rounded-full text-emerald-600">
+                                                <div className="p-2 bg-emerald-100 rounded-full text-emerald-500">
                                                     <UserCheck className="h-5 w-5" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-0.5">Socio Seleccionado</p>
+                                                    <p className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-0.5">Socio Seleccionado</p>
                                                     <p className="font-bold text-emerald-900">{selectedSocio.nombreCompleto}</p>
-                                                    <p className="text-xs text-emerald-700">C.I. {selectedSocio.cedula} | Socio #{selectedSocio.numeroSocio}</p>
+                                                    <p className="text-xs text-teal-500">C.I. {selectedSocio.cedula} | Socio #{selectedSocio.numeroSocio}</p>
                                                 </div>
                                             </div>
                                             <button
@@ -881,7 +881,7 @@ export default function UsuariosPage() {
                                                     setSelectedSocio(null);
                                                     setForm({ ...form, idSocio: "", nombreCompleto: "", username: "" });
                                                 }}
-                                                className="text-xs font-bold text-emerald-600 hover:text-emerald-800 hover:underline px-3 py-1"
+                                                className="text-xs font-bold text-emerald-500 hover:text-emerald-500 hover:underline px-3 py-1"
                                             >
                                                 Cambiar
                                             </button>
@@ -1086,7 +1086,7 @@ export default function UsuariosPage() {
 
                             <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-3xl p-6 space-y-4 border border-slate-200">
                                 <label className="flex items-center gap-2 text-sm font-black text-slate-800 uppercase tracking-widest">
-                                    <Lock className="h-4 w-4 text-emerald-600" />
+                                    <Lock className="h-4 w-4 text-emerald-500" />
                                     Permisos Granulares (Pantallas)
                                 </label>
                                 <p className="text-[10px] text-slate-500 font-medium mb-4">
@@ -1140,7 +1140,7 @@ export default function UsuariosPage() {
                                     <button
                                         type="button"
                                         onClick={() => setForm(prev => ({ ...prev, permisosEspeciales: AVAILABLE_SCREENS.map(s => s.id).join(',') }))}
-                                        className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 px-3 py-1.5 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-all"
+                                        className="text-[10px] font-bold text-emerald-500 hover:text-teal-500 px-3 py-1.5 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-all"
                                     >
                                         ✓ Seleccionar Todos
                                     </button>
@@ -1165,7 +1165,7 @@ export default function UsuariosPage() {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="flex-1 py-4 bg-teal-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2 shadow-xl shadow-teal-100 transition-all"
+                                    className="flex-1 py-4 bg-teal-500 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-teal-500 disabled:opacity-50 flex items-center justify-center gap-2 shadow-xl shadow-teal-100 transition-all"
                                 >
                                     {saving && <Loader2 className="h-5 w-5 animate-spin" />}
                                     {editingUser ? "Actualizar" : "Activar Acceso"}

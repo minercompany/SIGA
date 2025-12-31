@@ -352,7 +352,7 @@ export default function ReporteAsistenciaFuncionariosPage() {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-500 p-6 sm:p-8 shadow-2xl"
+                className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-teal-500 via-teal-500 to-emerald-500 p-6 sm:p-8 shadow-2xl"
             >
                 <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
@@ -385,20 +385,20 @@ export default function ReporteAsistenciaFuncionariosPage() {
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2.5 rounded-xl bg-teal-100">
-                            <Users className="h-5 w-5 text-teal-600" />
+                            <Users className="h-5 w-5 text-teal-500" />
                         </div>
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Operadores</span>
                     </div>
-                    <p className="text-3xl font-black text-teal-600">{operadores.length}</p>
+                    <p className="text-3xl font-black text-teal-500">{operadores.length}</p>
                 </div>
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="p-2.5 rounded-xl bg-emerald-100">
-                            <UserCheck className="h-5 w-5 text-emerald-600" />
+                            <UserCheck className="h-5 w-5 text-emerald-500" />
                         </div>
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Asistentes</span>
                     </div>
-                    <p className="text-3xl font-black text-emerald-600">{totalRegistros}</p>
+                    <p className="text-3xl font-black text-emerald-500">{totalRegistros}</p>
                 </div>
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow col-span-2 lg:col-span-1">
                     <div className="flex items-center gap-3 mb-3">
@@ -494,11 +494,11 @@ export default function ReporteAsistenciaFuncionariosPage() {
                                         </div>
                                         <div className="flex items-center gap-6">
                                             <div className="text-right hidden sm:block">
-                                                <p className="text-2xl font-black text-teal-600">{operador.totalRegistros}</p>
+                                                <p className="text-2xl font-black text-teal-500">{operador.totalRegistros}</p>
                                                 <p className="text-xs text-slate-500">registros</p>
                                             </div>
                                             <div className="flex gap-2">
-                                                <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold">
+                                                <span className="px-2 py-1 bg-emerald-100 text-teal-500 rounded-lg text-xs font-bold">
                                                     {operador.vozYVoto} VyV
                                                 </span>
                                                 <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-bold">
@@ -533,12 +533,12 @@ export default function ReporteAsistenciaFuncionariosPage() {
                                                     {/* Stats */}
                                                     <div className="grid grid-cols-3 gap-3 mb-6">
                                                         <div className="bg-white rounded-xl p-4 text-center shadow-sm">
-                                                            <p className="text-2xl font-black text-teal-600">{reporteDetalle.stats.total}</p>
+                                                            <p className="text-2xl font-black text-teal-500">{reporteDetalle.stats.total}</p>
                                                             <p className="text-xs text-slate-500">Total</p>
                                                         </div>
                                                         <div className="bg-emerald-50 rounded-xl p-4 text-center">
-                                                            <p className="text-2xl font-black text-emerald-600">{reporteDetalle.stats.vyv}</p>
-                                                            <p className="text-xs text-emerald-600">Voz y Voto</p>
+                                                            <p className="text-2xl font-black text-emerald-500">{reporteDetalle.stats.vyv}</p>
+                                                            <p className="text-xs text-emerald-500">Voz y Voto</p>
                                                         </div>
                                                         <div className="bg-amber-50 rounded-xl p-4 text-center">
                                                             <p className="text-2xl font-black text-amber-600">{reporteDetalle.stats.soloVoz}</p>
@@ -550,7 +550,7 @@ export default function ReporteAsistenciaFuncionariosPage() {
                                                     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                                                         <div className="overflow-x-auto">
                                                             <table className="w-full">
-                                                                <thead className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white">
+                                                                <thead className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
                                                                     <tr>
                                                                         <th className="px-2 py-2 text-center text-xs font-bold">#</th>
                                                                         <th className="px-2 py-2 text-center text-xs font-bold">NRO</th>
@@ -564,7 +564,7 @@ export default function ReporteAsistenciaFuncionariosPage() {
                                                                 <tbody className="divide-y divide-slate-100">
                                                                     {reporteDetalle.asistencias.map((asist, idx) => (
                                                                         <tr key={asist.id} className="hover:bg-slate-50 transition-colors">
-                                                                            <td className="px-2 py-2 text-sm text-center font-bold text-teal-600">{idx + 1}</td>
+                                                                            <td className="px-2 py-2 text-sm text-center font-bold text-teal-500">{idx + 1}</td>
                                                                             <td className="px-2 py-2 text-sm text-center text-slate-600">{asist.numeroSocio}</td>
                                                                             <td className="px-2 py-2 text-sm text-slate-700">{asist.cedula}</td>
                                                                             <td className="px-2 py-2 text-sm font-medium text-slate-800">{asist.nombreCompleto}</td>
@@ -576,7 +576,7 @@ export default function ReporteAsistenciaFuncionariosPage() {
                                                                             </td>
                                                                             <td className="px-2 py-2 text-center">
                                                                                 <span className={`px-2 py-1 rounded-lg text-xs font-bold ${asist.esVyV
-                                                                                    ? 'bg-emerald-100 text-emerald-700'
+                                                                                    ? 'bg-emerald-100 text-teal-500'
                                                                                     : 'bg-amber-100 text-amber-700'
                                                                                     }`}>
                                                                                     {asist.condicion}

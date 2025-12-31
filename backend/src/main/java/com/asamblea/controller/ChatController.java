@@ -122,6 +122,51 @@ public class ChatController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Admin: Iniciar o obtener conversación con un usuario específico
+     */
+    @PostMapping("/iniciar-con-usuario/{usuarioId}")
+    public ResponseEntity<?> iniciarConversacionConUsuario(@PathVariable Long usuarioId,
+            Authentication auth, HttpServletRequest request) {
+        Usuario current = getCurrentUser(auth);
+        if (current == null)
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+
+        if (!isAdmin(current)) {
+            return ResponseEntity.status(403)
+                    .body(Map.of("error", "Solo administradores pueden iniciar conversaciones"));
+        }
+
+        // Verificar que el usuario destino existe
+        Usuario usuarioDestino = usuarioRepository.findById(usuarioId).orElse(null);
+        if (usuarioDestino == null) {
+            return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
+        }
+
+        // Buscar conversación existente o crear nueva
+        Conversacion conv = conversacionRepository.findByUsuarioId(usuarioId)
+                .orElseGet(() -> {
+                    Conversacion nueva = new Conversacion();
+                    nueva.setUsuario(usuarioDestino);
+                    nueva.setCreatedAt(LocalDateTime.now());
+                    return conversacionRepository.save(nueva);
+                });
+
+        // Obtener mensajes
+        List<ChatMensaje> mensajes = chatMensajeRepository.findByConversacionIdOrderByCreatedAtAsc(conv.getId());
+
+        auditService.registrar("CHAT", "INICIAR_CONVERSACION",
+                String.format("Admin inició conversación con usuario #%d (%s)", usuarioId,
+                        usuarioDestino.getNombreCompleto()),
+                auth.getName(), request.getRemoteAddr());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("conversacion", mapConversacion(conv, true));
+        response.put("mensajes", mensajes.stream().map(this::mapMensaje).toList());
+
+        return ResponseEntity.ok(response);
+    }
+
     // ========================================================================
     // MENSAJES
     // ========================================================================
@@ -260,6 +305,18 @@ public class ChatController {
         if (c.getUsuario() != null) {
             map.put("usuarioId", c.getUsuario().getId());
             map.put("usuarioNombre", c.getUsuario().getNombreCompleto());
+        }
+
+        // Obtener último mensaje para preview
+        List<ChatMensaje> ultimosMensajes = chatMensajeRepository.findByConversacionIdOrderByCreatedAtAsc(c.getId());
+        if (!ultimosMensajes.isEmpty()) {
+            ChatMensaje ultimo = ultimosMensajes.get(ultimosMensajes.size() - 1);
+            String contenido = ultimo.getContenido();
+            // Truncar a 50 caracteres
+            if (contenido.length() > 50) {
+                contenido = contenido.substring(0, 47) + "...";
+            }
+            map.put("lastMessage", contenido);
         }
 
         return map;

@@ -100,7 +100,7 @@ export default function AuditoriaPage() {
     const getModuleColor = (modulo: string) => {
         switch (modulo) {
             case 'ASIGNACIONES': return 'bg-blue-100 text-blue-700 border-blue-200';
-            case 'ASISTENCIA': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+            case 'ASISTENCIA': return 'bg-emerald-100 text-teal-500 border-emerald-200';
             case 'SOCIOS': return 'bg-purple-100 text-purple-700 border-purple-200';
             case 'USUARIOS': return 'bg-amber-100 text-amber-700 border-amber-200';
             case 'CONFIGURACION': return 'bg-rose-100 text-rose-700 border-rose-200';
@@ -131,7 +131,7 @@ export default function AuditoriaPage() {
                                 <History className="h-5 w-5 text-white" />
                             </div>
                             <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)' }} className="font-black text-slate-900 tracking-tight flex items-center gap-2">
-                                AUDITORÍA <span className="italic text-teal-600">TOTAL</span>
+                                AUDITORÍA <span className="italic text-teal-500">TOTAL</span>
                             </h1>
                         </div>
                         <p className="text-slate-500 font-medium text-xs hidden md:block">Registro inmutable de acciones. Para ver el historial de asignaciones de un socio, busca su número o cédula.</p>
@@ -147,7 +147,7 @@ export default function AuditoriaPage() {
                             </button>
                             <button
                                 onClick={() => setRastreoMode(true)}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all ${rastreoMode ? 'bg-teal-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'}`}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all ${rastreoMode ? 'bg-teal-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'}`}
                             >
                                 Rastrear
                             </button>
@@ -161,7 +161,7 @@ export default function AuditoriaPage() {
                         </button>
                         <div className="bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl hidden sm:flex items-center gap-2">
                             <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Sistema Protegido</span>
+                            <span className="text-[10px] font-black text-teal-500 uppercase tracking-widest">Sistema Protegido</span>
                         </div>
                     </div>
                 </div>
@@ -213,13 +213,13 @@ export default function AuditoriaPage() {
                                         <div className="absolute -top-3 -right-3 bg-emerald-500 text-white px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest shadow-lg">
                                             Asignación Actual
                                         </div>
-                                        <h3 className="text-emerald-800/60 font-bold uppercase tracking-widest text-xs mb-4">Poseedor Actual</h3>
+                                        <h3 className="text-emerald-500/60 font-bold uppercase tracking-widest text-xs mb-4">Poseedor Actual</h3>
                                         <div className="text-2xl font-black text-emerald-900 mb-2">{rastreoData.estadoActual.asignadoA}</div>
-                                        <div className="flex flex-col gap-1 text-emerald-700 text-sm font-medium mb-4">
+                                        <div className="flex flex-col gap-1 text-teal-500 text-sm font-medium mb-4">
                                             <span>Usuario: @{rastreoData.estadoActual.usuario}</span>
                                             <span>Lista: {rastreoData.estadoActual.lista}</span>
                                         </div>
-                                        <div className="pt-4 border-t border-emerald-200/50 text-xs font-bold text-emerald-600 flex justify-between items-center">
+                                        <div className="pt-4 border-t border-emerald-200/50 text-xs font-bold text-emerald-500 flex justify-between items-center">
                                             <span>Asignado el: {formatDate(rastreoData.estadoActual.fecha)}</span>
                                             {/* Si hay asignador */}
                                             {rastreoData.estadoActual.asignadoPor && (
@@ -254,7 +254,7 @@ export default function AuditoriaPage() {
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <span className="text-xs font-black uppercase tracking-widest text-slate-400">{formatDate(log.createdAt)}</span>
                                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${log.accion.includes('FALLIDO') ? 'bg-red-100 text-red-700' :
-                                                            log.accion.includes('ASIGNAR') ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                                                            log.accion.includes('ASIGNAR') ? 'bg-emerald-100 text-teal-500' : 'bg-slate-100 text-slate-600'
                                                             }`}>
                                                             {log.accion.replace(/_/g, ' ')}
                                                         </span>
@@ -434,7 +434,7 @@ export default function AuditoriaPage() {
             <div className="rounded-[2.5rem] bg-gradient-to-r from-slate-900 to-slate-800 p-1 bg-opacity-10">
                 <div className="rounded-[2.4rem] bg-white p-8 flex flex-col md:flex-row items-center gap-8 border-4 border-slate-900/5">
                     <div className="p-4 bg-teal-50 rounded-3xl">
-                        <Shield className="h-12 w-12 text-teal-600" />
+                        <Shield className="h-12 w-12 text-teal-500" />
                     </div>
                     <div className="flex-1 text-center md:text-left">
                         <h3 className="text-xl font-black text-slate-900 uppercase italic mb-2 tracking-tight">Integridad de Datos Garantizada</h3>

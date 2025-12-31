@@ -108,7 +108,7 @@ export default function AdminAssignments() {
                                     <div className="font-bold text-slate-800 text-sm">{lista.responsable}</div>
                                     <div className="text-xs text-slate-500 mb-1">{lista.nombre}</div>
                                     <div className="flex justify-between items-center mt-2">
-                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${lista.activa ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${lista.activa ? 'bg-emerald-100 text-teal-500' : 'bg-slate-100 text-slate-500'}`}>
                                             {lista.activa ? 'ACTIVA' : 'INACTIVA'}
                                         </span>
                                         <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-600 flex items-center gap-1">

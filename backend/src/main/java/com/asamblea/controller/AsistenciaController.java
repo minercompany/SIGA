@@ -313,82 +313,83 @@ public class AsistenciaController {
         return ResponseEntity.ok(response);
     }
 
-    // ===== MI REPORTE: Asistencias registradas por el usuario autenticado =====
+    // ===== MI REPORTE: Socios asignados a las listas del usuario autenticado =====
     @GetMapping("/mi-reporte")
     public ResponseEntity<?> miReporte(Authentication auth) {
         // Obtener usuario autenticado
-        Usuario operador = usuarioRepository.findByUsername(auth.getName()).orElse(null);
-        if (operador == null) {
+        Usuario usuario = usuarioRepository.findByUsername(auth.getName()).orElse(null);
+        if (usuario == null) {
             return ResponseEntity.status(401).body(Map.of("error", "Usuario no autenticado"));
         }
-
-        // Obtener asistencias registradas por este usuario
-        List<Asistencia> asistencias = asistenciaRepository.findByOperadorId(operador.getId());
 
         List<Map<String, Object>> misRegistros = new ArrayList<>();
         int totalVyV = 0;
         int totalSoloVoz = 0;
 
-        for (Asistencia a : asistencias) {
-            Socio socio = a.getSocio();
-            if (socio != null) {
-                Map<String, Object> item = new HashMap<>();
-                item.put("id", a.getId());
-                item.put("cedula", socio.getCedula() != null ? socio.getCedula() : "-");
-                item.put("nombreCompleto",
-                        socio.getNombreCompleto() != null ? socio.getNombreCompleto() : "Sin Nombre");
-                item.put("numeroSocio", socio.getNumeroSocio() != null ? socio.getNumeroSocio() : "-");
+        // Obtener todas las asignaciones y filtrar por usuario propietario de la lista
+        List<Asignacion> todasAsignaciones = asignacionRepository.findAll();
 
-                // Fecha/Hora Ingreso Asamblea
-                item.put("fechaHoraIngreso", a.getFechaHora());
-                item.put("horaIngreso", a.getFechaHora() != null ? a.getFechaHora().toLocalTime().toString() : "-");
+        for (Asignacion a : todasAsignaciones) {
+            // Solo incluir si la lista pertenece al usuario actual
+            if (a.getListaAsignacion() != null &&
+                    a.getListaAsignacion().getUsuario() != null &&
+                    a.getListaAsignacion().getUsuario().getId().equals(usuario.getId())) {
 
-                // Buscar fecha de asignación a lista
-                java.util.Optional<Asignacion> asignacionOpt2 = asignacionRepository.findBySocioId(socio.getId());
-                LocalDateTime fechaAsignacion = null;
-                String asignadoPor = "-";
-                if (asignacionOpt2.isPresent()) {
-                    Asignacion asig = asignacionOpt2.get();
-                    fechaAsignacion = asig.getFechaAsignacion();
-                    if (asig.getAsignadoPor() != null) {
-                        asignadoPor = asig.getAsignadoPor().getNombreCompleto();
+                Socio socio = a.getSocio();
+                if (socio != null) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", a.getId());
+                    item.put("cedula", socio.getCedula() != null ? socio.getCedula() : "-");
+                    item.put("nombreCompleto",
+                            socio.getNombreCompleto() != null ? socio.getNombreCompleto() : "Sin Nombre");
+                    item.put("numeroSocio", socio.getNumeroSocio() != null ? socio.getNumeroSocio() : "-");
+
+                    // Fecha/Hora en que se agregó a la lista
+                    item.put("fechaHoraLista", a.getFechaAsignacion());
+
+                    // Verificar si el socio ya ingresó a la asamblea (fecha de asistencia)
+                    Optional<Asistencia> asistenciaOpt = asistenciaRepository.findFirstBySocioId(socio.getId());
+                    if (asistenciaOpt.isPresent()) {
+                        item.put("fechaHoraIngreso", asistenciaOpt.get().getFechaHora());
+                    } else {
+                        item.put("fechaHoraIngreso", null);
                     }
+
+                    boolean esVyV = socio.isAporteAlDia() && socio.isSolidaridadAlDia() &&
+                            socio.isFondoAlDia() && socio.isIncoopAlDia() && socio.isCreditoAlDia();
+                    item.put("condicion", esVyV ? "VOZ Y VOTO" : "SOLO VOZ");
+                    item.put("esVyV", esVyV);
+
+                    // Nombre de la lista
+                    item.put("listaAsignacion", a.getListaAsignacion().getNombre());
+
+                    misRegistros.add(item);
+
+                    if (esVyV)
+                        totalVyV++;
+                    else
+                        totalSoloVoz++;
                 }
-                item.put("fechaHoraLista", fechaAsignacion);
-                item.put("asignadoPor", asignadoPor);
-
-                // Registrado por (quien marcó asistencia)
-                item.put("registradoPor", a.getOperador() != null ? a.getOperador().getNombreCompleto() : "Sistema");
-
-                boolean esVyV = Boolean.TRUE.equals(a.getEstadoVozVoto());
-                item.put("condicion", esVyV ? "VOZ Y VOTO" : "SOLO VOZ");
-                item.put("esVyV", esVyV);
-                misRegistros.add(item);
-
-                if (esVyV)
-                    totalVyV++;
-                else
-                    totalSoloVoz++;
             }
         }
 
-        // Ordenar por hora de registro
+        // Ordenar por fecha de asignación a la lista
         misRegistros.sort((a, b) -> {
-            LocalDateTime fa = (LocalDateTime) a.get("fechaHoraIngreso");
-            LocalDateTime fb = (LocalDateTime) b.get("fechaHoraIngreso");
+            LocalDateTime fa = (LocalDateTime) a.get("fechaHoraLista");
+            LocalDateTime fb = (LocalDateTime) b.get("fechaHoraLista");
             if (fa == null)
                 return 1;
             if (fb == null)
                 return -1;
-            return fa.compareTo(fb);
+            return fb.compareTo(fa); // Más recientes primero
         });
 
         Map<String, Object> response = new HashMap<>();
         response.put("usuario", Map.of(
-                "id", operador.getId(),
-                "nombre", operador.getNombreCompleto() != null ? operador.getNombreCompleto() : "Sin Nombre",
-                "username", operador.getUsername(),
-                "rol", operador.getRol()));
+                "id", usuario.getId(),
+                "nombre", usuario.getNombreCompleto() != null ? usuario.getNombreCompleto() : "Sin Nombre",
+                "username", usuario.getUsername(),
+                "rol", usuario.getRol()));
         response.put("registros", misRegistros);
         response.put("stats", Map.of(
                 "total", misRegistros.size(),
@@ -397,4 +398,5 @@ public class AsistenciaController {
 
         return ResponseEntity.ok(response);
     }
+
 }

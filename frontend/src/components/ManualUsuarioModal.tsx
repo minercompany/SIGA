@@ -17,15 +17,15 @@ const SECTIONS = [
         content: (
             <div className="space-y-4">
                 <p className="text-slate-600">
-                    Bienvenido al <strong className="text-emerald-600">Sistema Integral de Gestión de Asambleas (SIGA)</strong>.
+                    Bienvenido al <strong className="text-emerald-500">Sistema Integral de Gestión de Asambleas (SIGA)</strong>.
                     Esta guía rápida te ayudará a entender las funciones principales del sistema para que puedas operar con confianza.
                 </p>
                 <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl">
-                    <h4 className="font-bold text-emerald-800 mb-2 flex items-center gap-2">
+                    <h4 className="font-bold text-emerald-500 mb-2 flex items-center gap-2">
                         <CheckCircle2 className="h-5 w-5" />
                         Objetivo del Sistema
                     </h4>
-                    <p className="text-sm text-emerald-700">
+                    <p className="text-sm text-teal-500">
                         Facilitar el registro, control de quórum, gestión de votaciones y comunicación durante la asamblea de la cooperativa.
                     </p>
                 </div>
@@ -150,7 +150,7 @@ export function ManualUsuarioModal({ isOpen, onClose }: ManualUsuarioModalProps)
                         {/* Sidebar de Navegación */}
                         <div className="w-full md:w-64 bg-slate-50 border-r border-slate-100 flex flex-col">
                             <div className="p-6 border-b border-slate-100">
-                                <div className="flex items-center gap-3 text-emerald-600">
+                                <div className="flex items-center gap-3 text-emerald-500">
                                     <Book className="h-6 w-6" />
                                     <span className="font-black text-lg tracking-tight">Manual SIGA</span>
                                 </div>
@@ -162,7 +162,7 @@ export function ManualUsuarioModal({ isOpen, onClose }: ManualUsuarioModalProps)
                                         key={section.id}
                                         onClick={() => setActiveSection(section.id)}
                                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeSection === section.id
-                                                ? "bg-white text-emerald-700 shadow-sm ring-1 ring-slate-200"
+                                                ? "bg-white text-teal-500 shadow-sm ring-1 ring-slate-200"
                                                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                                             }`}
                                     >
@@ -192,7 +192,7 @@ export function ManualUsuarioModal({ isOpen, onClose }: ManualUsuarioModalProps)
                                         transition={{ duration: 0.3 }}
                                     >
                                         <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-100">
-                                            <div className="h-12 w-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                                            <div className="h-12 w-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500">
                                                 {activeContent?.icon && <activeContent.icon className="h-6 w-6" />}
                                             </div>
                                             <h2 className="text-3xl font-black text-slate-800 tracking-tight">

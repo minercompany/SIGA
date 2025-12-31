@@ -300,6 +300,44 @@ public class UsuarioController {
         return ResponseEntity.ok(roles);
     }
 
+    // Buscar usuarios registrados y activos (para chat - NO incluye socios del
+    // padrón)
+    @GetMapping("/buscar")
+    public ResponseEntity<List<Map<String, Object>>> buscarUsuariosActivos(
+            @RequestParam(required = false) String term) {
+        String query = (term != null) ? term.trim().toLowerCase() : "";
+
+        List<Usuario> usuarios = usuarioRepository.findAll().stream()
+                .filter(Usuario::isActivo) // Solo usuarios activos
+                .filter(u -> {
+                    if (query.isEmpty())
+                        return true;
+                    // Buscar por nombre, username (cédula), o cualquier campo relevante
+                    return u.getNombreCompleto().toLowerCase().contains(query) ||
+                            u.getUsername().contains(query) ||
+                            (u.getEmail() != null && u.getEmail().toLowerCase().contains(query)) ||
+                            (u.getTelefono() != null && u.getTelefono().contains(query)) ||
+                            (u.getCargo() != null && u.getCargo().toLowerCase().contains(query));
+                })
+                .limit(20) // Limitar resultados para rendimiento
+                .collect(Collectors.toList());
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Usuario u : usuarios) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", u.getId());
+            map.put("username", u.getUsername());
+            map.put("nombreCompleto", u.getNombreCompleto());
+            map.put("rol", u.getRol().name());
+            map.put("rolNombre", u.getRol().getNombre());
+            map.put("cargo", u.getCargo());
+            map.put("sucursal", u.getSucursal() != null ? u.getSucursal().getNombre() : null);
+            result.add(map);
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
     // Crear nuevo usuario
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody Map<String, Object> data, Authentication auth,

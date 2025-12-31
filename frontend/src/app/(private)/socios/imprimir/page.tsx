@@ -103,7 +103,7 @@ export default function ImprimirCarnetsPage() {
                     <button
                         onClick={handlePrint}
                         disabled={selectedIds.size === 0}
-                        className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-200 transition-all active:scale-95"
+                        className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-white hover:bg-teal-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-200 transition-all active:scale-95"
                     >
                         <Printer className="h-5 w-5" />
                         Imprimir Seleccionados ({selectedIds.size})
@@ -134,9 +134,9 @@ export default function ImprimirCarnetsPage() {
                             <thead className="sticky top-0 bg-white border-b border-slate-100 z-10">
                                 <tr>
                                     <th className="px-6 py-4 w-10">
-                                        <button onClick={toggleAll} className="text-slate-400 hover:text-emerald-600">
+                                        <button onClick={toggleAll} className="text-slate-400 hover:text-emerald-500">
                                             {selectedIds.size === socios.length && socios.length > 0 ? (
-                                                <CheckSquare className="h-5 w-5 text-emerald-600" />
+                                                <CheckSquare className="h-5 w-5 text-emerald-500" />
                                             ) : (
                                                 <Square className="h-5 w-5" />
                                             )}
@@ -150,7 +150,7 @@ export default function ImprimirCarnetsPage() {
                                 {loading ? (
                                     <tr>
                                         <td colSpan={3} className="py-20 text-center">
-                                            <Loader2 className="h-8 w-8 animate-spin text-emerald-600 mx-auto" />
+                                            <Loader2 className="h-8 w-8 animate-spin text-emerald-500 mx-auto" />
                                         </td>
                                     </tr>
                                 ) : socios.length === 0 ? (
@@ -168,7 +168,7 @@ export default function ImprimirCarnetsPage() {
                                         >
                                             <td className="px-6 py-4">
                                                 {selectedIds.has(socio.id) ? (
-                                                    <CheckSquare className="h-5 w-5 text-emerald-600" />
+                                                    <CheckSquare className="h-5 w-5 text-emerald-500" />
                                                 ) : (
                                                     <Square className="h-5 w-5 text-slate-300" />
                                                 )}
@@ -178,7 +178,7 @@ export default function ImprimirCarnetsPage() {
                                                 <p className="text-xs text-slate-500">N° {socio.numeroSocio} • CI: {socio.cedula}</p>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${socio.tieneVoto ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${socio.tieneVoto ? 'bg-emerald-100 text-teal-500' : 'bg-amber-100 text-amber-700'}`}>
                                                     {socio.tieneVoto ? 'VOZ Y VOTO' : 'SOLO VOZ'}
                                                 </span>
                                             </td>

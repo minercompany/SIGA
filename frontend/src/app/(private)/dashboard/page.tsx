@@ -104,7 +104,7 @@ export default function DashboardPage() {
         return (
             <div className="flex items-center justify-center h-96">
                 <div className="flex flex-col items-center gap-4">
-                    <RefreshCw className="h-10 w-10 text-emerald-600 animate-spin" />
+                    <RefreshCw className="h-10 w-10 text-emerald-500 animate-spin" />
                     <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Sincronizando Dashboard...</p>
                 </div>
             </div>

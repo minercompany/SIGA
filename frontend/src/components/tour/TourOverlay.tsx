@@ -204,7 +204,7 @@ export function TourOverlay() {
                 >
                     <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
                         {/* Header con gradiente */}
-                        <div className="relative bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 px-5 py-4 md:px-6">
+                        <div className="relative bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 px-5 py-4 md:px-6">
                             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
                             <div className="relative flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -241,7 +241,7 @@ export function TourOverlay() {
                         <div className="p-5 md:p-6">
                             <div className="flex items-start gap-3 mb-2 md:mb-4">
                                 <div className="hidden md:block p-2 bg-emerald-100 rounded-xl shrink-0">
-                                    <Lightbulb className="w-5 h-5 text-emerald-600" />
+                                    <Lightbulb className="w-5 h-5 text-emerald-500" />
                                 </div>
                                 <div>
                                     <h3 className="text-base md:text-lg font-black text-slate-800 mb-1">
@@ -274,7 +274,7 @@ export function TourOverlay() {
                                 )}
                                 <button
                                     onClick={handleNext}
-                                    className="px-4 py-2 md:px-5 md:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-bold text-xs md:text-sm hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg shadow-emerald-200 flex items-center gap-2 whitespace-nowrap"
+                                    className="px-4 py-2 md:px-5 md:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-bold text-xs md:text-sm hover:from-emerald-500 hover:to-teal-500 transition-all shadow-lg shadow-emerald-200 flex items-center gap-2 whitespace-nowrap"
                                 >
                                     {currentStep === steps.length - 1 ? '¡Listo!' : 'Siguiente'}
                                     {currentStep < steps.length - 1 && <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />}

@@ -208,7 +208,7 @@ export default function DashboardEnVivoPage() {
                 <div className="text-center">
                     <div className="relative">
                         <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-emerald-400 rounded-full blur-xl opacity-30 animate-pulse" />
-                        <RefreshCw className="relative h-16 w-16 text-teal-600 animate-spin mx-auto mb-4" />
+                        <RefreshCw className="relative h-16 w-16 text-teal-500 animate-spin mx-auto mb-4" />
                     </div>
                     <p className="text-slate-500 font-medium">Cargando datos en tiempo real...</p>
                 </div>
@@ -263,7 +263,7 @@ export default function DashboardEnVivoPage() {
                             initial={{ opacity: 0, y: -50, scale: 0.9 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -50, scale: 0.9 }}
-                            className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white px-10 py-5 rounded-3xl shadow-2xl shadow-emerald-500/30 flex items-center gap-4 border border-white/20"
+                            className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 text-white px-10 py-5 rounded-3xl shadow-2xl shadow-emerald-500/30 flex items-center gap-4 border border-white/20"
                         >
                             <CheckCircle2 className="h-7 w-7" />
                             <span className="font-bold text-xl tracking-tight">¡QUÓRUM ALCANZADO!</span>
@@ -280,11 +280,11 @@ export default function DashboardEnVivoPage() {
                 >
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div className="flex items-center gap-5">
-                            <div className="p-4 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl shadow-xl shadow-teal-500/30">
+                            <div className="p-4 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-2xl shadow-xl shadow-teal-500/30">
                                 <Activity className="h-8 w-8 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-slate-800 via-slate-700 to-teal-700 bg-clip-text text-transparent tracking-tight">
+                                <h1 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-slate-800 via-slate-700 to-teal-500 bg-clip-text text-transparent tracking-tight">
                                     Centro de Monitoreo
                                 </h1>
                                 <p className="text-slate-500 text-sm flex items-center gap-2 mt-1 font-medium">
@@ -403,7 +403,7 @@ export default function DashboardEnVivoPage() {
                                         {metasData.funcionarios && (
                                             <motion.div
                                                 whileHover={{ scale: 1.02 }}
-                                                className="bg-gradient-to-br from-emerald-600/20 to-teal-600/20 rounded-2xl p-6 border border-emerald-500/20"
+                                                className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-2xl p-6 border border-emerald-500/20"
                                             >
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div className="flex items-center gap-3">
@@ -461,7 +461,7 @@ export default function DashboardEnVivoPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.15 }}
                         whileHover={{ y: -8, scale: 1.03 }}
-                        className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-3xl p-5 text-white relative overflow-hidden shadow-xl shadow-emerald-500/30 border border-white/10 cursor-pointer"
+                        className="bg-gradient-to-br from-emerald-500 via-emerald-500 to-teal-500 rounded-3xl p-5 text-white relative overflow-hidden shadow-xl shadow-emerald-500/30 border border-white/10 cursor-pointer"
                     >
                         <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
                         <div className="relative">
@@ -584,7 +584,7 @@ export default function DashboardEnVivoPage() {
                                 animate={{ width: `${porcentajeAsistencia}%` }}
                                 transition={{ duration: 1.5, ease: "easeOut" }}
                                 className={`h-full rounded-full relative overflow-hidden ${porcentajeAsistencia >= 50
-                                    ? 'bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500'
+                                    ? 'bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-500'
                                     : 'bg-gradient-to-r from-blue-400 via-indigo-500 to-violet-500'
                                     }`}
                             >
@@ -605,7 +605,7 @@ export default function DashboardEnVivoPage() {
                         <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
                         <div className="flex items-center justify-between mb-2 relative z-10">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg shadow-emerald-500/20">
+                                <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl shadow-lg shadow-emerald-500/20">
                                     <Target className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
@@ -678,7 +678,7 @@ export default function DashboardEnVivoPage() {
                         className={`${cardStyle} p-6`}
                     >
                         <div className="flex items-center gap-3 mb-5">
-                            <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg shadow-emerald-200">
+                            <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl shadow-lg shadow-emerald-200">
                                 <PieIcon className="h-5 w-5 text-white" />
                             </div>
                             <h2 className="text-lg font-bold text-slate-800">Presentes por Estado</h2>
@@ -793,7 +793,7 @@ export default function DashboardEnVivoPage() {
                         {/* Totales premium */}
                         <div className="flex flex-wrap justify-center gap-2 md:gap-3">
                             <div className="bg-emerald-50 rounded-2xl px-4 py-2 text-center border border-emerald-100 flex-1 md:flex-none min-w-[100px]">
-                                <div className="text-xl font-black text-emerald-600">{registrosVyV}</div>
+                                <div className="text-xl font-black text-emerald-500">{registrosVyV}</div>
                                 <div className="text-[10px] font-bold text-emerald-400 uppercase">Voz y Voto</div>
                             </div>
                             <div className="bg-amber-50 rounded-2xl px-4 py-2 text-center border border-amber-100 flex-1 md:flex-none min-w-[100px]">
@@ -814,7 +814,7 @@ export default function DashboardEnVivoPage() {
                                 <tr className="bg-slate-50/80 border-b border-slate-200">
                                     <th className="py-4 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Sucursal</th>
                                     <th className="py-4 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Total Registros</th>
-                                    <th className="py-4 px-4 text-xs font-bold text-emerald-600 uppercase tracking-wider text-center">Con Voz y Voto</th>
+                                    <th className="py-4 px-4 text-xs font-bold text-emerald-500 uppercase tracking-wider text-center">Con Voz y Voto</th>
                                     <th className="py-4 px-4 text-xs font-bold text-amber-600 uppercase tracking-wider text-center">Solo Voz</th>
                                 </tr>
                             </thead>
@@ -843,7 +843,7 @@ export default function DashboardEnVivoPage() {
                                                 </span>
                                             </td>
                                             <td className="py-3 px-4 text-center">
-                                                <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-sm">
+                                                <span className="inline-flex items-center gap-1 text-emerald-500 font-bold text-sm">
                                                     <Shield className="h-3 w-3" />
                                                     {reg.conVozYVoto}
                                                 </span>
@@ -870,7 +870,7 @@ export default function DashboardEnVivoPage() {
                                     <tr>
                                         <td className="py-3 px-4 text-sm">TOTAL REGISTROS</td>
                                         <td className="py-3 px-4 text-center text-indigo-600">{registrosTotales}</td>
-                                        <td className="py-3 px-4 text-center text-emerald-600">{registrosVyV}</td>
+                                        <td className="py-3 px-4 text-center text-emerald-500">{registrosVyV}</td>
                                         <td className="py-3 px-4 text-center text-amber-600">{registrosSoloVoz}</td>
                                     </tr>
                                 </tfoot>
@@ -917,7 +917,7 @@ export default function DashboardEnVivoPage() {
                                                 </p>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <span className="text-xs font-bold text-slate-400 bg-white px-2 py-0.5 rounded-lg border border-slate-200">#{llegada.socioNumero}</span>
-                                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${llegada.vozVoto ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+                                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${llegada.vozVoto ? 'bg-emerald-100 text-emerald-500' : 'bg-amber-100 text-amber-600'
                                                         }`}>
                                                         {llegada.vozVoto ? 'Voz y Voto' : 'Solo Voz'}
                                                     </span>
@@ -1007,7 +1007,7 @@ export default function DashboardEnVivoPage() {
                                                 <p className="text-xs text-slate-400">Total</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-bold text-emerald-600">{operador.vozYVoto}</p>
+                                                <p className="text-sm font-bold text-emerald-500">{operador.vozYVoto}</p>
                                                 <p className="text-xs text-slate-400">V&V</p>
                                             </div>
                                             <div>
@@ -1032,7 +1032,7 @@ export default function DashboardEnVivoPage() {
                     {[
                         { icon: Building2, value: sucursalesStats.length, label: 'Sucursales', color: 'from-indigo-500 to-purple-600', shadow: 'shadow-indigo-200' },
                         { icon: Users, value: rankingOperadores.length, label: 'Operadores Activos', color: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-200' },
-                        { icon: TrendingUp, value: `${(stats.conVozYVoto > 0 ? ((stats.conVozYVoto / stats.totalPadron) * 100) : 0).toFixed(1)}%`, label: 'Ratio V&V General', color: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-200' },
+                        { icon: TrendingUp, value: `${(stats.conVozYVoto > 0 ? ((stats.conVozYVoto / stats.totalPadron) * 100) : 0).toFixed(1)}%`, label: 'Ratio V&V General', color: 'from-emerald-500 to-teal-500', shadow: 'shadow-emerald-200' },
                         { icon: AlertTriangle, value: stats.soloVoz.toLocaleString(), label: 'Solo Voz (Total)', color: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-200' },
                     ].map((metric, index) => (
                         <motion.div

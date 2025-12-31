@@ -338,7 +338,7 @@ export default function ReportePorSucursalPage() {
                     </div>
                     <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-2xl shadow-lg border border-emerald-100 text-center">
                         <UserCheck className="w-8 h-8 mx-auto mb-2 text-emerald-500" />
-                        <p className="text-3xl font-black text-emerald-600">{stats.presentes || 0}</p>
+                        <p className="text-3xl font-black text-emerald-500">{stats.presentes || 0}</p>
                         <p className="text-xs text-emerald-500 uppercase tracking-wide">Presentes</p>
                     </div>
                     <div className="bg-gradient-to-br from-red-50 to-rose-50 p-6 rounded-2xl shadow-lg border border-red-100 text-center">
@@ -394,13 +394,13 @@ export default function ReportePorSucursalPage() {
                                         <td className="px-4 py-4 text-sm font-mono font-bold text-slate-700">
                                             {formatSafeDateTime(item.fechaAsignacion)}
                                         </td>
-                                        <td className="px-4 py-4 text-sm font-mono font-bold text-emerald-600">
+                                        <td className="px-4 py-4 text-sm font-mono font-bold text-emerald-500">
                                             {formatSafeDateTime(item.fechaHora)}
                                         </td>
                                         <td className="px-4 py-4 text-xs font-bold text-slate-600">{item.operador}</td>
                                         <td className="px-4 py-4 text-center">
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold ${item.estado === 'PRESENTE'
-                                                ? 'bg-emerald-100 text-emerald-700'
+                                                ? 'bg-emerald-100 text-teal-500'
                                                 : 'bg-red-100 text-red-700'
                                                 }`}>
                                                 {item.estado}

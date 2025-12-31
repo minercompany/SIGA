@@ -107,7 +107,7 @@ export default function ImportarPage() {
             <div className="mx-auto space-y-6" style={{ maxWidth: 'clamp(320px, 90vw, 1000px)' }}>
 
                 {/* Header Premium - Compacto y Responsivo */}
-                <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-emerald-600 via-green-500 to-teal-500 shadow-xl shadow-emerald-500/20 text-white" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
+                <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 shadow-xl shadow-emerald-500/20 text-white" style={{ padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
                     <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
                     <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-48 w-48 rounded-full bg-black/10 blur-3xl" />
 
@@ -128,9 +128,9 @@ export default function ImportarPage() {
 
                         <button
                             onClick={() => window.open('/plantilla_padron.xlsx', '_blank')}
-                            className="group mt-2 inline-flex items-center gap-2 rounded-xl bg-white/95 px-5 py-3 text-emerald-800 shadow-lg transition-all hover:scale-105 active:scale-95 w-fit"
+                            className="group mt-2 inline-flex items-center gap-2 rounded-xl bg-white/95 px-5 py-3 text-emerald-500 shadow-lg transition-all hover:scale-105 active:scale-95 w-fit"
                         >
-                            <Download className="h-4 w-4 text-emerald-600 transition-transform group-hover:-translate-y-1" />
+                            <Download className="h-4 w-4 text-emerald-500 transition-transform group-hover:-translate-y-1" />
                             <span className="font-bold text-sm">Descargar Plantilla</span>
                         </button>
                     </div>
@@ -153,7 +153,7 @@ export default function ImportarPage() {
                                             : "border-transparent bg-white text-slate-400 opacity-60 min-w-[160px] md:min-w-0"}`}
                             >
                                 <div className="flex items-center gap-3 relative z-10">
-                                    <div className={`p-3 rounded-xl shadow-sm ${isActive ? "bg-emerald-100 text-emerald-600" : isPast ? "bg-white/20 text-white" : "bg-slate-100"}`}>
+                                    <div className={`p-3 rounded-xl shadow-sm ${isActive ? "bg-emerald-100 text-emerald-500" : isPast ? "bg-white/20 text-white" : "bg-slate-100"}`}>
                                         <s.icon className={`h-5 w-5 ${isActive && s.step === 2 ? 'animate-spin' : ''}`} />
                                     </div>
                                     <div>
@@ -197,7 +197,7 @@ export default function ImportarPage() {
                                         <div className="mb-6 relative">
                                             <div className="absolute inset-0 bg-emerald-400/30 blur-2xl rounded-full scale-150 animate-pulse" />
                                             <div className="relative rounded-2xl bg-gradient-to-br from-white to-emerald-50 p-4 md:p-5 shadow-xl ring-1 ring-black/5">
-                                                <Upload className="h-8 w-8 md:h-10 md:w-10 text-emerald-600" />
+                                                <Upload className="h-8 w-8 md:h-10 md:w-10 text-emerald-500" />
                                             </div>
                                         </div>
 
@@ -205,13 +205,13 @@ export default function ImportarPage() {
                                             Arrastra y suelta tu Excel
                                         </h3>
                                         <p className="mt-2 text-slate-500 font-medium text-sm md:text-base">
-                                            Soporta archivos <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md">.xlsx</span> hasta 50MB
+                                            Soporta archivos <span className="text-emerald-500 font-bold bg-emerald-50 px-2 py-0.5 rounded-md">.xlsx</span> hasta 50MB
                                         </p>
 
                                         <div className="mt-6 md:mt-8 w-full" style={{ maxWidth: 'clamp(200px, 80%, 280px)' }}>
                                             <button
                                                 onClick={() => fileInputRef.current?.click()}
-                                                className="w-full rounded-xl md:rounded-2xl bg-slate-900 py-3 md:py-4 text-sm font-bold text-white shadow-xl shadow-slate-900/20 transition-all hover:bg-emerald-600 hover:shadow-emerald-500/30 active:scale-95 flex items-center justify-center gap-2 group/btn"
+                                                className="w-full rounded-xl md:rounded-2xl bg-slate-900 py-3 md:py-4 text-sm font-bold text-white shadow-xl shadow-slate-900/20 transition-all hover:bg-emerald-500 hover:shadow-emerald-500/30 active:scale-95 flex items-center justify-center gap-2 group/btn"
                                             >
                                                 Elegir Archivo
                                                 <ChevronRight className="h-4 w-4 opacity-50 group-hover/btn:translate-x-1 transition-transform" />
@@ -341,7 +341,7 @@ export default function ImportarPage() {
                                                         Procesando Padrón
                                                     </h2>
                                                     <div className="flex items-center justify-center gap-3 text-slate-500">
-                                                        <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                                                        <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
                                                         <p className="text-sm font-medium">
                                                             Por favor mantén esta ventana abierta...
                                                         </p>
@@ -361,7 +361,7 @@ export default function ImportarPage() {
                                     exit={{ opacity: 0 }}
                                     className="bg-white rounded-[2rem] overflow-hidden shadow-2xl shadow-emerald-500/10"
                                 >
-                                    <div className="bg-emerald-600 p-8 text-white relative overflow-hidden">
+                                    <div className="bg-emerald-500 p-8 text-white relative overflow-hidden">
                                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16" />
                                         <div className="relative z-10 text-center">
                                             <div className="inline-flex p-4 bg-white/20 rounded-full text-white mb-4 backdrop-blur-md shadow-lg">
@@ -376,8 +376,8 @@ export default function ImportarPage() {
                                         <div className="grid grid-cols-2 gap-4 mb-8">
                                             {[
                                                 { label: "Total Filas", val: stats.totalRows ?? 0, color: "text-slate-800", bg: "bg-slate-50", border: "border-slate-100" },
-                                                { label: "Nuevos Socios", val: stats.imported ?? 0, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
-                                                { label: "Actualizados", val: stats.updated ?? 0, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100" },
+                                                { label: "Nuevos Socios", val: stats.nuevos ?? 0, color: "text-emerald-500", bg: "bg-emerald-50", border: "border-emerald-100" },
+                                                { label: "Actualizados", val: stats.actualizados ?? 0, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100" },
                                                 { label: "Errores", val: stats.errors ?? 0, color: "text-red-500", bg: "bg-red-50", border: "border-red-100" }
                                             ].map((stat, i) => (
                                                 <div key={i} className={`p-6 rounded-2xl border ${stat.bg} ${stat.border} flex flex-col items-center justify-center`}>
@@ -445,7 +445,7 @@ export default function ImportarPage() {
                                     {historial.map((h) => (
                                         <div key={h.id} className="group relative p-4 rounded-2xl bg-white border border-slate-100 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/5 transition-all">
                                             <div className="flex justify-between items-start mb-3">
-                                                <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider">
+                                                <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-teal-500 text-[10px] font-black uppercase tracking-wider">
                                                     PASSED
                                                 </span>
                                                 <span className="text-[10px] font-bold text-slate-400">{formatDate(h.fechaImportacion)}</span>

@@ -178,10 +178,10 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                         </>
                     ) : (
                         <div className="text-center">
-                            <span className="inline-flex items-center justify-center h-16 w-16 bg-emerald-100 text-emerald-600 rounded-full mb-2">
+                            <span className="inline-flex items-center justify-center h-16 w-16 bg-emerald-100 text-emerald-500 rounded-full mb-2">
                                 <Award className="h-8 w-8" />
                             </span>
-                            <p className="text-emerald-600 font-black text-lg">¡Meta Superada!</p>
+                            <p className="text-emerald-500 font-black text-lg">¡Meta Superada!</p>
                         </div>
                     )}
                 </div>

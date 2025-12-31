@@ -483,7 +483,7 @@ export default function ReportesPage() {
                     <button onClick={handleExportPDF} className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-600 transition-all flex items-center gap-2 text-sm font-bold">
                         <Printer className="w-4 h-4" /> PDF
                     </button>
-                    <button onClick={handleExportExcel} className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all flex items-center gap-2 text-sm font-bold shadow-lg shadow-emerald-100">
+                    <button onClick={handleExportExcel} className="p-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-500 transition-all flex items-center gap-2 text-sm font-bold shadow-lg shadow-emerald-100">
                         <FileSpreadsheet className="w-4 h-4" /> Excel
                     </button>
                 </div>
@@ -523,7 +523,7 @@ export default function ReportesPage() {
 
                     {/* Step 2: Sucursal */}
                     <div className={`p-6 space-y-4 transition-opacity ${step < 2 ? 'opacity-30' : 'opacity-100'}`}>
-                        <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-widest">
+                        <div className="flex items-center gap-2 text-emerald-500 font-bold text-xs uppercase tracking-widest">
                             <span className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100">2</span>
                             Sucursal
                         </div>
@@ -594,8 +594,8 @@ export default function ReportesPage() {
                     <p className="text-2xl font-black text-slate-800">{stats.totalRegistros}</p>
                 </div>
                 <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 shadow-sm">
-                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">Habilitados</p>
-                    <p className="text-2xl font-black text-emerald-700">{stats.habilitados}</p>
+                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-wider">Habilitados</p>
+                    <p className="text-2xl font-black text-teal-500">{stats.habilitados}</p>
                 </div>
                 <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 shadow-sm">
                     <p className="text-[10px] font-black text-amber-600 uppercase tracking-wider">Observados</p>
@@ -651,7 +651,7 @@ export default function ReportesPage() {
                                         <td className="px-6 py-4 text-center">
                                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${item.estado === 'AUSENTE' ? 'bg-red-50 text-red-600' :
                                                 item.estado === 'SIN ASIGNAR' ? 'bg-slate-100 text-slate-500' :
-                                                    'bg-emerald-50 text-emerald-600'
+                                                    'bg-emerald-50 text-emerald-500'
                                                 }`}>
                                                 {item.estado || 'PRESENTE'}
                                             </span>

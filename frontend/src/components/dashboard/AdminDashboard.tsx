@@ -166,7 +166,7 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                                     Centro de Control
                                 </h1>
                                 {autoRefresh && (
-                                    <span className="px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 text-[9px] lg:text-[10px] font-black uppercase tracking-widest animate-pulse shadow-sm">
+                                    <span className="px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-500 text-[9px] lg:text-[10px] font-black uppercase tracking-widest animate-pulse shadow-sm">
                                         LIVE
                                     </span>
                                 )}
@@ -194,7 +194,7 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
 
                             <div className="flex flex-col">
                                 <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none lg:leading-none">Auto-Sync</span>
-                                <span className={`text-[9px] lg:text-[10px] font-bold leading-none mt-1 ${autoRefresh ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                <span className={`text-[9px] lg:text-[10px] font-bold leading-none mt-1 ${autoRefresh ? 'text-emerald-500' : 'text-slate-500'}`}>
                                     {autoRefresh ? 'ACTIVADO' : 'PAUSADO'}
                                 </span>
                             </div>
@@ -207,7 +207,7 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                             whileTap={{ scale: 0.98 }}
                             onClick={() => handleRefresh(false)}
                             disabled={isRefreshing}
-                            className="relative overflow-hidden bg-white text-slate-700 px-4 lg:px-6 py-2 lg:py-3 rounded-full font-bold uppercase text-[10px] lg:text-xs tracking-wider border border-slate-200 hover:border-emerald-200 hover:text-emerald-700 transition-all flex items-center gap-2 shadow-sm hover:shadow-md group"
+                            className="relative overflow-hidden bg-white text-slate-700 px-4 lg:px-6 py-2 lg:py-3 rounded-full font-bold uppercase text-[10px] lg:text-xs tracking-wider border border-slate-200 hover:border-emerald-200 hover:text-teal-500 transition-all flex items-center gap-2 shadow-sm hover:shadow-md group"
                         >
                             <RefreshCw className={`h-3.5 w-3.5 lg:h-4 lg:w-4 text-emerald-500 transition-transform duration-700 ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180'}`} />
                             <span className="relative z-10">Actualizar</span>
@@ -228,7 +228,7 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                     [
                         { label: "Meta Global", value: stats.totalMeta || 0, icon: Target, gradient: "from-pink-500 via-rose-600 to-rose-700", shadow: "shadow-rose-500/40", ring: "ring-rose-400/30" },
                         { label: "Total Padrón", value: stats.totalPadron, icon: Users, gradient: "from-blue-500 via-blue-600 to-blue-700", shadow: "shadow-blue-500/40", ring: "ring-blue-400/30" },
-                        { label: "Habilitados V&V", value: stats.conVozYVoto, icon: ShieldCheck, gradient: "from-emerald-500 via-emerald-600 to-emerald-700", shadow: "shadow-emerald-500/40", ring: "ring-emerald-400/30" },
+                        { label: "Habilitados V&V", value: stats.conVozYVoto, icon: ShieldCheck, gradient: "from-emerald-500 via-emerald-500 to-teal-500", shadow: "shadow-emerald-500/40", ring: "ring-emerald-400/30" },
                         { label: "Presentes Ahora", value: presentes, icon: UserCheck, gradient: "from-violet-500 via-purple-600 to-purple-700", shadow: "shadow-purple-500/40", ring: "ring-purple-400/30" },
                         { label: "Solo Voz", value: stats.soloVoz, icon: AlertCircle, gradient: "from-amber-400 via-orange-500 to-orange-600", shadow: "shadow-orange-500/40", ring: "ring-orange-400/30" },
                     ].map((stat, i) => (
@@ -322,7 +322,7 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                     className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100"
                 >
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg shadow-emerald-200">
+                        <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl shadow-lg shadow-emerald-200">
                             <PieIcon className="h-5 w-5 text-white" />
                         </div>
                         <h3 className="font-black text-slate-800 uppercase tracking-wider text-sm">Asistencia en Vivo</h3>
@@ -342,8 +342,8 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
 
                     <div className="grid grid-cols-2 gap-3 mt-6">
                         <div className="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
-                            <p className="text-2xl font-black text-emerald-600">{presentes.toLocaleString()}</p>
-                            <p className="text-emerald-600/70 text-xs font-bold uppercase tracking-widest">Presentes</p>
+                            <p className="text-2xl font-black text-emerald-500">{presentes.toLocaleString()}</p>
+                            <p className="text-emerald-500/70 text-xs font-bold uppercase tracking-widest">Presentes</p>
                         </div>
                         <div className="bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
                             <p className="text-2xl font-black text-slate-600">{ausentes.toLocaleString()}</p>
@@ -615,7 +615,7 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                     [
                         { label: "Sucursales", value: desempeno.length, icon: Building2, color: "text-indigo-600", bg: "bg-indigo-50" },
                         { label: "Operadores Activos", value: ranking?.length || 0, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-                        { label: "Ratio VyV", value: `${porcentajeHabilitacion}%`, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
+                        { label: "Ratio VyV", value: `${porcentajeHabilitacion}%`, icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-50" },
                         { label: "Meta Quórum", value: quorumNecesario.toLocaleString(), icon: Target, color: "text-purple-600", bg: "bg-purple-50" },
                     ].map((stat, i) => (
                         <motion.div

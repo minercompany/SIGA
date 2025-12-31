@@ -29,7 +29,7 @@ export default function MaintenancePage() {
                         {/* Main Icon */}
                         <div className="relative">
                             <div className="absolute inset-0 bg-emerald-400 blur-2xl opacity-30 animate-pulse"></div>
-                            <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl rotate-3 flex items-center justify-center shadow-xl shadow-emerald-200 group-hover:rotate-6 transition-transform duration-500 relative z-10">
+                            <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-emerald-500 to-emerald-500 rounded-3xl rotate-3 flex items-center justify-center shadow-xl shadow-emerald-200 group-hover:rotate-6 transition-transform duration-500 relative z-10">
                                 <AlertTriangle className="w-10 h-10 md:w-12 md:h-12 text-white" />
                             </div>
                         </div>
@@ -37,11 +37,11 @@ export default function MaintenancePage() {
                         <div className="space-y-3 md:space-y-4">
                             <h1 className="text-3xl md:text-5xl font-black text-emerald-900 tracking-tight leading-tight">
                                 Mantenimiento <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-emerald-400">
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-emerald-400">
                                     Programado
                                 </span>
                             </h1>
-                            <p className="text-sm md:text-lg text-emerald-700 font-medium leading-relaxed max-w-xs md:max-w-md mx-auto">
+                            <p className="text-sm md:text-lg text-teal-500 font-medium leading-relaxed max-w-xs md:max-w-md mx-auto">
                                 Estamos optimizando la plataforma para brindarte una experiencia premium.
                             </p>
                         </div>
@@ -50,11 +50,11 @@ export default function MaintenancePage() {
                         <div className="w-full bg-emerald-50 rounded-2xl p-4 md:p-6 border border-emerald-200 flex items-center justify-between gap-4 group/status hover:bg-emerald-100/50 transition-colors">
                             <div className="flex items-center gap-3 md:gap-4">
                                 <div className="p-2 md:p-3 bg-emerald-500/10 rounded-xl group-hover/status:bg-emerald-500/20 transition-colors">
-                                    <MonitorPlay className="w-5 h-5 md:w-6 md:h-6 text-emerald-600" />
+                                    <MonitorPlay className="w-5 h-5 md:w-6 md:h-6 text-emerald-500" />
                                 </div>
                                 <div className="text-left">
-                                    <div className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Estado</div>
-                                    <div className="text-xs md:text-sm font-bold text-emerald-800">Actualizando Sistema</div>
+                                    <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Estado</div>
+                                    <div className="text-xs md:text-sm font-bold text-emerald-500">Actualizando Sistema</div>
                                 </div>
                             </div>
                             <div className="flex h-3 w-3 relative">
@@ -65,7 +65,7 @@ export default function MaintenancePage() {
 
                         {/* Admin Login Button */}
                         <div className="pt-4 w-full">
-                            <Link href="/login" className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-500 border border-emerald-400 text-white shadow-lg shadow-emerald-200 hover:shadow-xl hover:shadow-emerald-300 group/btn transition-all duration-300">
+                            <Link href="/login" className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-500 border border-emerald-400 text-white shadow-lg shadow-emerald-200 hover:shadow-xl hover:shadow-emerald-300 group/btn transition-all duration-300">
                                 <ShieldCheck className="w-5 h-5 text-white" />
                                 <div className="flex flex-col items-start">
                                     <span className="text-[10px] text-emerald-100 uppercase tracking-wider font-bold">Acceso Restringido</span>
@@ -78,7 +78,7 @@ export default function MaintenancePage() {
                 </div>
 
                 <div className="mt-8 flex flex-col items-center gap-2">
-                    <p className="text-emerald-600 text-[10px] uppercase font-bold tracking-widest">
+                    <p className="text-emerald-500 text-[10px] uppercase font-bold tracking-widest">
                         Asamblea Cloud &copy; 2025
                     </p>
                 </div>

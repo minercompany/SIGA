@@ -66,7 +66,7 @@ export default function ImportStatusFloating() {
                                 <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5" />
                                 <div className="text-xs text-slate-600">
                                     <p>Se procesaron <strong>{stats.totalRows}</strong> filas.</p>
-                                    {/* <p className="text-emerald-600 font-medium cursor-pointer">Click para ver detalles</p> */}
+                                    {/* <p className="text-emerald-500 font-medium cursor-pointer">Click para ver detalles</p> */}
                                 </div>
                             </div>
                         )}

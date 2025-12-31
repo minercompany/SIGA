@@ -93,7 +93,7 @@ export function TourWelcome({ onStartTour }: TourWelcomeProps) {
                         <div className="bg-slate-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6">
                             <div className="flex items-start gap-2 sm:gap-3">
                                 <div className="p-1.5 sm:p-2 bg-emerald-100 rounded-lg sm:rounded-xl shrink-0">
-                                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+                                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-slate-800 text-sm sm:text-base">Guía Interactiva</h3>
@@ -109,7 +109,7 @@ export function TourWelcome({ onStartTour }: TourWelcomeProps) {
                             {["Dashboard", "Mis Listas", "Asignación", "Reportes"].map((feature) => (
                                 <span
                                     key={feature}
-                                    className="inline-flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-[10px] sm:text-xs font-bold"
+                                    className="inline-flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-emerald-50 text-teal-500 rounded-full text-[10px] sm:text-xs font-bold"
                                 >
                                     <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                     {feature}
@@ -127,7 +127,7 @@ export function TourWelcome({ onStartTour }: TourWelcomeProps) {
                             </button>
                             <button
                                 onClick={handleStartTour}
-                                className="flex-1 py-2.5 sm:py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-2 order-1 sm:order-2"
+                                className="flex-1 py-2.5 sm:py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm hover:from-emerald-500 hover:to-teal-500 transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-2 order-1 sm:order-2"
                             >
                                 <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                 Ver Guía Rápida

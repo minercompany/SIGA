@@ -51,7 +51,7 @@ export const CountdownTimer = () => {
                 relative overflow-hidden rounded-[2rem] w-full shadow-2xl shadow-emerald-900/20
                 ${isPast
                         ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600'
-                        : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800'
+                        : 'bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500'
                     }
             `}>
                 {/* Decorative Background Elements - Glassy & Vivid */}
@@ -110,7 +110,7 @@ export const CountdownTimer = () => {
                                         whileHover={{ y: -2 }}
                                         className="relative bg-white rounded-xl lg:rounded-2xl w-14 h-14 lg:w-20 lg:h-20 flex items-center justify-center shadow-lg shadow-emerald-900/20 border-b-4 border-emerald-100/50"
                                     >
-                                        <span className="text-2xl lg:text-4xl font-black text-emerald-700 tabular-nums leading-none tracking-tight">
+                                        <span className="text-2xl lg:text-4xl font-black text-teal-500 tabular-nums leading-none tracking-tight">
                                             {String(item.val).padStart(2, '0')}
                                         </span>
                                     </motion.div>

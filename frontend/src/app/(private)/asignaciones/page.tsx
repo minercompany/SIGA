@@ -106,53 +106,58 @@ export default function AsignacionesPage() {
                 setUser(parsedUser);
 
                 const headers = { Authorization: `Bearer ${token}` };
-                const isSocio = parsedUser.rol === "USUARIO_SOCIO";
 
-                if (isSocio) {
-                    try {
-                        const response = await axios.get("/api/asignaciones/mis-listas", { headers });
+                // TODOS los usuarios cargan sus listas (no solo USUARIO_SOCIO)
+                try {
+                    const response = await axios.get("/api/asignaciones/mis-listas", { headers });
 
-                        if (response.data.length === 0) {
-                            // AUTO CREAR LISTA si no existe ninguna
-                            const timestamp = new Date().toLocaleString('es-PY', {
-                                day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
-                            });
-                            const createRes = await axios.post("/api/asignaciones/crear-lista",
-                                {
-                                    nombre: `Mi Lista ${timestamp}`,
-                                    descripcion: "Lista generada automáticamente"
-                                },
-                                { headers }
+                    if (response.data.length === 0) {
+                        // AUTO CREAR LISTA si no existe ninguna
+                        const timestamp = new Date().toLocaleString('es-PY', {
+                            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                        });
+                        const createRes = await axios.post("/api/asignaciones/crear-lista",
+                            {
+                                nombre: `Mi Lista ${timestamp}`,
+                                descripcion: "Lista generada automáticamente"
+                            },
+                            { headers }
+                        );
+                        const nuevaLista = { ...createRes.data, total: 0, vyv: 0, soloVoz: 0 };
+                        setMisListas([nuevaLista]);
+                        setSelectedLista(nuevaLista);
+                    } else {
+                        setMisListas(response.data);
+                        // Auto-select the list with the most socios (not just the first one)
+                        if (response.data.length > 0 && !selectedLista) {
+                            const listaConMasSocios = response.data.reduce((prev: ListaAsignacion, curr: ListaAsignacion) =>
+                                (curr.total || 0) > (prev.total || 0) ? curr : prev
                             );
-                            const nuevaLista = { ...createRes.data, total: 0, vyv: 0, soloVoz: 0 };
-                            setMisListas([nuevaLista]);
-                            setSelectedLista(nuevaLista);
-                        } else {
-                            setMisListas(response.data);
-                            // Auto-select the list with the most socios (not just the first one)
-                            if (response.data.length > 0 && !selectedLista) {
-                                const listaConMasSocios = response.data.reduce((prev: ListaAsignacion, curr: ListaAsignacion) =>
-                                    (curr.total || 0) > (prev.total || 0) ? curr : prev
-                                );
-                                handleSelectLista(listaConMasSocios);
-                            }
-                        }
-                    } catch (err: any) {
-                        console.error("Error cargando listas:", err);
-                        if (err.response?.status === 403) {
-                            localStorage.removeItem("token");
-                            localStorage.removeItem("user");
-                            window.location.href = "/login";
+                            handleSelectLista(listaConMasSocios);
                         }
                     }
-                } else {
-                    // Admin/Directivo: cargar sucursales + ranking
-                    const [sucursalesRes, rankingRes] = await Promise.all([
-                        axios.get("/api/socios/estadisticas/por-sucursal", { headers }),
-                        axios.get("/api/asignaciones/ranking-usuarios", { headers }).catch(() => ({ data: [] }))
-                    ]);
-                    setSucursales(sucursalesRes.data);
-                    setRankingUsuarios(rankingRes.data || []);
+                } catch (err: any) {
+                    console.error("Error cargando listas:", err);
+                    if (err.response?.status === 403) {
+                        localStorage.removeItem("token");
+                        localStorage.removeItem("user");
+                        window.location.href = "/login";
+                    }
+                }
+
+                // Admin/Directivo: TAMBIÉN cargar sucursales + ranking (para otras funcionalidades)
+                const isSocio = parsedUser.rol === "USUARIO_SOCIO";
+                if (!isSocio) {
+                    try {
+                        const [sucursalesRes, rankingRes] = await Promise.all([
+                            axios.get("/api/socios/estadisticas/por-sucursal", { headers }),
+                            axios.get("/api/asignaciones/ranking-usuarios", { headers }).catch(() => ({ data: [] }))
+                        ]);
+                        setSucursales(sucursalesRes.data);
+                        setRankingUsuarios(rankingRes.data || []);
+                    } catch (e) {
+                        console.error("Error cargando datos admin:", e);
+                    }
                 }
             }
         } catch (error: any) {
@@ -429,7 +434,7 @@ export default function AsignacionesPage() {
         return (
             <div className="flex items-center justify-center h-96">
                 <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
+                    <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sincronizando Módulos...</p>
                 </div>
             </div>
@@ -464,41 +469,41 @@ export default function AsignacionesPage() {
             {showCreateModal && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-                        <div className="p-8 border-b border-slate-50 bg-slate-50/50">
-                            <h3 className="text-xl font-black text-slate-800 italic uppercase">Nueva Lista de Asignación</h3>
+                        <div className="p-6 md:p-8 border-b border-slate-50 bg-slate-50/50">
+                            <h3 className="text-lg md:text-xl font-black text-slate-800 italic uppercase">Nueva Lista de Asignación</h3>
                         </div>
-                        <div className="p-8 space-y-6">
+                        <div className="p-6 md:p-8 space-y-4 md:space-y-6">
                             <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Identificador de Lista</label>
+                                <label className="block text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2">Identificador de Lista</label>
                                 <input
                                     type="text"
-                                    className="w-full px-6 py-4 bg-slate-100 border-2 border-transparent rounded-2xl focus:border-emerald-500 focus:bg-white outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300"
+                                    className="w-full px-5 md:px-6 py-3.5 md:py-4 bg-slate-100 border-2 border-transparent rounded-2xl focus:border-emerald-500 focus:bg-white outline-none transition-all font-bold text-sm md:text-base text-slate-700 placeholder:text-slate-300"
                                     placeholder="Nombre descriptivo..."
                                     value={newListName}
                                     onChange={(e) => setNewListName(e.target.value)}
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Notas Adicionales</label>
+                                <label className="block text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2">Notas Adicionales</label>
                                 <textarea
-                                    className="w-full px-6 py-4 bg-slate-100 border-2 border-transparent rounded-2xl focus:border-emerald-500 focus:bg-white outline-none h-32 transition-all font-bold text-slate-700 placeholder:text-slate-300 resize-none"
+                                    className="w-full px-5 md:px-6 py-3.5 md:py-4 bg-slate-100 border-2 border-transparent rounded-2xl focus:border-emerald-500 focus:bg-white outline-none h-24 md:h-32 transition-all font-bold text-sm md:text-base text-slate-700 placeholder:text-slate-300 resize-none"
                                     placeholder="Detalles sobre este grupo..."
                                     value={newListDesc}
                                     onChange={(e) => setNewListDesc(e.target.value)}
                                 />
                             </div>
                         </div>
-                        <div className="p-8 bg-slate-50 flex gap-4">
+                        <div className="p-6 md:p-8 bg-slate-50 flex flex-col md:flex-row gap-3 md:gap-4">
                             <button
                                 onClick={() => setShowCreateModal(false)}
-                                className="flex-1 py-4 font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest text-[10px]"
+                                className="order-2 md:order-1 flex-1 py-3.5 md:py-4 font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest text-[10px]"
                             >
                                 Descartar
                             </button>
                             <button
                                 onClick={handleCreateLista}
                                 disabled={!newListName}
-                                className="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-700 shadow-xl shadow-emerald-200 disabled:opacity-30 disabled:grayscale transition-all active:scale-95"
+                                className="order-1 md:order-2 flex-1 py-3.5 md:py-4 bg-emerald-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-teal-500 shadow-xl shadow-emerald-200 disabled:opacity-30 disabled:grayscale transition-all active:scale-95"
                             >
                                 Confirmar Creación
                             </button>
@@ -542,72 +547,75 @@ export default function AsignacionesPage() {
                         </div>
 
                         {/* Body */}
-                        <div className="p-8 space-y-6">
+                        <div className="p-6 md:p-8 space-y-5 md:space-y-6">
                             {/* Socio Info Card */}
-                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6 border-2 border-slate-200">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-5 md:p-6 border-2 border-slate-200">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2">
                                     Información del Socio
                                 </p>
-                                <p className="text-xl font-black text-slate-800 mb-1">
+                                <p className="text-lg md:text-xl font-black text-slate-800 mb-1">
                                     {alreadyAssignedInfo.socioNombre}
                                 </p>
                                 <div className="flex items-center gap-2 text-slate-500">
                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                                     </svg>
-                                    <span className="text-sm font-bold">N° {alreadyAssignedInfo.socioNro}</span>
+                                    <span className="text-xs md:text-sm font-bold">N° {alreadyAssignedInfo.socioNro}</span>
                                 </div>
                             </div>
 
                             {/* Assignment Info */}
                             <div className="space-y-3">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                     Detalles de Asignación
                                 </p>
 
-                                {/* Lista */}
-                                <div className="flex items-start gap-3 p-4 bg-orange-50 rounded-xl border border-orange-200">
-                                    <div className="p-2 bg-orange-500 rounded-lg shadow-lg">
-                                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                        </svg>
+                                {/* Grid for assignment details on mobile */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {/* Lista */}
+                                    <div className="flex items-start gap-3 p-3 md:p-4 bg-orange-50 rounded-xl border border-orange-200">
+                                        <div className="p-2 bg-orange-500 rounded-lg shadow-lg shrink-0">
+                                            <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                            </svg>
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-[9px] text-orange-600 font-bold uppercase tracking-wide">Lista</p>
+                                            <p className="text-xs md:text-sm font-black text-slate-800 mt-0.5 truncate">{alreadyAssignedInfo.listaNombre}</p>
+                                        </div>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-xs text-orange-600 font-bold uppercase tracking-wide">Lista de Asignación</p>
-                                        <p className="text-sm font-black text-slate-800 mt-1">{alreadyAssignedInfo.listaNombre}</p>
-                                    </div>
-                                </div>
 
-                                {/* Usuario */}
-                                <div className="flex items-start gap-3 p-4 bg-violet-50 rounded-xl border border-violet-200">
-                                    <div className="p-2 bg-violet-500 rounded-lg shadow-lg">
-                                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-xs text-violet-600 font-bold uppercase tracking-wide">Asignado Por</p>
-                                        <p className="text-sm font-black text-slate-800 mt-1">{alreadyAssignedInfo.listaUsuario}</p>
+                                    {/* Usuario */}
+                                    <div className="flex items-start gap-3 p-3 md:p-4 bg-violet-50 rounded-xl border border-violet-200">
+                                        <div className="p-2 bg-violet-500 rounded-lg shadow-lg shrink-0">
+                                            <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-[9px] text-violet-600 font-bold uppercase tracking-wide">Por</p>
+                                            <p className="text-xs md:text-sm font-black text-slate-800 mt-0.5 truncate">{alreadyAssignedInfo.listaUsuario}</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Info Message */}
-                            <div className="flex gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                                <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div className="flex gap-2 md:gap-3 p-3 md:p-4 bg-blue-50 rounded-xl border border-blue-200">
+                                <svg className="w-4 h-4 md:w-5 md:h-5 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <p className="text-xs text-blue-700 leading-relaxed">
-                                    Un socio solo puede estar asignado a una lista a la vez. Para agregarlo a tu lista, el usuario responsable debe quitarlo de su lista actual primero.
+                                <p className="text-[10px] md:text-xs text-blue-700 leading-relaxed font-medium">
+                                    Un socio solo puede estar en una lista. Para moverlo, debe ser quitado de su lista actual primero.
                                 </p>
                             </div>
                         </div>
 
                         {/* Footer */}
-                        <div className="p-6 bg-slate-50 border-t border-slate-100">
+                        <div className="p-5 md:p-6 bg-slate-50 border-t border-slate-100">
                             <button
                                 onClick={() => setShowAlreadyAssignedModal(false)}
-                                className="w-full py-4 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-2xl font-bold text-sm hover:from-slate-800 hover:to-slate-900 transition-all shadow-lg shadow-slate-300 active:scale-95"
+                                className="w-full py-3.5 md:py-4 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-2xl font-bold text-xs md:text-sm hover:from-slate-800 hover:to-slate-900 transition-all shadow-lg shadow-slate-300 active:scale-95"
                             >
                                 Entendido
                             </button>
@@ -626,7 +634,7 @@ export default function AsignacionesPage() {
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header con Gradiente Azul */}
-                        <div className="relative bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 p-8 text-white overflow-hidden">
+                        <div className="relative bg-gradient-to-r from-blue-500 via-emerald-500 to-teal-500 p-8 text-white overflow-hidden">
                             {/* Decorative Circles */}
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
                             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl -ml-8 -mb-8" />

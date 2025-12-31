@@ -69,6 +69,9 @@ public class Aviso {
     @Column(name = "filtro_sucursal_id")
     private Long filtroSucursalId;
 
+    @Column(name = "imagen_url")
+    private String imagenUrl;
+
     @OneToMany(mappedBy = "aviso", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AvisoDestinatario> destinatarios = new ArrayList<>();
 

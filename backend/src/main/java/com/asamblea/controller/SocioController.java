@@ -178,9 +178,16 @@ public class SocioController {
     // Estadísticas generales del padrón
     @GetMapping("/estadisticas")
     public ResponseEntity<Map<String, Object>> estadisticas() {
-        long total = socioRepository.count();
-        long conVozYVoto = socioRepository.countConVozYVoto();
-        long soloVoz = socioRepository.countSoloVoz();
+        // SOLO contar socios en padrón actual
+        Long total = socioRepository.countEnPadronActual();
+        if (total == null)
+            total = 0L;
+        Long conVozYVoto = socioRepository.countConVozYVotoEnPadron();
+        if (conVozYVoto == null)
+            conVozYVoto = 0L;
+        Long soloVoz = socioRepository.countSoloVozEnPadron();
+        if (soloVoz == null)
+            soloVoz = 0L;
         long presentes = asistenciaRepository.count();
         long presentesVyV = asistenciaRepository.countByEstadoVozVoto(true);
         Long totalMeta = usuarioRepository.sumTotalMetas();
@@ -223,7 +230,9 @@ public class SocioController {
 
     @GetMapping("/stats-globales")
     public ResponseEntity<Map<String, Object>> statsGlobales() {
-        long totalHabilitados = socioRepository.countConVozYVoto();
+        Long totalHabilitados = socioRepository.countConVozYVotoEnPadron();
+        if (totalHabilitados == null)
+            totalHabilitados = 0L;
         long presentesGlobal = asistenciaRepository.countByEstadoVozVoto(true);
 
         Map<String, Object> stats = new HashMap<>();
@@ -234,9 +243,24 @@ public class SocioController {
 
     @GetMapping("/buscar-exacto")
     public ResponseEntity<?> buscarSocio(@RequestParam String term) {
-        Optional<Socio> socioOpt = socioRepository.findByNumeroSocio(term);
+        String cleanTerm = term.trim();
+
+        // 1. Buscar por número de socio exacto
+        Optional<Socio> socioOpt = socioRepository.findByNumeroSocio(cleanTerm);
+
+        // 2. Si no encontró, buscar por cédula
         if (socioOpt.isEmpty()) {
-            socioOpt = socioRepository.findByCedula(term);
+            socioOpt = socioRepository.findByCedula(cleanTerm);
+        }
+
+        // 3. Si no encontró y el término tiene al menos 3 caracteres, buscar por nombre
+        // parcial
+        if (socioOpt.isEmpty() && cleanTerm.length() >= 3) {
+            List<Socio> porNombre = socioRepository.buscarParcial(cleanTerm);
+            if (!porNombre.isEmpty()) {
+                // Tomar el primero que coincida
+                socioOpt = Optional.of(porNombre.get(0));
+            }
         }
 
         if (socioOpt.isEmpty()) {

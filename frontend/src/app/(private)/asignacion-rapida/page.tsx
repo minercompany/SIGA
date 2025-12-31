@@ -324,7 +324,7 @@ export default function AsignacionRapidaPage() {
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
-                                className="mt-4 bg-emerald-100 text-emerald-700 px-4 py-3 rounded-xl font-bold flex items-center gap-2"
+                                className="mt-4 bg-emerald-100 text-teal-500 px-4 py-3 rounded-xl font-bold flex items-center gap-2"
                             >
                                 <CheckCircle2 className="w-5 h-5" />
                                 {successMessage}
@@ -347,12 +347,12 @@ export default function AsignacionRapidaPage() {
                                             <CheckCircle2 className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-[10px] sm:text-xs text-emerald-600 font-bold uppercase tracking-wide">Socio Encontrado</p>
+                                            <p className="text-[10px] sm:text-xs text-emerald-500 font-bold uppercase tracking-wide">Socio Encontrado</p>
                                             <p className="text-base sm:text-2xl font-black text-slate-800 truncate">{searchedSocio.nombreCompleto}</p>
                                             <div className="flex flex-wrap gap-2 sm:gap-4 mt-1">
                                                 <span className="text-xs sm:text-sm text-slate-600">CI: <span className="font-bold">{searchedSocio.cedula}</span></span>
                                                 <span className="text-xs sm:text-sm text-slate-600">Nro: <span className="font-bold">{searchedSocio.numeroSocio}</span></span>
-                                                <span className={`text-xs sm:text-sm font-bold ${tieneVozYVoto(searchedSocio) ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                                <span className={`text-xs sm:text-sm font-bold ${tieneVozYVoto(searchedSocio) ? 'text-emerald-500' : 'text-amber-600'}`}>
                                                     {tieneVozYVoto(searchedSocio) ? '✓ V&V' : '⚠ SV'}
                                                 </span>
                                             </div>
@@ -362,7 +362,7 @@ export default function AsignacionRapidaPage() {
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         onClick={handleAddSocio}
-                                        className="w-full sm:w-auto px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-black text-sm sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-200"
+                                        className="w-full sm:w-auto px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-black text-sm sm:text-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-200"
                                     >
                                         <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
                                         AGREGAR
@@ -418,7 +418,7 @@ export default function AsignacionRapidaPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
-                                            <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold ${esVyV ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                            <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold ${esVyV ? 'bg-emerald-100 text-teal-500' : 'bg-amber-100 text-amber-700'
                                                 }`}>
                                                 {esVyV ? 'V&V' : 'SV'}
                                             </span>

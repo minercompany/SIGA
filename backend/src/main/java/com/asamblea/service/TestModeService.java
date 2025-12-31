@@ -31,22 +31,35 @@ public class TestModeService {
             "asistencias",
             "asignaciones",
             "socios",
-            "listas",
+            "listas_asignacion",
             "usuarios",
-            "importacion_historial",
+            "importaciones_historial",
             "auditoria"
     };
 
     // Orden inverso para restaurar (primero las dependientes)
     private static final String[] RESTORE_ORDER = {
             "auditoria",
-            "importacion_historial",
+            "importaciones_historial",
             "usuarios",
-            "listas",
+            "listas_asignacion",
             "socios",
             "asignaciones",
             "asistencias"
     };
+
+    /**
+     * Obtiene los nombres de las columnas que no son generadas para una tabla.
+     */
+    private String getTableColumns(String tableName) {
+        String sql = "SELECT COLUMN_NAME FROM information_schema.columns " +
+                "WHERE table_schema = (SELECT DATABASE()) AND table_name = ? " +
+                "AND extra NOT LIKE '%VIRTUAL GENERATED%' " +
+                "AND extra NOT LIKE '%STORED GENERATED%'";
+
+        java.util.List<String> columns = jdbcTemplate.queryForList(sql, String.class, tableName);
+        return String.join(", ", columns);
+    }
 
     /**
      * Verifica si el Modo de Prueba está activo.
@@ -107,9 +120,15 @@ public class TestModeService {
                 // Eliminar tabla de backup si existe
                 jdbcTemplate.execute("DROP TABLE IF EXISTS " + backupTable);
 
-                // Crear tabla de backup con la misma estructura y copiar datos
+                // Crear tabla de backup con la misma estructura (incluye columnas generadas)
                 jdbcTemplate.execute("CREATE TABLE " + backupTable + " LIKE " + table);
-                jdbcTemplate.execute("INSERT INTO " + backupTable + " SELECT * FROM " + table);
+
+                // Obtener solo las columnas que se pueden insertar (no generadas)
+                String columns = getTableColumns(table);
+
+                // Copiar datos usando explícitamente las columnas permitidas
+                jdbcTemplate.execute(
+                        "INSERT INTO " + backupTable + " (" + columns + ") SELECT " + columns + " FROM " + table);
             }
 
             // Reactivar verificación de claves foráneas
@@ -176,8 +195,12 @@ public class TestModeService {
                 // Vaciar tabla actual
                 jdbcTemplate.execute("TRUNCATE TABLE " + table);
 
-                // Restaurar desde backup
-                jdbcTemplate.execute("INSERT INTO " + table + " SELECT * FROM " + backupTable);
+                // Obtener solo las columnas que se pueden insertar (no generadas)
+                String columns = getTableColumns(table);
+
+                // Restaurar desde backup usando columnas explícitas
+                jdbcTemplate.execute(
+                        "INSERT INTO " + table + " (" + columns + ") SELECT " + columns + " FROM " + backupTable);
 
                 // Eliminar tabla de backup
                 jdbcTemplate.execute("DROP TABLE IF EXISTS " + backupTable);

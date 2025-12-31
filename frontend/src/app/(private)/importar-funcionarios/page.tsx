@@ -463,7 +463,7 @@ export default function ImportarFuncionariosPage() {
                     <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="p-2 bg-emerald-50 rounded-lg">
-                                <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                                <ShieldCheck className="h-5 w-5 text-emerald-500" />
                             </div>
                             <h3 className="font-bold text-slate-800">Protección de Datos</h3>
                         </div>

@@ -123,16 +123,23 @@ public class ImportacionService {
             // Set para control de duplicados dentro del mismo archivo
             Set<String> cedulasProcesadas = new HashSet<>();
 
-            // 2. Limpiar tabla - SE ELIMINA PARA SOPORTAR UPSERT (No borrar datos
-            // existentes)
-            // jdbcTemplate.execute("DELETE FROM socios");
+            // 2. CONTAR SOCIOS EXISTENTES ANTES DE IMPORTAR (para calcular nuevos vs
+            // actualizados)
+            Integer sociosAntesDeImportar = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM socios", Integer.class);
+            int sociosPrevios = sociosAntesDeImportar != null ? sociosAntesDeImportar : 0;
+            log.info("Socios existentes antes de importar: {}", sociosPrevios);
+
+            // MARCAR TODOS LOS SOCIOS COMO "NO EN PADRÓN ACTUAL" ANTES DE IMPORTAR
+            // Luego el UPSERT los marcará como activos si están en el archivo
+            int sociosMarcadosInactivos = jdbcTemplate.update("UPDATE socios SET en_padron_actual = false");
+            log.info("Marcados {} socios como inactivos temporalmente", sociosMarcadosInactivos);
 
             // 3. Preparar inserción Batch con UPSERT (ON DUPLICATE KEY UPDATE)
-            // Esto permite actualizar datos de socios existentes sin perder sus IDs ni
-            // asignaciones
+            // Incluye en_padron_actual = true para marcar los importados como activos
             String sql = "INSERT INTO socios (numero_socio, cedula, nombre_completo, telefono, id_sucursal, " +
-                    "aporte_al_dia, solidaridad_al_dia, fondo_al_dia, incoop_al_dia, credito_al_dia, created_at) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                    "aporte_al_dia, solidaridad_al_dia, fondo_al_dia, incoop_al_dia, credito_al_dia, created_at, en_padron_actual) "
+                    +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true) " +
                     "ON DUPLICATE KEY UPDATE " +
                     "nombre_completo = VALUES(nombre_completo), " +
                     "telefono = VALUES(telefono), " +
@@ -141,7 +148,8 @@ public class ImportacionService {
                     "solidaridad_al_dia = VALUES(solidaridad_al_dia), " +
                     "fondo_al_dia = VALUES(fondo_al_dia), " +
                     "incoop_al_dia = VALUES(incoop_al_dia), " +
-                    "credito_al_dia = VALUES(credito_al_dia)";
+                    "credito_al_dia = VALUES(credito_al_dia), " +
+                    "en_padron_actual = true";
 
             int imported = 0;
             int errors = 0;
@@ -332,6 +340,22 @@ public class ImportacionService {
                 ps.executeBatch();
                 conn.commit();
 
+                // ===== CONTEO: Socios que quedaron fuera del nuevo padrón =====
+                // No se eliminan, solo se cuentan (ya quedaron marcados como en_padron_actual =
+                // false)
+                int sociosFueraDePadron = 0;
+                try {
+                    Integer count = jdbcTemplate.queryForObject(
+                            "SELECT COUNT(*) FROM socios WHERE en_padron_actual = false", Integer.class);
+                    sociosFueraDePadron = count != null ? count : 0;
+                    if (sociosFueraDePadron > 0) {
+                        log.info("⚠️ {} socios quedaron marcados como 'fuera del padrón actual'", sociosFueraDePadron);
+                    }
+                } catch (Exception countEx) {
+                    log.warn("Error contando socios fuera de padrón: {}", countEx.getMessage());
+                }
+                // ===== FIN CONTEO =====
+
                 long ms = System.currentTimeMillis() - start;
                 double speed = (imported * 1000.0) / ms;
 
@@ -370,14 +394,32 @@ public class ImportacionService {
                 }
                 // ===== FIN AUTO-CREACIÓN =====
 
+                // ===== CALCULAR NUEVOS VS ACTUALIZADOS =====
+                // Contar socios actuales (después de importar)
+                Integer sociosDespuesDeImportar = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM socios",
+                        Integer.class);
+                int sociosActuales = sociosDespuesDeImportar != null ? sociosDespuesDeImportar : 0;
+
+                // Nuevos = diferencia entre después y antes
+                int nuevos = Math.max(0, sociosActuales - sociosPrevios);
+                // Actualizados = procesados - nuevos (los que ya existían y se actualizaron)
+                int actualizados = imported - nuevos;
+
+                log.info("Socios previos: {}, Socios actuales: {}, Nuevos: {}, Actualizados: {}",
+                        sociosPrevios, sociosActuales, nuevos, actualizados);
+                // ===== FIN CALCULAR =====
+
                 Map<String, Object> stats = new HashMap<>();
                 stats.put("totalRows", rowIndex);
-                stats.put("imported", imported); // Total processed (Inserted + Updated)
+                stats.put("imported", imported); // Total procesados (para compatibilidad)
+                stats.put("nuevos", nuevos); // Socios realmente nuevos (insertados)
+                stats.put("actualizados", actualizados); // Socios existentes actualizados
                 stats.put("mode", "UPSERT"); // Informative flag
                 stats.put("errors", errors);
                 stats.put("duplicados", duplicados);
                 stats.put("sinCedula", sinCedula);
                 stats.put("sinNombre", sinNombre);
+                stats.put("sociosFueraDePadron", sociosFueraDePadron); // Socios que ya no están en el padrón actual
                 stats.put("timeMs", ms);
                 stats.put("rowsPerSecond", (int) speed);
                 stats.put("usuariosCreados", usuariosCreados);

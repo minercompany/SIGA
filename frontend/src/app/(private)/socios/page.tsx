@@ -89,7 +89,7 @@ function SocioRow({ socio, index, tieneVozYVoto, isSuperAdmin, onEdit, onDelete,
                     transition={{ duration: 0.2 }}
                     className={`inline-flex items-center gap-1 px-4 py-2 rounded-xl font-black text-base shadow-lg
                         ${tieneVozYVoto
-                            ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-emerald-200'
+                            ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-emerald-200'
                             : 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-amber-200'
                         }`}
                 >
@@ -105,7 +105,7 @@ function SocioRow({ socio, index, tieneVozYVoto, isSuperAdmin, onEdit, onDelete,
                         animate={{ scale: isHovered ? 1.1 : 1 }}
                         className={`h-11 w-11 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg flex-shrink-0
                             ${tieneVozYVoto
-                                ? 'bg-gradient-to-br from-emerald-400 to-teal-600'
+                                ? 'bg-gradient-to-br from-emerald-400 to-teal-500'
                                 : 'bg-gradient-to-br from-amber-400 to-orange-500'
                             }`}
                     >
@@ -147,7 +147,7 @@ function SocioRow({ socio, index, tieneVozYVoto, isSuperAdmin, onEdit, onDelete,
                     animate={{ scale: isHovered ? 1.05 : 1 }}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black shadow-md
                         ${tieneVozYVoto
-                            ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-emerald-100'
+                            ? 'bg-emerald-100 text-teal-500 border border-emerald-200 shadow-emerald-100'
                             : 'bg-amber-100 text-amber-700 border border-amber-200 shadow-amber-100'
                         }`}
                 >
@@ -536,7 +536,7 @@ export default function SociosPage() {
             <div className="max-w-7xl mx-auto space-y-6 md:space-y-10">
 
                 {/* Header Premium con Gradiente */}
-                <div className="relative overflow-hidden rounded-2xl md:rounded-[2rem] bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500 p-6 md:p-10 shadow-2xl shadow-emerald-500/20 text-white">
+                <div className="relative overflow-hidden rounded-2xl md:rounded-[2rem] bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 p-6 md:p-10 shadow-2xl shadow-emerald-500/20 text-white">
                     <div className="absolute top-0 right-0 -mr-20 -mt-20 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
                     <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-64 w-64 rounded-full bg-black/10 blur-3xl" />
 
@@ -563,7 +563,7 @@ export default function SociosPage() {
                                     <div className="text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Padrón</div>
                                 </div>
                                 {/* Habilitados Voz y Voto */}
-                                <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-2.5 md:p-3 text-center shadow-lg text-white">
+                                <div className="bg-gradient-to-br from-emerald-500 to-emerald-500 rounded-xl p-2.5 md:p-3 text-center shadow-lg text-white">
                                     <div className="text-xl md:text-2xl font-black">{sociosConVoto.toLocaleString()}</div>
                                     <div className="text-[8px] md:text-[10px] font-bold text-emerald-100 uppercase tracking-wider">Voz y Voto</div>
                                 </div>
@@ -573,12 +573,12 @@ export default function SociosPage() {
                                     <div className="text-[8px] md:text-[10px] font-bold text-amber-100 uppercase tracking-wider">Solo Voz</div>
                                 </div>
                                 {/* Presentes Ahora */}
-                                <div className="bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl p-2.5 md:p-3 text-center shadow-lg text-white">
+                                <div className="bg-gradient-to-br from-emerald-500 to-blue-500 rounded-xl p-2.5 md:p-3 text-center shadow-lg text-white">
                                     <div className="text-xl md:text-2xl font-black">{presentesCount.toLocaleString()}</div>
                                     <div className="text-[8px] md:text-[10px] font-bold text-cyan-100 uppercase tracking-wider">Presentes</div>
                                 </div>
                                 {/* Registrados con Voz y Voto */}
-                                <div className="bg-gradient-to-br from-green-500 to-teal-600 rounded-xl p-2.5 md:p-3 text-center shadow-lg text-white">
+                                <div className="bg-gradient-to-br from-green-500 to-teal-500 rounded-xl p-2.5 md:p-3 text-center shadow-lg text-white">
                                     <div className="text-xl md:text-2xl font-black">{registradosVozYVoto.toLocaleString()}</div>
                                     <div className="text-[8px] md:text-[10px] font-bold text-green-100 uppercase tracking-wider">Reg. Voz+Voto</div>
                                 </div>
@@ -601,7 +601,7 @@ export default function SociosPage() {
                                             {exporting ? (
                                                 <Loader2 className="h-4 w-4 animate-spin" />
                                             ) : (
-                                                <FileDown className="h-4 w-4 text-emerald-600" />
+                                                <FileDown className="h-4 w-4 text-emerald-500" />
                                             )}
                                             <span>Exportar</span>
                                             <ChevronDown className="h-4 w-4" />
@@ -689,7 +689,7 @@ export default function SociosPage() {
                                 <Filter className="h-4 w-4" />
                                 <span className="hidden md:inline">Filtros</span>
                                 {hasActiveFilters && (
-                                    <span className="bg-white text-emerald-600 text-xs font-black px-1.5 py-0.5 rounded-md">!</span>
+                                    <span className="bg-white text-emerald-500 text-xs font-black px-1.5 py-0.5 rounded-md">!</span>
                                 )}
                             </button>
                         </div>
@@ -788,7 +788,7 @@ export default function SociosPage() {
                                     {hasActiveFilters && (
                                         <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2 text-sm text-slate-500">
                                             <span className="font-medium">Mostrando:</span>
-                                            <span className="font-black text-emerald-600">{displayedSocios.length}</span>
+                                            <span className="font-black text-emerald-500">{displayedSocios.length}</span>
                                             <span>de {totalElements} resultados</span>
                                         </div>
                                     )}
@@ -801,9 +801,9 @@ export default function SociosPage() {
                 {loading ? (
                     <div className="text-center py-20">
                         <div className="relative inline-block">
-                            <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-200 border-t-emerald-600 mx-auto"></div>
+                            <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-200 border-t-emerald-500 mx-auto"></div>
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <Users className="h-6 w-6 text-emerald-600" />
+                                <Users className="h-6 w-6 text-emerald-500" />
                             </div>
                         </div>
                         <p className="mt-4 text-slate-500 font-medium">Cargando padrón...</p>
@@ -864,7 +864,7 @@ export default function SociosPage() {
                             className="bg-white/80 backdrop-blur-xl rounded-2xl md:rounded-3xl p-5 md:p-8 shadow-2xl shadow-slate-200/50 border border-slate-100/50 flex flex-col sm:flex-row items-center justify-between gap-4"
                         >
                             <p className="text-sm text-slate-500 font-medium">
-                                Mostrando <span className="font-black text-emerald-600">{displayedSocios.length}</span> de <span className="font-black text-slate-800">{totalElements.toLocaleString()}</span> socios
+                                Mostrando <span className="font-black text-emerald-500">{displayedSocios.length}</span> de <span className="font-black text-slate-800">{totalElements.toLocaleString()}</span> socios
                             </p>
                             <div className="flex items-center gap-3">
                                 <button
@@ -913,7 +913,7 @@ export default function SociosPage() {
                                 } text-white`}>
                                 <div className="flex items-center gap-3">
                                     <div className={`h-12 w-12 rounded-xl flex items-center justify-center font-black text-lg shadow-lg
-                                        ${tieneVozYVoto(hoveredSocio) ? 'bg-white text-emerald-600' : 'bg-white text-amber-600'}`}>
+                                        ${tieneVozYVoto(hoveredSocio) ? 'bg-white text-emerald-500' : 'bg-white text-amber-600'}`}>
                                         {hoveredSocio.nombreCompleto.substring(0, 2).toUpperCase()}
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -955,7 +955,7 @@ export default function SociosPage() {
                                                 key={item.key}
                                                 className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold
                                                     ${item.value
-                                                        ? 'bg-emerald-100 text-emerald-700'
+                                                        ? 'bg-emerald-100 text-teal-500'
                                                         : 'bg-red-100 text-red-700'
                                                     }`}
                                             >
@@ -969,7 +969,7 @@ export default function SociosPage() {
                                 {/* Status Badge - Compact */}
                                 <div className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-black
                                     ${tieneVozYVoto(hoveredSocio)
-                                        ? 'bg-emerald-100 text-emerald-700'
+                                        ? 'bg-emerald-100 text-teal-500'
                                         : 'bg-amber-100 text-amber-700'
                                     }`}
                                 >
@@ -1096,7 +1096,7 @@ export default function SociosPage() {
                                                     type="checkbox"
                                                     checked={formData[item.key as keyof typeof formData] as boolean}
                                                     onChange={(e) => setFormData({ ...formData, [item.key]: e.target.checked })}
-                                                    className="h-5 w-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                                    className="h-5 w-5 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500"
                                                 />
                                                 <span className="text-sm font-medium text-slate-700">{item.label}</span>
                                             </label>
@@ -1115,7 +1115,7 @@ export default function SociosPage() {
                                 <button
                                     onClick={handleSave}
                                     disabled={saving}
-                                    className="flex-1 py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
+                                    className="flex-1 py-3 rounded-xl bg-emerald-500 text-white font-bold hover:bg-teal-500 transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
                                 >
                                     {saving ? (
                                         <Loader2 className="h-5 w-5 animate-spin" />

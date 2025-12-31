@@ -156,7 +156,7 @@ export function Sidebar() {
         <>
             {/* Logo y título */}
             <div className={cn(
-                "flex items-center border-b border-teal-600/30 transition-all duration-300",
+                "flex items-center border-b border-teal-500/30 transition-all duration-300",
                 effectiveCollapsed ? "h-20 justify-center p-2" : "h-24 justify-start p-4 gap-3 ml-2"
             )}>
                 <div className="flex-shrink-0">
@@ -304,7 +304,7 @@ export function Sidebar() {
 
             {/* Botón colapsar (solo desktop) */}
             {!isMobile && (
-                <div className="px-2 py-2 border-t border-teal-600/30">
+                <div className="px-2 py-2 border-t border-teal-500/30">
                     <button
                         onClick={() => setCollapsed(!collapsed)}
                         className="flex w-full items-center justify-center rounded-xl px-3 py-2.5 text-teal-200 hover:bg-white/10 hover:text-white transition-all"
@@ -323,7 +323,7 @@ export function Sidebar() {
             )}
 
             {/* Cerrar sesión */}
-            <div className="border-t border-teal-600/30 p-2">
+            <div className="border-t border-teal-500/30 p-2">
                 <button
                     onClick={handleLogout}
                     className={cn(
@@ -354,7 +354,7 @@ export function Sidebar() {
                 className={cn(
                     "flex h-screen flex-col text-white shadow-2xl transition-all duration-300 ease-in-out",
                     // Gradiente verde pastel
-                    "bg-gradient-to-b from-teal-700 via-teal-600 to-emerald-700",
+                    "bg-gradient-to-b from-teal-500 via-teal-500 to-teal-500",
                     // Ancho
                     effectiveCollapsed ? "w-16" : "w-64",
                     // Posición móvil

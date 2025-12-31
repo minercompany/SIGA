@@ -30,14 +30,15 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     // Sucursal: First try Usuario.sucursal, fallback to Socio.sucursal via idSocio
     @Query("SELECT u.username, u.cargo, u.meta, COUNT(a.id), " +
             "CASE WHEN u.meta > 0 THEN (COUNT(a.id) * 100.0 / u.meta) ELSE 0 END, " +
-            "u.nombreCompleto, COALESCE(s.nombre, socioSuc.nombre) " +
+            "u.nombreCompleto, COALESCE(s.nombre, socioSuc.nombre), socio.nombreCompleto " +
             "FROM Usuario u " +
             "LEFT JOIN ListaAsignacion l ON l.usuario.id = u.id " +
             "LEFT JOIN Asignacion a ON a.listaAsignacion.id = l.id " +
             "LEFT JOIN Sucursal s ON u.sucursal.id = s.id " +
             "LEFT JOIN Socio socio ON u.idSocio = socio.id " +
             "LEFT JOIN Sucursal socioSuc ON socio.sucursal.id = socioSuc.id " +
-            "GROUP BY u.id, u.username, u.cargo, u.meta, u.nombreCompleto, s.nombre, socioSuc.nombre " +
+            "GROUP BY u.id, u.username, u.cargo, u.meta, u.nombreCompleto, s.nombre, socioSuc.nombre, socio.nombreCompleto "
+            +
             "ORDER BY COUNT(a.id) DESC")
     List<Object[]> findRankingByAsignaciones();
 

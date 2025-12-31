@@ -219,7 +219,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
             {/* Métricas Principales con Glassmorphism */}
             <div data-tour="stats-cards" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 {[
-                    { label: "Socios Asignados", value: stats.total, icon: Users, gradient: "from-blue-500 to-cyan-500", glow: "shadow-blue-500/50" },
+                    { label: "Socios Asignados", value: stats.total, icon: Users, gradient: "from-blue-500 to-emerald-500", glow: "shadow-blue-500/50" },
                     { label: "Con Voz y Voto", value: stats.vyv, icon: UserCheck, gradient: "from-emerald-500 to-teal-500", glow: "shadow-emerald-500/50" },
                     { label: "Solo Voz", value: stats.soloVoz, icon: AlertCircle, gradient: "from-amber-500 to-orange-500", glow: "shadow-amber-500/50" },
                     { label: "Presentes", value: stats.presentes, icon: Zap, gradient: "from-violet-500 to-purple-500", glow: "shadow-violet-500/50" },
@@ -253,7 +253,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                     variants={itemVariants}
                     className="lg:col-span-2 relative group"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-3xl md:rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-emerald-500/20 rounded-3xl md:rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl md:rounded-[3rem] p-6 md:p-8 border border-white/20 shadow-2xl">
                         <div className="flex items-center gap-3 mb-6 md:mb-8">
                             <div className="p-2.5 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl shadow-inner">
@@ -424,7 +424,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
                         <div className="absolute top-0 right-0 h-64 w-64 bg-emerald-500/20 rounded-full blur-[120px] group-hover:bg-emerald-500/30 transition-all duration-700" />
-                        <div className="absolute -bottom-20 -left-20 h-64 w-64 bg-cyan-500/20 rounded-full blur-[120px] group-hover:bg-cyan-500/30 transition-all duration-700" />
+                        <div className="absolute -bottom-20 -left-20 h-64 w-64 bg-emerald-500/20 rounded-full blur-[120px] group-hover:bg-emerald-500/30 transition-all duration-700" />
 
                         <div className="relative z-10 p-6 md:p-8 h-full flex flex-col justify-between">
                             <div>
@@ -523,7 +523,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                                 <div className="h-10 w-10 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
                                                     <Users className="h-5 w-5 text-white" />
                                                 </div>
-                                                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold">
+                                                <span className="px-3 py-1 bg-emerald-100 text-teal-500 rounded-full text-[10px] font-bold">
                                                     {lista.total}
                                                 </span>
                                             </div>
@@ -576,7 +576,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                             <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-100 rounded-full">
                                     <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
-                                    <span className="text-xs font-bold text-emerald-700">{stats.presentes} Presentes</span>
+                                    <span className="text-xs font-bold text-teal-500">{stats.presentes} Presentes</span>
                                 </div>
                                 <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full">
                                     <div className="h-2 w-2 bg-slate-400 rounded-full" />
@@ -610,7 +610,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                                     </p>
                                                 </div>
                                                 {socio.presente ? (
-                                                    <div className="flex-shrink-0 px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg flex items-center gap-1.5">
+                                                    <div className="flex-shrink-0 px-2.5 py-1 bg-emerald-100 text-teal-500 rounded-lg flex items-center gap-1.5">
                                                         <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse" />
                                                         <span className="text-[10px] font-bold uppercase">Presente</span>
                                                     </div>

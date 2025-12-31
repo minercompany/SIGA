@@ -18,7 +18,9 @@ import {
     Check,
     AlertCircle,
     Info,
-    ChevronRight
+    ChevronRight,
+    Image,
+    Upload
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -31,6 +33,7 @@ interface Aviso {
     createdAt: string;
     emisorNombre: string;
     estadoGeneral: string;
+    imagenUrl?: string;
 }
 
 interface UserResult {
@@ -66,6 +69,11 @@ export default function AdminAvisosPage() {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
 
+    // Image upload state
+    const [imagenFile, setImagenFile] = useState<File | null>(null);
+    const [imagenPreview, setImagenPreview] = useState<string | null>(null);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+
     // Initial Load
     useEffect(() => {
         if (activeTab === 'historial') {
@@ -76,11 +84,11 @@ export default function AdminAvisosPage() {
     // Search Users
     useEffect(() => {
         const timer = setTimeout(async () => {
-            if (searchTerm.length >= 3 && !selectedUser) {
+            if (searchTerm.length >= 1 && !selectedUser) {
                 setIsSearching(true);
                 try {
                     const token = localStorage.getItem('token');
-                    const res = await axios.get(`/api/api/usuarios/unificados?term=${searchTerm}`, {
+                    const res = await axios.get(`/api/usuarios/unificados?term=${searchTerm}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     setSearchResults(res.data);
@@ -99,7 +107,7 @@ export default function AdminAvisosPage() {
     const loadAvisos = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('/api/api/avisos', {
+            const res = await axios.get('/api/avisos', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setAvisos(res.data);
@@ -117,6 +125,28 @@ export default function AdminAvisosPage() {
         setIsSending(true);
         try {
             const token = localStorage.getItem('token');
+
+            // Step 1: Upload image if exists
+            let uploadedImageUrl: string | null = null;
+            if (imagenFile) {
+                setIsUploadingImage(true);
+                const formData = new FormData();
+                formData.append('file', imagenFile);
+
+                const uploadRes = await axios.post('/api/avisos/upload-imagen', formData, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
+                if (uploadRes.data.success) {
+                    uploadedImageUrl = uploadRes.data.imagenUrl;
+                }
+                setIsUploadingImage(false);
+            }
+
+            // Step 2: Create aviso with image URL
             const payload: any = {
                 tipo,
                 prioridad,
@@ -124,7 +154,8 @@ export default function AdminAvisosPage() {
                 contenido,
                 mostrarModal,
                 requiereConfirmacion,
-                requiereRespuesta
+                requiereRespuesta,
+                imagenUrl: uploadedImageUrl
             };
 
             if (tipo === 'INDIVIDUAL') {
@@ -138,7 +169,7 @@ export default function AdminAvisosPage() {
                 if (filtroRol) payload.filtroRol = filtroRol;
             }
 
-            const res = await axios.post('/api/api/avisos', payload, {
+            const res = await axios.post('/api/avisos', payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -152,16 +183,33 @@ export default function AdminAvisosPage() {
                 setContenido('');
                 setSelectedUser(null);
                 setSearchTerm('');
-                // setActiveTab('historial'); // Wait for user to close modal or redirect? 
-                // Better to stay on 'crear' or let modal close trigger tab switch?
-                // Logic: Modal appears. User clicks "Aceptar". Then switch to history.
+                setImagenFile(null);
+                setImagenPreview(null);
             }
         } catch (error) {
             console.error('Error creating aviso:', error);
             alert('Error al enviar el aviso');
         } finally {
             setIsSending(false);
+            setIsUploadingImage(false);
         }
+    };
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImagenFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagenPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const removeImage = () => {
+        setImagenFile(null);
+        setImagenPreview(null);
     };
 
     const priorities = {
@@ -173,7 +221,7 @@ export default function AdminAvisosPage() {
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-20">
             {/* Header */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-500 p-8 shadow-2xl">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-500 p-8 shadow-2xl">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                     <Megaphone className="h-64 w-64 text-white transform rotate-12" />
                 </div>
@@ -368,7 +416,7 @@ export default function AdminAvisosPage() {
                                                                             </motion.div>
                                                                         ))}
                                                                     </motion.div>
-                                                                ) : searchTerm.length >= 3 && !isSearching && (
+                                                                ) : searchTerm.length >= 1 && !isSearching && (
                                                                     <motion.div
                                                                         initial={{ opacity: 0, y: 10 }}
                                                                         animate={{ opacity: 1, y: 0 }}
@@ -429,6 +477,52 @@ export default function AdminAvisosPage() {
                                                 placeholder="Escribí el contenido detallado aquí..."
                                                 className="w-full p-4 bg-slate-50 border-0 rounded-2xl text-lg text-slate-600 focus:ring-2 focus:ring-emerald-500/20 placeholder-slate-400 resize-none"
                                             />
+                                        </div>
+
+                                        {/* Image Upload Section */}
+                                        <div className="pt-4 border-t border-slate-100">
+                                            <label className="block text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                                                <Image className="h-4 w-4 text-emerald-500" />
+                                                Imagen Adjunta (Opcional)
+                                            </label>
+
+                                            {imagenPreview ? (
+                                                <div className="relative group">
+                                                    <img
+                                                        src={imagenPreview}
+                                                        alt="Preview"
+                                                        className="max-h-64 rounded-xl border-2 border-emerald-200 shadow-sm"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={removeImage}
+                                                        className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/50 transition-all">
+                                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                        <Upload className="w-8 h-8 mb-2 text-slate-400" />
+                                                        <p className="mb-1 text-sm text-slate-500"><span className="font-semibold">Click para seleccionar</span></p>
+                                                        <p className="text-xs text-slate-400">PNG, JPG hasta 5MB</p>
+                                                    </div>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={handleImageSelect}
+                                                        className="hidden"
+                                                    />
+                                                </label>
+                                            )}
+
+                                            {isUploadingImage && (
+                                                <div className="mt-2 flex items-center gap-2 text-emerald-600">
+                                                    <div className="h-4 w-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                                                    <span className="text-sm font-medium">Subiendo imagen...</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -500,7 +594,7 @@ export default function AdminAvisosPage() {
                                         disabled={!titulo || !contenido || isSending}
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
-                                        className="w-full py-5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-2xl font-black text-xl shadow-xl shadow-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 relative overflow-hidden group"
+                                        className="w-full py-5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-500 text-white rounded-2xl font-black text-xl shadow-xl shadow-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 relative overflow-hidden group"
                                     >
                                         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out skew-y-12" />
                                         {isSending ? (
@@ -559,6 +653,13 @@ export default function AdminAvisosPage() {
                                                         <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${aviso.prioridad === 'CRITICA' ? 'bg-red-500' : aviso.prioridad === 'ALTA' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
                                                         <div>
                                                             <div className="font-bold text-slate-800 text-lg mb-1">{aviso.titulo}</div>
+                                                            {aviso.imagenUrl && (
+                                                                <img
+                                                                    src={aviso.imagenUrl}
+                                                                    alt="Imagen adjunta"
+                                                                    className="max-h-32 rounded-lg mb-2 border border-slate-200 shadow-sm"
+                                                                />
+                                                            )}
                                                             <div className="text-sm text-slate-500 line-clamp-2 max-w-md">{aviso.contenido}</div>
                                                             <div className="flex gap-2 mt-3">
                                                                 <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold tracking-tight">
@@ -591,7 +692,7 @@ export default function AdminAvisosPage() {
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6">
-                                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold shadow-sm">
+                                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-teal-500 text-sm font-bold shadow-sm">
                                                         <CheckCircle className="h-4 w-4" /> Enviado
                                                     </span>
                                                 </td>
@@ -628,7 +729,7 @@ export default function AdminAvisosPage() {
                             className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden relative"
                         >
                             {/* Decoración de fondo */}
-                            <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-br from-emerald-500 to-teal-600 opacity-10" />
+                            <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-br from-emerald-500 to-teal-500 opacity-10" />
                             <div className="absolute -top-10 -right-10 h-32 w-32 bg-emerald-500/20 rounded-full blur-2xl" />
 
                             <div className="p-8 text-center relative z-10">

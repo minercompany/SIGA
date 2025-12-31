@@ -302,18 +302,18 @@ export default function AvisosBell() {
                             className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[100]"
                         />
 
-                        {/* Modal Container - CENTRADO ABSOLUTO */}
-                        <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none">
+                        {/* Modal Container - CENTRADO ABSOLUTO PERFECTO */}
+                        <div className="fixed inset-0 z-[101] flex items-center justify-center min-h-screen p-4 sm:p-6">
                             <motion.div
-                                initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                                initial={{ opacity: 0, scale: 0.9, y: 30 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.8, y: 50 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 30 }}
                                 transition={{
                                     type: "spring",
                                     damping: 25,
                                     stiffness: 300
                                 }}
-                                className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto border-4 border-white/50"
+                                className="w-full max-w-lg bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] m-auto pointer-events-auto border-4 border-white/50"
                                 style={{ boxShadow: '0 25px 80px -20px rgba(0, 0, 0, 0.4)' }}
                             >
 
@@ -370,7 +370,7 @@ export default function AvisosBell() {
                                                         whileHover={{ scale: 1.05 }}
                                                         whileTap={{ scale: 0.95 }}
                                                         onClick={() => responderAviso(selectedAviso.id, resp)}
-                                                        className="px-4 py-2 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 rounded-xl text-sm font-semibold text-slate-600 transition-colors border border-transparent hover:border-teal-200"
+                                                        className="px-4 py-2 bg-slate-100 hover:bg-teal-50 hover:text-teal-500 rounded-xl text-sm font-semibold text-slate-600 transition-colors border border-transparent hover:border-teal-200"
                                                     >
                                                         {resp}
                                                     </motion.button>
@@ -389,7 +389,7 @@ export default function AvisosBell() {
                                                     whileTap={{ scale: 0.95 }}
                                                     onClick={() => responderAviso(selectedAviso.id, 'texto_libre', respuestaTexto)}
                                                     disabled={!respuestaTexto.trim()}
-                                                    className="px-5 py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-teal-200 transition-all"
+                                                    className="px-5 py-3 bg-teal-500 hover:bg-teal-500 text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-teal-200 transition-all"
                                                 >
                                                     Enviar
                                                 </motion.button>

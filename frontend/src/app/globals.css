@@ -6,27 +6,33 @@
   --background: #f8fafc;
   --foreground: #0f172a;
 
-  /* Custom Green Palette */
+  /* Custom Green Palette - User Requested Strict #009900 */
   /* Premium Green Palette */
-  --premium-dark: #022c22;
-  --premium-green: #059669;
-  --premium-light: #34d399;
+  --premium-dark: #008000;
+  /* Darker shade of #009900 */
+  --premium-green: #009900;
+  /* Main Color requested */
+  --premium-light: #00b300;
+  /* Lighter shade for highlights */
   --premium-gold: #d4af37;
 
-  /* Legacy Emerald Map (for compatibility but darker/richer) */
-  --emerald-50: #ecfdf5;
-  --emerald-100: #d1fae5;
-  --emerald-200: #a7f3d0;
-  --emerald-300: #6ee7b7;
-  --emerald-400: #34d399;
-  --emerald-500: #10b981;
-  --emerald-600: #059669;
-  --emerald-700: #047857;
-  --emerald-800: #065f46;
-  --emerald-900: #022c22; /* Deepest green */
+  /* Legacy Emerald Map (Remapped to #009900) */
+  --emerald-50: #e6f9e6;
+  --emerald-100: #ccf2cc;
+  --emerald-200: #99e699;
+  --emerald-300: #66d966;
+  --emerald-400: #33cc33;
+  --emerald-500: #009900;
+  /* MAIN REQUESTED COLOR */
+  --emerald-600: #008000;
+  --emerald-700: #006600;
+  --emerald-800: #004d00;
+  --emerald-900: #003300;
 
-  --mint-500: #14B8A6;
-  --teal-400: #2DD4BF;
+  --mint-500: #009900;
+  --teal-400: #009900;
+  --teal-500: #009900;
+  --teal-600: #008000;
 
   --card: #ffffff;
   --card-foreground: #0f172a;
@@ -34,17 +40,17 @@
   --popover-foreground: #0f172a;
   --primary: #009900;
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
+  --secondary: #e6f9e6;
+  --secondary-foreground: #009900;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
+  --accent: #e6f9e6;
+  --accent-foreground: #009900;
   --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #00cc00;
+  --ring: #009900;
   --radius: 0.75rem;
 }
 
@@ -156,7 +162,10 @@
 
 /* Mobile touch improvements */
 @media (max-width: 768px) {
-  button, a, [role="button"] {
+
+  button,
+  a,
+  [role="button"] {
     -webkit-tap-highlight-color: transparent;
   }
 }

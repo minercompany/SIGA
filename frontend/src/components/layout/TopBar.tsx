@@ -190,7 +190,7 @@ export function TopBar() {
                 </div>
             )}
 
-            <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-teal-100/50 px-4 md:px-8 bg-white/90 backdrop-blur-md shadow-sm">
+            <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-emerald-100/50 px-4 md:px-8 bg-white/90 backdrop-blur-md shadow-sm">
 
                 {/* Search Mobile Overlay */}
                 {mobileSearchOpen && (
@@ -209,7 +209,7 @@ export function TopBar() {
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
-                            {isSearching && <div className="h-4 w-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />}
+                            {isSearching && <div className="h-4 w-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />}
                         </div>
                         {/* Resultados Mobile Flotantes */}
                         {showResults && searchResults.length > 0 && (
@@ -221,7 +221,7 @@ export function TopBar() {
                                             onClick={() => handleSelectMember(item)}
                                             className="w-full text-left px-4 py-4 border-b border-slate-50 hover:bg-slate-50 flex items-center gap-3"
                                         >
-                                            <div className="h-10 w-10 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
+                                            <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center font-bold">
                                                 {item.nombreCompleto?.charAt(0)}
                                             </div>
                                             <div>
@@ -248,8 +248,8 @@ export function TopBar() {
 
                     {/* Búsqueda Desktop */}
                     <div className="hidden md:flex flex-col relative" ref={searchContainerRef}>
-                        <div className="w-80 lg:w-96 flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 border border-slate-200/80 focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-100 transition-all">
-                            <Search className={`h-4 w-4 text-slate-400 ${isSearching ? 'animate-spin text-teal-500' : ''}`} />
+                        <div className="w-80 lg:w-96 flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 border border-slate-200/80 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
+                            <Search className={`h-4 w-4 text-slate-400 ${isSearching ? 'animate-spin text-emerald-500' : ''}`} />
                             <input
                                 type="text"
                                 value={searchTerm}
@@ -270,11 +270,11 @@ export function TopBar() {
                                             onClick={() => handleSelectMember(item)}
                                             className="w-full text-left px-3 py-3 hover:bg-slate-50 rounded-lg group transition-colors flex items-center gap-3"
                                         >
-                                            <div className="h-8 w-8 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center font-bold text-xs group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors">
+                                            <div className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center font-bold text-xs group-hover:bg-emerald-100 group-hover:text-emerald-500 transition-colors">
                                                 {item.nombreCompleto?.charAt(0) || "?"}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-bold text-slate-700 group-hover:text-teal-700">{item.nombreCompleto}</p>
+                                                <p className="text-sm font-bold text-slate-700 group-hover:text-emerald-500">{item.nombreCompleto}</p>
                                                 <p className="text-xs text-slate-500 flex gap-2">
                                                     <span>CI: {item.cedula || item.username}</span>
                                                     {item.nroSocio && <span className="bg-slate-100 px-1 rounded text-slate-600 font-mono">#{item.nroSocio}</span>}
@@ -305,8 +305,8 @@ export function TopBar() {
 
                 {/* Brand Mobile - Logo & Text */}
                 <div className="flex md:hidden flex-1 items-center justify-center gap-2 px-2 animate-in fade-in duration-700">
-                    <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded-full bg-white p-1 shadow-sm border border-teal-50 flex-shrink-0" />
-                    <span className="text-[11px] font-black text-teal-800 tracking-tight whitespace-nowrap leading-none">
+                    <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded-full bg-white p-1 shadow-sm border border-emerald-50 flex-shrink-0" />
+                    <span className="text-[11px] font-black text-emerald-800 tracking-tight whitespace-nowrap leading-none">
                         ASAMBLEA REDUCTO 2026
                     </span>
                 </div>
@@ -314,16 +314,16 @@ export function TopBar() {
                 {/* Centro - Fecha y hora y countdown */}
                 <div className="hidden lg:flex items-center gap-6">
                     <div className="flex items-center gap-3 text-slate-500 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
-                        <Calendar className="h-4 w-4 text-teal-500" />
+                        <Calendar className="h-4 w-4 text-emerald-500" />
                         <span className="text-sm font-medium capitalize">{currentDate}</span>
                         <div className="h-4 w-px bg-slate-200" />
-                        <span className="text-sm font-bold text-teal-600 tabular-nums">{currentTime}</span>
+                        <span className="text-sm font-bold text-emerald-500 tabular-nums">{currentTime}</span>
                     </div>
 
                     {daysUntil !== null && (
-                        <div className="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl shadow-lg shadow-teal-200/50 animate-pulse transition-all">
+                        <div className="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-500 rounded-2xl shadow-lg shadow-emerald-200/50 animate-pulse transition-all">
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-teal-100 uppercase tracking-widest leading-none">Días para Asamblea</span>
+                                <span className="text-[10px] font-black text-emerald-100 uppercase tracking-widest leading-none">Días para Asamblea</span>
                                 <span className="text-lg font-black text-white leading-none mt-1">{daysUntil} {daysUntil === 1 ? 'DÍA' : 'DÍAS'}</span>
                             </div>
                         </div>
@@ -351,13 +351,13 @@ export function TopBar() {
                     <div className="relative" ref={userMenuRef}>
                         <button
                             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                            className="flex items-center gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors outline-none focus:ring-2 focus:ring-teal-100"
+                            className="flex items-center gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors outline-none focus:ring-2 focus:ring-emerald-100"
                         >
                             <div className="text-right hidden md:block">
                                 <p className="text-sm font-bold text-slate-700">{user?.nombreCompleto || "Cargando..."}</p>
-                                <p className="text-xs text-teal-600 font-medium">{user?.rol || "Usuario"}</p>
+                                <p className="text-xs text-emerald-500 font-medium">{user?.rol || "Usuario"}</p>
                             </div>
-                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-200/50 ring-2 ring-white">
+                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-200/50 ring-2 ring-white">
                                 {user?.fotoPerfil ? (
                                     <img
                                         src={user.fotoPerfil}
@@ -375,7 +375,7 @@ export function TopBar() {
                             <div className="absolute right-0 top-14 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2 z-50">
                                 {/* Header del Dropdown */}
                                 <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
-                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-md text-white font-bold text-xl">
+                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-500 flex items-center justify-center shadow-md text-white font-bold text-xl">
                                         {user?.fotoPerfil ? (
                                             <img src={user.fotoPerfil} alt="" className="h-full w-full rounded-full object-cover" />
                                         ) : (
@@ -391,23 +391,23 @@ export function TopBar() {
                                 <div className="p-2 space-y-1">
                                     <button
                                         onClick={() => { setIsUserMenuOpen(false); window.location.href = '/configuracion'; }}
-                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-colors group"
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-emerald-500 hover:bg-emerald-50 transition-colors group"
                                     >
-                                        <UserCircle className="h-5 w-5 text-slate-400 group-hover:text-teal-500" />
+                                        <UserCircle className="h-5 w-5 text-slate-400 group-hover:text-emerald-500" />
                                         Mi Perfil
                                     </button>
                                     <button
                                         onClick={() => { setIsUserMenuOpen(false); window.location.href = '/mensajes/chat'; }}
-                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-colors group"
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-emerald-500 hover:bg-emerald-50 transition-colors group"
                                     >
-                                        <Mail className="h-5 w-5 text-slate-400 group-hover:text-teal-500" />
+                                        <Mail className="h-5 w-5 text-slate-400 group-hover:text-emerald-500" />
                                         Ver Mensajes
                                     </button>
                                     <button
                                         onClick={() => { setIsUserMenuOpen(false); window.location.href = '/configuracion'; }}
-                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-colors group"
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-emerald-500 hover:bg-emerald-50 transition-colors group"
                                     >
-                                        <Settings className="h-5 w-5 text-slate-400 group-hover:text-teal-500" />
+                                        <Settings className="h-5 w-5 text-slate-400 group-hover:text-emerald-500" />
                                         Configuración
                                     </button>
                                 </div>

@@ -259,7 +259,7 @@ const ConfiguracionModoPrueba = () => {
                         <li>Asistencias marcadas</li>
                         <li>Usuarios creados</li>
                     </ul>
-                    <p class="text-emerald-600 font-bold mt-4">✅ Los datos originales serán restaurados.</p>
+                    <p class="text-emerald-500 font-bold mt-4">✅ Los datos originales serán restaurados.</p>
                 </div>
             `,
             icon: 'warning',
@@ -418,10 +418,10 @@ const ResetOptionsPanel = ({ isAdminMode, accessCode, setAccessCode, checkAccess
                 ) : (
                     <div className="space-y-6">
                         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex justify-between items-center">
-                            <span className="text-sm font-bold text-emerald-700 flex items-center gap-2">
+                            <span className="text-sm font-bold text-teal-500 flex items-center gap-2">
                                 <Check className="h-4 w-4" /> Modo Administrador
                             </span>
-                            <button onClick={() => setIsAdminMode(false)} className="text-xs text-emerald-600 font-bold hover:underline">Bloquear</button>
+                            <button onClick={() => setIsAdminMode(false)} className="text-xs text-emerald-500 font-bold hover:underline">Bloquear</button>
                         </div>
 
                         <div className="space-y-4">
@@ -791,7 +791,7 @@ export default function ConfiguracionPage() {
                             {fotoPerfil || user?.fotoPerfil ? (
                                 <img src={fotoPerfil || user?.fotoPerfil} alt="Perfil" className="w-full h-full object-cover" />
                             ) : (
-                                <UserCircle2 className="h-12 w-12 text-emerald-600" />
+                                <UserCircle2 className="h-12 w-12 text-emerald-500" />
                             )}
                         </div>
                         <label className="absolute bottom-4 right-0 p-1.5 bg-slate-800 rounded-full text-white cursor-pointer hover:bg-black transition-colors shadow-lg">
@@ -801,7 +801,7 @@ export default function ConfiguracionPage() {
                     </div>
                     <h2 className="font-bold text-slate-800 line-clamp-1">{user?.nombreCompleto}</h2>
                     <p className="text-xs text-slate-400 font-medium mb-4">@{user?.username}</p>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-[10px] font-black uppercase tracking-wider">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-50 text-teal-500 rounded-full text-[10px] font-black uppercase tracking-wider">
                         <UserCircle2 className="h-3 w-3" />
                         ROL: {user?.rol}
                     </div>
@@ -809,7 +809,7 @@ export default function ConfiguracionPage() {
 
                 <div className="md:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                     <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2" data-tour="config-profile">
-                        <Key className="h-4 w-4 text-emerald-600" />
+                        <Key className="h-4 w-4 text-emerald-500" />
                         <h2 className="text-sm font-bold text-slate-700 uppercase">Datos Personales & Seguridad</h2>
                     </div>
 
@@ -860,7 +860,7 @@ export default function ConfiguracionPage() {
                     <form onSubmit={handleChangePassword} className="p-5 space-y-4">
                         <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Seguridad de la Cuenta</h3>
                         {message && message.text.includes("Contraseña") && (
-                            <div className={`p-3 rounded-lg text-xs font-bold flex items-center gap-2 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                            <div className={`p-3 rounded-lg text-xs font-bold flex items-center gap-2 ${message.type === 'success' ? 'bg-emerald-50 text-teal-500' : 'bg-red-50 text-red-700'}`}>
                                 {message.type === 'success' ? <Check className="h-4 w-4" /> : <ShieldAlert className="h-4 w-4" />}
                                 {message.text}
                             </div>
@@ -896,7 +896,7 @@ export default function ConfiguracionPage() {
                         <button
                             type="submit"
                             disabled={savingPass}
-                            className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                            className="bg-emerald-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-teal-500 transition-colors shadow-lg shadow-emerald-500/20 disabled:opacity-50"
                         >
                             {savingPass ? "Guardando..." : "Actualizar Contraseña"}
                         </button>
@@ -993,12 +993,12 @@ export default function ConfiguracionPage() {
                             <div className="rounded-3xl bg-white p-8 shadow-2xl border-4 border-emerald-500/20 space-y-8 animate-in zoom-in-95 duration-300">
                                 <div className="flex items-center justify-between border-b border-slate-100 pb-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="p-4 bg-emerald-600 rounded-2xl shadow-lg shadow-emerald-200">
+                                        <div className="p-4 bg-emerald-500 rounded-2xl shadow-lg shadow-emerald-200">
                                             <ShieldAlert className="h-7 w-7 text-white" />
                                         </div>
                                         <div>
                                             <h2 className="text-2xl font-black text-slate-800 tracking-tight uppercase italic">Modificador Maestro</h2>
-                                            <p className="text-emerald-600 text-xs font-black uppercase tracking-widest">Control Total de Estados</p>
+                                            <p className="text-emerald-500 text-xs font-black uppercase tracking-widest">Control Total de Estados</p>
                                         </div>
                                     </div>
                                     <button
@@ -1061,7 +1061,7 @@ export default function ConfiguracionPage() {
                                                                 <div className={`h-6 w-6 rounded-full bg-white shadow flex items-center justify-center transition-all transform ${(socio as any)[item.field] ? 'translate-x-6' : 'translate-x-0'
                                                                     }`}>
                                                                     {(socio as any)[item.field] ? (
-                                                                        <Check className="h-3 w-3 text-emerald-600" />
+                                                                        <Check className="h-3 w-3 text-emerald-500" />
                                                                     ) : (
                                                                         <X className="h-3 w-3 text-slate-300" />
                                                                     )}

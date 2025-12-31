@@ -155,7 +155,7 @@ export default function DirectAssignmentMaster() {
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-slate-500 font-medium">Asignado a:</span>
-                                    <span class="font-bold text-emerald-700">${socioEncontrado.asignadoAUsuario}</span>
+                                    <span class="font-bold text-teal-500">${socioEncontrado.asignadoAUsuario}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-slate-500 font-medium">Lista:</span>
@@ -265,7 +265,7 @@ export default function DirectAssignmentMaster() {
                                             <span class="text-lg">👤</span>
                                             <span class="text-sm text-slate-600">Asignado a</span>
                                         </div>
-                                        <span class="font-bold text-emerald-700 text-sm">${data.listaUsuario || 'Otro usuario'}</span>
+                                        <span class="font-bold text-teal-500 text-sm">${data.listaUsuario || 'Otro usuario'}</span>
                                     </div>
                                     
                                     <div class="flex items-center justify-between p-3 bg-violet-50 rounded-xl border border-violet-100">
@@ -325,7 +325,7 @@ export default function DirectAssignmentMaster() {
             {/* HEADER */}
             <header className="mb-8 text-center md:text-left">
                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-                    Asignación <span className="text-emerald-600">Admin</span>
+                    Asignación <span className="text-emerald-500">Admin</span>
                 </h1>
                 <p className="text-slate-500 font-medium">Sistema rápido de distribución de socios.</p>
             </header>
@@ -340,7 +340,7 @@ export default function DirectAssignmentMaster() {
 
                         {/* Buscador de Responsable Header */}
                         <div className="p-6 bg-slate-50 border-b border-slate-100">
-                            <label className="block text-sm font-bold text-emerald-600 uppercase tracking-wider mb-2">
+                            <label className="block text-sm font-bold text-emerald-500 uppercase tracking-wider mb-2">
                                 Paso 1: Selecciona Responsable
                             </label>
                             <div className="relative">
@@ -374,7 +374,7 @@ export default function DirectAssignmentMaster() {
                                                 {resp.responsable.charAt(0)}
                                             </div>
                                             <div>
-                                                <div className="font-bold text-slate-800 text-lg leading-tight group-hover:text-emerald-700">
+                                                <div className="font-bold text-slate-800 text-lg leading-tight group-hover:text-teal-500">
                                                     {resp.responsable}
                                                 </div>
                                                 <div className="text-sm text-slate-400 flex items-center gap-2">
@@ -423,7 +423,7 @@ export default function DirectAssignmentMaster() {
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-emerald-600 px-4 py-2 rounded-lg font-bold">
+                        <div className="bg-emerald-500 px-4 py-2 rounded-lg font-bold">
                             Total: {selectedTarget.total}
                         </div>
                     </div>
@@ -490,7 +490,7 @@ export default function DirectAssignmentMaster() {
                                                     ⚠️ YA ASIGNADO
                                                 </div>
                                             ) : (
-                                                <div className="inline-block bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded mb-2 uppercase">
+                                                <div className="inline-block bg-emerald-100 text-teal-500 text-xs font-bold px-2 py-1 rounded mb-2 uppercase">
                                                     Socio Encontrado
                                                 </div>
                                             )}
@@ -527,7 +527,7 @@ export default function DirectAssignmentMaster() {
                                                 disabled={loading} // SE PERMITE CLIC AUNQUE ESTÉ ASIGNADO PARA VER EL DETALLE
                                                 className={`w-full md:w-auto text-xl font-bold py-4 px-8 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${socioEncontrado.yaAsignado
                                                     ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/30'
-                                                    : 'bg-slate-900 hover:bg-emerald-600 text-white hover:shadow-emerald-500/30 active:scale-95'
+                                                    : 'bg-slate-900 hover:bg-emerald-500 text-white hover:shadow-emerald-500/30 active:scale-95'
                                                     }`}
                                             >
                                                 {loading ? <Loader2 className="animate-spin" /> : (

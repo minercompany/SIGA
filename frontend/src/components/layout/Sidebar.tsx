@@ -259,7 +259,7 @@ export function Sidebar() {
         <>
             {/* Logo y título */}
             <div className={cn(
-                "flex items-center border-b border-teal-600/30 transition-all duration-300",
+                "flex items-center border-b border-emerald-500/30 transition-all duration-300",
                 effectiveCollapsed ? "h-20 justify-center p-2" : "h-24 justify-start p-4 gap-3 ml-2"
             )}>
                 <div className="flex-shrink-0">
@@ -275,7 +275,7 @@ export function Sidebar() {
                 {!effectiveCollapsed && (
                     <div className="flex flex-col min-w-0">
                         <span className="text-sm font-bold text-white truncate">Cooperativa Reducto</span>
-                        <span className="text-xs text-teal-200/80">Sistema de Asambleas</span>
+                        <span className="text-xs text-emerald-200/80">Sistema de Asambleas</span>
                     </div>
                 )}
             </div>
@@ -330,13 +330,13 @@ export function Sidebar() {
                                             effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
                                             isActive
                                                 ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
-                                                : "text-teal-100 hover:bg-white/10 hover:text-white"
+                                                : "text-emerald-100 hover:bg-white/10 hover:text-white"
                                         )}
                                     >
                                         <item.icon className={cn(
                                             "h-5 w-5 flex-shrink-0 transition-colors",
                                             effectiveCollapsed ? "" : "mr-3",
-                                            isActive ? "text-white" : "text-teal-200 group-hover:text-white"
+                                            isActive ? "text-white" : "text-emerald-200 group-hover:text-white"
                                         )} />
                                         {!effectiveCollapsed && <span className="text-sm truncate">{item.name}</span>}
                                     </Link>
@@ -380,19 +380,19 @@ export function Sidebar() {
                                         effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
                                         (isActive)
                                             ? "text-white"
-                                            : "text-teal-100 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/5"
+                                            : "text-emerald-100 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/5"
                                     )}
                                 >
                                     <item.icon className={cn(
                                         "h-5 w-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110",
                                         effectiveCollapsed ? "" : "mr-3",
-                                        isActive ? "text-white" : "text-teal-200 group-hover:text-white"
+                                        isActive ? "text-white" : "text-emerald-200 group-hover:text-white"
                                     )} />
                                     {!effectiveCollapsed && (
                                         <>
                                             <span className="text-sm truncate flex-1 text-left font-bold">{item.name}</span>
                                             <ChevronDown className={cn(
-                                                "h-4 w-4 transition-transform duration-200 text-teal-300",
+                                                "h-4 w-4 transition-transform duration-200 text-emerald-300",
                                                 isExpanded ? "rotate-180" : ""
                                             )} />
                                         </>
@@ -400,7 +400,7 @@ export function Sidebar() {
                                 </button>
 
                                 {!effectiveCollapsed && isExpanded && (
-                                    <div className="mt-1 ml-4 space-y-1 border-l-2 border-teal-500/30 pl-3">
+                                    <div className="mt-1 ml-4 space-y-1 border-l-2 border-emerald-500/30 pl-3">
                                         {filteredSubmenu.map((sub: any) => {
                                             const isSubActive = pathname === sub.href;
                                             return (
@@ -411,12 +411,12 @@ export function Sidebar() {
                                                         "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
                                                         isSubActive
                                                             ? "bg-white/20 text-white shadow-sm backdrop-blur-sm"
-                                                            : "text-teal-200 hover:bg-white/10 hover:text-white"
+                                                            : "text-emerald-200 hover:bg-white/10 hover:text-white"
                                                     )}
                                                 >
                                                     <sub.icon className={cn(
                                                         "h-4 w-4 mr-2",
-                                                        isSubActive ? "text-white" : "text-teal-300"
+                                                        isSubActive ? "text-white" : "text-emerald-300"
                                                     )} />
                                                     {sub.name}
                                                 </Link>
@@ -436,11 +436,11 @@ export function Sidebar() {
                                                 damping: 20,
                                                 stiffness: 300
                                             }}
-                                            className="fixed left-[72px] w-64 bg-gradient-to-br from-slate-900 to-teal-950 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] border border-white/10 overflow-hidden"
+                                            className="fixed left-[72px] w-64 bg-gradient-to-br from-slate-900 to-emerald-950 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] border border-white/10 overflow-hidden"
                                         >
                                             <div className="absolute left-[-6px] top-6 w-3 h-3 bg-slate-900 rotate-45 border-l border-b border-white/10" />
                                             <div className="p-4 bg-white/5 border-b border-white/5">
-                                                <div className="text-[10px] font-black text-teal-400 uppercase tracking-[0.2em] mb-1">Módulo</div>
+                                                <div className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-1">Módulo</div>
                                                 <div className="text-sm font-black text-white">{item.name}</div>
                                             </div>
                                             <div className="p-2 space-y-1">
@@ -453,13 +453,13 @@ export function Sidebar() {
                                                             className={cn(
                                                                 "group flex items-center rounded-xl px-3 py-3 text-sm font-bold transition-all duration-300",
                                                                 isSubActive
-                                                                    ? "bg-teal-500 text-white shadow-lg shadow-teal-500/30"
+                                                                    ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
                                                                     : "text-slate-300 hover:bg-white/10 hover:text-white"
                                                             )}
                                                         >
                                                             <sub.icon className={cn(
                                                                 "h-4 w-4 mr-3 transition-transform duration-300 group-hover:scale-110",
-                                                                isSubActive ? "text-white" : "text-teal-500/70"
+                                                                isSubActive ? "text-white" : "text-emerald-500/70"
                                                             )} />
                                                             {sub.name}
                                                         </Link>
@@ -477,7 +477,7 @@ export function Sidebar() {
 
             {/* Botón colapsar (solo desktop) */}
             {!isMobile && (
-                <div className="px-2 py-2 border-t border-teal-600/30">
+                <div className="px-2 py-2 border-t border-emerald-500/30">
                     <div
                         className="relative"
                         onMouseEnter={() => effectiveCollapsed && setHoveredMenu("collapse-btn")}
@@ -485,7 +485,7 @@ export function Sidebar() {
                     >
                         <button
                             onClick={() => setCollapsed(!collapsed)}
-                            className="flex w-full items-center justify-center rounded-xl px-3 py-2.5 text-teal-200 hover:bg-white/10 hover:text-white transition-all shadow-sm"
+                            className="flex w-full items-center justify-center rounded-xl px-3 py-2.5 text-emerald-200 hover:bg-white/10 hover:text-white transition-all shadow-sm"
                         >
                             {collapsed ? (
                                 <ChevronRight className="h-5 w-5" />
@@ -514,7 +514,7 @@ export function Sidebar() {
             )}
 
             {/* Cerrar sesión */}
-            <div className="border-t border-teal-600/30 p-2">
+            <div className="border-t border-emerald-500/30 p-2">
                 <div
                     className="relative"
                     onMouseEnter={() => effectiveCollapsed && setHoveredMenu("logout-btn")}
@@ -523,7 +523,7 @@ export function Sidebar() {
                     <button
                         onClick={handleLogout}
                         className={cn(
-                            "flex w-full items-center rounded-xl text-teal-200 hover:bg-red-500/20 hover:text-red-300 transition-all",
+                            "flex w-full items-center rounded-xl text-emerald-200 hover:bg-red-500/20 hover:text-red-300 transition-all",
                             effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5"
                         )}
                     >
@@ -564,7 +564,7 @@ export function Sidebar() {
                 className={cn(
                     "flex h-screen flex-col text-white shadow-2xl transition-all duration-300 ease-in-out",
                     // Gradiente verde pastel (RESTAURADO)
-                    "bg-gradient-to-b from-teal-700 via-teal-600 to-emerald-700",
+                    "bg-gradient-to-b from-emerald-500 via-emerald-500 to-emerald-500",
                     // Ancho
                     effectiveCollapsed ? "w-16" : "w-64",
                     // Posición móvil
@@ -574,7 +574,7 @@ export function Sidebar() {
             >
                 {/* Logo y título */}
                 <div className={cn(
-                    "flex items-center border-b border-teal-600/30 transition-all duration-300",
+                    "flex items-center border-b border-emerald-500/30 transition-all duration-300",
                     effectiveCollapsed ? "h-20 justify-center p-2" : "h-24 justify-start p-4 gap-3 ml-2"
                 )}>
                     <div className="flex-shrink-0">
@@ -590,7 +590,7 @@ export function Sidebar() {
                     {!effectiveCollapsed && (
                         <div className="flex flex-col min-w-0">
                             <span className="text-sm font-bold text-white truncate">Cooperativa Reducto</span>
-                            <span className="text-xs text-teal-200/80">Sistema de Asambleas</span>
+                            <span className="text-xs text-emerald-200/80">Sistema de Asambleas</span>
                         </div>
                     )}
                 </div>
@@ -642,13 +642,13 @@ export function Sidebar() {
                                                 effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
                                                 isActive
                                                     ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
-                                                    : "text-teal-100 hover:bg-white/10 hover:text-white"
+                                                    : "text-emerald-100 hover:bg-white/10 hover:text-white"
                                             )}
                                         >
                                             <item.icon className={cn(
                                                 "h-5 w-5 flex-shrink-0 transition-colors",
                                                 effectiveCollapsed ? "" : "mr-3",
-                                                isActive ? "text-white" : "text-teal-200 group-hover:text-white"
+                                                isActive ? "text-white" : "text-emerald-200 group-hover:text-white"
                                             )} />
                                             {!effectiveCollapsed && <span className="text-sm truncate">{item.name}</span>}
                                         </Link>
@@ -692,19 +692,19 @@ export function Sidebar() {
                                             effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
                                             (isActive)
                                                 ? "text-white"
-                                                : "text-teal-100 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/5"
+                                                : "text-emerald-100 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/5"
                                         )}
                                     >
                                         <item.icon className={cn(
                                             "h-5 w-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110",
                                             effectiveCollapsed ? "" : "mr-3",
-                                            isActive ? "text-white" : "text-teal-200 group-hover:text-white"
+                                            isActive ? "text-white" : "text-emerald-200 group-hover:text-white"
                                         )} />
                                         {!effectiveCollapsed && (
                                             <>
                                                 <span className="text-sm truncate flex-1 text-left font-bold">{item.name}</span>
                                                 <ChevronDown className={cn(
-                                                    "h-4 w-4 transition-transform duration-200 text-teal-300",
+                                                    "h-4 w-4 transition-transform duration-200 text-emerald-300",
                                                     isExpanded ? "rotate-180" : ""
                                                 )} />
                                             </>
@@ -712,7 +712,7 @@ export function Sidebar() {
                                     </button>
 
                                     {!effectiveCollapsed && isExpanded && (
-                                        <div className="mt-1 ml-4 space-y-1 border-l-2 border-teal-500/30 pl-3">
+                                        <div className="mt-1 ml-4 space-y-1 border-l-2 border-emerald-500/30 pl-3">
                                             {filteredSubmenu.map((sub: any) => {
                                                 const isSubActive = pathname === sub.href;
                                                 return (
@@ -723,12 +723,12 @@ export function Sidebar() {
                                                             "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
                                                             isSubActive
                                                                 ? "bg-white/20 text-white shadow-sm backdrop-blur-sm"
-                                                                : "text-teal-200 hover:bg-white/10 hover:text-white"
+                                                                : "text-emerald-200 hover:bg-white/10 hover:text-white"
                                                         )}
                                                     >
                                                         <sub.icon className={cn(
                                                             "h-4 w-4 mr-2",
-                                                            isSubActive ? "text-white" : "text-teal-300"
+                                                            isSubActive ? "text-white" : "text-emerald-300"
                                                         )} />
                                                         {sub.name}
                                                     </Link>
@@ -749,7 +749,7 @@ export function Sidebar() {
                                             >
                                                 <div className="absolute left-[-5px] top-6 w-2.5 h-2.5 bg-slate-800 rotate-45 border-l border-b border-slate-700/50" />
                                                 <div className="px-4 py-2 bg-slate-900/50 border-b border-slate-700/50">
-                                                    <div className="text-[10px] font-bold text-teal-400 uppercase tracking-wider">{item.name}</div>
+                                                    <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">{item.name}</div>
                                                 </div>
                                                 <div className="p-1.5 space-y-0.5">
                                                     {filteredSubmenu.map((sub: any) => {
@@ -761,7 +761,7 @@ export function Sidebar() {
                                                                 className={cn(
                                                                     "block px-3 py-2 text-xs font-medium rounded-lg transition-colors",
                                                                     isSubActive
-                                                                        ? "bg-teal-600 text-white shadow-sm"
+                                                                        ? "bg-emerald-500 text-white shadow-sm"
                                                                         : "text-slate-300 hover:bg-white/5 hover:text-white"
                                                                 )}
                                                             >
@@ -781,7 +781,7 @@ export function Sidebar() {
 
                 {/* Botón colapsar (solo desktop) */}
                 {!isMobile && (
-                    <div className="px-2 py-2 border-t border-teal-600/30">
+                    <div className="px-2 py-2 border-t border-emerald-500/30">
                         <div
                             className="relative"
                             onMouseEnter={() => effectiveCollapsed && setHoveredMenu("collapse-btn")}
@@ -789,7 +789,7 @@ export function Sidebar() {
                         >
                             <button
                                 onClick={() => setCollapsed(!collapsed)}
-                                className="flex w-full items-center justify-center rounded-xl px-3 py-2.5 text-teal-200 hover:bg-white/10 hover:text-white transition-all shadow-sm"
+                                className="flex w-full items-center justify-center rounded-xl px-3 py-2.5 text-emerald-200 hover:bg-white/10 hover:text-white transition-all shadow-sm"
                             >
                                 {collapsed ? (
                                     <ChevronRight className="h-5 w-5" />
@@ -819,7 +819,7 @@ export function Sidebar() {
                 )}
 
                 {/* Cerrar sesión */}
-                <div className="border-t border-teal-600/30 p-2">
+                <div className="border-t border-emerald-500/30 p-2">
                     <div
                         className="relative"
                         onMouseEnter={() => effectiveCollapsed && setHoveredMenu("logout-btn")}
@@ -828,7 +828,7 @@ export function Sidebar() {
                         <button
                             onClick={handleLogout}
                             className={cn(
-                                "flex w-full items-center rounded-xl text-teal-200 hover:bg-red-500/20 hover:text-red-300 transition-all",
+                                "flex w-full items-center rounded-xl text-emerald-200 hover:bg-red-500/20 hover:text-red-300 transition-all",
                                 effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5"
                             )}
                         >

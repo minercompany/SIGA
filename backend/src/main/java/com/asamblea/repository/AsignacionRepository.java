@@ -7,15 +7,15 @@ import java.util.List;
 
 public interface AsignacionRepository extends JpaRepository<Asignacion, Long> {
 
-        // Explicitly define the query to avoid potential naming convention issues
-        @Query("SELECT a FROM Asignacion a WHERE a.listaAsignacion.id = :listaId")
+        // Explicitly define the query - SOLO socios en padrón actual
+        @Query("SELECT a FROM Asignacion a WHERE a.listaAsignacion.id = :listaId AND a.socio.enPadronActual = true")
         List<Asignacion> findByListaAsignacionId(
                         @org.springframework.data.repository.query.Param("listaId") Long listaId);
 
-        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.listaAsignacion.id = :listaId AND a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true")
+        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.listaAsignacion.id = :listaId AND a.socio.enPadronActual = true AND a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true")
         Long countVyVByListaId(Long listaId);
 
-        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.listaAsignacion.id = :listaId AND NOT (a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true)")
+        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.listaAsignacion.id = :listaId AND a.socio.enPadronActual = true AND NOT (a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true)")
         Long countSoloVozByListaId(Long listaId);
 
         boolean existsByListaAsignacionIdAndSocioId(Long listaId, Long socioId);
@@ -37,39 +37,40 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long> {
         // ====== Métodos para cálculo de METAS por rol del usuario ======
 
         // Contar asignaciones con Voz y Voto creadas por usuarios con rol específico
-        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.listaAsignacion.usuario.rol = :rol AND a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true")
+        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.socio.enPadronActual = true AND a.listaAsignacion.usuario.rol = :rol AND a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true")
         Long countVyVByUsuarioRol(
                         @org.springframework.data.repository.query.Param("rol") com.asamblea.model.Usuario.Rol rol);
 
         // Contar asignaciones con Solo Voz creadas por usuarios con rol específico
-        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.listaAsignacion.usuario.rol = :rol AND NOT (a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true)")
+        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.socio.enPadronActual = true AND a.listaAsignacion.usuario.rol = :rol AND NOT (a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true)")
         Long countSoloVozByUsuarioRol(
                         @org.springframework.data.repository.query.Param("rol") com.asamblea.model.Usuario.Rol rol);
 
         // Contar asignaciones con Voz y Voto creadas por usuarios SIN el rol
         // especificado (funcionarios)
-        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.listaAsignacion.usuario.rol != :rol AND a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true")
+        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.socio.enPadronActual = true AND a.listaAsignacion.usuario.rol != :rol AND a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true")
         Long countVyVByUsuarioRolNot(
                         @org.springframework.data.repository.query.Param("rol") com.asamblea.model.Usuario.Rol rol);
 
         // Contar asignaciones con Solo Voz creadas por usuarios SIN el rol especificado
-        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.listaAsignacion.usuario.rol != :rol AND NOT (a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true)")
+        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.socio.enPadronActual = true AND a.listaAsignacion.usuario.rol != :rol AND NOT (a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true)")
         Long countSoloVozByUsuarioRolNot(
                         @org.springframework.data.repository.query.Param("rol") com.asamblea.model.Usuario.Rol rol);
 
-        // Total de asignaciones con Voz y Voto (global)
-        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true")
+        // Total de asignaciones con Voz y Voto (global) - SOLO socios en padrón actual
+        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.socio.enPadronActual = true AND a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true")
         Long countTotalVyV();
 
-        // Total de asignaciones con Solo Voz (global)
-        @Query("SELECT COUNT(a) FROM Asignacion a WHERE NOT (a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true)")
+        // Total de asignaciones con Solo Voz (global) - SOLO socios en padrón actual
+        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.socio.enPadronActual = true AND NOT (a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true)")
         Long countTotalSoloVoz();
 
-        // Por usuario específico (para dashboard personal)
-        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.listaAsignacion.usuario.id = :userId AND a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true")
+        // Por usuario específico (para dashboard personal) - SOLO socios en padrón
+        // actual
+        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.socio.enPadronActual = true AND a.listaAsignacion.usuario.id = :userId AND a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true")
         Long countVyVByUsuarioId(@org.springframework.data.repository.query.Param("userId") Long userId);
 
-        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.listaAsignacion.usuario.id = :userId AND NOT (a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true)")
+        @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.socio.enPadronActual = true AND a.listaAsignacion.usuario.id = :userId AND NOT (a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true)")
         Long countSoloVozByUsuarioId(@org.springframework.data.repository.query.Param("userId") Long userId);
 
         // Distribución por sucursal
@@ -80,12 +81,13 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long> {
                         "GROUP BY s.sucursal.nombre ORDER BY COUNT(a.id) DESC")
         java.util.List<Object[]> countBySucursal();
 
-        // Últimas asignaciones (con detalles)
+        // Últimas asignaciones (con detalles) - SOLO socios en padrón actual
         @Query("SELECT s.nombreCompleto, s.numeroSocio, suc.nombre, u.username, " +
                         "CASE WHEN s.aporteAlDia = true AND s.solidaridadAlDia = true AND s.fondoAlDia = true AND s.incoopAlDia = true AND s.creditoAlDia = true THEN true ELSE false END "
                         +
                         "FROM Asignacion a JOIN a.socio s LEFT JOIN s.sucursal suc " +
                         "JOIN a.listaAsignacion l JOIN l.usuario u " +
+                        "WHERE s.enPadronActual = true " +
                         "ORDER BY a.id DESC")
         java.util.List<Object[]> findUltimasAsignaciones();
 }

@@ -10,6 +10,12 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
+import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +73,12 @@ public class AvisosController {
         aviso.setRequiereRespuesta(requiereRespuesta);
         aviso.setIpEmisor(request.getRemoteAddr());
         aviso.setUserAgentEmisor(request.getHeader("User-Agent"));
+
+        // Imagen adjunta
+        String imagenUrl = (String) body.get("imagenUrl");
+        if (imagenUrl != null && !imagenUrl.trim().isEmpty()) {
+            aviso.setImagenUrl(imagenUrl.trim());
+        }
 
         avisoRepository.save(aviso);
 
@@ -127,6 +139,51 @@ public class AvisosController {
                 "success", true,
                 "avisoId", aviso.getId(),
                 "destinatarios", destinatarios.size()));
+    }
+
+    /**
+     * Subir imagen para aviso
+     */
+    @PostMapping("/upload-imagen")
+    public ResponseEntity<?> uploadImagen(@RequestParam("file") MultipartFile file,
+            Authentication auth) {
+        Usuario emisor = getCurrentUser(auth);
+        if (emisor == null || !isAdmin(emisor)) {
+            return ResponseEntity.status(403).body(Map.of("error", "Solo administradores pueden subir imágenes"));
+        }
+
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El archivo está vacío"));
+        }
+
+        try {
+            // Generar nombre único
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : ".jpg";
+            String filename = "aviso_" + UUID.randomUUID().toString() + extension;
+
+            // Directorio de uploads (Ruta dentro del contenedor Docker)
+            // Asegúrate de que esta ruta coincida con el volumen montado en docker-compose
+            Path uploadDir = Paths.get("/app/uploads/avisos");
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+            }
+
+            // Guardar archivo
+            Path filePath = uploadDir.resolve(filename);
+            Files.write(filePath, file.getBytes());
+
+            // URL accesible (mapeada en WebMvcConfig)
+            String imageUrl = "/uploads/avisos/" + filename;
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "imagenUrl", imageUrl));
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Error al guardar imagen: " + e.getMessage()));
+        }
     }
 
     /**
@@ -337,6 +394,7 @@ public class AvisosController {
         map.put("requiereConfirmacion", a.getRequiereConfirmacion());
         map.put("requiereRespuesta", a.getRequiereRespuesta());
         map.put("estadoGeneral", a.getEstadoGeneral());
+        map.put("imagenUrl", a.getImagenUrl());
         if (a.getEmisor() != null) {
             map.put("emisorNombre", a.getEmisor().getNombreCompleto());
         }
@@ -359,6 +417,7 @@ public class AvisosController {
         map.put("confirmadoAt", ad.getConfirmadoAt());
         map.put("respondidoAt", ad.getRespondidoAt());
         map.put("estado", ad.getEstado());
+        map.put("imagenUrl", a.getImagenUrl());
         if (a.getEmisor() != null) {
             map.put("emisorNombre", a.getEmisor().getNombreCompleto());
         }

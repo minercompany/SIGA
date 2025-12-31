@@ -32,6 +32,12 @@ export default function AdminChatPage() {
     const [loading, setLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    // Estados para buscar usuarios (admin)
+    const [showNewChat, setShowNewChat] = useState(false);
+    const [userSearchTerm, setUserSearchTerm] = useState('');
+    const [userSearchResults, setUserSearchResults] = useState<any[]>([]);
+    const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+
     // Cargar conversaciones inicial y polling
     useEffect(() => {
         loadConversaciones();
@@ -107,6 +113,59 @@ export default function AdminChatPage() {
         }
     };
 
+    // Buscar usuarios registrados del sistema (no socios del padrón)
+    const searchUsers = async (term: string) => {
+        if (term.length < 1) {
+            setUserSearchResults([]);
+            return;
+        }
+        setIsSearchingUsers(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(`/api/usuarios/buscar?term=${term}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setUserSearchResults(res.data || []);
+        } catch (error) {
+            console.error('Error searching users:', error);
+        } finally {
+            setIsSearchingUsers(false);
+        }
+    };
+
+    // Iniciar conversación con un usuario
+    const iniciarConversacion = async (usuarioId: number) => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.post(`/api/chat/iniciar-con-usuario/${usuarioId}`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (res.data.conversacion) {
+                setSelectedConv(res.data.conversacion);
+                setMensajes(res.data.mensajes || []);
+                setShowNewChat(false);
+                setUserSearchTerm('');
+                setUserSearchResults([]);
+                loadConversaciones();
+            }
+        } catch (error) {
+            console.error('Error iniciando conversación:', error);
+        }
+    };
+
+    // Effect para buscar usuarios cuando cambia el término
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (userSearchTerm) {
+                searchUsers(userSearchTerm);
+            } else {
+                setUserSearchResults([]);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [userSearchTerm]);
+
     const filteredConversaciones = conversaciones.filter(c =>
         c.usuarioNombre?.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -139,15 +198,25 @@ export default function AdminChatPage() {
                             <MessageCircle className="h-5 w-5 md:h-6 md:w-6 text-white" />
                         </div>
                         <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)' }} className="font-black text-slate-900 tracking-tight">
-                            Centro de <span className="text-teal-600 italic">Mensajería</span>
+                            Centro de <span className="text-teal-500 italic">Mensajería</span>
                         </h1>
                     </div>
                     <p className="text-slate-500 font-medium text-xs md:text-sm">Conversaciones con socios en tiempo real</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setShowNewChat(true)}
+                        className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-teal-200 hover:shadow-xl transition-all"
+                    >
+                        <User className="h-4 w-4" />
+                        <span className="hidden sm:inline">Nueva Conversación</span>
+                        <span className="sm:hidden">Nuevo</span>
+                    </motion.button>
                     <div className="bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">En Línea</span>
+                        <span className="text-[10px] font-black text-teal-500 uppercase tracking-widest hidden sm:inline">En Línea</span>
                     </div>
                 </div>
             </motion.div>
@@ -214,7 +283,7 @@ export default function AdminChatPage() {
                                     </div>
                                     <div className="flex-1 text-left min-w-0">
                                         <div className="flex justify-between items-center mb-1">
-                                            <span className={`font-bold text-sm truncate ${selectedConv?.id === conv.id ? 'text-teal-700' : 'text-slate-700'
+                                            <span className={`font-bold text-sm truncate ${selectedConv?.id === conv.id ? 'text-teal-500' : 'text-slate-700'
                                                 }`}>
                                                 {conv.usuarioNombre}
                                             </span>
@@ -248,7 +317,7 @@ export default function AdminChatPage() {
                                         <h3 className="font-black text-slate-900 text-lg">
                                             {selectedConv.usuarioNombre}
                                         </h3>
-                                        <p className="text-xs text-emerald-600 font-bold flex items-center gap-1.5">
+                                        <p className="text-xs text-emerald-500 font-bold flex items-center gap-1.5">
                                             <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                                             Socio activo
                                         </p>
@@ -317,7 +386,7 @@ export default function AdminChatPage() {
                                         disabled={!nuevoMensaje.trim()}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="px-6 py-4 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-2xl hover:from-teal-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-teal-200 font-bold"
+                                        className="px-6 py-4 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-2xl hover:from-teal-500 hover:to-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-teal-200 font-bold"
                                     >
                                         <Send className="h-5 w-5" />
                                     </motion.button>
@@ -341,6 +410,125 @@ export default function AdminChatPage() {
                     )}
                 </div>
             </motion.div>
+
+            {/* Modal Nueva Conversación - Premium & Responsive */}
+            <AnimatePresence>
+                {showNewChat && (
+                    <>
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowNewChat(false)}
+                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50"
+                        />
+
+                        {/* Modal */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="fixed inset-4 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-md bg-white rounded-2xl shadow-2xl z-50 flex flex-col max-h-[90vh] sm:max-h-[500px] overflow-hidden"
+                        >
+                            {/* Modal Header */}
+                            <div className="px-5 py-4 bg-gradient-to-r from-teal-500 to-emerald-500 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-white/20 rounded-xl">
+                                        <User className="h-5 w-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-black">Nueva Conversación</h3>
+                                        <p className="text-white/70 text-xs">Buscar usuario del sistema</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setShowNewChat(false)}
+                                    className="p-2 hover:bg-white/20 rounded-xl transition-colors"
+                                >
+                                    <span className="text-white text-xl font-bold">×</span>
+                                </button>
+                            </div>
+
+                            {/* Search Input */}
+                            <div className="p-4 border-b border-slate-100">
+                                <div className="relative">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar por nombre, cédula, cargo..."
+                                        value={userSearchTerm}
+                                        onChange={(e) => setUserSearchTerm(e.target.value)}
+                                        className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all placeholder:text-slate-400"
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Results List */}
+                            <div className="flex-1 overflow-y-auto p-4">
+                                {isSearchingUsers ? (
+                                    <div className="flex items-center justify-center py-8">
+                                        <div className="w-6 h-6 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                                        <span className="ml-3 text-slate-500 font-medium">Buscando...</span>
+                                    </div>
+                                ) : userSearchResults.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {userSearchResults.map((user: any) => (
+                                            <motion.button
+                                                key={user.id}
+                                                whileHover={{ scale: 1.01 }}
+                                                whileTap={{ scale: 0.99 }}
+                                                onClick={() => iniciarConversacion(user.id)}
+                                                className="w-full p-4 bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-200 rounded-xl text-left transition-all group"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                                        {user.nombreCompleto?.charAt(0) || 'U'}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-bold text-slate-800 truncate group-hover:text-teal-500">
+                                                            {user.nombreCompleto}
+                                                        </p>
+                                                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                            <span className="font-medium">{user.username}</span>
+                                                            {user.cargo && (
+                                                                <>
+                                                                    <span>•</span>
+                                                                    <span>{user.cargo}</span>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-teal-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <MessageCircle className="h-5 w-5" />
+                                                    </div>
+                                                </div>
+                                            </motion.button>
+                                        ))}
+                                    </div>
+                                ) : userSearchTerm.length > 0 ? (
+                                    <div className="text-center py-8">
+                                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <User className="h-8 w-8 text-slate-300" />
+                                        </div>
+                                        <p className="text-slate-500 font-medium">No se encontraron usuarios</p>
+                                        <p className="text-slate-400 text-sm mt-1">Intentá con otro término de búsqueda</p>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Search className="h-8 w-8 text-teal-300" />
+                                        </div>
+                                        <p className="text-slate-500 font-medium">Buscá un usuario</p>
+                                        <p className="text-slate-400 text-sm mt-1">Por nombre, cédula o cargo</p>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

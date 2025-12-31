@@ -63,7 +63,7 @@ export default function ForcePasswordChange({ onSuccess }: ForcePasswordChangePr
             <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300">
                 <div className="p-10 text-center">
                     <div className="inline-flex p-5 bg-teal-50 rounded-3xl mb-6 relative">
-                        <ShieldAlert className="h-10 w-10 text-teal-600 animate-pulse" />
+                        <ShieldAlert className="h-10 w-10 text-teal-500 animate-pulse" />
                         <div className="absolute -top-1 -right-1 h-4 w-4 bg-teal-500 rounded-full border-4 border-white"></div>
                     </div>
 
@@ -82,10 +82,10 @@ export default function ForcePasswordChange({ onSuccess }: ForcePasswordChangePr
 
                     {success ? (
                         <div className="flex flex-col items-center justify-center py-6 space-y-4 animate-in fade-in zoom-in">
-                            <div className="h-16 w-16 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                            <div className="h-16 w-16 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-500">
                                 <CheckCircle2 className="h-10 w-10" />
                             </div>
-                            <p className="text-emerald-700 font-black uppercase tracking-widest text-xs">Acceso Autorizado</p>
+                            <p className="text-teal-500 font-black uppercase tracking-widest text-xs">Acceso Autorizado</p>
                         </div>
                     ) : (
                         <>
@@ -131,7 +131,7 @@ export default function ForcePasswordChange({ onSuccess }: ForcePasswordChangePr
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full py-5 bg-teal-600 text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-teal-100 hover:bg-teal-700 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                className="w-full py-5 bg-teal-500 text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-teal-100 hover:bg-teal-500 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                             >
                                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Actualizar Contraseña"}
                             </button>

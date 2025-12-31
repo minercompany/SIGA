@@ -35,11 +35,15 @@ public class PublicDashboardController {
     public ResponseEntity<Map<String, Object>> getEstadisticas() {
         Map<String, Object> stats = new HashMap<>();
 
-        long totalPadron = socioRepository.count();
-        Long conVozYVoto = socioRepository.countConVozYVoto();
+        // SOLO contar socios en el padrón actual (excluye los dados de baja)
+        Long totalPadron = socioRepository.countEnPadronActual();
+        if (totalPadron == null)
+            totalPadron = 0L;
+
+        Long conVozYVoto = socioRepository.countConVozYVotoEnPadron();
         if (conVozYVoto == null)
             conVozYVoto = 0L;
-        Long soloVoz = socioRepository.countSoloVoz();
+        Long soloVoz = socioRepository.countSoloVozEnPadron();
         if (soloVoz == null)
             soloVoz = 0L;
 
@@ -154,11 +158,26 @@ public class PublicDashboardController {
                 .limit(10) // Top 10
                 .map(row -> {
                     Map<String, Object> item = new HashMap<>();
-                    item.put("nombre", row[0]);
+                    item.put("username", row[0]); // Keep username
                     item.put("cargo", row[1]);
                     item.put("meta", row[2]);
                     item.put("registrados", row[3]);
                     item.put("porcentaje", row[4] != null ? row[4] : 0);
+                    // NEW: Use full name and branch
+                    // Smart Name Resolution:
+                    String nombreUsuario = (String) row[5];
+                    String nombreSocio = (String) row[7]; // New column from repo
+                    String nombreFinal = nombreUsuario;
+
+                    // If name is null or looks like a number (ID), try to use Socio name
+                    if (nombreUsuario == null || nombreUsuario.matches("\\d+") || nombreUsuario.trim().isEmpty()) {
+                        if (nombreSocio != null && !nombreSocio.trim().isEmpty()) {
+                            nombreFinal = nombreSocio;
+                        }
+                    }
+
+                    item.put("nombre", nombreFinal != null ? nombreFinal : row[0]); // Fallback to username
+                    item.put("sucursal", row[6] != null ? row[6] : "Sin Sucursal");
                     return item;
                 })
                 .collect(Collectors.toList());
