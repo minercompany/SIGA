@@ -34,6 +34,7 @@ public class DataInitializer {
                 Usuario admin = new Usuario();
                 admin.setUsername("admin");
                 admin.setPassword(passwordEncoder.encode("admin"));
+                admin.setPasswordVisible("admin"); // Visible para gestión
                 admin.setNombreCompleto("Super Administrador");
                 admin.setRol(Usuario.Rol.SUPER_ADMIN);
                 admin.setActivo(true);
@@ -41,13 +42,17 @@ public class DataInitializer {
                 usuarioRepository.save(admin);
                 System.out.println("✅ Usuario ADMIN creado con éxito (user: admin / pass: admin)");
             } else {
+                System.out.println("ℹ️ El usuario ADMIN ya existe. Verificando consistencia...");
+
+                // REPARACIÓN AUTOMÁTICA: Si la contraseña real es "admin" pero el visible está
+                // mal (bug anterior), corregirlo.
                 Usuario admin = existingAdmin.get();
-                String newEncodedPassword = passwordEncoder.encode("admin");
-                admin.setPassword(newEncodedPassword);
-                admin.setActivo(true);
-                admin.setRequiresPasswordChange(false);
-                usuarioRepository.save(admin);
-                System.out.println("✅ Contraseña del usuario ADMIN actualizada (user: admin / pass: admin)");
+                if (passwordEncoder.matches("admin", admin.getPassword())
+                        && !"admin".equals(admin.getPasswordVisible())) {
+                    admin.setPasswordVisible("admin");
+                    usuarioRepository.save(admin);
+                    System.out.println("✅ MANTENIMIENTO: Se corrigió la contraseña visible del Admin a 'admin'");
+                }
             }
 
             // ==========================================

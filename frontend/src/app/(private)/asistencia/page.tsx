@@ -61,7 +61,7 @@ export default function AsistenciaPage() {
     const fetchUserRole = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get("/api/usuarios/me", {
+            const res = await axios.get("/api/auth/me", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUserRole(res.data.rol || "");

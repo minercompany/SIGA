@@ -30,7 +30,11 @@ import {
     UserCheck,
     CheckSquare,
     History,
-    Upload
+    Upload,
+    Award,
+    Building2,
+    Briefcase,
+    Clock
 } from "lucide-react";
 import axios from "axios";
 import Swal from 'sweetalert2';
@@ -118,7 +122,11 @@ export default function UsuariosPage() {
         { id: "asignaciones-admin", label: "Asignación Master", icon: ShieldAlert, color: "from-red-500 to-rose-500", bgColor: "bg-red-50", borderColor: "border-red-200", textColor: "text-red-700" },
         { id: "asistencia", label: "Asistencia", icon: ClipboardList, color: "from-sky-500 to-blue-500", bgColor: "bg-sky-50", borderColor: "border-sky-200", textColor: "text-sky-700" },
         { id: "checkin", label: "Check-in", icon: CheckSquare, color: "from-green-500 to-emerald-500", bgColor: "bg-green-50", borderColor: "border-green-200", textColor: "text-green-700" },
-        { id: "reportes", label: "Reportes", icon: FileText, color: "from-slate-500 to-gray-600", bgColor: "bg-slate-50", borderColor: "border-slate-200", textColor: "text-slate-700" },
+        { id: "reportes-general", label: "Reportes Generales", icon: FileText, color: "from-slate-500 to-gray-600", bgColor: "bg-slate-50", borderColor: "border-slate-200", textColor: "text-slate-700" },
+        { id: "ranking-gestion", label: "Ranking de Gestión", icon: Award, color: "from-amber-400 to-yellow-600", bgColor: "bg-amber-50", borderColor: "border-amber-200", textColor: "text-amber-700" },
+        { id: "reportes-sucursal", label: "Reportes Sucursal", icon: Building2, color: "from-indigo-500 to-violet-600", bgColor: "bg-indigo-50", borderColor: "border-indigo-200", textColor: "text-indigo-700" },
+        { id: "reportes-funcionarios", label: "Rep. Funcionarios", icon: Briefcase, color: "from-blue-500 to-cyan-600", bgColor: "bg-blue-50", borderColor: "border-blue-200", textColor: "text-blue-700" },
+        { id: "reportes-asistencia", label: "Rep. Asistencia", icon: Clock, color: "from-rose-500 to-red-600", bgColor: "bg-rose-50", borderColor: "border-rose-200", textColor: "text-rose-700" },
         { id: "mi-reporte", label: "Mi Reporte", icon: ClipboardList, color: "from-indigo-500 to-blue-600", bgColor: "bg-indigo-50", borderColor: "border-indigo-200", textColor: "text-indigo-700" },
         { id: "mensajes-chat", label: "Mensajería", icon: Zap, color: "from-emerald-500 to-blue-500", bgColor: "bg-cyan-50", borderColor: "border-cyan-200", textColor: "text-cyan-700" },
         { id: "mensajes-avisos", label: "Avisos/Notif.", icon: Zap, color: "from-orange-500 to-red-500", bgColor: "bg-orange-50", borderColor: "border-orange-200", textColor: "text-orange-700" },

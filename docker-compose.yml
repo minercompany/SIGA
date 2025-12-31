@@ -61,26 +61,24 @@ services:
       retries: 5
       start_period: 120s
 
-  # Next.js Frontend - Fast deploy with bind mounts
+  # Next.js Frontend - Production Mode (Optimized)
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.frontend.fast
+      dockerfile: Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: https://asamblea.cloud
     container_name: asamblea-frontend
     restart: unless-stopped
     ports:
       - "6002:6001"
     environment:
       NEXT_PUBLIC_API_URL: https://asamblea.cloud
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: 6001
       HOSTNAME: "0.0.0.0"
     volumes:
-      # Dev Mode mounts
-      - /home/SIGA/frontend:/app
-      - /app/node_modules
-    user: root
-    command: sh -c "npm install && npm run dev"
+      - ./uploads:/app/uploads
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6001"]
       interval: 30s

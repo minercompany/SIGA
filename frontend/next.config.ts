@@ -8,11 +8,12 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  reactStrictMode: false,
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://asamblea-backend:8081/api/:path*',
+        destination: `${process.env.API_URL || 'http://asamblea-backend:8081'}/api/:path*`,
       },
     ]
   },

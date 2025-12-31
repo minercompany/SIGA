@@ -314,10 +314,16 @@ public class FuncionarioDirectivoService {
             usuario.setActivo(true);
         }
 
-        // 3. ACTUALIZAR CREDENCIALES (Siempre forzamos Cédula/Cédula)
+        // 3. ACTUALIZAR CREDENCIALES
         usuario.setUsername(cedulaSanitized); // Usuario es la Cédula
-        usuario.setPassword(passwordEncoder.encode(cedulaSanitized)); // Password encriptada
-        usuario.setPasswordVisible(cedulaSanitized); // Contraseña visible para admin
+
+        // SOLO establecer contraseña si el usuario es NUEVO (id nulo)
+        // Esto evita resetear la contraseña de usuarios que ya la cambiaron
+        if (usuario.getId() == null) {
+            usuario.setPassword(passwordEncoder.encode(cedulaSanitized)); // Password encriptada
+            usuario.setPasswordVisible(cedulaSanitized); // Contraseña visible para admin
+            usuario.setActivo(true);
+        }
         usuario.setNombreCompleto(nombreCompleto);
 
         // 4. ASIGNAR ROL según el tipo de funcionario
