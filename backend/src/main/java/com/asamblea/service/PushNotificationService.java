@@ -37,8 +37,10 @@ public class PushNotificationService {
                 }
             }
 
-            // Claves VAPID de demostración (NO PRODUCCIÓN)
-            this.publicKeyEncoded = "BKbk4r2d4_2r5s6t7u8v9w0x1y2z3A4B5C6D7E8F9G0H1I2J3K4L5M6N7O8P9Q0R1S2T3U4V5W6X7Y8Z9a0b1c2d3e4f";
+            // Claves VAPID de prueba
+            // IMPORTANTE: Reemplazar estas claves con unas generadas por `npx web-push
+            // generate-vapid-keys`
+            this.publicKeyEncoded = "BGoBVqq5J8x7y9z1A3B5C7D9E1F3G5H7I9J1K3L5M7N9O1P3Q5R7S9T1U3V5W7X9Y1Z3a5b7c9d1e3f5g7h9i1j3k5";
             this.privateKeyEncoded = "X1y2z3A4B5C6D7E8F9G0H1I2J3K4L5M6N7O8P9Q0R1S";
 
             pushService = new PushService(publicKeyEncoded, privateKeyEncoded, "mailto:admin@asamblea.com");

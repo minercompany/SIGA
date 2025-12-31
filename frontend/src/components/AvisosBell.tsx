@@ -112,6 +112,29 @@ export default function AvisosBell() {
         }
     };
 
+    // Marcar todos como leídos cuando se abre el panel
+    const marcarTodosLeidos = async () => {
+        const noLeidos = avisos.filter(a => !a.leidoAt);
+        if (noLeidos.length === 0) return;
+
+        const token = localStorage.getItem('token');
+        try {
+            // Marcar todos en paralelo
+            await Promise.all(
+                noLeidos.map(aviso =>
+                    axios.put(`/api/avisos/${aviso.id}/leido`, {}, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                )
+            );
+            // Actualizar el estado local inmediatamente
+            setUnreadCount(0);
+            loadAvisos();
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+        }
+    };
+
     const confirmarAviso = async (avisoId: number) => {
         try {
             const token = localStorage.getItem('token');
@@ -159,13 +182,22 @@ export default function AvisosBell() {
     };
 
     const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
+        if (!dateStr) return '';
+
+        // El backend envía la hora en UTC (ej: 21:00) pero sin la 'Z'.
+        // Le agregamos 'Z' para que JS sepa que es UTC.
+        const utcDateStr = dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`;
+        const date = new Date(utcDateStr);
+
+        // Usamos Intl para formatear correctamente a la zona horaria de Paraguay
         return new Intl.DateTimeFormat('es-PY', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            hour12: true,
+            timeZone: 'America/Asuncion' // Forzamos hora de Paraguay
         }).format(date);
     };
 
@@ -174,7 +206,13 @@ export default function AvisosBell() {
             {/* Bell Button Premium - Permanent Style */}
             <div className="relative">
                 <motion.button
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={() => {
+                        const willOpen = !isOpen;
+                        setIsOpen(willOpen);
+                        if (willOpen && unreadCount > 0) {
+                            marcarTodosLeidos();
+                        }
+                    }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="relative p-2.5 rounded-2xl bg-white border border-slate-200 hover:border-teal-300 hover:shadow-lg hover:shadow-teal-100 transition-all"

@@ -369,13 +369,13 @@ export default function IntelligenceHubPage() {
             const pct = metaTotal > 0 ? (regTotal / metaTotal) * 100 : 0;
 
             return [
-                { content: (index + 1).toString(), styles: { halign: 'center', fontStyle: 'bold', textColor: 100 } },
+                { content: (index + 1).toString(), styles: { halign: 'center', fontStyle: 'bold', textColor: [100, 100, 100] as [number, number, number] } },
                 d.name, // Nombre/Entidad 
                 regVyV.toLocaleString(), // Col 2
                 regSV.toLocaleString(),  // Col 3
                 metaVyV.toLocaleString(), // Col 4
                 metaSV.toLocaleString(),  // Col 5
-                { content: `${pct.toFixed(0)}%`, styles: { halign: 'right', fontStyle: 'bold', textColor: pct >= 50 ? colors.primary : colors.accent } }
+                { content: `${pct.toFixed(0)}%`, styles: { halign: 'right', fontStyle: 'bold', textColor: (pct >= 50 ? colors.primary : colors.accent) as [number, number, number] } }
             ];
         });
 
@@ -438,10 +438,10 @@ export default function IntelligenceHubPage() {
                 cellPadding: 3,
                 lineColor: [241, 245, 249],
                 lineWidth: 0.1,
-                textColor: colors.text
+                textColor: colors.text as [number, number, number]
             },
             headStyles: {
-                fillColor: colors.dark, // Emerald oscuro muy elegante
+                fillColor: colors.dark as [number, number, number], // Emerald oscuro muy elegante
                 textColor: [255, 255, 255],
                 fontSize: 7, // Fuente header más pequeña para evitar wraps raros
                 fontStyle: 'bold',

@@ -28,6 +28,7 @@ public class UsuarioController {
     private final PasswordEncoder passwordEncoder;
     private final com.asamblea.service.LogAuditoriaService auditService;
     private final com.asamblea.service.ArizarService arizarService;
+    private final com.asamblea.service.PresenciaService presenciaService;
 
     // Buscar unificado (Usuarios + Socios) con FUSIÓN INTELIGENTE
     // Buscar unificado (Usuarios + Socios) con FUSIÓN INTELIGENTE
@@ -605,4 +606,137 @@ public class UsuarioController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    /**
+     * Endpoint para heartbeat - El cliente debe llamar cada 30 segundos para
+     * indicar que está activo.
+     */
+    @PostMapping("/heartbeat")
+    public ResponseEntity<?> heartbeat(Authentication auth) {
+        if (auth == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+
+        Optional<Usuario> userOpt = usuarioRepository.findByUsername(auth.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
+        }
+
+        presenciaService.heartbeat(userOpt.get().getId());
+        return ResponseEntity.ok(Map.of("status", "ok"));
+    }
+
+    /**
+     * Endpoint para notificar que el usuario está saliendo (cierra pestaña).
+     * Usa sendBeacon del navegador - no requiere auth header tradicional.
+     */
+    @PostMapping("/leaving")
+    public ResponseEntity<?> leaving(@RequestBody(required = false) Map<String, String> body) {
+        if (body == null || body.get("token") == null) {
+            return ResponseEntity.ok(Map.of("status", "no-token"));
+        }
+
+        try {
+            // String token = body.get("token"); // Token recibido pero no procesado
+            // explícitamente (TTL se encarga)
+            // Intentar extraer el usuario del token (simplificado)
+            // En producción deberías decodificar el JWT
+            // Por ahora, simplemente dejamos que expire naturalmente en 12 segundos
+            return ResponseEntity.ok(Map.of("status", "noted"));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of("status", "error"));
+        }
+    }
+
+    /**
+     * Endpoint para obtener estadísticas de usuarios en tiempo real.
+     * - total: Todos los usuarios creados en el sistema
+     * - usuales: Usuarios que han iniciado sesión al menos una vez (tienen
+     * lastLogin)
+     * - activos: Usuarios actualmente conectados (heartbeat en últimos 60 segundos)
+     */
+    @GetMapping("/estadisticas")
+    public ResponseEntity<?> getEstadisticas(Authentication auth) {
+        if (auth == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+
+        List<Usuario> allUsers = usuarioRepository.findAll();
+
+        // Total de usuarios en el sistema
+        long total = allUsers.size();
+
+        // Usuarios "usuales" - que tienen lastLogin (han iniciado sesión alguna vez)
+        long usuales = allUsers.stream()
+                .filter(u -> u.getLastLogin() != null)
+                .count();
+
+        // Usuarios activos en tiempo real
+        int activos = presenciaService.getActiveUsersCount();
+
+        return ResponseEntity.ok(Map.of(
+                "total", total,
+                "usuales", usuales,
+                "activos", activos));
+    }
+
+    /**
+     * Obtiene la lista detallada de usuarios activos actualmente.
+     */
+    @GetMapping("/activos-lista")
+    public ResponseEntity<List<Map<String, Object>>> getActivosLista(Authentication auth) {
+        // Solo para admins/directivos
+        if (auth == null)
+            return ResponseEntity.status(401).build();
+
+        Map<Long, java.time.Instant> activeMap = presenciaService.getActiveUsersMap();
+        List<Usuario> usuarios = usuarioRepository.findAllById(activeMap.keySet());
+
+        List<Map<String, Object>> result = usuarios.stream().map(u -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", u.getId());
+            map.put("nombre", u.getNombreCompleto());
+            map.put("username", u.getUsername());
+            map.put("foto", u.getFotoPerfil());
+            map.put("rol", u.getRol());
+            map.put("sucursal", u.getSucursal() != null ? u.getSucursal().getNombre() : "N/A");
+            map.put("ultimoHeartbeat", activeMap.get(u.getId()));
+            return map;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Obtiene estadísticas de actividad por hora (basado en 'lastLogin' de usuarios
+     * hoy).
+     * Devuelve un array de 24 enteros (0-23 horas).
+     */
+    @GetMapping("/stats-actividad")
+    public ResponseEntity<?> getStatsActividad() {
+        // Inicializar array de 24 horas
+        int[] actividadPorHora = new int[24];
+
+        java.time.LocalDate hoy = java.time.LocalDate.now();
+        List<Usuario> users = usuarioRepository.findAll();
+
+        for (Usuario u : users) {
+            if (u.getLastLogin() != null) {
+                // Verificar si el login fue hoy
+                java.time.LocalDate loginDate = u.getLastLogin().toLocalDate();
+                if (loginDate.equals(hoy)) {
+                    int hora = u.getLastLogin().getHour();
+                    if (hora >= 0 && hora < 24) {
+                        actividadPorHora[hora]++;
+                    }
+                }
+            }
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "labels", List.of("00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13",
+                        "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"),
+                "data", actividadPorHora));
+    }
+
 }

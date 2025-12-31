@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, User, Calendar, Menu, X, ArrowLeft, LogOut, Settings, Mail, UserCircle, HelpCircle } from "lucide-react";
+import { Bell, Search, User, Calendar, Menu, X, ArrowLeft, LogOut, Settings, Mail, UserCircle, HelpCircle, Users, Activity, UserCheck } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { WelcomeModal } from "../onboarding/WelcomeModal";
 import AvisosBell from "../AvisosBell";
@@ -20,7 +20,12 @@ export function TopBar() {
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [isDeactivating, setIsDeactivating] = useState(false);
 
-    const { isTestMode, deactivateTestMode } = useConfig();
+    // Estados para estadísticas de usuarios
+    const [userStats, setUserStats] = useState<{ total: number; usuales: number; activos: number }>({
+        total: 0,
+        usuales: 0,
+        activos: 0
+    });
 
     const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -96,6 +101,77 @@ export function TopBar() {
         updateTime();
         const interval = setInterval(updateTime, 1000);
         return () => clearInterval(interval);
+    }, []);
+
+    const { isTestMode, deactivateTestMode } = useConfig();
+
+    // Heartbeat y estadísticas de usuarios
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        // Función para enviar heartbeat
+        const sendHeartbeat = async () => {
+            try {
+                await fetch("/api/usuarios/heartbeat", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+            } catch (error) {
+                // Silently fail - el usuario podría haber cerrado sesión
+            }
+        };
+
+        // Función para notificar al servidor que el usuario se va (usando sendBeacon para máxima confiabilidad)
+        const notifyLeaving = () => {
+            // sendBeacon es más confiable que fetch para eventos de cierre
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon("/api/usuarios/leaving", JSON.stringify({ token }));
+            }
+        };
+
+        // Función para obtener estadísticas
+        const fetchStats = async () => {
+            try {
+                const res = await fetch("/api/usuarios/estadisticas", {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setUserStats(data);
+                }
+            } catch (error) {
+                // Silently fail
+            }
+        };
+
+        // Ejecutar inmediatamente al montar
+        sendHeartbeat();
+        fetchStats();
+
+        // Heartbeat cada 8 segundos (detección rápida ~10s)
+        const heartbeatInterval = setInterval(sendHeartbeat, 8000);
+
+        // Estadísticas cada 5 segundos
+        const statsInterval = setInterval(fetchStats, 5000);
+
+        // Detectar cuando el usuario cierra la pestaña o navega fuera
+        window.addEventListener('beforeunload', notifyLeaving);
+
+        // Detectar cuando la pestaña pierde visibilidad (opcional, pero útil)
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                sendHeartbeat(); // Enviar heartbeat inmediato al volver
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            clearInterval(heartbeatInterval);
+            clearInterval(statsInterval);
+            window.removeEventListener('beforeunload', notifyLeaving);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
     }, []);
 
     useEffect(() => {
@@ -190,7 +266,7 @@ export function TopBar() {
                 </div>
             )}
 
-            <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-emerald-100/50 px-4 md:px-8 bg-white/90 backdrop-blur-md shadow-sm">
+            <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-emerald-100/50 px-4 pr-6 md:px-8 bg-white/90 backdrop-blur-md shadow-sm">
 
                 {/* Search Mobile Overlay */}
                 {mobileSearchOpen && (
@@ -325,6 +401,33 @@ export function TopBar() {
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black text-emerald-100 uppercase tracking-widest leading-none">Días para Asamblea</span>
                                 <span className="text-lg font-black text-white leading-none mt-1">{daysUntil} {daysUntil === 1 ? 'DÍA' : 'DÍAS'}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Estadísticas de Usuarios - Solo visible para Super Admin */}
+                    {user?.rol === 'SUPER_ADMIN' && (
+                        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
+                            {/* Total de Usuarios */}
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-xl" title="Total de usuarios registrados">
+                                <Users className="h-4 w-4 text-slate-500" />
+                                <span className="text-sm font-black text-slate-700">{userStats.total}</span>
+                            </div>
+
+                            <div className="h-6 w-px bg-slate-200" />
+
+                            {/* Usuarios Usuales */}
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-xl" title="Usuarios que han iniciado sesión alguna vez">
+                                <UserCheck className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm font-black text-blue-600">{userStats.usuales}</span>
+                            </div>
+
+                            <div className="h-6 w-px bg-slate-200" />
+
+                            {/* Usuarios Activos en Tiempo Real */}
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-xl" title="Usuarios activos en este momento">
+                                <Activity className="h-4 w-4 text-emerald-500 animate-pulse" />
+                                <span className="text-sm font-black text-emerald-600">{userStats.activos}</span>
                             </div>
                         </div>
                     )}

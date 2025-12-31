@@ -226,7 +226,7 @@ public class AsistenciaController {
         // Verificar permisos (SUPER_ADMIN o DIRECTIVO)
         Usuario currentUser = usuarioRepository.findByUsername(auth.getName()).orElse(null);
         if (currentUser == null ||
-                (!currentUser.getRol().equals("SUPER_ADMIN") && !currentUser.getRol().equals("DIRECTIVO"))) {
+                (currentUser.getRol() != Usuario.Rol.SUPER_ADMIN && currentUser.getRol() != Usuario.Rol.DIRECTIVO)) {
             return ResponseEntity.status(403).body(Map.of("error", "No tiene permisos para ver este reporte"));
         }
 

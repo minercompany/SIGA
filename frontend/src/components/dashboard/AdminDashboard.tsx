@@ -26,6 +26,30 @@ interface AdminDashboardProps {
     onRefresh: (silent?: boolean) => void;
 }
 
+import { ActivityWidget } from "./ActivityWidget";
+import { ActiveUsersModal } from "./ActiveUsersModal";
+
+interface AdminDashboardProps {
+    stats: {
+        totalPadron: number;
+        conVozYVoto: number;
+        soloVoz: number;
+        presentes?: number;
+        presentesVyV?: number;
+        totalMeta?: number;
+    } | null;
+    desempeno: any[];
+    ranking?: any[];
+    userActivity?: {
+        total: number;
+        usuales: number;
+        activos: number;
+        activeList: any[];
+        hourlyStats: { labels: string[], data: number[] };
+    };
+    onRefresh: (silent?: boolean) => void;
+}
+
 import { MetasWidgets } from "./MetasWidgets";
 
 // Contador animado premium
@@ -34,8 +58,8 @@ const AnimatedCounter = ({ value, duration = 3.5 }: { value: number; duration?: 
 
     useEffect(() => {
         let start = 0;
-        const end = value;
-        const incrementTime = (duration * 1000) / end;
+        const end = value || 0;
+        const incrementTime = (duration * 1000) / (end || 1);
         const timer = setInterval(() => {
             start += Math.ceil(end / 50);
             if (start >= end) {
@@ -44,16 +68,17 @@ const AnimatedCounter = ({ value, duration = 3.5 }: { value: number; duration?: 
             } else {
                 setCount(start);
             }
-        }, incrementTime);
+        }, incrementTime || 50);
         return () => clearInterval(timer);
     }, [value, duration]);
 
     return <span>{count.toLocaleString()}</span>;
 };
 
-export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDashboardProps) {
+export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefresh }: AdminDashboardProps) {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [autoRefresh, setAutoRefresh] = useState(false);
+    const [isActiveUsersModalOpen, setIsActiveUsersModalOpen] = useState(false);
 
     // Persistencia del estado Auto-Sync
     // Leer al montar el componente
@@ -130,6 +155,12 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
 
     return (
         <div className="space-y-6 pb-12">
+            <ActiveUsersModal
+                isOpen={isActiveUsersModalOpen}
+                onClose={() => setIsActiveUsersModalOpen(false)}
+                users={userActivity?.activeList || []}
+            />
+
             {/* Header Global Súper Premium (Consistent Light Theme) */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -219,8 +250,349 @@ export function AdminDashboard({ stats, desempeno, ranking, onRefresh }: AdminDa
                 </div>
             </motion.div>
 
-            {/* WIDGETS DE METAS DE REGISTRO (New Feature) */}
+            {/* SECCIÓN DE ACTIVIDAD DE USUARIOS (NUEVO) - PREMIUM LAYOUT */}
+            {userActivity && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                    {/* Widget Graph (Ocupa 3 columnas en desktop grande) */}
+                    <div className="md:col-span-2 lg:col-span-3 h-[380px]">
+                        <ActivityWidget data={userActivity.hourlyStats.data} labels={userActivity.hourlyStats.labels} />
+                    </div>
+
+                    {/* Summary Cards (Ocupa 2 columnas) */}
+                    <div className="md:col-span-2 lg:col-span-2 grid grid-cols-2 gap-4 h-full">
+                        {/* Activos - Clickable (Ocupa toda la altura izquierda) */}
+                        <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setIsActiveUsersModalOpen(true)}
+                            className="row-span-2 bg-gradient-to-b from-emerald-500 to-teal-700 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-emerald-500/30 cursor-pointer relative overflow-hidden group flex flex-col items-center justify-center border border-emerald-400/30 text-center"
+                        >
+                            {/* Decoración Glass */}
+                            <div className="absolute top-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.15),transparent_70%)] pointer-events-none" />
+                            <Activity className="absolute bottom-0 text-white/5 h-64 w-64 -mb-10 pointer-events-none" />
+
+                            <div className="relative z-10 flex flex-col items-center gap-1">
+                                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-black/20 backdrop-blur-xl rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10 shadow-sm transition-all group-hover:bg-black/30">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]"></span>
+                                    En Vivo
+                                </span>
+                                <h3 className="text-lg font-medium text-emerald-100 mt-2">Usuarios Conectados</h3>
+                            </div>
+
+                            <div className="relative z-10 my-4">
+                                <div className="text-8xl lg:text-9xl font-black tracking-tighter drop-shadow-2xl">
+                                    <AnimatedCounter value={userActivity.activos} />
+                                </div>
+                            </div>
+
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-2 text-xs font-bold bg-white/10 hover:bg-white/20 transition-colors px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 group-hover:border-white/30">
+                                    <Users size={14} />
+                                    <span>Ver Lista Completa</span>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Usuales (Derecha arriba) */}
+                        <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none transition-transform group-hover:scale-110" />
+
+                            <div className="relative z-10 mb-1">
+                                <div className="inline-flex items-center justify-center p-3 bg-blue-50 text-blue-500 rounded-2xl mb-2 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <UserCheck className="h-6 w-6" strokeWidth={2.5} />
+                                </div>
+                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Usuarios Usuales</p>
+                            </div>
+                            <p className="relative z-10 text-5xl lg:text-6xl font-black text-slate-800 tracking-tighter leading-none"><AnimatedCounter value={userActivity.usuales} /></p>
+                        </motion.div>
+
+                        {/* Total (Derecha abajo) */}
+                        <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group"
+                        >
+                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-50/50 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none transition-transform group-hover:scale-110" />
+
+                            <div className="relative z-10 mb-1">
+                                <div className="inline-flex items-center justify-center p-3 bg-indigo-50 text-indigo-500 rounded-2xl mb-2 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <Users className="h-6 w-6" strokeWidth={2.5} />
+                                </div>
+                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Total Cuentas</p>
+                            </div>
+                            <p className="relative z-10 text-5xl lg:text-6xl font-black text-slate-800 tracking-tighter leading-none"><AnimatedCounter value={userActivity.total} /></p>
+                        </motion.div>
+                    </div>
+                </div>
+            )}
+
+            {/* WIDGETS DE METAS DE REGISTRO */}
             <MetasWidgets />
+
+            {/* KPIs Premium 'Nano' Style */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6">
+                {
+                    [
+                        { label: "Meta Global", value: stats.totalMeta || 0, icon: Target, gradient: "from-pink-500 via-rose-600 to-rose-700", shadow: "shadow-rose-500/40", ring: "ring-rose-400/30" },
+                        { label: "Total Padrón", value: stats.totalPadron, icon: Users, gradient: "from-blue-500 via-blue-600 to-blue-700", shadow: "shadow-blue-500/40", ring: "ring-blue-400/30" },
+                        { label: "Habilitados V&V", value: stats.conVozYVoto, icon: ShieldCheck, gradient: "from-emerald-500 via-emerald-500 to-teal-500", shadow: "shadow-emerald-500/40", ring: "ring-emerald-400/30" },
+                        { label: "Presentes Ahora", value: presentes, icon: UserCheck, gradient: "from-violet-500 via-purple-600 to-purple-700", shadow: "shadow-purple-500/40", ring: "ring-purple-400/30" },
+                        { label: "Solo Voz", value: stats.soloVoz, icon: AlertCircle, gradient: "from-amber-400 via-orange-500 to-orange-600", shadow: "shadow-orange-500/40", ring: "ring-orange-400/30" },
+                    ].map((stat, i) => (
+                        <motion.div
+                            key={i}
+                            variants={cardVariants}
+                            initial="hidden"
+                            animate="visible"
+                            transition={{ delay: i * 0.05 }}
+                            whileHover={{ y: -5, scale: 1.02 }}
+                            className={`relative overflow-hidden rounded-[2rem] p-6 lg:p-8 text-white shadow-2xl bg-gradient-to-br ${stat.shadow} ${stat.gradient} group`}
+                        >
+                            {/* Glossy Overlay/Reflection */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10 pointer-events-none" />
+                            <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none group-hover:bg-white/20 transition-colors" />
+
+                            {/* Inner Highlight Ring */}
+                            <div className={`absolute inset-0 rounded-[2rem] border border-white/20 ${stat.ring} pointer-events-none`} />
+
+                            {/* Background Icon */}
+                            <div className="absolute -right-6 -bottom-6 opacity-10 rotate-12 transition-transform duration-500 group-hover:rotate-0 group-hover:scale-110">
+                                <stat.icon className="h-32 w-32" />
+                            </div>
+
+                            {/* Content */}
+                            <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                                {/* Header: Icon + Label */}
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl shadow-inner border border-white/20">
+                                        <stat.icon className="h-5 w-5 text-white" />
+                                    </div>
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/90 drop-shadow-sm">
+                                        {stat.label}
+                                    </span>
+                                </div>
+
+                                {/* Value */}
+                                <div className="mt-auto">
+                                    <p className="text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-lg leading-none">
+                                        <AnimatedCounter value={stat.value} />
+                                    </p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))
+                }
+            </div >
+
+            {/* Barra de Progreso Quórum Premium */}
+            < motion.div
+                initial={{ opacity: 0, y: 20 }
+                }
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100"
+            >
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-200">
+                            <Target className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="font-black text-slate-800 text-lg">Progreso de Asistencia</h3>
+                            <p className="text-slate-400 text-xs font-medium">Asistencia sobre el total de padrón</p>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-4xl font-black text-slate-800">{porcentajeAsistencia}%</p>
+                        <p className="text-slate-400 text-sm font-medium">{presentes.toLocaleString()} / {stats.totalPadron.toLocaleString()}</p>
+                    </div>
+                </div>
+                <div className="h-6 bg-slate-100 rounded-full overflow-hidden relative">
+                    <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(porcentajeAsistenciaRaw, 100)}%` }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        className={`h-full rounded-full relative ${porcentajeAsistenciaRaw >= 50 ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-indigo-500 to-purple-500'}`}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-pulse" />
+                    </motion.div>
+                </div>
+
+            </motion.div >
+
+            {/* Grid Principal de Estadísticas */}
+            < div className="grid grid-cols-1 lg:grid-cols-3 gap-6" >
+
+                {/* Gráfico Radial de Quórum */}
+                < motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100"
+                >
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl shadow-lg shadow-emerald-200">
+                            <PieIcon className="h-5 w-5 text-white" />
+                        </div>
+                        <h3 className="font-black text-slate-800 uppercase tracking-wider text-sm">Asistencia en Vivo</h3>
+                    </div>
+
+                    <div className="h-[220px] relative">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="95%" data={radialData} startAngle={90} endAngle={-270}>
+                                <RadialBar background dataKey="value" cornerRadius={10} />
+                            </RadialBarChart>
+                        </ResponsiveContainer>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-0">
+                            <span className="text-2xl lg:text-3xl font-black text-slate-800 leading-tight">{porcentajeAsistencia}%</span>
+                            <span className="text-emerald-500 font-bold text-[9px] uppercase tracking-wider">Presentes</span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mt-6">
+                        <div className="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
+                            <p className="text-2xl font-black text-emerald-500">{presentes.toLocaleString()}</p>
+                            <p className="text-emerald-500/70 text-xs font-bold uppercase tracking-widest">Presentes</p>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
+                            <p className="text-2xl font-black text-slate-600">{ausentes.toLocaleString()}</p>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Ausentes</p>
+                        </div>
+                    </div>
+                </motion.div >
+
+                {/* Gráfico de Habilitación */}
+                < motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100"
+                >
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-200">
+                            <ShieldCheck className="h-5 w-5 text-white" />
+                        </div>
+                        <h3 className="font-black text-slate-800 uppercase tracking-wider text-sm">Estado Habilitación</h3>
+                    </div>
+
+                    <div className="h-[220px] relative">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={pieHabilitacion}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={70}
+                                    outerRadius={95}
+                                    paddingAngle={3}
+                                    dataKey="value"
+                                    stroke="none"
+                                >
+                                    {pieHabilitacion.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Pie>
+                                <Tooltip contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-0">
+                            <span className="text-2xl lg:text-3xl font-black text-slate-800 leading-tight">{porcentajeHabilitacion}%</span>
+                            <span className="text-indigo-500 font-bold text-[9px] uppercase tracking-wider">Habilitados</span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mt-6">
+                        <div className="bg-indigo-50 rounded-xl p-4 text-center border border-indigo-100">
+                            <p className="text-2xl font-black text-indigo-600">{stats.conVozYVoto.toLocaleString()}</p>
+                            <p className="text-indigo-600/70 text-xs font-bold uppercase tracking-widest">Voz y Voto</p>
+                        </div>
+                        <div className="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+                            <p className="text-2xl font-black text-amber-600">{stats.soloVoz.toLocaleString()}</p>
+                            <p className="text-amber-600/70 text-xs font-bold uppercase tracking-widest">Solo Voz</p>
+                        </div>
+                    </div>
+                </motion.div >
+
+                {/* Ranking de Operadores */}
+                {/* Ranking de Operadores - DISEÑO PREMIUM */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/60 border border-slate-100 flex flex-col justify-between overflow-hidden relative"
+                >
+                    {/* Decorative Background Elements */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-amber-100/40 to-orange-100/40 blur-3xl -mr-16 -mt-16 rounded-full pointer-events-none" />
+
+                    <div className="flex items-center justify-between mb-8 relative z-10">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl shadow-lg shadow-amber-200">
+                                <Award className="h-6 w-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-slate-800 uppercase tracking-wider text-base">Top Operadores</h3>
+                                <p className="text-slate-400 text-xs font-bold">Líderes en asignaciones</p>
+                            </div>
+                        </div>
+                        <div className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100">
+                            En Tiempo Real
+                        </div>
+                    </div>
+
+                    <div className="space-y-4 relative z-10 flex-1">
+                        {ranking && ranking.length > 0 ? (
+                            ranking.slice(0, 5).map((op, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.1 + 0.3 }}
+                                    className={`group flex items-center gap-4 p-4 rounded-2xl transition-all border ${i === 0
+                                        ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-100 hover:shadow-md hover:shadow-amber-100/50'
+                                        : 'bg-white border-slate-100 hover:border-slate-200 hover:bg-slate-50 hover:shadow-sm'
+                                        }`}
+                                >
+                                    {/* Ranking Badge - NÚMERO GRANDE */}
+                                    <div className={`h-14 w-14 rounded-2xl flex flex-col items-center justify-center transition-transform group-hover:scale-110 shadow-lg shrink-0 ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-orange-200' :
+                                        i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-slate-200' :
+                                            i === 2 ? 'bg-gradient-to-br from-orange-400 to-amber-700 text-white shadow-orange-200' :
+                                                'bg-slate-100 text-slate-400'
+                                        }`}>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest opacity-90">TOP</span>
+                                        <span className="text-2xl font-black leading-none -mt-0.5">{i + 1}</span>
+                                    </div>
+
+                                    {/* User Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex flex-col">
+                                            <p className={`font-bold text-sm truncate ${i === 0 ? 'text-slate-800' : 'text-slate-700'}`}>
+                                                {op.nombre || op.username}
+                                            </p>
+                                            <p className="text-slate-400 text-xs font-medium">@{op.username}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Stats */}
+                                    <div className="text-right pl-4 border-l border-slate-100">
+                                        <p className={`font-black text-xl ${i === 0 ? 'text-orange-500' : 'text-slate-700'}`}>
+                                            {op.totalRegistros}
+                                        </p>
+                                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Socios</p>
+                                    </div>
+                                </motion.div>
+                            ))
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-12 text-slate-300">
+                                <div className="p-4 bg-slate-50 rounded-full mb-3">
+                                    <Clock className="h-8 w-8 text-slate-300" />
+                                </div>
+                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Sin actividad registrada</p>
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+            </div >
+
 
             {/* KPIs Premium 'Nano' Style */}
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6">

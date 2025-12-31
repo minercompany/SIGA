@@ -30,9 +30,17 @@ public class DashboardController {
             // Si viene userId y quien pide es admin, usamos ese user. Si no, usamos el
             // logueado.
             if (userId != null) {
-                // TODO: Validar si el requester tiene permisos de admin si fuera necesario
-                // estricto,
-                // pero por ahora asumimos que el frontend controla la vista admin.
+                // Verificar permisos: Solo Admin/Directivo puede ver metas de otros
+                String requesterUsername = authentication.getName();
+                Usuario requester = usuarioRepository.findByUsername(requesterUsername).orElse(null);
+
+                if (requester != null && !requester.getId().equals(userId)) {
+                    if (requester.getRol() != Usuario.Rol.SUPER_ADMIN && requester.getRol() != Usuario.Rol.DIRECTIVO) {
+                        return ResponseEntity.status(403)
+                                .body("No tienes permisos para ver las metas de otros usuarios");
+                    }
+                }
+
                 Optional<Usuario> targetUser = usuarioRepository.findById(userId);
                 if (targetUser.isEmpty()) {
                     return ResponseEntity.notFound().build();

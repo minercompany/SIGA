@@ -137,6 +137,10 @@ public class ChatController {
                     .body(Map.of("error", "Solo administradores pueden iniciar conversaciones"));
         }
 
+        if (usuarioId == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "ID de usuario inválido"));
+        }
+
         // Verificar que el usuario destino existe
         Usuario usuarioDestino = usuarioRepository.findById(usuarioId).orElse(null);
         if (usuarioDestino == null) {

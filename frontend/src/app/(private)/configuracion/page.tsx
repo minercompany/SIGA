@@ -20,7 +20,8 @@ import {
     Upload,
     HelpCircle,
     RotateCcw,
-    Hammer
+    Hammer,
+    Bell
 } from "lucide-react";
 import axios from "axios";
 import { useEffect, useCallback } from "react";
@@ -191,6 +192,223 @@ const ConfiguracionMantenimiento = () => {
                         {saving && <Loader2 className="h-6 w-6 m-2.5 animate-spin text-amber-500" />}
                     </span>
                 </button>
+            </div>
+        </>
+    );
+};
+
+// Componente para Notificaciones de Asignación
+const ConfiguracionNotificaciones = () => {
+    const { updateConfig } = useConfig();
+    const [enabled, setEnabled] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+
+    // Cargar estado actual de la configuración
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get("/api/configuracion", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                // Manejar diferentes formatos de respuesta
+                const data = res.data;
+                if (Array.isArray(data)) {
+                    const config = data.find((c: any) => c.clave === "notificaciones_asignacion_activas");
+                    if (config) {
+                        setEnabled(config.valor !== "false");
+                    }
+                } else if (data && typeof data === 'object') {
+                    // Si es un objeto, buscar directamente la clave
+                    if (data.notificaciones_asignacion_activas !== undefined) {
+                        setEnabled(data.notificaciones_asignacion_activas !== "false");
+                    }
+                }
+            } catch (error) {
+                console.error("Error cargando config de notificaciones:", error);
+            } finally {
+                setLoaded(true);
+            }
+        };
+        fetchConfig();
+    }, []);
+
+    const handleToggle = async () => {
+        const newValue = !enabled;
+        setSaving(true);
+        try {
+            await updateConfig("notificaciones_asignacion_activas", newValue ? "true" : "false");
+            setEnabled(newValue);
+
+            Swal.fire({
+                title: newValue ? '¡Notificaciones ACTIVADAS!' : '¡Notificaciones DESACTIVADAS!',
+                text: newValue
+                    ? 'Recibirás avisos cada vez que alguien asigne un socio a una lista.'
+                    : 'Ya no recibirás notificaciones de asignación de socios.',
+                icon: newValue ? 'success' : 'info',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: newValue ? '#10b981' : '#6b7280',
+                padding: '2em',
+                customClass: {
+                    popup: 'rounded-[2rem] shadow-2xl'
+                }
+            });
+        } catch (error) {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo actualizar la configuración',
+                icon: 'error',
+                confirmButtonColor: '#ef4444'
+            });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleTestNotification = async () => {
+        // Verificar si el navegador soporta notificaciones
+        if (!("Notification" in window)) {
+            Swal.fire({
+                title: 'No soportado',
+                text: 'Tu navegador no soporta notificaciones del sistema.',
+                icon: 'error',
+                confirmButtonColor: '#ef4444'
+            });
+            return;
+        }
+
+        // Pedir permiso si no lo tenemos
+        if (Notification.permission === "default") {
+            const permission = await Notification.requestPermission();
+            if (permission !== "granted") {
+                Swal.fire({
+                    title: 'Permiso denegado',
+                    text: 'Debes permitir las notificaciones para recibir alertas del sistema.',
+                    icon: 'warning',
+                    confirmButtonColor: '#f59e0b'
+                });
+                return;
+            }
+        }
+
+        if (Notification.permission === "denied") {
+            Swal.fire({
+                title: 'Notificaciones bloqueadas',
+                html: 'Las notificaciones están bloqueadas. Para activarlas:<br><br>1. Haz clic en el candado 🔒 en la barra de direcciones<br>2. Busca "Notificaciones"<br>3. Cambia a "Permitir"',
+                icon: 'warning',
+                confirmButtonColor: '#f59e0b'
+            });
+            return;
+        }
+
+        // Mostrar toast pequeño primero
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+
+        Toast.fire({
+            icon: 'info',
+            title: 'Enviando notificación de prueba...'
+        });
+
+        // Esperar un momento para que el toast no tape la notificación
+        setTimeout(() => {
+            // ¡Mostrar notificación nativa de Windows!
+            try {
+                const notification = new Notification("🔔 Nueva Asignación de Socio", {
+                    body: "Juan Operador asignó al socio #12345 (María García) a la lista 'Lista Principal'",
+                    icon: "/logo.png",
+                    tag: "test-notification-" + Date.now(),
+                    requireInteraction: false
+                });
+
+                notification.onclick = () => {
+                    window.focus();
+                    notification.close();
+                };
+
+                // Mostrar toast de éxito después
+                setTimeout(() => {
+                    Toast.fire({
+                        icon: 'success',
+                        title: '¡Notificación enviada! Mira la esquina de tu pantalla'
+                    });
+                }, 500);
+            } catch (error) {
+                console.error("Error creando notificación:", error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudo crear la notificación: ' + error,
+                    icon: 'error'
+                });
+            }
+        }, 300);
+
+        // También intentar enviar push real desde el backend
+        try {
+            const token = localStorage.getItem("token");
+            await axios.post("/api/push/send-test", {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        } catch (error) {
+            // Silently fail
+        }
+    };
+
+    if (!loaded) return null;
+
+    return (
+        <>
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 italic uppercase border-t border-slate-100 pt-6 mt-6">
+                <Bell className="h-5 w-5 text-blue-500" />
+                Notificaciones de Asignación
+            </h2>
+
+            <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100 space-y-4">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-start gap-4">
+                        <div className={`p-3 rounded-xl transition-colors ${enabled ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                            <Bell className="h-6 w-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800">Avisar Asignaciones</h3>
+                            <p className="text-sm text-slate-500 max-w-md">
+                                Cuando está activo, recibirás una <strong>notificación</strong> cada vez que un usuario asigne un socio a su lista.
+                                Aparecerá en el centro de avisos y como notificación push si está habilitada.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleToggle}
+                        disabled={saving}
+                        className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${enabled ? 'bg-blue-500' : 'bg-slate-300'}`}
+                    >
+                        <span className="sr-only">Activar Notificaciones</span>
+                        <span
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-8' : 'translate-x-0'}`}
+                        >
+                            {saving && <Loader2 className="h-6 w-6 m-2.5 animate-spin text-blue-500" />}
+                        </span>
+                    </button>
+                </div>
+
+                {/* Botón de prueba */}
+                <div className="flex justify-end pt-2 border-t border-blue-100">
+                    <button
+                        onClick={handleTestNotification}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-600 rounded-xl text-sm font-bold hover:bg-blue-50 hover:border-blue-300 transition-all"
+                    >
+                        <Bell className="h-4 w-4" />
+                        Probar Notificación
+                    </button>
+                </div>
             </div>
         </>
     );
@@ -777,7 +995,7 @@ export default function ConfiguracionPage() {
     const isSocio = user?.rol === "USUARIO_SOCIO";
 
     return (
-        <div className="max-w-4xl space-y-8 pb-20">
+        <div className="max-w-4xl space-y-8 pb-20 mt-2 md:mt-0">
             <div data-tour="config-header">
                 <h1 className="text-2xl font-black text-slate-800 italic uppercase tracking-tight">Mi Perfil y Configuración</h1>
                 <p className="text-slate-500">Gestiona tu cuenta y parámetros del sistema</p>
@@ -963,6 +1181,7 @@ export default function ConfiguracionPage() {
                     <div className="rounded-2xl bg-white p-8 shadow-sm border border-slate-100 space-y-6">
                         <ConfiguracionEvento />
                         <ConfiguracionMantenimiento />
+                        <ConfiguracionNotificaciones />
                         <ConfiguracionModoPrueba />
                     </div>
 

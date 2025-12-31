@@ -33,6 +33,7 @@ public class AsignacionController {
     private final AsistenciaRepository asistenciaRepository;
     private final com.asamblea.service.LogAuditoriaService auditService;
     private final com.asamblea.service.PushNotificationService pushService;
+    private final com.asamblea.service.AvisoService avisoService;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -542,10 +543,19 @@ public class AsignacionController {
         // Notificar a Admins (solo si no es el mismo admin quien asigna, para reducir
         // ruido, o siempre)
         // El requisito dice "cuando una persona hace una asignacion"
-        pushService.sendToSuperAdmins(
-                "Nueva Asignación",
-                "Usuario " + auth.getName() + " asignó a " + socio.getNombreCompleto() + " en lista '"
-                        + lista.getNombre() + "' de " + lista.getUsuario().getNombreCompleto());
+        if (avisoService.isNotificacionesAsignacionActivas()) {
+            pushService.sendToSuperAdmins(
+                    "Nueva Asignación",
+                    "Usuario " + auth.getName() + " asignó a " + socio.getNombreCompleto() + " en lista '"
+                            + lista.getNombre() + "' de " + lista.getUsuario().getNombreCompleto());
+
+            // Crear Aviso persistente en el centro de notificaciones
+            avisoService.crearAvisoAsignacionParaAdmins(
+                    "Nueva Asignación de Socio",
+                    currentUser.getNombreCompleto() + " asignó al socio #" + socio.getNumeroSocio()
+                            + " (" + socio.getNombreCompleto() + ") a la lista '" + lista.getNombre() + "'",
+                    currentUser);
+        }
 
         return ResponseEntity.ok(Map.of("success", true, "socio", socio));
     }

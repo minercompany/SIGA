@@ -87,9 +87,9 @@ export default function PrivateLayout({
                     {user && <WelcomeModal user={user} onUpdateUser={setUser} />}
                     <TourWelcomeWrapper userRole={user?.rol} />
                     <Sidebar />
-                    <div className="flex flex-1 flex-col overflow-hidden">
+                    <div className="flex flex-1 flex-col min-w-0">
                         <TopBar />
-                        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+                        <main className="flex-1 overflow-y-auto px-4 pt-4 pb-4 md:p-6 lg:p-8">
                             <div className="animate-fade-in">
                                 {children}
                             </div>

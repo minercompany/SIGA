@@ -48,6 +48,15 @@ export default function DashboardPage() {
     const [misListas, setMisListas] = useState<ListaResumen[]>([]);
     const [rankingOperadores, setRankingOperadores] = useState<any[]>([]);
 
+    // Nuevo estado para estadísticas de actividad
+    const [userActivity, setUserActivity] = useState<{
+        total: number;
+        usuales: number;
+        activos: number;
+        activeList: any[];
+        hourlyStats: { labels: string[], data: number[] };
+    } | undefined>(undefined);
+
     const fetchData = useCallback(async (isSilent = false) => {
         if (!isSilent) setLoading(true);
         try {
@@ -69,11 +78,15 @@ export default function DashboardPage() {
                         setMisListas([]);
                     }
                 } else {
-                    const [statsRes, desempenoRes, rankingRes] = await Promise.all([
+                    const [statsRes, desempenoRes, rankingRes, activityRes, activeListRes, hourlyStatsRes] = await Promise.all([
                         axios.get("/api/socios/estadisticas", { headers }),
                         axios.get("/api/socios/estadisticas/por-sucursal", { headers }),
                         // Cambiado a ranking de asignaciones en lugar de asistencia
-                        axios.get("/api/asignaciones/ranking-usuarios", { headers })
+                        axios.get("/api/asignaciones/ranking-usuarios", { headers }),
+                        // Nuevas estadísticas de usuario
+                        axios.get("/api/usuarios/estadisticas", { headers }),
+                        axios.get("/api/usuarios/activos-lista", { headers }),
+                        axios.get("/api/usuarios/stats-actividad", { headers })
                     ]);
                     setStats(statsRes.data);
                     setDesempeno(desempenoRes.data);
@@ -87,6 +100,15 @@ export default function DashboardPage() {
                     }));
 
                     setRankingOperadores(mappedRanking);
+
+                    // Setear actividad de usuarios
+                    setUserActivity({
+                        total: activityRes.data.total,
+                        usuales: activityRes.data.usuales,
+                        activos: activityRes.data.activos,
+                        activeList: activeListRes.data,
+                        hourlyStats: hourlyStatsRes.data
+                    });
                 }
             }
         } catch (error) {
@@ -120,7 +142,13 @@ export default function DashboardPage() {
             {isSocioView ? (
                 <SocioDashboard misListas={misListas} />
             ) : (
-                <AdminDashboard stats={stats} desempeno={desempeno} ranking={rankingOperadores} onRefresh={fetchData} />
+                <AdminDashboard
+                    stats={stats}
+                    desempeno={desempeno}
+                    ranking={rankingOperadores}
+                    userActivity={userActivity}
+                    onRefresh={fetchData}
+                />
             )}
 
             {!isSocioView && (!stats || stats.totalPadron === 0) && (
