@@ -694,14 +694,7 @@ export default function ConfiguracionPage() {
     // Tour hook
     const { resetAllTours, startTour, hasSeenTour } = useTour();
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (!hasSeenTour('configuracion')) {
-                startTour(configuracionTour, 'configuracion');
-            }
-        }, 1000);
-        return () => clearTimeout(timer);
-    }, [hasSeenTour, startTour]);
+
 
     // Perfil / Password States
     const [currentPassword, setCurrentPassword] = useState("");

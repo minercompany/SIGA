@@ -213,18 +213,7 @@ export default function AsignacionesPage() {
         }
     };
 
-    // Iniciar tour automáticamente cuando haya una lista seleccionada (UI visible)
-    useEffect(() => {
-        if (!loading && selectedLista) {
-            const timer = setTimeout(() => {
-                if (!hasSeenTour('asignaciones')) {
-                    console.log("Iniciando tour de asignaciones...");
-                    startTour(asignacionesTour, 'asignaciones');
-                }
-            }, 1000); // 1s delay para asegurar renderizado completo del componente hijo
-            return () => clearTimeout(timer);
-        }
-    }, [loading, selectedLista, hasSeenTour, startTour]);
+
 
     // Botón flotante de ayuda manual
     const handleManualTour = () => {

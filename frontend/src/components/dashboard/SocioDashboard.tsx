@@ -4,7 +4,6 @@
 import { Users, UserCheck, AlertCircle, TrendingUp, PieChart as PieIcon, Activity, Sparkles, Zap, Trophy } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { motion, Variants } from 'framer-motion';
-import PushNotificationManager from '../notifications/PushNotificationManager';
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useTour, dashboardSocioTour, dashboardAdminTour } from '../tour';
@@ -120,22 +119,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
     // Tour: Iniciar automáticamente la primera vez
     const { startTour, hasSeenTour } = useTour();
 
-    useEffect(() => {
-        // Esperar a que carguen los datos antes de iniciar tour
-        if (loading) return;
 
-        const tourId = userRole === 'SUPER_ADMIN' ? 'dashboard-admin' : 'dashboard';
-
-        // Solo mostrar si no lo ha visto
-        if (!hasSeenTour(tourId)) {
-            // Pequeño delay para que se rendericen los elementos
-            const timer = setTimeout(() => {
-                const tourSteps = userRole === 'SUPER_ADMIN' ? dashboardAdminTour : dashboardSocioTour;
-                startTour(tourSteps, tourId);
-            }, 1500);
-            return () => clearTimeout(timer);
-        }
-    }, [loading, userRole, hasSeenTour, startTour]);
 
     // Función para obtener saludo dinámico según la hora del día
     const getGreeting = () => {

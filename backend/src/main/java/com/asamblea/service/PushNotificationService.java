@@ -40,8 +40,8 @@ public class PushNotificationService {
             // Claves VAPID de prueba
             // IMPORTANTE: Reemplazar estas claves con unas generadas por `npx web-push
             // generate-vapid-keys`
-            this.publicKeyEncoded = "BGoBVqq5J8x7y9z1A3B5C7D9E1F3G5H7I9J1K3L5M7N9O1P3Q5R7S9T1U3V5W7X9Y1Z3a5b7c9d1e3f5g7h9i1j3k5";
-            this.privateKeyEncoded = "X1y2z3A4B5C6D7E8F9G0H1I2J3K4L5M6N7O8P9Q0R1S";
+            this.publicKeyEncoded = "BOjqV6FYd22aB4BNHVsomKDAEFyjMCqSJfaFUMwdegb1_dRfN8KdO8_TEV9ilPVVixPkW8wjFiIGWOWiQvGs6Bc";
+            this.privateKeyEncoded = "uyXD43VLrlDAGyg1dIDvWT37y3xPmtIJV_2p4L61Ba8";
 
             pushService = new PushService(publicKeyEncoded, privateKeyEncoded, "mailto:admin@asamblea.com");
         } catch (Exception e) {
@@ -58,8 +58,12 @@ public class PushNotificationService {
             return;
 
         List<PushSubscription> admins = subscriptionRepository.findByUsuario_Rol(Usuario.Rol.SUPER_ADMIN);
+        System.out.println("DEBUG: Enviando push a " + admins.size() + " suscripciones de SUPER_ADMIN.");
 
-        String payload = String.format("{\"title\": \"%s\", \"body\": \"%s\"}", title, message);
+        String payload = String.format(
+                "{\"title\": \"%s\", \"body\": \"%s\", \"icon\": \"/images/notification-banner.jpg\", \"image\": \"/images/notification-banner.jpg\"}",
+                title.replace("\"", "\\\""),
+                message.replace("\"", "\\\""));
 
         for (PushSubscription sub : admins) {
             try {

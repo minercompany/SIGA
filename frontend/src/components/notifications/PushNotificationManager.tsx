@@ -18,47 +18,82 @@ function urlBase64ToUint8Array(base64String: string) {
     return outputArray;
 }
 
-export default function PushNotificationManager() {
+export default function PushNotificationManager({ userRole }: { userRole?: string }) {
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [permission, setPermission] = useState('default');
 
     useEffect(() => {
+        // Solo para administradores
+        if (userRole !== 'SUPER_ADMIN') return;
+
         if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
-            // Verificar permiso actual
             setPermission(Notification.permission);
 
-            // Intentar recuperar estado de suscripción
-            navigator.serviceWorker.ready.then(registration => {
-                registration.pushManager.getSubscription().then(subscription => {
-                    setIsSubscribed(!!subscription);
+            // Registrar el service worker explícitamente
+            navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                .then((registration) => {
+                    console.log('Push: Service Worker registrado correctamente con scope:', registration.scope);
+                    return registration;
+                })
+                .then(async (registration) => {
+                    const subscription = await registration.pushManager.getSubscription();
+
+                    if (subscription) {
+                        try {
+                            console.log('Push: Se encontró suscripción existente, verificando validez...');
+                            const response = await axios.get('/api/push/public-key', {
+                                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                            });
+                            setIsSubscribed(true);
+                        } catch (error) {
+                            console.error('Push: Error verificando suscripción:', error);
+                            setIsSubscribed(false);
+                        }
+                    } else {
+                        console.log('Push: No se encontró suscripción activa en el navegador.');
+                        setIsSubscribed(false);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Push: Error al registrar Service Worker:', error);
                 });
-            });
         }
     }, []);
 
     const subscribeUser = async () => {
         if ('serviceWorker' in navigator && 'PushManager' in window) {
             try {
-                const registration = await navigator.serviceWorker.register('/sw.js');
-                console.log('Service Worker Registered');
+                console.log('Push: Iniciando proceso de suscripción...');
+                const registration = await navigator.serviceWorker.ready;
 
                 const permissionResult = await Notification.requestPermission();
                 setPermission(permissionResult);
 
                 if (permissionResult === 'granted') {
-                    // Obtener clave pública del servidor
+                    // 1. Obtener clave pública
                     const response = await axios.get('/api/push/public-key', {
                         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                     });
                     const publicKey = response.data.publicKey;
-                    const convertedVapidKey = urlBase64ToUint8Array(publicKey);
+                    console.log('Push: Clave pública obtenida del servidor');
 
+                    // 2. Si ya hay una suscripción, intentar desuscribirla primero para asegurar que usamos la nueva clave
+                    const existingSub = await registration.pushManager.getSubscription();
+                    if (existingSub) {
+                        console.log('Push: Limpiando suscripción antigua antes de renovar...');
+                        await existingSub.unsubscribe();
+                    }
+
+                    // 3. Suscribirse con la nueva clave
+                    const convertedVapidKey = urlBase64ToUint8Array(publicKey);
                     const subscription = await registration.pushManager.subscribe({
                         userVisibleOnly: true,
                         applicationServerKey: convertedVapidKey
                     });
 
-                    // Enviar suscripción al backend
+                    console.log('Push: Suscripción de navegador exitosa');
+
+                    // 4. Enviar al backend
                     const subJson = subscription.toJSON();
                     await axios.post('/api/push/subscribe', {
                         endpoint: subJson.endpoint,
@@ -69,16 +104,26 @@ export default function PushNotificationManager() {
                     });
 
                     setIsSubscribed(true);
-                    console.log('User is subscribed to Push Notifications');
-                    new Notification("Suscripción exitosa", { body: "Ahora recibirás notificaciones del sistema." });
+                    console.log('Push: Suscripción guardada en el servidor');
+                    new Notification("Suscripción exitosa", {
+                        body: "Ahora recibirás notificaciones push del sistema.",
+                        icon: '/images/notification-banner.jpg'
+                    });
+                } else {
+                    console.warn('Push: Permiso denegado por el usuario');
                 }
             } catch (error) {
-                console.error('Failed to subscribe the user: ', error);
+                console.error('Push: Error crítico en suscripción:', error);
+                alert("Error al activar notificaciones. Por favor, asegúrate de permitir notificaciones en tu navegador.");
             }
         } else {
             alert("Tu navegador no soporta notificaciones push.");
         }
     };
+
+    if (userRole !== 'SUPER_ADMIN') {
+        return null;
+    }
 
     if (permission === 'denied') {
         return null; // O mostrar un mensaje de ayuda

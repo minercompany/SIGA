@@ -12,6 +12,7 @@ import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
 import { TourProvider, TourOverlay, TourWelcome, useTour, dashboardSocioTour, dashboardAdminTour } from "@/components/tour";
 import ChatFAB from "@/components/ChatFAB";
 import PageTransition from "@/components/PageTransition";
+import PushNotificationManager from "@/components/notifications/PushNotificationManager";
 
 // Componente wrapper para el TourWelcome que necesita acceso al contexto
 function TourWelcomeWrapper({ userRole }: { userRole?: string }) {
@@ -85,7 +86,9 @@ export default function PrivateLayout({
                         }} />
                     )}
                     {user && <WelcomeModal user={user} onUpdateUser={setUser} />}
-                    <TourWelcomeWrapper userRole={user?.rol} />
+                    {user && !user.requiresPasswordChange && (user.telefono && user.telefono.length >= 6) && (
+                        <TourWelcomeWrapper userRole={user?.rol} />
+                    )}
                     <Sidebar />
                     <div className="flex flex-1 flex-col min-w-0">
                         <TopBar />
@@ -96,6 +99,7 @@ export default function PrivateLayout({
                         </main>
                         <ImportStatusFloating />
                         <ChatFAB />
+                        <PushNotificationManager userRole={user?.rol} />
                     </div>
                 </div>
                 <TourOverlay />

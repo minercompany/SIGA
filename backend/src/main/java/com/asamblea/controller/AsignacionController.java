@@ -221,8 +221,8 @@ public class AsignacionController {
 
         // Notificar a Admins
         pushService.sendToSuperAdmins(
-                "Nueva Lista Creada",
-                "El usuario " + user.getUsername() + " ha creado la lista '" + lista.getNombre() + "'");
+                "🚀 ¡Nueva Lista Creada!",
+                user.getNombreCompleto() + " ha creado la lista: " + lista.getNombre());
 
         return ResponseEntity.ok(guardada);
     }
@@ -461,8 +461,9 @@ public class AsignacionController {
                 "API_ADMIN");
 
         pushService.sendToSuperAdmins(
-                "Nueva Asignación Admin",
-                "Admin " + auth.getName() + " asignó socio a " + destino.getNombreCompleto());
+                "✅ ¡Socio Vinculado!",
+                admin.getNombreCompleto() + " asignó al socio " + socioOpt.get().getNombreCompleto() + " a "
+                        + destino.getNombreCompleto());
 
         return ResponseEntity.ok(Map.of("success", true, "lista", listaActiva.getNombre()));
     }
@@ -544,10 +545,11 @@ public class AsignacionController {
         // ruido, o siempre)
         // El requisito dice "cuando una persona hace una asignacion"
         if (avisoService.isNotificacionesAsignacionActivas()) {
+            System.out.println("DEBUG: Notificaciones de asignación activas. Enviando push a admins...");
             pushService.sendToSuperAdmins(
-                    "Nueva Asignación",
-                    "Usuario " + auth.getName() + " asignó a " + socio.getNombreCompleto() + " en lista '"
-                            + lista.getNombre() + "' de " + lista.getUsuario().getNombreCompleto());
+                    "📝 Nueva Asignación",
+                    currentUser.getNombreCompleto() + " asignó a " + socio.getNombreCompleto() + " en la lista: "
+                            + lista.getNombre());
 
             // Crear Aviso persistente en el centro de notificaciones
             avisoService.crearAvisoAsignacionParaAdmins(
@@ -555,6 +557,8 @@ public class AsignacionController {
                     currentUser.getNombreCompleto() + " asignó al socio #" + socio.getNumeroSocio()
                             + " (" + socio.getNombreCompleto() + ") a la lista '" + lista.getNombre() + "'",
                     currentUser);
+        } else {
+            System.out.println("DEBUG: Notificaciones de asignación DESACTIVADAS por configuración.");
         }
 
         return ResponseEntity.ok(Map.of("success", true, "socio", socio));

@@ -18,24 +18,15 @@ echo "================================"
 
 deploy_frontend() {
     BUILD_START=$(date +%s)
-    echo -e "${YELLOW}📦 Building frontend...${NC}"
-    cd /home/SIGA/frontend
+    echo -e "${YELLOW}📦 Rebuilding and deploying frontend container...${NC}"
+    cd /home/SIGA
     
-    # Build with production settings
-    NEXT_PUBLIC_API_URL=https://asamblea.cloud npm run build 2>&1 | grep -E "(✓|Route|○|●)" | head -5
+    # Force rebuild to pick up source changes
+    docker compose up -d --build frontend
     
     BUILD_END=$(date +%s)
     BUILD_TIME=$((BUILD_END - BUILD_START))
-    echo -e "${CYAN}   Build took ${BUILD_TIME}s${NC}"
-    
-    RESTART_START=$(date +%s)
-    echo -e "${YELLOW}🔄 Restarting container (bind mounts sync automatically)...${NC}"
-    cd /home/SIGA
-    docker compose restart frontend
-    
-    RESTART_END=$(date +%s)
-    RESTART_TIME=$((RESTART_END - RESTART_START))
-    echo -e "${CYAN}   Restart took ${RESTART_TIME}s${NC}"
+    echo -e "${CYAN}   Deploy took ${BUILD_TIME}s${NC}"
     
     echo -e "${GREEN}✅ Frontend deployed!${NC}"
 }
