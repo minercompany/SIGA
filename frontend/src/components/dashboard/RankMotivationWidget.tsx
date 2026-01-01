@@ -186,10 +186,11 @@ export const RankMotivationWidget: React.FC<RankMotivationWidgetProps> = ({ rank
                     {/* Podium Label for Top 3 */}
                     {rank <= 3 && (
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-white border-2 border-slate-100 rounded-full shadow-lg z-20"
+                            initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
+                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                            className="absolute -bottom-4 -right-4 px-4 py-1.5 bg-white border-2 border-slate-100 rounded-full shadow-xl z-20 flex items-center gap-1.5"
                         >
+                            <Sparkles className="h-3 w-3 text-amber-500" />
                             <span className={`text-[10px] font-black uppercase tracking-widest ${config.textColor}`}>
                                 PODIO GLOBAL
                             </span>
