@@ -177,90 +177,154 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                 users={userActivity?.activeList || []}
             />
 
-            {/* Header Global Súper Premium (Consistent Light Theme) */}
+            {/* Header Centro de Control - REDISEÑO ULTRA PREMIUM */}
             <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-[2.5rem] bg-white p-4 lg:p-8 shadow-2xl shadow-slate-200/50 ring-1 ring-slate-100"
+                initial={{ opacity: 0, scale: 0.98, y: -20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="relative group h-full"
             >
-                {/* Decorative Background Elements */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-emerald-50/50 to-teal-50/30 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-50/30 to-indigo-50/30 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none" />
+                {/* Background Layer with Advanced Glassmorphism & Mesh Gradient */}
+                <div className="absolute inset-0 bg-white/40 backdrop-blur-[40px] rounded-[2.5rem] border border-white/50 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] ring-1 ring-slate-200/50 transition-all duration-700 group-hover:shadow-[0_48px_80px_-20px_rgba(0,0,0,0.12)]" />
 
-                <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-8">
+                {/* Secondary Border for Depth */}
+                <div className="absolute inset-[1px] rounded-[2.5rem] border border-slate-100/50 pointer-events-none" />
 
-                    {/* Title Section */}
-                    <div className="flex items-center gap-4 lg:gap-6">
-                        <div className="relative group">
-                            {/* Icon Container with Glass Effect */}
-                            <div className="relative p-3 lg:p-5 bg-white rounded-2xl border border-slate-100 shadow-xl shadow-emerald-100/50 transition-transform group-hover:scale-105 duration-500">
-                                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 rounded-2xl" />
-                                <Activity className={`h-6 w-6 lg:h-8 lg:w-8 text-emerald-500 relative z-10 transition-all duration-700 ${autoRefresh ? 'animate-pulse' : ''}`} />
+                {/* Decorative High-End Blobs */}
+                <div className="absolute top-0 right-0 w-[400px] h-full bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none animate-pulse" />
+                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-blue-500/5 via-indigo-500/5 to-transparent rounded-full blur-[100px] -ml-20 -mb-20 pointer-events-none" />
+
+                <div className="relative p-6 lg:p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8 h-full">
+
+                    {/* Left Branding Group */}
+                    <div className="flex items-center gap-6 lg:gap-8">
+                        {/* Interactive Main Icon */}
+                        <div className="relative group/icon cursor-help">
+                            {/* Animated Outer Rings */}
+                            <motion.div
+                                animate={{
+                                    scale: autoRefresh ? [1, 1.2, 1] : 1,
+                                    opacity: autoRefresh ? [0.3, 0.1, 0.3] : 0
+                                }}
+                                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                                className="absolute -inset-4 bg-emerald-400 rounded-full blur-2xl"
+                            />
+
+                            <div className="relative flex items-center justify-center w-16 h-16 lg:w-20 lg:h-20 bg-white rounded-3xl shadow-[0_12px_24px_-8px_rgba(16,185,129,0.3)] border border-slate-100 transition-all duration-500 group-hover/icon:scale-110 group-hover/icon:rotate-3 overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-emerald-50/30" />
+                                <Activity className={`h-8 w-8 lg:h-10 lg:w-10 text-emerald-500 relative z-10 transition-all duration-1000 ${autoRefresh ? 'animate-[pulse_2s_ease-in-out_infinite]' : ''}`} />
+
+                                {/* Micro Shine Effect */}
+                                <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/80 to-transparent pointer-events-none" />
                             </div>
 
-                            {/* Live Indicator Icon */}
-                            {autoRefresh && (
-                                <div className="absolute -top-1.5 -right-1.5 flex h-4 w-4 z-20">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white"></span>
-                                </div>
-                            )}
+                            {/* Status Indicator Overlap */}
+                            <motion.div
+                                initial={false}
+                                animate={{ scale: autoRefresh ? 1 : 0.8, opacity: autoRefresh ? 1 : 0.7 }}
+                                className={`absolute -top-1 -right-1 w-5 h-5 rounded-full border-4 border-white shadow-lg z-20 transition-colors duration-500 ${autoRefresh ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                            >
+                                {autoRefresh && <div className="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-75" />}
+                            </motion.div>
                         </div>
 
-                        <div>
-                            <div className="flex items-center gap-2 lg:gap-3 mb-1">
-                                <h1 className="text-2xl lg:text-4xl font-black text-slate-800 tracking-tight">
-                                    Centro de Control
+                        {/* Title Wrapper */}
+                        <div className="space-y-1.5 pt-1">
+                            <div className="flex items-center gap-4">
+                                <h1 className="text-3xl lg:text-5xl font-black text-slate-800 tracking-tight leading-none drop-shadow-sm">
+                                    Centro de <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Control</span>
                                 </h1>
-                                {autoRefresh && (
-                                    <span className="px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-500 text-[9px] lg:text-[10px] font-black uppercase tracking-widest animate-pulse shadow-sm">
-                                        LIVE
-                                    </span>
-                                )}
+                                <AnimatePresence mode="wait">
+                                    {autoRefresh && (
+                                        <motion.div
+                                            initial={{ opacity: 0, x: -10, scale: 0.8 }}
+                                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.8 }}
+                                            className="px-3 py-1 bg-emerald-100/50 backdrop-blur-md rounded-full border border-emerald-200"
+                                        >
+                                            <span className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                Live Monitoring
+                                            </span>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
-                            <p className="text-slate-500 font-medium text-xs lg:text-sm flex items-center gap-2">
-                                Panel de Monitoreo & Estadísticas
+                            <p className="text-slate-500/80 font-bold text-sm lg:text-base flex items-center gap-3">
+                                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                                Panel Inteligente de Operaciones & Estadísticas
                             </p>
                         </div>
                     </div>
 
-                    {/* Controls Section - Premium Floating Pill */}
-                    <div className="self-start lg:self-auto flex items-center gap-2 bg-slate-50/80 backdrop-blur-md p-1.5 lg:p-2 pr-2.5 rounded-full border border-slate-100 shadow-inner scale-75 xs:scale-90 origin-left lg:scale-100">
-                        <div
-                            onClick={() => setAutoRefresh(!autoRefresh)}
-                            className="cursor-pointer group flex items-center gap-3 px-4 lg:px-5 py-2 lg:py-3 rounded-full hover:bg-white transition-all duration-300 select-none border border-transparent hover:border-slate-100 hover:shadow-sm"
-                        >
-                            {/* Custom Toggle Switch */}
-                            <div className={`relative w-10 lg:w-12 h-6 lg:h-7 rounded-full transition-colors duration-300 shadow-inner ${autoRefresh ? 'bg-emerald-500' : 'bg-slate-200'}`}>
-                                <motion.div
-                                    animate={{ x: autoRefresh ? (typeof window !== 'undefined' && window.innerWidth < 1024 ? 18 : 22) : 2 }}
-                                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                                    className="absolute top-1 left-0 w-4 lg:w-5 h-4 lg:h-5 bg-white rounded-full shadow-md"
-                                />
-                            </div>
+                    {/* Right Control Group - Premium Floating Island */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
 
-                            <div className="flex flex-col">
-                                <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none lg:leading-none">Auto-Sync</span>
-                                <span className={`text-[9px] lg:text-[10px] font-bold leading-none mt-1 ${autoRefresh ? 'text-emerald-500' : 'text-slate-500'}`}>
-                                    {autoRefresh ? 'ACTIVADO' : 'PAUSADO'}
+                        {/* Auto-Sync Tactile Toggle */}
+                        <motion.div
+                            whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.8)" }}
+                            onTap={() => setAutoRefresh(!autoRefresh)}
+                            className={`flex items-center gap-4 pl-5 pr-6 py-4 rounded-[2rem] border transition-all duration-500 cursor-pointer shadow-sm select-none
+                            ${autoRefresh ? 'bg-white border-emerald-200 shadow-emerald-100/30' : 'bg-slate-50/50 border-slate-200'}`}
+                        >
+                            <div className="flex flex-col items-start pr-2">
+                                <span className={`text-[10px] font-black tracking-[0.15em] mb-1 ${autoRefresh ? 'text-emerald-500' : 'text-slate-400'}`}>AUTO-SYNC</span>
+                                <span className={`text-xs font-bold ${autoRefresh ? 'text-slate-700' : 'text-slate-500'}`}>
+                                    {autoRefresh ? 'Sincronización Activa' : 'Pausado Manual'}
                                 </span>
                             </div>
-                        </div>
 
-                        <div className="w-px h-6 lg:h-8 bg-slate-200 mx-1 lg:mx-2" />
+                            {/* Tactile Switch UI */}
+                            <div className={`relative w-14 h-8 rounded-full transition-all duration-500 p-1 ${autoRefresh ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                                <motion.div
+                                    animate={{
+                                        x: autoRefresh ? 24 : 0,
+                                        backgroundColor: autoRefresh ? "#fff" : "#fff"
+                                    }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                                    className="w-6 h-6 rounded-full shadow-[0_4px_8px_rgba(0,0,0,0.2)] flex items-center justify-center overflow-hidden"
+                                >
+                                    {autoRefresh ? (
+                                        <TrendingUp className="h-3 w-3 text-emerald-500" />
+                                    ) : (
+                                        <div className="w-1 h-1 bg-slate-300 rounded-full" />
+                                    )}
+                                </motion.div>
+                            </div>
+                        </motion.div>
 
+                        {/* Interactive Refresh Button */}
                         <motion.button
-                            whileHover={{ scale: 1.02, backgroundColor: "#ffffff" }}
-                            whileTap={{ scale: 0.98 }}
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => handleRefresh(false)}
                             disabled={isRefreshing}
-                            className="relative overflow-hidden bg-white text-slate-700 px-4 lg:px-6 py-2 lg:py-3 rounded-full font-bold uppercase text-[10px] lg:text-xs tracking-wider border border-slate-200 hover:border-emerald-200 hover:text-teal-500 transition-all flex items-center gap-2 shadow-sm hover:shadow-md group"
+                            className="relative h-16 group/btn"
                         >
-                            <RefreshCw className={`h-3.5 w-3.5 lg:h-4 lg:w-4 text-emerald-500 transition-transform duration-700 ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180'}`} />
-                            <span className="relative z-10">Actualizar</span>
-                            {isRefreshing && (
-                                <span className="absolute bottom-0 left-0 h-0.5 bg-emerald-500 animate-[loading_1s_ease-in-out_infinite] w-full" />
-                            )}
+                            {/* Glowing Aura on Hover */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-2xl blur-lg opacity-0 group-hover/btn:opacity-30 transition-opacity duration-500" />
+
+                            <div className="relative h-full px-8 bg-slate-900 overflow-hidden rounded-2xl flex items-center gap-3 border border-slate-800 transition-all duration-300 group-hover/btn:border-emerald-500/50">
+                                {/* Flowing Shine Animation */}
+                                <motion.div
+                                    animate={{ x: ['-200%', '200%'] }}
+                                    transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
+                                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
+                                />
+
+                                <RefreshCw className={`h-5 w-5 text-emerald-400 transition-all duration-700 ${isRefreshing ? 'animate-spin' : 'group-hover/btn:rotate-180'}`} />
+                                <span className="text-white font-black uppercase text-xs tracking-[0.2em]">
+                                    {isRefreshing ? 'Procesando...' : 'Actualizar'}
+                                </span>
+
+                                {/* Progress Indicator */}
+                                {isRefreshing && (
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: '100%' }}
+                                        className="absolute bottom-0 left-0 h-1 bg-emerald-500 shadow-[0_-2px_8px_rgba(16,185,129,0.5)]"
+                                    />
+                                )}
+                            </div>
                         </motion.button>
                     </div>
                 </div>
