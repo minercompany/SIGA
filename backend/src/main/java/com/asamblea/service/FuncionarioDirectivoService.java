@@ -323,6 +323,15 @@ public class FuncionarioDirectivoService {
             usuario.setPassword(passwordEncoder.encode(cedulaSanitized)); // Password encriptada
             usuario.setPasswordVisible(cedulaSanitized); // Contraseña visible para admin
             usuario.setActivo(true);
+        } else {
+            // SAFEGUARD: Preservar lastLogin si el usuario ya existe
+            // JPA debería manejar esto, pero el objeto 'usuario' puede venir con null si
+            // fue
+            // cargado parcialmente o si se perdió el estado.
+            if (usuario.getLastLogin() != null) {
+                System.out.println(
+                        "DEBUG: Preservando lastLogin para " + usuario.getUsername() + ": " + usuario.getLastLogin());
+            }
         }
         usuario.setNombreCompleto(nombreCompleto);
 

@@ -12,22 +12,11 @@ import {
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface AdminDashboardProps {
-    stats: {
-        totalPadron: number;
-        conVozYVoto: number;
-        soloVoz: number;
-        presentes?: number;
-        presentesVyV?: number;
-        totalMeta?: number;
-    } | null;
-    desempeno: any[];
-    ranking?: any[];
-    onRefresh: (silent?: boolean) => void;
-}
+
 
 import { ActivityWidget } from "./ActivityWidget";
 import { ActiveUsersModal } from "./ActiveUsersModal";
+import { useUserActivity } from "@/context/UserActivityContext";
 
 interface AdminDashboardProps {
     stats: {
@@ -79,6 +68,12 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [autoRefresh, setAutoRefresh] = useState(false);
     const [isActiveUsersModalOpen, setIsActiveUsersModalOpen] = useState(false);
+
+    // Usar el contexto global para usuarios activos en tiempo real
+    const { stats: realTimeStats } = useUserActivity();
+
+    // Si tenemos datos del contexto, usamos esos para "activos", sino el fallback de props
+    const activeUsersCount = realTimeStats.activos > 0 ? realTimeStats.activos : (userActivity?.activos || 0);
 
     // Persistencia del estado Auto-Sync
     // Leer al montar el componente
@@ -281,7 +276,7 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
 
                             <div className="relative z-10 my-4">
                                 <div className="text-8xl lg:text-9xl font-black tracking-tighter drop-shadow-2xl">
-                                    <AnimatedCounter value={userActivity.activos} />
+                                    <AnimatedCounter value={activeUsersCount} />
                                 </div>
                             </div>
 

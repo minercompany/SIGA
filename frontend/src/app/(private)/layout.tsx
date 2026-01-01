@@ -13,6 +13,7 @@ import { TourProvider, TourOverlay, TourWelcome, useTour, dashboardSocioTour, da
 import ChatFAB from "@/components/ChatFAB";
 import PageTransition from "@/components/PageTransition";
 import PushNotificationManager from "@/components/notifications/PushNotificationManager";
+import { UserActivityProvider } from "@/context/UserActivityContext";
 
 // Componente wrapper para el TourWelcome que necesita acceso al contexto
 function TourWelcomeWrapper({ userRole }: { userRole?: string }) {
@@ -78,34 +79,36 @@ export default function PrivateLayout({
     return (
         <TourProvider>
             <ImportProvider>
-                <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-teal-50/30">
-                    {user?.requiresPasswordChange && (
-                        <ForcePasswordChange onSuccess={() => {
-                            const newUser = JSON.parse(localStorage.getItem("user") || "{}");
-                            setUser(newUser);
-                        }} />
-                    )}
-                    {user && <WelcomeModal user={user} onUpdateUser={setUser} />}
-                    {user && !user.requiresPasswordChange && (user.telefono && user.telefono.length >= 6) && (
-                        <TourWelcomeWrapper userRole={user?.rol} />
-                    )}
-                    <Sidebar />
-                    <div className="flex flex-1 flex-col min-w-0">
-                        <TopBar />
-                        <main className="flex-1 overflow-y-auto px-4 pt-4 pb-4 md:p-6 lg:p-8">
-                            <div className="animate-fade-in">
-                                {children}
-                            </div>
-                        </main>
-                        <ImportStatusFloating />
-                        <ChatFAB />
-                        <PushNotificationManager userRole={user?.rol} />
+                <UserActivityProvider>
+                    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-teal-50/30">
+                        {user?.requiresPasswordChange && (
+                            <ForcePasswordChange onSuccess={() => {
+                                const newUser = JSON.parse(localStorage.getItem("user") || "{}");
+                                setUser(newUser);
+                            }} />
+                        )}
+                        {user && <WelcomeModal user={user} onUpdateUser={setUser} />}
+                        {user && !user.requiresPasswordChange && (user.telefono && user.telefono.length >= 6) && (
+                            <TourWelcomeWrapper userRole={user?.rol} />
+                        )}
+                        <Sidebar />
+                        <div className="flex flex-1 flex-col min-w-0">
+                            <TopBar />
+                            <main className="flex-1 overflow-y-auto px-4 pt-4 pb-4 md:p-6 lg:p-8">
+                                <div className="animate-fade-in">
+                                    {children}
+                                </div>
+                            </main>
+                            <ImportStatusFloating />
+                            <ChatFAB />
+                            <PushNotificationManager userRole={user?.rol} />
+                        </div>
                     </div>
-                </div>
-                <TourOverlay />
-                <Suspense fallback={null}>
-                    <PageTransition />
-                </Suspense>
+                    <TourOverlay />
+                    <Suspense fallback={null}>
+                        <PageTransition />
+                    </Suspense>
+                </UserActivityProvider>
             </ImportProvider>
         </TourProvider>
     );

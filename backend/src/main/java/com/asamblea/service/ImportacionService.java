@@ -4,17 +4,15 @@ import com.asamblea.model.ImportacionHistorial;
 import com.asamblea.model.Sucursal;
 import com.asamblea.repository.ImportacionHistorialRepository;
 import com.asamblea.repository.SucursalRepository;
-import com.github.pjfanning.xlsx.StreamingReader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,16 +38,16 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class ImportacionService {
 
-    private final JdbcTemplate jdbcTemplate;
-    private final SucursalRepository sucursalRepository;
     private final ImportacionHistorialRepository historialRepository;
-    private final LogAuditoriaService auditService;
+    private final SucursalRepository sucursalRepository;
+    private final JdbcTemplate jdbcTemplate;
+    private final com.asamblea.service.LogAuditoriaService auditService;
+    private final com.asamblea.repository.SocioRepository socioRepository;
+    private final com.asamblea.repository.UsuarioRepository usuarioRepository;
     private final FuncionarioDirectivoService funcionarioService;
 
     // Buffer optimizado para SSDs modernos y streaming
-    private static final int BUFFER_SIZE = 1024 * 1024; // 1 MB para lectura más rápida
     private static final int BATCH_SIZE = 5000; // Lotes más grandes para UPSERTs
-    private static final int ROW_CACHE_SIZE = 2000; // Más cache = menos I/O
 
     // Indices absolutos (0-based en POI)
     // COL_SOCIO_NRO = 1 (B)
@@ -165,15 +163,14 @@ public class ImportacionService {
 
             updateProgress(processId, 5); // Mostrar 5% inmediatamente para feedback rápido
 
+            // Fix: Zip bomb detected! (Permitir ratios de compresión más altos)
+            ZipSecureFile.setMinInflateRatio(0.001);
+
             try (
                     Connection conn = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection();
                     PreparedStatement ps = conn.prepareStatement(sql);
-                    InputStream is = new FileInputStream(tempFile);
-                    BufferedInputStream bis = new BufferedInputStream(is, BUFFER_SIZE);
-                    Workbook workbook = StreamingReader.builder()
-                            .rowCacheSize(ROW_CACHE_SIZE)
-                            .bufferSize(BUFFER_SIZE)
-                            .open(bis)) {
+                    Workbook workbook = WorkbookFactory.create(tempFile, null, true)) {
+
                 conn.setAutoCommit(false); // Importante para velocidad
 
                 Sheet sheet = workbook.getSheetAt(0);
@@ -462,9 +459,13 @@ public class ImportacionService {
             s.error = "Error interno: " + e.getMessage();
             s.completed = true;
         } finally {
-            // Limpieza temp
+            // Limpieza temp (archivo y carpeta)
             try {
-                Files.deleteIfExists(tempFile.toPath());
+                if (tempFile.exists()) {
+                    Path parentDir = tempFile.toPath().getParent();
+                    Files.deleteIfExists(tempFile.toPath());
+                    Files.deleteIfExists(parentDir); // Eliminar el directorio si está vacío
+                }
             } catch (Exception ignored) {
             }
         }

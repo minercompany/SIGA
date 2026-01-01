@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Upload, AlertCircle, CheckCircle2, Loader2, X, History, User, FileSpreadsheet, Download, ChevronRight, Zap, ShieldCheck } from "lucide-react";
+import { Upload, AlertCircle, CheckCircle2, Loader2, X, History, User, FileSpreadsheet, ChevronRight, Zap, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useImport } from "@/context/ImportContext";
 import axios from "axios";
@@ -74,19 +74,7 @@ export default function ImportarPage() {
         }
     };
 
-    // Función para descargar plantilla
-    const downloadTemplate = () => {
-        // En una app real, esto podría ser una descarga de un archivo estático o generado
-        // Por ahora, simularemos la descarga creando un CSV básico o alertando
-        const headers = ["Nro Socio", "Cédula", "Nombre", "Teléfono", "Sucursal", "Aporte", "Solidaridad", "Fondo", "Incoop", "Crédito"];
-        const csvContent = "data:text/csv;charset=utf-8," + headers.join(",");
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "plantilla_socios.csv"); // Fallback simple
-        const alertMsg = document.createElement('div');
-        alert("Descarga de plantilla iniciada...");
-    };
+
 
     const formatNumber = (num: number | undefined | null) => (num ?? 0).toLocaleString();
     const formatDate = (dateStr: string) => {
@@ -126,13 +114,7 @@ export default function ImportarPage() {
                             Rápido, seguro y con validación automática.
                         </p>
 
-                        <button
-                            onClick={() => window.open('/plantilla_padron.xlsx', '_blank')}
-                            className="group mt-2 inline-flex items-center gap-2 rounded-xl bg-white/95 px-5 py-3 text-emerald-500 shadow-lg transition-all hover:scale-105 active:scale-95 w-fit"
-                        >
-                            <Download className="h-4 w-4 text-emerald-500 transition-transform group-hover:-translate-y-1" />
-                            <span className="font-bold text-sm">Descargar Plantilla</span>
-                        </button>
+
                     </div>
                 </div>
 

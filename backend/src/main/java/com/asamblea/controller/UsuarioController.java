@@ -717,15 +717,23 @@ public class UsuarioController {
         // Inicializar array de 24 horas
         int[] actividadPorHora = new int[24];
 
-        java.time.LocalDate hoy = java.time.LocalDate.now();
+        // Usar zona horaria -03:00 (latam) para que coincida con el usuario
+        java.time.ZoneId zone = java.time.ZoneId.of("-03:00");
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(zone);
+        java.time.LocalDate hoy = now.toLocalDate();
+
         List<Usuario> users = usuarioRepository.findAll();
 
         for (Usuario u : users) {
             if (u.getLastLogin() != null) {
-                // Verificar si el login fue hoy
-                java.time.LocalDate loginDate = u.getLastLogin().toLocalDate();
-                if (loginDate.equals(hoy)) {
-                    int hora = u.getLastLogin().getHour();
+                // Interpretar lastLogin como UTC (guardado así por driver) y convertir a zona
+                // local
+                java.time.ZonedDateTime zdt = u.getLastLogin().atZone(java.time.ZoneOffset.UTC)
+                        .withZoneSameInstant(zone);
+
+                // Verificar si el login fue hoy (en hora local)
+                if (zdt.toLocalDate().equals(hoy)) {
+                    int hora = zdt.getHour();
                     if (hora >= 0 && hora < 24) {
                         actividadPorHora[hora]++;
                     }

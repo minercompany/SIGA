@@ -3,11 +3,14 @@ package com.asamblea.controller;
 import com.asamblea.model.Asistencia;
 import com.asamblea.model.Socio;
 import com.asamblea.model.Usuario;
+import com.asamblea.model.Asignacion;
+import com.asamblea.model.Asamblea;
 import com.asamblea.repository.AsistenciaRepository;
 import com.asamblea.repository.AsignacionRepository;
-import com.asamblea.model.Asignacion;
 import com.asamblea.repository.SocioRepository;
 import com.asamblea.repository.UsuarioRepository;
+import com.asamblea.repository.AsambleaRepository;
+import com.asamblea.service.LogAuditoriaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -28,8 +31,8 @@ public class AsistenciaController {
     private final AsignacionRepository asignacionRepository;
     private final SocioRepository socioRepository;
     private final UsuarioRepository usuarioRepository;
-    private final com.asamblea.repository.AsambleaRepository asambleaRepository;
-    private final com.asamblea.service.LogAuditoriaService auditService;
+    private final AsambleaRepository asambleaRepository;
+    private final LogAuditoriaService auditService;
 
     @GetMapping("/hoy")
     public ResponseEntity<?> asistenciasHoy() {
@@ -67,7 +70,7 @@ public class AsistenciaController {
                     .orElseThrow(() -> new RuntimeException("Socio no encontrado con ID: " + socioId));
 
             // Obtener ASAMBLEA ACTIVA (Fix: id_asamblea cannot be null)
-            com.asamblea.model.Asamblea asamblea = asambleaRepository.findTopByActivoTrueOrderByFechaDesc()
+            Asamblea asamblea = asambleaRepository.findTopByActivoTrueOrderByFechaDesc()
                     .orElseThrow(() -> new RuntimeException(
                             "NO_ASAMBLEA_ACTIVA: No hay ninguna asamblea activa configurada en el sistema."));
 

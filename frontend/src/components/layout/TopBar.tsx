@@ -6,6 +6,7 @@ import { WelcomeModal } from "../onboarding/WelcomeModal";
 import AvisosBell from "../AvisosBell";
 import { ManualUsuarioModal } from "../ManualUsuarioModal";
 import { useConfig } from "@/context/ConfigContext";
+import { useUserActivity } from "@/context/UserActivityContext";
 import { Database, AlertTriangle, Loader2 } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -21,11 +22,8 @@ export function TopBar() {
     const [isDeactivating, setIsDeactivating] = useState(false);
 
     // Estados para estadísticas de usuarios
-    const [userStats, setUserStats] = useState<{ total: number; usuales: number; activos: number }>({
-        total: 0,
-        usuales: 0,
-        activos: 0
-    });
+    // Estados para estadísticas de usuarios (Ahora desde Contexto)
+    const { stats: userStats } = useUserActivity();
 
     const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -105,74 +103,9 @@ export function TopBar() {
 
     const { isTestMode, deactivateTestMode } = useConfig();
 
-    // Heartbeat y estadísticas de usuarios
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-
-        // Función para enviar heartbeat
-        const sendHeartbeat = async () => {
-            try {
-                await fetch("/api/usuarios/heartbeat", {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-            } catch (error) {
-                // Silently fail - el usuario podría haber cerrado sesión
-            }
-        };
-
-        // Función para notificar al servidor que el usuario se va (usando sendBeacon para máxima confiabilidad)
-        const notifyLeaving = () => {
-            // sendBeacon es más confiable que fetch para eventos de cierre
-            if (navigator.sendBeacon) {
-                navigator.sendBeacon("/api/usuarios/leaving", JSON.stringify({ token }));
-            }
-        };
-
-        // Función para obtener estadísticas
-        const fetchStats = async () => {
-            try {
-                const res = await fetch("/api/usuarios/estadisticas", {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setUserStats(data);
-                }
-            } catch (error) {
-                // Silently fail
-            }
-        };
-
-        // Ejecutar inmediatamente al montar
-        sendHeartbeat();
-        fetchStats();
-
-        // Heartbeat cada 8 segundos (detección rápida ~10s)
-        const heartbeatInterval = setInterval(sendHeartbeat, 8000);
-
-        // Estadísticas cada 5 segundos
-        const statsInterval = setInterval(fetchStats, 5000);
-
-        // Detectar cuando el usuario cierra la pestaña o navega fuera
-        window.addEventListener('beforeunload', notifyLeaving);
-
-        // Detectar cuando la pestaña pierde visibilidad (opcional, pero útil)
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === 'visible') {
-                sendHeartbeat(); // Enviar heartbeat inmediato al volver
-            }
-        };
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-
-        return () => {
-            clearInterval(heartbeatInterval);
-            clearInterval(statsInterval);
-            window.removeEventListener('beforeunload', notifyLeaving);
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-        };
-    }, []);
+    // Heartbeat y estadísticas de usuarios (Ahora manejado por el Contexto Global)
+    // El contexto se encarga del heartbeat y de las estadísticas
+    // No necesitamos duplicar la lógica aquí
 
     useEffect(() => {
         const timer = setTimeout(async () => {
