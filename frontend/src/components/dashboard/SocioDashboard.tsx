@@ -439,20 +439,12 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                         data-tour="ratio-card"
                         className="relative overflow-hidden rounded-3xl md:rounded-[3rem] min-h-[300px] md:min-h-[400px] group shadow-2xl shadow-emerald-500/30"
                     >
-                        {/* Fondo Gradiente Pastel/Vibrante */}
+                        {/* Fondo Gradiente Pastel/Vibrante Optimizado */}
                         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600" />
 
-                        {/* Efectos de Luz Suaves */}
-                        <motion.div
-                            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-                            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                            className="absolute top-[-20%] right-[-20%] h-[500px] w-[500px] bg-white/20 rounded-full blur-[100px]"
-                        />
-                        <motion.div
-                            animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.4, 0.2] }}
-                            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                            className="absolute bottom-[-10%] left-[-10%] h-[400px] w-[400px] bg-teal-300/20 rounded-full blur-[80px]"
-                        />
+                        {/* Efectos de Luz Estáticos (Más livianos) */}
+                        <div className="absolute top-[-20%] right-[-20%] h-[400px] w-[400px] bg-white/10 rounded-full blur-[80px]" />
+                        <div className="absolute bottom-[-10%] left-[-10%] h-[300px] w-[300px] bg-teal-300/10 rounded-full blur-[60px]" />
 
                         {/* Grid Pattern */}
                         <div className="absolute inset-0 opacity-[0.1]"
@@ -510,13 +502,9 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                         initial={{ width: 0 }}
                                         animate={{ width: `${stats.total > 0 ? (stats.presentes / stats.total) * 100 : 0}%` }}
                                         transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
-                                        className="h-full bg-white relative shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                                        className="h-full bg-white relative shadow-[0_0_15px_rgba(255,255,255,0.5)] overflow-hidden"
                                     >
-                                        <motion.div
-                                            animate={{ x: ["-100%", "100%"] }}
-                                            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent w-1/2"
-                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent w-full -translate-x-full animate-[shimmer_2s_infinite]" />
                                     </motion.div>
                                 </div>
 
