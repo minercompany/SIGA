@@ -433,67 +433,80 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                         </div>
                     </motion.div>
                 ) : (
-                    /* Card de Ratio de Asistencia de Mi Lista - Para usuarios SOCIO */
+                    /* Card de Ratio de Asistencia de Mi Lista - Para usuarios SOCIO - Diseño Premium Emerald */
                     <motion.div
                         variants={itemVariants}
                         data-tour="ratio-card"
                         className="relative overflow-hidden rounded-3xl md:rounded-[3rem] min-h-[300px] md:min-h-[400px] group"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-                        <div className="absolute top-0 right-0 h-64 w-64 bg-emerald-500/20 rounded-full blur-[120px] group-hover:bg-emerald-500/30 transition-all duration-700" />
-                        <div className="absolute -bottom-20 -left-20 h-64 w-64 bg-emerald-500/20 rounded-full blur-[120px] group-hover:bg-emerald-500/30 transition-all duration-700" />
+                        {/* Fondo Premium Emerald */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900" />
 
-                        <div className="relative z-10 p-6 md:p-8 h-full flex flex-col justify-between">
+                        {/* Efectos de fondo */}
+                        <div className="absolute top-0 right-0 h-80 w-80 bg-emerald-500/20 rounded-full blur-[100px] group-hover:bg-emerald-400/30 transition-all duration-1000" />
+                        <div className="absolute bottom-0 left-0 h-64 w-64 bg-teal-500/20 rounded-full blur-[80px] group-hover:bg-teal-400/30 transition-all duration-1000" />
+
+                        {/* Patrón de puntos sutil */}
+                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
+
+                        <div className="relative z-10 p-8 md:p-10 h-full flex flex-col justify-between">
                             <div>
-                                <motion.div
-                                    whileHover={{ rotate: 360 }}
-                                    transition={{ duration: 0.6 }}
-                                    className="h-14 w-14 md:h-16 md:w-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center mb-6 shadow-2xl shadow-emerald-500/50"
-                                >
-                                    <TrendingUp className="h-7 w-7 md:h-8 md:w-8 text-white" />
-                                </motion.div>
-                                <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-2 bg-gradient-to-r from-white to-emerald-100 bg-clip-text text-transparent">
-                                    Asistencia de Mi Lista
-                                </h3>
-                                <p className="text-slate-400 text-xs md:text-sm font-medium">
-                                    {stats.presentes} presentes de {stats.total} socios asignados
-                                </p>
+                                <div className="flex items-start justify-between">
+                                    <motion.div
+                                        whileHover={{ rotate: 360, scale: 1.1 }}
+                                        transition={{ duration: 0.8 }}
+                                        className="h-16 w-16 md:h-20 md:w-20 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/40 border border-emerald-300/20"
+                                    >
+                                        <TrendingUp className="h-8 w-8 md:h-10 md:w-10 text-white" />
+                                    </motion.div>
 
-                                <div className="mt-6 md:mt-8 flex items-end gap-3">
+                                    <div className="px-4 py-2 bg-emerald-500/20 border border-emerald-400/30 rounded-full backdrop-blur-md">
+                                        <div className="flex items-center gap-2">
+                                            <span className="relative flex h-3 w-3">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                                            </span>
+                                            <span className="text-xs font-black text-emerald-100 tracking-wider">EN VIVO</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-8">
+                                    <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white mb-2">
+                                        Asistencia de Mi Lista
+                                    </h3>
+                                    <p className="text-emerald-100/70 text-sm font-medium">
+                                        {stats.presentes} presentes de {stats.total} socios asignados
+                                    </p>
+                                </div>
+
+                                <div className="mt-8 flex items-baseline gap-2">
                                     <motion.span
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="text-5xl md:text-7xl font-black bg-gradient-to-br from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent"
+                                        className="text-7xl md:text-8xl font-black text-white tracking-tighter"
                                     >
                                         {stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0}%
                                     </motion.span>
-                                    <span className="text-emerald-400 font-black mb-2 md:mb-3 uppercase text-xs tracking-wider">
-                                        <motion.span
-                                            animate={{ opacity: [1, 0.5, 1] }}
-                                            transition={{ duration: 2, repeat: Infinity }}
-                                        >
-                                            ● En Vivo
-                                        </motion.span>
-                                    </span>
                                 </div>
                             </div>
 
-                            <div className="mt-6 md:mt-8">
-                                <div className="h-3 bg-white/10 backdrop-blur-sm rounded-full overflow-hidden shadow-inner">
+                            <div className="mt-8">
+                                <div className="h-4 bg-emerald-900/50 backdrop-blur-sm rounded-full overflow-hidden border border-emerald-500/20">
                                     <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: `${stats.total > 0 ? (stats.presentes / stats.total) * 100 : 0}%` }}
                                         transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
-                                        className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.6)] relative overflow-hidden"
+                                        className="h-full bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-300 relative"
                                     >
                                         <motion.div
-                                            animate={{ x: ["0%", "100%"] }}
-                                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                                            animate={{ x: ["-100%", "100%"] }}
+                                            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-1/2"
                                         />
                                     </motion.div>
                                 </div>
-                                <div className="flex justify-between mt-3 text-xs text-slate-400">
+                                <div className="flex justify-between mt-4 text-sm font-medium text-emerald-200/60">
                                     <span>{stats.presentes} presentes</span>
                                     <span>{stats.ausentes} pendientes</span>
                                 </div>
