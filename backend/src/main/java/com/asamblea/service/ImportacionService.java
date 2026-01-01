@@ -229,12 +229,22 @@ public class ImportacionService {
                         String nombre = getRawValue(row, COL_NOMBRE);
 
                         // Validación mínima crítica
-                        if (cedula == null || cedula.isEmpty()) {
+                        // Si AMBOS están vacíos, es una fila fantasma de Excel - ignorar
+                        // silenciosamente
+                        boolean cedulaVacia = (cedula == null || cedula.isEmpty());
+                        boolean nombreVacio = (nombre == null || nombre.trim().isEmpty());
+
+                        if (cedulaVacia && nombreVacio) {
+                            // Fila completamente vacía, ignorar sin reportar error
+                            continue;
+                        }
+
+                        if (cedulaVacia) {
                             sinCedula++;
                             status.addErrorDetail(rowIndex, "N/A", "Cédula vacía o no válida");
                             continue;
                         }
-                        if (nombre == null || nombre.trim().isEmpty()) {
+                        if (nombreVacio) {
                             sinNombre++;
                             status.addErrorDetail(rowIndex, cedula, "Nombre del socio vacío");
                             continue;
