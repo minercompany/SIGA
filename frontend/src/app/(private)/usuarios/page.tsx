@@ -34,8 +34,16 @@ import {
     Award,
     Building2,
     Briefcase,
-    Clock
+    Clock,
+    Edit, // Added from instruction
+    UserX, // Added from instruction
+    MapPin, // Added from instruction
+    ChevronLeft, // Added from instruction
+    ChevronRight, // Added from instruction
+    Info, // Added from instruction
+    AlertCircle // Added from instruction
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import Swal from 'sweetalert2';
 
@@ -406,6 +414,88 @@ export default function UsuariosPage() {
         setCurrentPage(1); // Reset to first page
     };
 
+    // Mobile-friendly Card component
+    function UserCard({ user, onEdit, onDelete, onActivate, onGiveAccess }: {
+        user: Usuario,
+        onEdit: (u: Usuario) => void,
+        onDelete: (u: Usuario) => void,
+        onActivate: (u: Usuario) => void,
+        onGiveAccess: (u: Usuario) => void
+    }) {
+        const isOperator = user.tipo === "USUARIO";
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col gap-3 relative"
+            >
+                <div className="flex items-center justify-between">
+                    <div className={`px-2 py-1 rounded-lg text-[10px] font-black border ${getRolColor(user.rol)}`}>
+                        {user.rolNombre}
+                    </div>
+                    {user.tipo === "USUARIO" ? (
+                        <span className={`h-2 w-2 rounded-full ${user.activo ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+                    ) : (
+                        <span className="text-[10px] font-bold text-slate-400">SIN ACCESO</span>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${isOperator ? 'bg-teal-50 text-teal-500' : 'bg-slate-50 text-slate-400'}`}>
+                        {isOperator ? <Shield className="h-6 w-6" /> : <UserCircle2 className="h-6 w-6" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <h4 className="font-black text-slate-800 text-sm leading-tight truncate">{user.nombreCompleto}</h4>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                            {user.username && <span className="text-[10px] font-mono text-slate-400">@{user.username}</span>}
+                            {user.cedula && <span className="text-[10px] text-slate-500 font-bold">CI: {user.cedula}</span>}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 py-2 border-y border-slate-50">
+                    <div className="bg-slate-50/50 p-2 rounded-lg">
+                        <p className="text-[8px] font-black text-slate-400 uppercase">Sucursal</p>
+                        <p className="text-[10px] font-bold text-slate-600 truncate">{user.sucursal || 'General'}</p>
+                    </div>
+                    <div className="bg-slate-50/50 p-2 rounded-lg">
+                        <p className="text-[8px] font-black text-slate-400 uppercase">Identificación</p>
+                        <p className="text-[10px] font-bold text-slate-600 truncate">
+                            {user.numeroSocio || user.nroSocio ? `Socio #${user.numeroSocio || user.nroSocio}` : 'Operativo'}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex gap-2">
+                    {isOperator ? (
+                        <>
+                            <button
+                                onClick={() => onEdit(user)}
+                                className="flex-1 py-2 bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-blue-600 transition-all"
+                            >
+                                <Edit2 className="h-3.5 w-3.5 mx-auto" />
+                            </button>
+                            <button
+                                onClick={() => user.activo ? onDelete(user) : onActivate(user)}
+                                className={`flex-1 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-wider transition-all ${user.activo ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
+                            >
+                                {user.activo ? <Trash2 className="h-3.5 w-3.5 mx-auto" /> : <CheckCircle2 className="h-3.5 w-3.5 mx-auto" />}
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            onClick={() => onGiveAccess(user)}
+                            className="flex-1 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-100"
+                        >
+                            <UserPlus className="h-4 w-4 inline mr-2" />
+                            Dar Acceso
+                        </button>
+                    )}
+                </div>
+            </motion.div>
+        );
+    }
+
     if (loading && usuarios.length === 0) {
         return (
             <div className="flex items-center justify-center h-96">
@@ -621,7 +711,22 @@ export default function UsuariosPage() {
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full">
+                    {/* Mobile Card View */}
+                    <div className="grid grid-cols-1 gap-4 p-4 md:hidden">
+                        {currentUsers.map((user, idx) => (
+                            <UserCard
+                                key={user.id ? `card-u-${user.id}` : `card-s-${user.idSocio}-${idx}`}
+                                user={user}
+                                onEdit={openEditModal}
+                                onDelete={handleDelete}
+                                onActivate={handleActivate}
+                                onGiveAccess={openGiveAccessModal}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Desktop Table View */}
+                    <table className="w-full hidden md:table">
                         <thead className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-200">
                             <tr>
                                 <th className="px-4 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Identificación</th>

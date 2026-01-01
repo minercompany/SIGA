@@ -81,7 +81,7 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
     const progressWidth = Math.min(data.porcentajeMeta, 100);
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 
             {/* WIDGET 1: PROGRESO META (VOZ Y VOTO) - Destacado (ocupa 2 columnas en LG) */}
             <motion.div
@@ -108,9 +108,9 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                     </div>
 
                     {/* Badge de Meta */}
-                    <div className="flex flex-col items-end">
-                        <span className="text-3xl font-black text-white leading-none">{data.registradosVozYVoto}</span>
-                        <span className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
+                    <div className="flex flex-col items-end shrink-0">
+                        <span className="text-2xl xs:text-3xl md:text-3xl font-black text-white leading-none">{data.registradosVozYVoto}</span>
+                        <span className="text-slate-400 text-[9px] xs:text-xs md:text-xs font-bold uppercase tracking-widest mt-1">
                             de {data.meta} Objetivo
                         </span>
                     </div>
@@ -169,10 +169,10 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                 <div className="flex flex-col items-center justify-center flex-1 py-2">
                     {data.faltanMeta > 0 ? (
                         <>
-                            <span className="text-5xl font-black text-slate-800 tracking-tighter group-hover:scale-110 transition-transform duration-300">
+                            <span className="text-3xl xs:text-5xl md:text-5xl font-black text-slate-800 tracking-tighter group-hover:scale-110 transition-transform duration-300">
                                 {data.faltanMeta}
                             </span>
-                            <span className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2 text-center">
+                            <span className="text-slate-400 font-bold text-[10px] xs:text-xs md:text-xs uppercase tracking-widest mt-2 text-center">
                                 Socios Voz y Voto
                             </span>
                         </>
@@ -272,8 +272,8 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                     </div>
 
                     <div className="flex items-baseline gap-2 mb-2 relative z-10">
-                        <span className="text-4xl font-black">{data.asesores.registradosVozYVoto}</span>
-                        <span className="text-sm text-blue-300 font-bold uppercase">de {data.asesores.meta}</span>
+                        <span className="text-3xl md:text-4xl font-black">{data.asesores.registradosVozYVoto}</span>
+                        <span className="text-xs md:text-sm text-blue-300 font-bold uppercase">de {data.asesores.meta}</span>
                     </div>
 
                     <div className="relative pt-1">
@@ -315,8 +315,8 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                     </div>
 
                     <div className="flex items-baseline gap-2 mb-2 relative z-10">
-                        <span className="text-4xl font-black">{data.funcionarios.registradosVozYVoto}</span>
-                        <span className="text-sm text-emerald-300 font-bold uppercase">de {data.funcionarios.meta}</span>
+                        <span className="text-3xl md:text-4xl font-black">{data.funcionarios.registradosVozYVoto}</span>
+                        <span className="text-xs md:text-sm text-emerald-300 font-bold uppercase">de {data.funcionarios.meta}</span>
                     </div>
 
                     <div className="relative pt-1">

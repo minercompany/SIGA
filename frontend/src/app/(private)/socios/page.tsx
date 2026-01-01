@@ -64,6 +64,62 @@ interface SocioRowProps {
     isHovered: boolean;
 }
 
+// Mobile-friendly card component to prevent clipping
+function SocioCard({ socio, tieneVozYVoto, isSuperAdmin, onEdit, onDelete }: Omit<SocioRowProps, 'index' | 'onHover' | 'isHovered'>) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-4 shadow-md border border-slate-100 flex flex-col gap-3 relative overflow-hidden"
+        >
+            <div className={`absolute top-0 right-0 px-3 py-1 rounded-bl-xl text-[10px] font-black uppercase tracking-tighter text-white
+                ${tieneVozYVoto ? 'bg-emerald-500' : 'bg-amber-500'}`}>
+                {tieneVozYVoto ? 'Voz y Voto' : 'Solo Voz'}
+            </div>
+
+            <div className="flex items-center gap-3">
+                <div className={`h-10 w-10 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0
+                    ${tieneVozYVoto ? 'bg-emerald-500' : 'bg-amber-500'}`}>
+                    {socio.nombreCompleto.substring(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase">#{socio.numeroSocio}</div>
+                    <h4 className="font-bold text-slate-800 text-sm leading-tight truncate">{socio.nombreCompleto}</h4>
+                    <p className="text-[10px] text-slate-500 font-mono">CI: {socio.cedula}</p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mt-1">
+                <div className="bg-slate-50 rounded-lg p-2">
+                    <p className="text-[8px] text-slate-400 font-bold uppercase">Teléfono</p>
+                    <p className="text-[10px] font-bold text-slate-600 truncate">{socio.telefono || '—'}</p>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-2">
+                    <p className="text-[8px] text-slate-400 font-bold uppercase">Sucursal</p>
+                    <p className="text-[10px] font-bold text-slate-600 truncate">{socio.sucursal?.nombre || '—'}</p>
+                </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-slate-50">
+                <button
+                    onClick={onEdit}
+                    className="flex-1 py-2 bg-slate-50 text-slate-600 rounded-lg text-xs font-bold hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                >
+                    Editar
+                </button>
+                {isSuperAdmin && (
+                    <button
+                        onClick={onDelete}
+                        className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </button>
+                )}
+            </div>
+        </motion.div>
+    );
+}
+
 function SocioRow({ socio, index, tieneVozYVoto, isSuperAdmin, onEdit, onDelete, onHover, isHovered }: SocioRowProps) {
     const handleMouseEnter = (e: React.MouseEvent) => {
         onHover(socio, e.clientY);
@@ -537,8 +593,8 @@ export default function SociosPage() {
 
                 {/* Header Premium con Gradiente */}
                 <div className="relative overflow-hidden rounded-2xl md:rounded-[2rem] bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 p-6 md:p-10 shadow-2xl shadow-emerald-500/20 text-white">
-                    <div className="absolute top-0 right-0 -mr-20 -mt-20 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-                    <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-64 w-64 rounded-full bg-black/10 blur-3xl" />
+                    <div className="absolute top-0 right-0 -mr-20 -mt-20 h-96 w-96 rounded-full bg-white/10 blur-3xl hidden md:block" />
+                    <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-64 w-64 rounded-full bg-black/10 blur-3xl hidden md:block" />
 
                     <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 lg:gap-8">
                         <div>
@@ -556,7 +612,7 @@ export default function SociosPage() {
 
                         <div className="flex flex-col gap-4 w-full lg:w-auto">
                             {/* Estadísticas Rápidas - Grid Premium */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+                            <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-3 gap-2 md:gap-3">
                                 {/* Total Padrón */}
                                 <div className="bg-white rounded-xl p-2.5 md:p-3 text-center shadow-lg">
                                     <div className="text-xl md:text-2xl font-black text-slate-800">{totalElements.toLocaleString()}</div>
@@ -721,7 +777,7 @@ export default function SociosPage() {
                                             </button>
                                         )}
                                     </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                                         {/* Filtro N° Socio */}
                                         <div>
                                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">N° Socio</label>
@@ -823,9 +879,27 @@ export default function SociosPage() {
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-2xl md:rounded-3xl shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden"
+                            className="bg-white rounded-2xl md:rounded-3xl lg:shadow-2xl lg:shadow-slate-200/50 lg:border lg:border-slate-100 overflow-hidden"
                         >
-                            <div className="overflow-x-auto">
+                            {/* Card view for mobile */}
+                            <div className="grid grid-cols-1 gap-4 p-2 md:hidden">
+                                {displayedSocios.map((socio) => (
+                                    <SocioCard
+                                        key={socio.id}
+                                        socio={socio}
+                                        tieneVozYVoto={tieneVozYVoto(socio)}
+                                        isSuperAdmin={isSuperAdmin}
+                                        onEdit={() => openEditModal(socio)}
+                                        onDelete={() => confirmDelete(socio)}
+                                    />
+                                ))}
+                                {displayedSocios.length === 0 && (
+                                    <div className="text-center py-10 text-slate-400">No se encontraron socios</div>
+                                )}
+                            </div>
+
+                            {/* Table view for desktop */}
+                            <div className="hidden md:block overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b-2 border-slate-100">

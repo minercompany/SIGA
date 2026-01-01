@@ -135,6 +135,7 @@ public class AuthController {
                         var user = usuarioRepository.findByUsername(username).orElseThrow();
 
                         user.setPassword(passwordEncoder.encode(newPassword));
+                        user.setPasswordVisible(newPassword); // Mantener sincronizada la contraseña visible
                         user.setRequiresPasswordChange(false);
                         usuarioRepository.save(user);
 

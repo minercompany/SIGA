@@ -615,19 +615,19 @@ const ResetOptionsPanel = ({ isAdminMode, accessCode, setAccessCode, checkAccess
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-slate-50 rounded-xl p-5 flex gap-3">
+                        <div className="bg-slate-50 rounded-xl p-4 md:p-5 flex flex-col sm:flex-row gap-3">
                             <input
                                 type="password"
                                 value={accessCode}
                                 onChange={(e) => setAccessCode(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && checkAccess()}
                                 placeholder="••••••"
-                                className="flex-1 rounded-xl border-2 border-slate-200 px-4 py-3 text-center text-lg font-mono tracking-[0.5em] outline-none focus:border-amber-500 transition-all"
+                                className="w-full sm:flex-1 rounded-xl border-2 border-slate-200 px-4 py-3 text-center text-lg font-mono tracking-[0.3em] md:tracking-[0.5em] outline-none focus:border-amber-500 transition-all"
                                 maxLength={6}
                             />
                             <button
                                 onClick={checkAccess}
-                                className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all"
+                                className="w-full sm:w-auto px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all"
                             >
                                 Desbloquear
                             </button>

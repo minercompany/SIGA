@@ -42,8 +42,6 @@ public class ImportacionService {
     private final SucursalRepository sucursalRepository;
     private final JdbcTemplate jdbcTemplate;
     private final com.asamblea.service.LogAuditoriaService auditService;
-    private final com.asamblea.repository.SocioRepository socioRepository;
-    private final com.asamblea.repository.UsuarioRepository usuarioRepository;
     private final FuncionarioDirectivoService funcionarioService;
 
     // Buffer optimizado para SSDs modernos y streaming

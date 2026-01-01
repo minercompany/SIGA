@@ -84,6 +84,9 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    min-height: 100dvh;
   }
 }
 
@@ -118,17 +121,46 @@
   animation: slideIn 400ms ease-out;
 }
 
-/* Glassmorphism */
+/* Glassmorphism - Performance Optimized */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .dark .glass {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(15, 23, 42, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile-Specific Simplification (Performance) */
+@media (max-width: 768px) {
+
+  .glass,
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .dark .glass,
+  .dark [class*="backdrop-blur"] {
+    background: rgba(15, 23, 42, 0.98) !important;
+  }
+
+  /* Optimized shadows for low-end GPUs */
+  .shadow-xl,
+  .shadow-2xl,
+  .shadow-lg {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+  }
+
+  /* Force GPU optimization hint */
+  main,
+  .page-container {
+    will-change: transform;
+  }
 }
 
 /* Hide scrollbar but keep functionality */

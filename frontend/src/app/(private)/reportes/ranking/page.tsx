@@ -212,31 +212,32 @@ export default function RankingReportPage() {
 
                 {/* PODIUM SECTION (Solo visible si hay al menos 3) */}
                 {ranking.length >= 3 && (
-                    <div className="mb-16 print:mb-8 print:break-inside-avoid">
-                        <div className="flex items-end justify-center gap-6 min-h-[450px] pt-12">
-                            {/* 2nd Place */}
+                    <div className="mb-16 print:mb-8 print:break-inside-avoid overflow-hidden">
+                        <div className="flex flex-col md:flex-row items-center md:items-end justify-center gap-4 md:gap-6 min-h-0 md:min-h-[450px] pt-4 md:pt-12">
+                            {/* 2nd Place - (Shown first on mobile list or side on desktop) */}
                             <motion.div
                                 initial={{ y: 50, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.2 }}
-                                className="w-1/4 flex flex-col items-center z-10"
+                                className="w-full md:w-1/4 flex flex-col items-center z-10"
                             >
-                                <div className="mb-8 text-center relative z-30">
-                                    <h3 className="font-bold text-slate-700 line-clamp-1 text-lg px-2">{top2.nombreCompleto}</h3>
+                                <div className="mb-2 md:mb-8 text-center relative z-30">
+                                    <h3 className="font-bold text-slate-700 line-clamp-1 text-sm md:text-lg px-2">{top2.nombreCompleto}</h3>
                                 </div>
-                                <div className="w-full h-[200px] bg-gradient-to-t from-slate-300 to-slate-200 rounded-t-3xl relative shadow-xl border-t border-slate-100 flex flex-col items-center pt-6 print:bg-slate-200 print:bg-none">
-                                    {/* Avatar and Badge inside podium */}
+                                <div className="w-[85%] md:w-full h-[150px] md:h-[200px] bg-gradient-to-t from-slate-300 to-slate-200 rounded-2xl md:rounded-t-3xl relative shadow-xl border-t border-slate-100 flex flex-row md:flex-col items-center justify-around md:justify-start md:pt-6 print:bg-slate-200 print:bg-none">
                                     <div className="relative">
-                                        <div className="w-16 h-16 rounded-full bg-white border-4 border-slate-300 shadow-lg flex items-center justify-center overflow-hidden">
-                                            <UserCircle2 className="h-10 w-10 text-slate-300" />
+                                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white border-2 md:border-4 border-slate-300 shadow-lg flex items-center justify-center overflow-hidden">
+                                            <UserCircle2 className="h-8 w-8 md:h-10 md:w-10 text-slate-300" />
                                         </div>
-                                        <div className="absolute -bottom-2 -right-2 bg-slate-400 text-white w-7 h-7 rounded-full flex items-center justify-center font-black border-2 border-white text-sm">2</div>
+                                        <div className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 bg-slate-400 text-white w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center font-black border-2 border-white text-xs">2</div>
                                     </div>
-                                    <p className="mt-3 px-3 py-1 bg-white/80 rounded-lg text-[10px] text-slate-500 font-bold uppercase border border-slate-200">{top2.sucursal || 'N/A'}</p>
-                                    <div className="mt-3 px-4 py-2 bg-white rounded-full text-slate-700 font-black text-lg border-2 border-slate-300 shadow-md">
-                                        {top2.registrados} <span className="text-sm font-bold">Reg.</span>
+                                    <div className="flex flex-col items-center md:items-center">
+                                        <p className="px-2 py-0.5 bg-white/80 rounded-lg text-[8px] md:text-[10px] text-slate-500 font-bold uppercase border border-slate-200">{top2.sucursal || 'N/A'}</p>
+                                        <div className="mt-2 px-3 py-1 md:px-4 md:py-2 bg-white rounded-full text-slate-700 font-black text-sm md:text-lg border-2 border-slate-300 shadow-md">
+                                            {top2.registrados} <span className="text-[10px] md:text-sm font-bold">Reg.</span>
+                                        </div>
                                     </div>
-                                    <Medal className="absolute bottom-3 h-12 w-12 text-slate-400 opacity-20" />
+                                    <Medal className="hidden md:block absolute bottom-3 h-12 w-12 text-slate-400 opacity-20" />
                                 </div>
                             </motion.div>
 
@@ -244,26 +245,28 @@ export default function RankingReportPage() {
                             <motion.div
                                 initial={{ y: 50, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
-                                className="w-1/3 flex flex-col items-center z-20 -mx-4"
+                                className="w-full md:w-1/3 flex flex-col items-center z-20 md:-mx-4 order-first md:order-none"
                             >
-                                <div className="mb-8 text-center relative z-30">
-                                    <div className="mb-2">
-                                        <Crown className="h-8 w-8 text-amber-400 mx-auto fill-amber-400 animate-bounce print:animate-none" />
+                                <div className="mb-2 md:mb-8 text-center relative z-30">
+                                    <div className="mb-1 md:mb-2 text-center">
+                                        <Crown className="h-6 w-6 md:h-8 md:w-8 text-amber-400 mx-auto fill-amber-400 animate-bounce print:animate-none" />
                                     </div>
-                                    <h3 className="font-black text-slate-800 text-2xl line-clamp-1 px-2">{top1.nombreCompleto}</h3>
+                                    <h3 className="font-black text-slate-800 text-lg md:text-2xl line-clamp-1 px-2">{top1.nombreCompleto}</h3>
                                 </div>
-                                <div className="w-full h-[260px] bg-gradient-to-t from-amber-400 to-amber-300 rounded-t-3xl relative shadow-2xl shadow-amber-500/20 border-t border-amber-200 flex flex-col items-center pt-6 print:bg-amber-300 print:bg-none">
+                                <div className="w-full h-[180px] md:h-[260px] bg-gradient-to-t from-amber-400 to-amber-300 rounded-3xl md:rounded-t-3xl relative shadow-2xl shadow-amber-500/20 border-t border-amber-200 flex flex-row md:flex-col items-center justify-around md:justify-start md:pt-6 print:bg-amber-300 print:bg-none">
                                     <div className="relative">
-                                        <div className="w-20 h-20 rounded-full bg-white border-4 border-amber-300 shadow-xl flex items-center justify-center overflow-hidden">
-                                            <UserCircle2 className="h-12 w-12 text-amber-200" />
+                                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border-2 md:border-4 border-amber-300 shadow-xl flex items-center justify-center overflow-hidden">
+                                            <UserCircle2 className="h-10 w-10 md:h-12 md:w-12 text-amber-200" />
                                         </div>
-                                        <div className="absolute -bottom-2 -right-2 bg-amber-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-black border-2 border-white">1</div>
+                                        <div className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 bg-amber-500 text-white w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-black border-2 border-white text-sm">1</div>
                                     </div>
-                                    <p className="mt-4 px-4 py-1.5 bg-white/90 rounded-lg text-sm text-amber-700 font-bold uppercase border border-amber-200 shadow-sm">{top1.sucursal || 'N/A'}</p>
-                                    <div className="mt-4 px-6 py-3 bg-white rounded-full text-amber-600 font-black text-2xl border-2 border-amber-300 shadow-lg">
-                                        {top1.registrados} <span className="text-base font-bold">Registros</span>
+                                    <div className="flex flex-col items-center">
+                                        <p className="px-3 py-1 bg-white/90 rounded-lg text-[10px] md:text-sm text-amber-700 font-bold uppercase border border-amber-200 shadow-sm">{top1.sucursal || 'N/A'}</p>
+                                        <div className="mt-2 px-4 py-2 md:px-6 md:py-3 bg-white rounded-full text-amber-600 font-black text-lg md:text-2xl border-2 border-amber-300 shadow-lg">
+                                            {top1.registrados} <span className="text-xs md:text-base font-bold">Reg.</span>
+                                        </div>
                                     </div>
-                                    <Trophy className="absolute bottom-4 h-16 w-16 text-amber-600 opacity-20" />
+                                    <Trophy className="hidden md:block absolute bottom-4 h-16 w-16 text-amber-600 opacity-20" />
                                 </div>
                             </motion.div>
 
@@ -272,23 +275,25 @@ export default function RankingReportPage() {
                                 initial={{ y: 50, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.4 }}
-                                className="w-1/4 flex flex-col items-center z-10"
+                                className="w-full md:w-1/4 flex flex-col items-center z-10"
                             >
-                                <div className="mb-8 text-center relative z-30">
-                                    <h3 className="font-bold text-slate-700 line-clamp-1 text-lg px-2">{top3.nombreCompleto}</h3>
+                                <div className="mb-2 md:mb-8 text-center relative z-30">
+                                    <h3 className="font-bold text-slate-700 line-clamp-1 text-sm md:text-lg px-2">{top3.nombreCompleto}</h3>
                                 </div>
-                                <div className="w-full h-[160px] bg-gradient-to-t from-orange-300 to-orange-200 rounded-t-3xl relative shadow-xl border-t border-orange-100 flex flex-col items-center pt-5 print:bg-orange-200 print:bg-none">
+                                <div className="w-[75%] md:w-full h-[120px] md:h-[160px] bg-gradient-to-t from-orange-300 to-orange-200 rounded-2xl md:rounded-t-3xl relative shadow-xl border-t border-orange-100 flex flex-row md:flex-col items-center justify-around md:justify-start md:pt-5 print:bg-orange-200 print:bg-none">
                                     <div className="relative">
-                                        <div className="w-14 h-14 rounded-full bg-white border-4 border-orange-300 shadow-lg flex items-center justify-center overflow-hidden">
-                                            <UserCircle2 className="h-8 w-8 text-orange-200" />
+                                        <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white border-2 md:border-4 border-orange-300 shadow-lg flex items-center justify-center overflow-hidden">
+                                            <UserCircle2 className="h-6 w-6 md:h-8 md:w-8 text-orange-200" />
                                         </div>
-                                        <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-black border-2 border-white text-xs">3</div>
+                                        <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center font-black border-2 border-white text-[10px]">3</div>
                                     </div>
-                                    <p className="mt-2 px-2 py-0.5 bg-white/80 rounded text-[9px] text-orange-600 font-bold uppercase border border-orange-200">{top3.sucursal || 'N/A'}</p>
-                                    <div className="mt-2 px-3 py-1.5 bg-white rounded-full text-orange-700 font-black text-base border-2 border-orange-300 shadow-md">
-                                        {top3.registrados} <span className="text-xs font-bold">Reg.</span>
+                                    <div className="flex flex-col items-center">
+                                        <p className="px-2 py-0.5 bg-white/80 rounded text-[7px] md:text-[9px] text-orange-600 font-bold uppercase border border-orange-200">{top3.sucursal || 'N/A'}</p>
+                                        <div className="mt-1 px-2.5 py-1 md:px-3 md:py-1.5 bg-white rounded-full text-orange-700 font-black text-sm md:text-base border-2 border-orange-300 shadow-md">
+                                            {top3.registrados} <span className="text-[10px] font-bold">Reg.</span>
+                                        </div>
                                     </div>
-                                    <Medal className="absolute bottom-2 h-10 w-10 text-orange-500 opacity-20" />
+                                    <Medal className="hidden md:block absolute bottom-2 h-10 w-10 text-orange-500 opacity-20" />
                                 </div>
                             </motion.div>
                         </div>
@@ -318,13 +323,13 @@ export default function RankingReportPage() {
 
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-slate-100 bg-slate-50/50 text-xs font-black text-slate-400 uppercase tracking-wider print:bg-slate-100">
-                                <th className="p-4 w-12 text-center">#</th>
-                                <th className="p-4">Funcionario / Asesor</th>
-                                <th className="p-4">Sucursal</th>
-                                <th className="p-4 w-32 text-center">Registrados</th>
-                                <th className="p-4 w-48 text-center print:hidden">Progreso</th>
-                                <th className="p-4 w-12 print:hidden"></th>
+                            <tr className="border-b border-slate-100 bg-slate-50/50 text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-wider print:bg-slate-100">
+                                <th className="p-2 md:p-4 w-10 md:w-12 text-center">#</th>
+                                <th className="p-2 md:p-4">Funcionario</th>
+                                <th className="p-2 md:p-4 hidden sm:table-cell text-center">Sucursal</th>
+                                <th className="p-2 md:p-4 w-20 md:w-32 text-center">Registrados</th>
+                                <th className="p-2 md:p-4 w-24 md:w-48 text-center print:hidden hidden md:table-cell">Progreso</th>
+                                <th className="p-2 md:p-4 w-10 md:w-12 print:hidden"></th>
                             </tr>
                         </thead>
                         <tbody className="text-sm">
@@ -346,17 +351,20 @@ export default function RankingReportPage() {
                                                     </span>
                                                 ) : <span>{index + 1}</span>}
                                             </td>
-                                            <td className="p-4">
-                                                <div className="font-bold text-slate-800 text-base">{user.nombreCompleto}</div>
-                                                <div className="text-xs text-slate-400 font-medium">@{user.username} • {user.cargo || 'Funcionario'}</div>
+                                            <td className="p-2 md:p-4">
+                                                <div className="font-bold text-slate-800 text-sm md:text-base leading-tight truncate max-w-[120px] md:max-w-none">{user.nombreCompleto}</div>
+                                                <div className="text-[10px] text-slate-400 font-medium truncate">@{user.username}</div>
+                                                <div className="sm:hidden mt-1 inline-block px-1.5 py-0.5 bg-slate-100 rounded text-[9px] font-bold text-slate-500 uppercase">
+                                                    {user.sucursal}
+                                                </div>
                                             </td>
-                                            <td className="p-4">
-                                                <span className="inline-block px-2 py-1 bg-slate-100 rounded text-xs font-bold text-slate-600 uppercase">
+                                            <td className="p-2 md:p-4 hidden sm:table-cell text-center">
+                                                <span className="inline-block px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-600 uppercase">
                                                     {user.sucursal}
                                                 </span>
                                             </td>
-                                            <td className="p-4 text-center">
-                                                <div className="font-black text-xl text-slate-800">{user.registrados}</div>
+                                            <td className="p-2 md:p-4 text-center">
+                                                <div className="font-black text-lg md:text-xl text-slate-800">{user.registrados}</div>
                                             </td>
                                             <td className="p-4 print:hidden">
                                                 {user.meta > 0 ? (
@@ -403,20 +411,54 @@ export default function RankingReportPage() {
                                                                     </div>
                                                                 ) : (
                                                                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                                                        {/* STATS DEL DETALLE */}
+                                                                        {/* STATS DEL DETALLE - REDISEÑADO PREMIUM */}
                                                                         {statsDetalle && (
-                                                                            <div className="flex divide-x divide-slate-100 border-b border-slate-100 bg-slate-50">
-                                                                                <div className="flex-1 p-3 text-center">
-                                                                                    <div className="text-xs font-bold text-slate-400 uppercase">Total Asignados</div>
-                                                                                    <div className="text-xl font-black text-slate-800">{statsDetalle.total || 0}</div>
+                                                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 border-b border-slate-100 bg-white">
+                                                                                <div className="p-6 text-center border-b sm:border-b-0 sm:border-r border-slate-100 relative group overflow-hidden">
+                                                                                    <div className="absolute inset-0 bg-slate-50/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                                                    <div className="relative z-10">
+                                                                                        <div className="flex items-center justify-center gap-2 mb-2">
+                                                                                            <div className="p-1.5 bg-slate-100 rounded-lg text-slate-500">
+                                                                                                <Users className="h-4 w-4" />
+                                                                                            </div>
+                                                                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Asignados</span>
+                                                                                        </div>
+                                                                                        <div className="text-5xl font-black text-slate-800 tracking-tight drop-shadow-sm">
+                                                                                            {statsDetalle.total || 0}
+                                                                                        </div>
+                                                                                    </div>
                                                                                 </div>
-                                                                                <div className="flex-1 p-3 text-center bg-emerald-50/50">
-                                                                                    <div className="text-xs font-bold text-emerald-600 uppercase">Voz y Voto</div>
-                                                                                    <div className="text-xl font-black text-emerald-700">{statsDetalle.vyv || 0}</div>
+
+                                                                                <div className="p-6 text-center border-b sm:border-b-0 sm:border-r border-slate-100 relative group overflow-hidden">
+                                                                                    <div className="absolute inset-0 bg-emerald-50/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                                                    <div className="relative z-10">
+                                                                                        <div className="flex items-center justify-center gap-2 mb-2">
+                                                                                            <div className="p-1.5 bg-emerald-100 rounded-lg text-emerald-600">
+                                                                                                <CheckCircle className="h-4 w-4" />
+                                                                                            </div>
+                                                                                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Voz y Voto</span>
+                                                                                        </div>
+                                                                                        <div className="text-5xl font-black text-emerald-600 tracking-tight drop-shadow-sm">
+                                                                                            {statsDetalle.vyv || 0}
+                                                                                        </div>
+                                                                                        <div className="text-[10px] font-bold text-emerald-500/70 mt-1 uppercase">Habilitados</div>
+                                                                                    </div>
                                                                                 </div>
-                                                                                <div className="flex-1 p-3 text-center bg-amber-50/50">
-                                                                                    <div className="text-xs font-bold text-amber-600 uppercase">Solo Voz</div>
-                                                                                    <div className="text-xl font-black text-amber-700">{statsDetalle.soloVoz || 0}</div>
+
+                                                                                <div className="p-6 text-center relative group overflow-hidden">
+                                                                                    <div className="absolute inset-0 bg-amber-50/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                                                    <div className="relative z-10">
+                                                                                        <div className="flex items-center justify-center gap-2 mb-2">
+                                                                                            <div className="p-1.5 bg-amber-100 rounded-lg text-amber-600">
+                                                                                                <AlertCircle className="h-4 w-4" />
+                                                                                            </div>
+                                                                                            <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Solo Voz</span>
+                                                                                        </div>
+                                                                                        <div className="text-5xl font-black text-amber-700 tracking-tight drop-shadow-sm">
+                                                                                            {statsDetalle.soloVoz || 0}
+                                                                                        </div>
+                                                                                        <div className="text-[10px] font-bold text-amber-600/70 mt-1 uppercase">Observados</div>
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
                                                                         )}

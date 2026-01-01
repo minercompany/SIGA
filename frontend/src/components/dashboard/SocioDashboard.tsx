@@ -7,6 +7,7 @@ import { motion, Variants } from 'framer-motion';
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useTour, dashboardSocioTour, dashboardAdminTour } from '../tour';
+import { RankMotivationWidget } from "./RankMotivationWidget";
 
 interface SocioDashboardProps {
     misListas: any[];
@@ -20,6 +21,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
     const [statsGlobales, setStatsGlobales] = useState({ totalHabilitados: 0, presentesGlobal: 0 });
     const [rankingOperadores, setRankingOperadores] = useState<any[]>([]);
     const [userRole, setUserRole] = useState<string>("");
+    const [currentUsername, setCurrentUsername] = useState<string>("");
 
     // Obtener nombre del usuario y hora del día
     useEffect(() => {
@@ -41,6 +43,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                     .join(' ');
 
                 setUserName(displayName);
+                setCurrentUsername(user.username || "");
             } catch (error) {
                 console.error("Error parsing user data:", error);
                 setUserName("Usuario");
@@ -200,8 +203,16 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                 </div>
             </motion.div>
 
+            {/* Widget de Motivación basado en Ranking */}
+            {rankingOperadores && rankingOperadores.length > 0 && currentUsername && (
+                <RankMotivationWidget
+                    ranking={rankingOperadores}
+                    currentUsername={currentUsername}
+                />
+            )}
+
             {/* Métricas Principales Premium */}
-            <div data-tour="stats-cards" className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div data-tour="stats-cards" className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {[
                     { label: "Socios Asignados", value: stats.total, icon: Users, color: "emerald", delay: 0 },
                     { label: "Con Voz y Voto", value: stats.vyv, icon: UserCheck, color: "blue", delay: 0.1 },
@@ -246,7 +257,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                 </div>
 
                                 <div>
-                                    <h2 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight leading-none group-hover:translate-x-1 transition-transform duration-300">
+                                    <h2 className="text-3xl xs:text-4xl md:text-5xl font-black text-slate-800 tracking-tight leading-none group-hover:translate-x-1 transition-transform duration-300">
                                         {stat.value}
                                     </h2>
                                     <p className={`text-[10px] md:text-xs font-bold uppercase tracking-widest mt-2
@@ -305,7 +316,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                         initial={{ scale: 0 }}
                                         animate={{ scale: 1 }}
                                         transition={{ type: "spring", delay: 0.5 }}
-                                        className="text-4xl md:text-5xl font-black bg-gradient-to-br from-slate-800 to-slate-600 bg-clip-text text-transparent"
+                                        className="text-3xl md:text-5xl font-black bg-gradient-to-br from-slate-800 to-slate-600 bg-clip-text text-transparent"
                                     >
                                         {effectiveness}%
                                     </motion.span>
@@ -489,7 +500,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                     <motion.span
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="text-8xl md:text-9xl font-black text-white drop-shadow-lg"
+                                        className="text-6xl md:text-9xl font-black text-white drop-shadow-lg"
                                     >
                                         {stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0}%
                                     </motion.span>

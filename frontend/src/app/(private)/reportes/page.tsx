@@ -599,11 +599,11 @@ export default function IntelligenceHubPage() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-1 mt-6 border-b border-slate-100 overflow-x-auto">
+                <div className="flex flex-wrap items-center gap-2 mt-6 border-b border-slate-100 pb-2">
                     {[
-                        { id: "GESTION", label: "Gestión y Metas", icon: TrendingUp },
-                        { id: "PADRON", label: "Padrón y Condición", icon: FileText },
-                        { id: "ASISTENCIA", label: "Asistencia en Vivo", icon: CheckCircle2 },
+                        { id: "GESTION", label: "Gestión", icon: TrendingUp },
+                        { id: "PADRON", label: "Padrón", icon: FileText },
+                        { id: "ASISTENCIA", label: "En Vivo", icon: CheckCircle2 },
                         { id: "TOP", label: "Rankings", icon: AlertCircle },
                     ].map((tab) => (
                         <button
@@ -614,12 +614,12 @@ export default function IntelligenceHubPage() {
                                     setAlcance('GLOBAL');
                                 }
                             }}
-                            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold transition-all whitespace-nowrap rounded-xl ${reporteTipo === tab.id
+                            className={`flex flex-1 md:flex-none items-center justify-center gap-2 px-3 md:px-5 py-2 md:py-2.5 text-[10px] md:text-sm font-bold transition-all whitespace-nowrap rounded-xl ${reporteTipo === tab.id
                                 ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20"
-                                : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                                : "text-slate-500 bg-slate-50 md:bg-transparent hover:bg-slate-100 hover:text-slate-700"
                                 }`}
                         >
-                            <tab.icon className="h-4 w-4" />
+                            <tab.icon className="h-3.5 w-3.5 md:h-4 w-4" />
                             {tab.label}
                         </button>
                     ))}

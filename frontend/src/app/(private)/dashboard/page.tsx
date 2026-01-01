@@ -78,16 +78,12 @@ export default function DashboardPage() {
                         setMisListas([]);
                     }
                 } else {
-                    const [statsRes, desempenoRes, rankingRes, activityRes, activeListRes, hourlyStatsRes] = await Promise.all([
+                    const [statsRes, desempenoRes, rankingRes] = await Promise.all([
                         axios.get("/api/socios/estadisticas", { headers }),
                         axios.get("/api/socios/estadisticas/por-sucursal", { headers }),
-                        // Cambiado a ranking de asignaciones en lugar de asistencia
-                        axios.get("/api/asignaciones/ranking-usuarios", { headers }),
-                        // Nuevas estadísticas de usuario
-                        axios.get("/api/usuarios/estadisticas", { headers }),
-                        axios.get("/api/usuarios/activos-lista", { headers }),
-                        axios.get("/api/usuarios/stats-actividad", { headers })
+                        axios.get("/api/asignaciones/ranking-usuarios", { headers })
                     ]);
+
                     setStats(statsRes.data);
                     setDesempeno(desempenoRes.data);
 
@@ -101,14 +97,22 @@ export default function DashboardPage() {
 
                     setRankingOperadores(mappedRanking);
 
-                    // Setear actividad de usuarios
-                    setUserActivity({
-                        total: activityRes.data.total,
-                        usuales: activityRes.data.usuales,
-                        activos: activityRes.data.activos,
-                        activeList: activeListRes.data,
-                        hourlyStats: hourlyStatsRes.data
-                    });
+                    // Setear actividad de usuarios (SOLO si es SUPER_ADMIN)
+                    if (parsedUser.rol === "SUPER_ADMIN") {
+                        const [activityRes, activeListRes, hourlyStatsRes] = await Promise.all([
+                            axios.get("/api/usuarios/estadisticas", { headers }),
+                            axios.get("/api/usuarios/activos-lista", { headers }),
+                            axios.get("/api/usuarios/stats-actividad", { headers })
+                        ]);
+
+                        setUserActivity({
+                            total: activityRes.data.total,
+                            usuales: activityRes.data.usuales,
+                            activos: activityRes.data.activos,
+                            activeList: activeListRes.data,
+                            hourlyStats: hourlyStatsRes.data
+                        });
+                    }
                 }
             }
         } catch (error) {

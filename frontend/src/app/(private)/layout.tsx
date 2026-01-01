@@ -14,6 +14,7 @@ import ChatFAB from "@/components/ChatFAB";
 import PageTransition from "@/components/PageTransition";
 import PushNotificationManager from "@/components/notifications/PushNotificationManager";
 import { UserActivityProvider } from "@/context/UserActivityContext";
+import { SessionExpiredModal } from "@/components/auth/SessionExpiredModal";
 
 // Componente wrapper para el TourWelcome que necesita acceso al contexto
 function TourWelcomeWrapper({ userRole }: { userRole?: string }) {
@@ -50,6 +51,16 @@ export default function PrivateLayout({
     const pathname = usePathname();
     const [authorized, setAuthorized] = useState(false);
     const [user, setUser] = useState<any>(null);
+    const [isSessionExpired, setIsSessionExpired] = useState(false);
+
+    useEffect(() => {
+        const handleSessionExpired = () => {
+            setIsSessionExpired(true);
+        };
+
+        window.addEventListener("session-expired", handleSessionExpired);
+        return () => window.removeEventListener("session-expired", handleSessionExpired);
+    }, []);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -108,6 +119,7 @@ export default function PrivateLayout({
                     <Suspense fallback={null}>
                         <PageTransition />
                     </Suspense>
+                    <SessionExpiredModal isOpen={isSessionExpired} />
                 </UserActivityProvider>
             </ImportProvider>
         </TourProvider>

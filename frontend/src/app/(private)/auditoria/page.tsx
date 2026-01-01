@@ -120,6 +120,42 @@ export default function AuditoriaPage() {
         }).format(date);
     };
 
+    function AuditLogCard({ log }: { log: LogEntry }) {
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col gap-3"
+            >
+                <div className="flex items-center justify-between">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase border leading-none ${getModuleColor(log.modulo)}`}>
+                        {log.modulo}
+                    </span>
+                    <span className="text-[10px] font-medium text-slate-400">{formatDate(log.createdAt)}</span>
+                </div>
+
+                <div>
+                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-tight mb-1">
+                        {log.accion.replace(/_/g, ' ')}
+                    </h4>
+                    <p className="text-sm font-medium text-slate-600 leading-relaxed italic border-l-2 border-slate-200 pl-3 py-1">
+                        "{log.detalles}"
+                    </p>
+                </div>
+
+                <div className="flex items-center justify-between mt-1 pt-2 border-t border-slate-50">
+                    <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 bg-slate-100 rounded-full flex items-center justify-center">
+                            <User className="h-3 w-3 text-slate-500" />
+                        </div>
+                        <span className="text-xs font-black text-slate-800">{log.usuario}</span>
+                    </div>
+                    <span className="text-[10px] font-medium text-slate-400 uppercase">{log.ipAddress}</span>
+                </div>
+            </motion.div>
+        );
+    }
+
     return (
         <div className="mx-auto space-y-4" style={{ maxWidth: 'clamp(320px, 98vw, 1200px)', padding: 'clamp(0.5rem, 2vw, 1.5rem)' }}>
             {/* Header con Estética Premium - Compacto */}
@@ -321,8 +357,22 @@ export default function AuditoriaPage() {
                     </div>
 
                     {/* Listado de Logs */}
-                    <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl shadow-slate-200/50 overflow-hidden">
-                        <div className="overflow-x-auto">
+                    <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-200 shadow-xl overflow-hidden">
+                        {/* Mobile view */}
+                        <div className="grid grid-cols-1 gap-4 p-4 md:hidden bg-slate-50/30">
+                            {loading ? (
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <div key={i} className="h-32 bg-white rounded-2xl animate-pulse" />
+                                ))
+                            ) : filteredLogs.length > 0 ? (
+                                filteredLogs.map((log) => <AuditLogCard key={log.id} log={log} />)
+                            ) : (
+                                <div className="py-10 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Sin registros</div>
+                            )}
+                        </div>
+
+                        {/* Desktop Table View */}
+                        <div className="overflow-x-auto hidden md:block">
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="bg-slate-50/50 border-b border-slate-100">
