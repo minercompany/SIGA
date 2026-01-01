@@ -166,7 +166,7 @@ export default function LoginPage() {
                                 {/* Logo grande */}
                                 <div className="flex justify-center">
                                     <div className="h-40 w-40 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center shadow-2xl border-4 border-white/30 overflow-hidden">
-                                        <img src="/logo-cooperativa.png" alt="Cooperativa Reducto" className="h-36 w-36 object-contain" />
+                                        <img src="/logo-cooperativa.png" alt="Logo oficial de Cooperativa Reducto Ltda - Sistema SIGA de Gestión de Asambleas" className="h-36 w-36 object-contain" />
                                     </div>
                                 </div>
 
@@ -217,7 +217,7 @@ export default function LoginPage() {
                                 <div className="relative z-10 flex flex-col items-center text-center">
                                     {/* Logo */}
                                     <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center shadow-2xl border-4 border-white/30 overflow-hidden mb-3 sm:mb-4">
-                                        <img src="/logo-cooperativa.png" alt="Logo" className="h-16 w-16 sm:h-20 sm:w-20 object-contain" />
+                                        <img src="/logo-cooperativa.png" alt="Logo Cooperativa Reducto - SIGA Sistema de Asambleas" className="h-16 w-16 sm:h-20 sm:w-20 object-contain" />
                                     </div>
 
                                     {/* Nombre */}

@@ -16,8 +16,32 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sistema de Asambleas - Cooperativa Reducto",
-  description: "Sistema de Gestión de Asambleas Cooperativa Reducto Ltda.",
+  title: "SIGA - Sistema de Gestión de Asambleas | Cooperativa Reducto",
+  description: "Sistema web profesional para gestión de asambleas cooperativas. Control de asistencia, votaciones, documentos y socios. Cooperativa Reducto Ltda. San Lorenzo, Paraguay.",
+  keywords: ["sistema de asambleas", "cooperativa", "gestión cooperativa", "control asistencia", "votaciones", "Paraguay", "SIGA", "Cooperativa Reducto"],
+  authors: [{ name: "Cooperativa Reducto Ltda" }],
+  creator: "Avanzantec Group SRL",
+  publisher: "Cooperativa Reducto Ltda",
+  openGraph: {
+    title: "SIGA - Sistema de Gestión de Asambleas",
+    description: "Plataforma integral para la gestión de asambleas cooperativas. Control de asistencia, votaciones y documentación.",
+    type: "website",
+    locale: "es_PY",
+    siteName: "SIGA Cooperativa Reducto",
+    url: "https://asamblea.cloud"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SIGA - Sistema de Gestión de Asambleas",
+    description: "Plataforma integral para la gestión de asambleas cooperativas"
+  },
+  robots: {
+    index: true,
+    follow: true
+  },
+  alternates: {
+    canonical: "https://asamblea.cloud"
+  }
 };
 
 export default function RootLayout({
@@ -34,6 +58,37 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="SIGA" />
         <link rel="apple-touch-icon" href="/logo.png" />
+        {/* Schema.org Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              "name": "SIGA - Sistema de Gestión de Asambleas",
+              "description": "Sistema web profesional para gestión de asambleas cooperativas",
+              "applicationCategory": "BusinessApplication",
+              "operatingSystem": "Any",
+              "url": "https://asamblea.cloud",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "PYG"
+              },
+              "provider": {
+                "@type": "Organization",
+                "name": "Cooperativa Reducto Ltda",
+                "url": "https://asamblea.cloud",
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": "San Lorenzo",
+                  "addressRegion": "Central",
+                  "addressCountry": "PY"
+                }
+              }
+            })
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

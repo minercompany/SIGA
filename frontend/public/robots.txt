@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /login
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /configuracion
+Disallow: /importar
+Disallow: /asignaciones
+Disallow: /socios
+Disallow: /usuarios
+Disallow: /mensajes
+Disallow: /pantalla
+Disallow: /reportes
+
+# Sitemap
+Sitemap: https://asamblea.cloud/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 10
