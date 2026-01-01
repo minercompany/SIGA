@@ -25,6 +25,8 @@ export default function RankingReportPage() {
     const [loadingDetalle, setLoadingDetalle] = useState(false);
     const [statsDetalle, setStatsDetalle] = useState<any>(null);
 
+    const [selectedUserForGoals, setSelectedUserForGoals] = useState<any | null>(null);
+
     useEffect(() => {
         const fetchRanking = async () => {
             try {
@@ -366,14 +368,38 @@ export default function RankingReportPage() {
                                             <td className="p-2 md:p-4 text-center">
                                                 <div className="font-black text-lg md:text-xl text-slate-800">{user.registrados}</div>
                                             </td>
-                                            <td className="p-4 print:hidden">
+                                            <td
+                                                className="p-4 print:hidden"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedUserForGoals(user);
+                                                }}
+                                            >
                                                 {user.meta > 0 ? (
-                                                    <div className="w-full">
-                                                        <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
-                                                            <span>{user.porcentaje.toFixed(0)}%</span>
+                                                    <div className="w-full cursor-pointer group/progress">
+                                                        <div className="flex justify-between items-center mb-1.5">
+                                                            <span className="text-[10px] font-black text-slate-400">{user.porcentaje.toFixed(0)}%</span>
+                                                            <motion.span
+                                                                animate={{
+                                                                    scale: [1, 1.05, 1],
+                                                                    opacity: [0.8, 1, 0.8]
+                                                                }}
+                                                                transition={{
+                                                                    duration: 3,
+                                                                    repeat: Infinity,
+                                                                    ease: "easeInOut"
+                                                                }}
+                                                                className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md text-[9px] font-black uppercase tracking-tighter border border-indigo-100 flex items-center gap-1 shadow-sm"
+                                                            >
+                                                                Ver Metas <ChevronDown className="h-2.5 w-2.5 rotate-[-90deg]" />
+                                                            </motion.span>
                                                         </div>
-                                                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                                            <div className={`h-full rounded-full ${user.porcentaje >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${Math.min(user.porcentaje, 100)}%` }} />
+                                                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner">
+                                                            <motion.div
+                                                                initial={{ width: 0 }}
+                                                                animate={{ width: `${Math.min(user.porcentaje, 100)}%` }}
+                                                                className={`h-full rounded-full ${user.porcentaje >= 100 ? 'bg-emerald-500' : 'bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.3)]'}`}
+                                                            />
                                                         </div>
                                                     </div>
                                                 ) : <span className="text-xs text-slate-400 italic">Sin meta</span>}
@@ -385,7 +411,7 @@ export default function RankingReportPage() {
                                                             e.stopPropagation(); // Evitar doble trigger
                                                             if (hasId) toggleExpand(user);
                                                         }}
-                                                        className="text-slate-400 hover:text-slate-600"
+                                                        className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-lg transition-colors"
                                                     >
                                                         {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                                                     </button>
@@ -474,7 +500,7 @@ export default function RankingReportPage() {
                                                                             </thead>
                                                                             <tbody className="divide-y divide-slate-100">
                                                                                 {sociosDetalle.slice(0, visibleCount).map((socio) => (
-                                                                                    <tr key={socio.id} className="hover:bg-slate-50">
+                                                                                    <tr key={socio.id} className="hover:bg-slate-50 transition-colors">
                                                                                         <td className="p-3 font-mono text-xs text-slate-500">{socio.numeroSocio}</td>
                                                                                         <td className="p-3">
                                                                                             <div className="font-bold text-slate-700">{socio.nombreCompleto}</div>
@@ -512,8 +538,8 @@ export default function RankingReportPage() {
                                                                                 ))}
                                                                                 {sociosDetalle.length === 0 && (
                                                                                     <tr>
-                                                                                        <td colSpan={4} className="p-8 text-center text-slate-400 text-sm">
-                                                                                            No se encontraron socios asignados.
+                                                                                        <td colSpan={4} className="p-8 text-center text-slate-400 text-sm italic">
+                                                                                            No se encontraron socios asignados para este funcionario.
                                                                                         </td>
                                                                                     </tr>
                                                                                 )}
@@ -528,7 +554,7 @@ export default function RankingReportPage() {
                                                                                         e.stopPropagation();
                                                                                         setVisibleCount(prev => prev + 20);
                                                                                     }}
-                                                                                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 px-4 py-2 rounded-full transition-colors"
+                                                                                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 px-6 py-2 rounded-full transition-all border border-indigo-100 shadow-sm"
                                                                                 >
                                                                                     Mostrar más socios ({sociosDetalle.length - visibleCount} restantes)
                                                                                 </button>
@@ -554,6 +580,121 @@ export default function RankingReportPage() {
                 </div>
             </div>
 
+            {/* MILESTONE SHEET (INTERACTIVE GOALS) */}
+            <AnimatePresence>
+                {selectedUserForGoals && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedUserForGoals(null)}
+                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] print:hidden"
+                        />
+                        <motion.div
+                            initial={{ x: "100%" }}
+                            animate={{ x: 0 }}
+                            exit={{ x: "100%" }}
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-[70] flex flex-col print:hidden"
+                        >
+                            {/* Header del Sheet */}
+                            <div className="p-8 border-b border-slate-100 relative">
+                                <button
+                                    onClick={() => setSelectedUserForGoals(null)}
+                                    className="absolute top-6 right-6 p-2 hover:bg-slate-100 rounded-full transition-colors"
+                                >
+                                    <ChevronDown className="h-6 w-6 text-slate-400 rotate-[-90deg]" />
+                                </button>
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600">
+                                        <Trophy className="h-8 w-8" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black text-slate-800 tracking-tight leading-none uppercase italic">Próximos Hitos</h2>
+                                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Metas de Gestión</p>
+                                    </div>
+                                </div>
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Funcionario</div>
+                                    <div className="font-black text-slate-800 text-lg leading-tight uppercase">{selectedUserForGoals.nombreCompleto}</div>
+                                </div>
+                            </div>
+
+                            {/* Contenido del Sheet */}
+                            <div className="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-slate-200">
+                                <div className="mb-8">
+                                    <div className="flex justify-between items-end mb-2">
+                                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Estado Actual</span>
+                                        <span className="text-3xl font-black text-indigo-600 tracking-tighter">{selectedUserForGoals.registrados} <span className="text-sm text-slate-300 italic uppercase">registros</span></span>
+                                    </div>
+                                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${Math.min((selectedUserForGoals.registrados / (Math.ceil((selectedUserForGoals.registrados + 1) / 50) * 50)) * 100, 100)}%` }}
+                                            className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {[50, 100, 150, 200, 300, 400, 500].map((goal, i) => {
+                                        const isReached = selectedUserForGoals.registrados >= goal;
+                                        const isNext = !isReached && (i === 0 || selectedUserForGoals.registrados >= [50, 100, 150, 200, 300, 400, 500][i - 1]);
+
+                                        return (
+                                            <div
+                                                key={goal}
+                                                className={`p-5 rounded-[2rem] border-2 transition-all flex items-center justify-between ${isReached
+                                                    ? 'bg-emerald-50 border-emerald-100 opacity-60'
+                                                    : isNext
+                                                        ? 'bg-white border-indigo-200 shadow-xl shadow-indigo-500/10 scale-[1.02]'
+                                                        : 'bg-slate-50 border-slate-100'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`p-3 rounded-2xl ${isReached ? 'bg-emerald-500 text-white' : isNext ? 'bg-indigo-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                                                        {isReached ? <CheckCircle className="h-5 w-5" /> : <Award className="h-5 w-5" />}
+                                                    </div>
+                                                    <div>
+                                                        <div className={`text-xl font-black ${isReached ? 'text-emerald-700' : isNext ? 'text-slate-800' : 'text-slate-400'}`}>
+                                                            Meta de {goal}
+                                                        </div>
+                                                        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                                            {isReached ? '¡CONSEGUIDO!' : isNext ? '¡SIGUIENTE NIVEL!' : 'BLOQUEADO'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {isNext && (
+                                                    <div className="text-right">
+                                                        <div className="text-sm font-black text-indigo-600">Faltan {goal - selectedUserForGoals.registrados}</div>
+                                                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">esfuerzo final</div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Footer del Sheet */}
+                            <div className="p-8 border-t border-slate-100 bg-slate-50/50">
+                                <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 text-slate-500 italic text-sm">
+                                    <AlertCircle className="h-5 w-5 text-indigo-400 flex-shrink-0" />
+                                    "Cada registro es un paso más hacia la eficiencia absoluta de nuestra asamblea."
+                                </div>
+                                <button
+                                    onClick={() => setSelectedUserForGoals(null)}
+                                    className="w-full mt-6 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-black transition-colors shadow-xl"
+                                >
+                                    Cerrar Panel
+                                </button>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
             {/* ESTILOS PARA IMPRESIÓN */}
             <style jsx global>{`
                 @media print {
@@ -566,6 +707,6 @@ export default function RankingReportPage() {
                     }
                 }
             `}</style>
-        </div >
+        </div>
     );
 }

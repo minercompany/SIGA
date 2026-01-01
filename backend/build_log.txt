@@ -1,2 +1,0 @@
-Error: no se ha encontrado o cargado la clase principal org.apache.maven.wrapper.MavenWrapperMain
-Causado por: java.lang.ClassNotFoundException: org.apache.maven.wrapper.MavenWrapperMain
