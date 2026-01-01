@@ -200,32 +200,65 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                 </div>
             </motion.div>
 
-            {/* Métricas Principales con Glassmorphism */}
-            <div data-tour="stats-cards" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+            {/* Métricas Principales Premium */}
+            <div data-tour="stats-cards" className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {[
-                    { label: "Socios Asignados", value: stats.total, icon: Users, gradient: "from-blue-500 to-emerald-500", glow: "shadow-blue-500/50" },
-                    { label: "Con Voz y Voto", value: stats.vyv, icon: UserCheck, gradient: "from-emerald-500 to-teal-500", glow: "shadow-emerald-500/50" },
-                    { label: "Solo Voz", value: stats.soloVoz, icon: AlertCircle, gradient: "from-amber-500 to-orange-500", glow: "shadow-amber-500/50" },
-                    { label: "Presentes", value: stats.presentes, icon: Zap, gradient: "from-violet-500 to-purple-500", glow: "shadow-violet-500/50" },
+                    { label: "Socios Asignados", value: stats.total, icon: Users, color: "emerald", delay: 0 },
+                    { label: "Con Voz y Voto", value: stats.vyv, icon: UserCheck, color: "blue", delay: 0.1 },
+                    { label: "Solo Voz", value: stats.soloVoz, icon: AlertCircle, color: "amber", delay: 0.2 },
+                    { label: "Presentes", value: stats.presentes, icon: Zap, color: "violet", delay: 0.3 },
                 ].map((stat, i) => (
                     <motion.div
                         key={i}
                         variants={itemVariants}
-                        whileHover={{ y: -8, scale: 1.02 }}
+                        whileHover={{ y: -5, scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className="relative group"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl md:rounded-3xl blur-xl ${stat.glow}" />
-                        <div className="relative bg-white/80 backdrop-blur-xl p-4 md:p-6 rounded-2xl md:rounded-3xl border border-white/20 shadow-xl">
-                            <div className={`h - 12 w - 12 md: h - 16 md: w - 16 bg - gradient - to - br ${stat.gradient} rounded - xl md: rounded - 2xl flex items - center justify - center mb - 3 md: mb - 4 shadow - lg transform transition - transform group - hover: rotate - 12 group - hover: scale - 110`}>
-                                <stat.icon className="h-6 w-6 md:h-8 md:w-8 text-white" />
+                        {/* Glow Effect */}
+                        <div className={`absolute inset-0 bg-gradient-to-br opacity-40 group-hover:opacity-100 transition-opacity duration-500 blur-xl rounded-3xl
+                            ${stat.color === 'emerald' ? 'from-emerald-400 to-teal-400' :
+                                stat.color === 'blue' ? 'from-blue-400 to-cyan-400' :
+                                    stat.color === 'amber' ? 'from-amber-400 to-orange-400' :
+                                        'from-violet-400 to-purple-400'}`}
+                        />
+
+                        {/* Card Content */}
+                        <div className="relative bg-white/90 backdrop-blur-2xl p-5 md:p-6 rounded-3xl border border-white/60 shadow-xl overflow-hidden h-full">
+                            {/* Decorative Background Icon */}
+                            <stat.icon className={`absolute -right-4 -bottom-4 h-24 w-24 opacity-[0.03] transform group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500
+                                ${stat.color === 'emerald' ? 'text-emerald-600' :
+                                    stat.color === 'blue' ? 'text-blue-600' :
+                                        stat.color === 'amber' ? 'text-amber-600' :
+                                            'text-violet-600'}`}
+                            />
+
+                            <div className="relative z-10 flex flex-col h-full justify-between">
+                                <div>
+                                    <div className={`inline-flex p-3 rounded-2xl mb-4 shadow-lg transform group-hover:scale-110 transition-transform duration-300
+                                        ${stat.color === 'emerald' ? 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/30' :
+                                            stat.color === 'blue' ? 'bg-gradient-to-br from-blue-500 to-cyan-600 shadow-blue-500/30' :
+                                                stat.color === 'amber' ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30' :
+                                                    'bg-gradient-to-br from-violet-500 to-purple-600 shadow-violet-500/30'}`}
+                                    >
+                                        <stat.icon className="h-6 w-6 text-white" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h2 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight leading-none group-hover:translate-x-1 transition-transform duration-300">
+                                        {stat.value}
+                                    </h2>
+                                    <p className={`text-[10px] md:text-xs font-bold uppercase tracking-widest mt-2
+                                        ${stat.color === 'emerald' ? 'text-emerald-600' :
+                                            stat.color === 'blue' ? 'text-blue-600' :
+                                                stat.color === 'amber' ? 'text-amber-600' :
+                                                    'text-violet-600'}`}
+                                    >
+                                        {stat.label}
+                                    </p>
+                                </div>
                             </div>
-                            <p className="text-4xl md:text-5xl font-black text-slate-800 leading-none">
-                                {stat.value}
-                            </p>
-                            <p className="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-2">
-                                {stat.label}
-                            </p>
                         </div>
                     </motion.div>
                 ))}
