@@ -214,7 +214,7 @@ export const RankMotivationWidget: React.FC<RankMotivationWidgetProps> = ({ rank
                         <motion.div
                             initial={{ opacity: 0, scale: 0.5, rotate: -15 }}
                             animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                            className="absolute -bottom-5 -right-5 px-5 py-2 bg-white border-2 border-slate-100 rounded-full shadow-2xl z-20 flex items-center gap-2"
+                            className="absolute -bottom-8 -right-8 px-5 py-2 bg-white border-2 border-slate-100 rounded-full shadow-2xl z-20 flex items-center gap-2"
                         >
                             <Trophy className="h-4 w-4 text-amber-500" />
                             <span className={`text-[10px] md:text-xs font-black uppercase tracking-widest ${config.textColor}`}>
