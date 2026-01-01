@@ -31,40 +31,34 @@ export default function RankingReportPage() {
         const fetchRanking = async () => {
             try {
                 const token = localStorage.getItem("token");
+                const config = { headers: { Authorization: `Bearer ${token}` } };
 
-                // 1. Obtener Ranking
-                const resRanking = await axios.get("/api/reportes/ranking-global", {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                // Fetch all data in parallel
+                const [resRanking, resIds, resSuc] = await Promise.all([
+                    axios.get("/api/reportes/ranking-global", config).catch(err => { console.error("Error ranking:", err); return { data: [] }; }),
+                    axios.get("/api/asignaciones/ranking-usuarios", config).catch(err => { console.error("Error IDs:", err); return { data: [] }; }),
+                    axios.get("/api/reportes/sucursales-lista", config).catch(err => { console.error("Error sucursales:", err); return { data: [] }; })
+                ]);
+
                 setRanking(resRanking.data);
 
-                // 2. Obtener IDs de usuarios
-                try {
-                    const resIds = await axios.get("/api/asignaciones/ranking-usuarios", {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    const map: Record<string, number> = {};
+                // Map IDs
+                const map: Record<string, number> = {};
+                if (Array.isArray(resIds.data)) {
                     resIds.data.forEach((u: any) => {
                         if (u.username) map[u.username] = u.id;
                     });
-                    setUserIdMap(map);
-                } catch (err) {
-                    console.warn("Error IDs usuarios:", err);
                 }
+                setUserIdMap(map);
 
-                // 3. Obtener lista de sucursales para mapear Nombres -> IDs
-                try {
-                    const resSuc = await axios.get("/api/reportes/sucursales-lista", {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    const sMap: Record<string, number> = {};
+                // Map Sucursales
+                const sMap: Record<string, number> = {};
+                if (Array.isArray(resSuc.data)) {
                     resSuc.data.forEach((s: any) => {
                         if (s.nombre) sMap[s.nombre.toUpperCase()] = s.id;
                     });
-                    setSucursalMap(sMap);
-                } catch (err) {
-                    console.warn("Error obteniendo sucursales:", err);
                 }
+                setSucursalMap(sMap);
 
             } catch (error) {
                 console.error("Error fetching data:", error);

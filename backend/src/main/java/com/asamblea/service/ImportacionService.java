@@ -69,19 +69,31 @@ public class ImportacionService {
 
     public String iniciarImportacion(MultipartFile file, String usuario) throws Exception {
         String processId = UUID.randomUUID().toString();
+        String tempFilename = file.getOriginalFilename();
+        String originalFilename = (tempFilename != null && !tempFilename.isBlank()) ? tempFilename : "padron.xlsx";
 
-        // Copia rápida a disco usando NIO
-        Path tempDir = Files.createTempDirectory("import_fast");
-        File tempFile = tempDir.resolve(processId + ".xlsx").toFile();
+        // Crear directorio permanente para archivos importados
+        Path permanentDir = Path.of("uploads", "importaciones");
+        Files.createDirectories(permanentDir);
+
+        // Guardar archivo con timestamp para evitar conflictos
+        String timestamp = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
+                .format(java.time.LocalDateTime.now());
+        String safeFilename = timestamp + "_" + originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
+        Path permanentFile = permanentDir.resolve(safeFilename);
+
         try (InputStream in = file.getInputStream()) {
-            Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(in, permanentFile, StandardCopyOption.REPLACE_EXISTING);
         }
 
         progressMap.put(processId, new ImportStatus(0, false, null, null));
 
         // Ejecutar en hilo separado manual (evitando problemas de proxy @Async
         // self-invocation)
-        CompletableFuture.runAsync(() -> procesarAsync(processId, tempFile, usuario));
+        final String finalOriginalFilename = originalFilename;
+        final String finalPermanentPath = permanentFile.toString();
+        CompletableFuture.runAsync(() -> procesarAsync(processId, permanentFile.toFile(), usuario,
+                finalOriginalFilename, finalPermanentPath));
 
         return processId;
     }
@@ -97,8 +109,9 @@ public class ImportacionService {
         }
     }
 
-    protected void procesarAsync(String processId, File tempFile, String usuario) {
-        log.info("[{}] Iniciando importación optimizada", processId);
+    protected void procesarAsync(String processId, File tempFile, String usuario, String originalFilename,
+            String archivoRuta) {
+        log.info("[{}] Iniciando importación optimizada - Archivo: {}", processId, originalFilename);
         long start = System.currentTimeMillis();
         ImportStatus status = progressMap.get(processId);
 
@@ -119,11 +132,17 @@ public class ImportacionService {
             // Set para control de duplicados dentro del mismo archivo
             Set<String> cedulasProcesadas = new HashSet<>();
 
-            // 2. CONTAR SOCIOS EXISTENTES ANTES DE IMPORTAR (para calcular nuevos vs
-            // actualizados)
-            Integer sociosAntesDeImportar = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM socios", Integer.class);
-            int sociosPrevios = sociosAntesDeImportar != null ? sociosAntesDeImportar : 0;
-            log.info("Socios existentes antes de importar: {}", sociosPrevios);
+            // 2. CARGAR CÉDULAS EXISTENTES EN MEMORIA (para calcular nuevos vs actualizados
+            // con precisión)
+            Set<String> cedulasExistentes = new HashSet<>();
+            try {
+                List<String> existingCedulas = jdbcTemplate.queryForList("SELECT cedula FROM socios", String.class);
+                cedulasExistentes.addAll(existingCedulas);
+                log.info("Cédulas existentes cargadas en memoria: {}", cedulasExistentes.size());
+            } catch (Exception e) {
+                log.warn("No se pudieron cargar cédulas existentes: {}", e.getMessage());
+            }
+            int sociosPrevios = cedulasExistentes.size();
 
             // MARCAR TODOS LOS SOCIOS COMO "NO EN PADRÓN ACTUAL" ANTES DE IMPORTAR
             // Luego el UPSERT los marcará como activos si están en el archivo
@@ -152,6 +171,8 @@ public class ImportacionService {
             int duplicados = 0;
             int sinCedula = 0;
             int sinNombre = 0;
+            int nuevosContador = 0; // Socios que NO existían antes
+            int actualizadosContador = 0; // Socios que YA existían y se actualizaron
 
             // OPTIMIZACIÓN: Estimar filas desde tamaño de archivo
             // Excel XLSX tiene mucho overhead por celda (~500-800 bytes por fila típica)
@@ -228,6 +249,13 @@ public class ImportacionService {
                             continue;
                         }
                         cedulasProcesadas.add(cedula);
+
+                        // Determinar si es NUEVO o ACTUALIZADO
+                        if (cedulasExistentes.contains(cedula)) {
+                            actualizadosContador++;
+                        } else {
+                            nuevosContador++;
+                        }
 
                         // F: Teléfono
                         String rawTel = getRawValue(row, COL_TELEFONO);
@@ -335,21 +363,32 @@ public class ImportacionService {
                 ps.executeBatch();
                 conn.commit();
 
-                // ===== CONTEO: Socios que quedaron fuera del nuevo padrón =====
-                // No se eliminan, solo se cuentan (ya quedaron marcados como en_padron_actual =
-                // false)
-                int sociosFueraDePadron = 0;
+                // ===== ELIMINAR SOCIOS QUE YA NO ESTÁN EN EL PADRÓN =====
+                // El Excel es la fuente de verdad absoluta
+                int sociosEliminados = 0;
                 try {
+                    // Primero contar cuántos serán eliminados
                     Integer count = jdbcTemplate.queryForObject(
                             "SELECT COUNT(*) FROM socios WHERE en_padron_actual = false", Integer.class);
-                    sociosFueraDePadron = count != null ? count : 0;
-                    if (sociosFueraDePadron > 0) {
-                        log.info("⚠️ {} socios quedaron marcados como 'fuera del padrón actual'", sociosFueraDePadron);
+                    sociosEliminados = count != null ? count : 0;
+
+                    if (sociosEliminados > 0) {
+                        log.info("🗑️ Eliminando {} socios que ya no están en el padrón...", sociosEliminados);
+
+                        // Eliminar registros relacionados primero (para evitar errores de FK)
+                        jdbcTemplate.update(
+                                "DELETE FROM asignaciones_socios WHERE socio_id IN (SELECT id FROM socios WHERE en_padron_actual = false)");
+                        jdbcTemplate.update(
+                                "DELETE FROM asistencias WHERE id_socio IN (SELECT id FROM socios WHERE en_padron_actual = false)");
+
+                        // Ahora eliminar los socios
+                        int deleted = jdbcTemplate.update("DELETE FROM socios WHERE en_padron_actual = false");
+                        log.info("✓ {} socios eliminados del sistema", deleted);
                     }
-                } catch (Exception countEx) {
-                    log.warn("Error contando socios fuera de padrón: {}", countEx.getMessage());
+                } catch (Exception deleteEx) {
+                    log.error("Error eliminando socios fuera de padrón: {}", deleteEx.getMessage());
                 }
-                // ===== FIN CONTEO =====
+                // ===== FIN ELIMINACIÓN =====
 
                 long ms = System.currentTimeMillis() - start;
                 double speed = (imported * 1000.0) / ms;
@@ -389,32 +428,22 @@ public class ImportacionService {
                 }
                 // ===== FIN AUTO-CREACIÓN =====
 
-                // ===== CALCULAR NUEVOS VS ACTUALIZADOS =====
-                // Contar socios actuales (después de importar)
-                Integer sociosDespuesDeImportar = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM socios",
-                        Integer.class);
-                int sociosActuales = sociosDespuesDeImportar != null ? sociosDespuesDeImportar : 0;
-
-                // Nuevos = diferencia entre después y antes
-                int nuevos = Math.max(0, sociosActuales - sociosPrevios);
-                // Actualizados = procesados - nuevos (los que ya existían y se actualizaron)
-                int actualizados = imported - nuevos;
-
-                log.info("Socios previos: {}, Socios actuales: {}, Nuevos: {}, Actualizados: {}",
-                        sociosPrevios, sociosActuales, nuevos, actualizados);
-                // ===== FIN CALCULAR =====
+                // ===== ESTADÍSTICAS PRECISAS (usando contadores del loop) =====
+                log.info("Socios previos: {}, Nuevos: {}, Actualizados: {}",
+                        sociosPrevios, nuevosContador, actualizadosContador);
+                // ===== FIN ESTADÍSTICAS =====
 
                 Map<String, Object> stats = new HashMap<>();
                 stats.put("totalRows", rowIndex);
                 stats.put("imported", imported); // Total procesados (para compatibilidad)
-                stats.put("nuevos", nuevos); // Socios realmente nuevos (insertados)
-                stats.put("actualizados", actualizados); // Socios existentes actualizados
+                stats.put("nuevos", nuevosContador); // Socios realmente nuevos (insertados)
+                stats.put("actualizados", actualizadosContador); // Socios existentes actualizados
                 stats.put("mode", "UPSERT"); // Informative flag
                 stats.put("errors", errors);
                 stats.put("duplicados", duplicados);
                 stats.put("sinCedula", sinCedula);
                 stats.put("sinNombre", sinNombre);
-                stats.put("sociosFueraDePadron", sociosFueraDePadron); // Socios que ya no están en el padrón actual
+                stats.put("sociosEliminados", sociosEliminados); // Socios eliminados porque no estaban en el Excel
                 stats.put("timeMs", ms);
                 stats.put("rowsPerSecond", (int) speed);
                 stats.put("usuariosCreados", usuariosCreados);
@@ -429,9 +458,10 @@ public class ImportacionService {
                     ImportacionHistorial historial = new ImportacionHistorial();
                     historial.setTotalRegistros(imported);
                     historial.setUsuarioImportador(usuario);
-                    historial.setArchivoNombre("padron.xlsx");
+                    historial.setArchivoNombre(originalFilename);
+                    historial.setArchivoRuta(archivoRuta);
                     historialRepository.save(historial);
-                    log.info("Historial de importación guardado");
+                    log.info("Historial de importación guardado - Archivo: {}", originalFilename);
 
                     // Registrar en Auditoría Total
                     auditService.registrar(

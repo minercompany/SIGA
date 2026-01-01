@@ -64,6 +64,38 @@ public class SocioController {
         return ResponseEntity.ok(importacionHistorialRepository.findTop10ByOrderByFechaImportacionDesc());
     }
 
+    // Descargar archivo de importación por ID de historial
+    @GetMapping("/import-history/{id}/download")
+    public ResponseEntity<?> downloadImportFile(@PathVariable Long id) {
+        return importacionHistorialRepository.findById(id).map(historial -> {
+            if (historial.getArchivoRuta() == null || historial.getArchivoRuta().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(java.util.Map.of("error", "Archivo no disponible para esta importación"));
+            }
+
+            java.io.File file = new java.io.File(historial.getArchivoRuta());
+            if (!file.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            try {
+                org.springframework.core.io.Resource resource = new org.springframework.core.io.FileSystemResource(
+                        file);
+                String filename = historial.getArchivoNombre() != null ? historial.getArchivoNombre()
+                        : "importacion.xlsx";
+
+                return ResponseEntity.ok()
+                        .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                                "attachment; filename=\"" + filename + "\"")
+                        .header(org.springframework.http.HttpHeaders.CONTENT_TYPE,
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                        .body(resource);
+            } catch (Exception e) {
+                return ResponseEntity.internalServerError().body(java.util.Map.of("error", e.getMessage()));
+            }
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
     // Listar todos los socios con paginación y filtros
     @GetMapping
     public ResponseEntity<org.springframework.data.domain.Page<com.asamblea.dto.SocioDTO>> listarTodos(

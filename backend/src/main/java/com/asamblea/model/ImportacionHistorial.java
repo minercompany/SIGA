@@ -29,6 +29,9 @@ public class ImportacionHistorial {
     @Column(name = "archivo_nombre")
     private String archivoNombre;
 
+    @Column(name = "archivo_ruta")
+    private String archivoRuta;
+
     @Column(name = "vista_previa", columnDefinition = "TEXT")
     private String vistaPreviaJson;
 }
