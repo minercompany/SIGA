@@ -29,7 +29,8 @@ export const RankMotivationWidget: React.FC<RankMotivationWidgetProps> = ({ rank
             gradient: "from-slate-500 to-slate-600",
             bgLight: "bg-slate-50",
             textColor: "text-slate-700",
-            iconColor: "text-slate-400"
+            iconColor: "text-slate-400",
+            shadow: "shadow-slate-200/50"
         };
 
         if (rank === 1) {
