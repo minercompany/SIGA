@@ -22,14 +22,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Cooperativa Reducto Ltda" }],
   creator: "Avanzantec Group SRL",
   publisher: "Cooperativa Reducto Ltda",
-  openGraph: {
-    title: "SIGA - Sistema de Gestión de Asambleas",
-    description: "Plataforma integral para la gestión de asambleas cooperativas. Control de asistencia, votaciones y documentación.",
-    type: "website",
-    locale: "es_PY",
-    siteName: "SIGA Cooperativa Reducto",
-    url: "https://asamblea.cloud"
-  },
+
   twitter: {
     card: "summary_large_image",
     title: "SIGA - Sistema de Gestión de Asambleas",
@@ -41,7 +34,32 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "https://asamblea.cloud"
-  }
+  },
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+    other: {
+      rel: "apple-touch-icon-precomposed",
+      url: "/logo.png",
+    },
+  },
+  openGraph: {
+    title: "SIGA - Sistema de Gestión de Asambleas",
+    description: "Plataforma integral para la gestión de asambleas cooperativas. Control de asistencia, votaciones y documentación.",
+    type: "website",
+    locale: "es_PY",
+    siteName: "SIGA Cooperativa Reducto",
+    url: "https://asamblea.cloud",
+    images: [
+      {
+        url: "/logo-cooperativa.png",
+        width: 800,
+        height: 600,
+        alt: "Logo Cooperativa Reducto Ltda",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
