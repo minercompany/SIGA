@@ -89,6 +89,7 @@ const menuItems = [
             { id: "reportes-sucursal", name: "Reportes Específicos", href: "/reportes/por-sucursal", icon: Building2 },
             { id: "reportes-funcionarios", name: "Funcionarios", href: "/reportes/funcionarios", icon: Briefcase },
             { id: "reportes-asistencia", name: "Asistencia por Operador", href: "/reportes/asistencia-funcionarios", icon: Clock },
+            { id: "auditoria-usuarios", name: "Auditoría de Usuarios", href: "/reportes/auditoria-usuarios", icon: Activity },
         ]
     },
     {
@@ -173,7 +174,7 @@ export function Sidebar() {
             return hasPermission("asistencia") || hasPermission("checkin");
         }
         if (itemId === "reportes") {
-            return hasPermission("reportes-general") || hasPermission("ranking-gestion") || hasPermission("reportes-sucursal") || hasPermission("reportes-funcionarios") || hasPermission("reportes-asistencia");
+            return hasPermission("reportes-general") || hasPermission("ranking-gestion") || hasPermission("reportes-sucursal") || hasPermission("reportes-funcionarios") || hasPermission("reportes-asistencia") || hasPermission("auditoria-usuarios");
         }
         if (itemId === "comunicacion") {
             return hasPermission("mensajes-chat") || hasPermission("mensajes-avisos");
@@ -221,6 +222,8 @@ export function Sidebar() {
                 return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
             case "reportes-asistencia":
                 return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
+            case "auditoria-usuarios":
+                return user.rol === "SUPER_ADMIN";
 
             // Mi Reporte (todos los operadores pueden ver su reporte)
             case "mi-reporte":
