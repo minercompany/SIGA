@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Users, UserCheck, AlertCircle, TrendingUp, PieChart as PieIcon, Activity, Sparkles, Zap, Trophy } from "lucide-react";
+import { Users, UserCheck, AlertCircle, TrendingUp, PieChart as PieIcon, Activity, Sparkles, Zap, Trophy, RefreshCw } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { motion, Variants } from 'framer-motion';
 import { useEffect, useState } from "react";
@@ -61,7 +61,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
             try {
                 const token = localStorage.getItem("token");
                 const res = await axios.get("/api/asignaciones/stats-socio", {
-                    headers: { Authorization: `Bearer ${token} ` }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 setStats(res.data);
             } catch (error) {
@@ -78,7 +78,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
             try {
                 const token = localStorage.getItem("token");
                 const res = await axios.get("/api/socios/stats-globales", {
-                    headers: { Authorization: `Bearer ${token} ` }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 setStatsGlobales(res.data);
             } catch (error) {
@@ -93,7 +93,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
             try {
                 const token = localStorage.getItem("token");
                 const res = await axios.get("/api/asignaciones/mis-socios-detalle", {
-                    headers: { Authorization: `Bearer ${token} ` }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 setSociosDetalle(res.data);
             } catch (error) {
@@ -108,12 +108,13 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
             try {
                 const token = localStorage.getItem("token");
                 const res = await axios.get("/api/asignaciones/ranking-usuarios", {
-                    headers: { Authorization: `Bearer ${token} ` }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 // Tomar solo el top 5
                 setRankingOperadores(res.data.slice(0, 5));
             } catch (error) {
                 console.error("Error fetching ranking:", error);
+                // Silenciosamente ignorar el error para no bloquear el dashboard
             }
         };
         fetchRanking();
@@ -155,13 +156,14 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
+            <div className="flex flex-col items-center justify-center h-64 gap-4">
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                 >
-                    <Sparkles className="h-10 w-10 text-emerald-500" />
+                    <RefreshCw className="h-10 w-10 text-emerald-500" />
                 </motion.div>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs animate-pulse">Cargando tu Dashboard Personal...</p>
             </div>
         );
     }

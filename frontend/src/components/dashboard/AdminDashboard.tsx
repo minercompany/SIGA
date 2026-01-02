@@ -15,9 +15,8 @@ import { RankMotivationWidget } from "./RankMotivationWidget";
 
 
 
-import { ActivityWidget } from "./ActivityWidget";
-import { ActiveUsersModal } from "./ActiveUsersModal";
 import { useUserActivity } from "@/context/UserActivityContext";
+import { UserActivityReportModal } from "./UserActivityReportModal";
 
 interface AdminDashboardProps {
     stats: {
@@ -73,6 +72,8 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [autoRefresh, setAutoRefresh] = useState(false);
     const [isActiveUsersModalOpen, setIsActiveUsersModalOpen] = useState(false);
+    const [isActivityReportModalOpen, setIsActivityReportModalOpen] = useState(false);
+    const [activityReportFilter, setActivityReportFilter] = useState<"todos" | "habituales" | "no-entraron">("todos");
     const [userRole, setUserRole] = useState<string>("");
     const [currentUsername, setCurrentUsername] = useState<string>("");
 
@@ -123,7 +124,19 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
         return () => { if (interval) clearInterval(interval); };
     }, [autoRefresh]);
 
-    if (!stats) return null;
+    if (!stats) {
+        return (
+            <div className="flex flex-col items-center justify-center h-64 gap-4">
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                >
+                    <RefreshCw className="h-10 w-10 text-emerald-500" />
+                </motion.div>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs animate-pulse">Cargando Inteligencia de Datos...</p>
+            </div>
+        );
+    }
 
     const presentes = stats.presentes || 0;
     const ausentes = Math.max(0, stats.totalPadron - presentes);
@@ -175,6 +188,12 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                 isOpen={isActiveUsersModalOpen}
                 onClose={() => setIsActiveUsersModalOpen(false)}
                 users={userActivity?.activeList || []}
+            />
+
+            <UserActivityReportModal
+                isOpen={isActivityReportModalOpen}
+                onClose={() => setIsActivityReportModalOpen(false)}
+                initialFilter={activityReportFilter}
             />
 
             {/* Header Centro de Control - REDISEÑO ULTRA PREMIUM */}
@@ -387,12 +406,29 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                                 <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Usuarios Usuales</p>
                             </div>
                             <p className="relative z-10 text-5xl lg:text-6xl font-black text-slate-800 tracking-tighter leading-none"><AnimatedCounter value={userActivity.usuales} /></p>
+
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => {
+                                    setActivityReportFilter("habituales");
+                                    setIsActivityReportModalOpen(true);
+                                }}
+                                className="relative z-10 mt-3 text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] border-b-2 border-blue-100 hover:border-blue-400 pb-0.5 transition-all"
+                            >
+                                Ver usuarios habituales
+                            </motion.button>
                         </motion.div>
 
                         {/* Total (Derecha abajo) */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
-                            className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group"
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => {
+                                setActivityReportFilter("todos");
+                                setIsActivityReportModalOpen(true);
+                            }}
+                            className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer"
                         >
                             <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-50/50 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none transition-transform group-hover:scale-110 hidden md:block" />
 

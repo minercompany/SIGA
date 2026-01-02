@@ -21,7 +21,9 @@ import {
     HelpCircle,
     RotateCcw,
     Hammer,
-    Bell
+    Bell,
+    Settings2,
+    ClipboardList
 } from "lucide-react";
 import axios from "axios";
 import { useEffect, useCallback } from "react";
@@ -409,6 +411,42 @@ const ConfiguracionNotificaciones = () => {
                         Probar Notificación
                     </button>
                 </div>
+            </div>
+        </>
+    );
+};
+
+// Componente para Acceso a Gestión de Listas
+const ConfiguracionGestionListas = () => {
+    const router = useRouter();
+
+    return (
+        <>
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 italic uppercase border-t border-slate-100 pt-6 mt-6">
+                <ClipboardList className="h-5 w-5 text-teal-500" />
+                Operativa de Listas
+            </h2>
+
+            <div className="bg-teal-50 rounded-2xl p-6 border border-teal-100 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-teal-500 text-white">
+                        <Settings2 className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-800">Módulo de Gestión Maestro</h3>
+                        <p className="text-sm text-slate-500 max-w-md">
+                            Accede a la herramienta global para supervisar el ranking de asesores y <strong>eliminar socios de sus listas</strong> si es necesario.
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => router.push("/gestion-listas")}
+                    className="rounded-xl bg-teal-600 px-6 py-3 font-bold text-white hover:bg-teal-700 shadow-lg shadow-teal-100 transition-all active:scale-95 flex items-center gap-2"
+                >
+                    Ir a Gestión Global
+                    <ClipboardList className="h-4 w-4" />
+                </button>
             </div>
         </>
     );
@@ -986,6 +1024,7 @@ export default function ConfiguracionPage() {
     };
 
     const isSocio = user?.rol === "USUARIO_SOCIO";
+    const isSuperAdmin = user?.rol === "SUPER_ADMIN";
 
     return (
         <div className="max-w-4xl space-y-8 pb-20 mt-2 md:mt-0">
@@ -1165,7 +1204,7 @@ export default function ConfiguracionPage() {
                 </div>
             </div>
 
-            {!isSocio && (
+            {isSuperAdmin && (
                 <>
                     <div className="h-px bg-slate-100 my-8"></div>
 
@@ -1175,6 +1214,7 @@ export default function ConfiguracionPage() {
                         <ConfiguracionEvento />
                         <ConfiguracionMantenimiento />
                         <ConfiguracionNotificaciones />
+                        <ConfiguracionGestionListas />
                         <ConfiguracionModoPrueba />
                     </div>
 

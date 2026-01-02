@@ -49,7 +49,7 @@ public class UsuarioController {
         // O mejor: Buscar solo los necesarios si hay query.
 
         Set<Long> socioIdsToFetch = usuarios.stream()
-                .map(Usuario::getIdSocio)
+                .map(u -> u.getSocio() != null ? u.getSocio().getId() : null)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -65,8 +65,10 @@ public class UsuarioController {
                     .filter(u -> u.getUsername().equalsIgnoreCase(query) ||
                             u.getNombreCompleto().toLowerCase().contains(qLower) ||
                             (u.getCargo() != null && u.getCargo().toLowerCase().contains(qLower)) ||
-                            (u.getIdSocio() != null && socioNumeroMap.get(u.getIdSocio()) != null
-                                    && socioNumeroMap.get(u.getIdSocio()).contains(query))) // Buscar por numero socio
+                            (u.getSocio() != null && socioNumeroMap.get(u.getSocio().getId()) != null
+                                    && socioNumeroMap.get(u.getSocio().getId()).contains(query))) // Buscar por numero
+                                                                                                  // socio
+
                     .sorted((u1, u2) -> {
                         boolean exacto1 = u1.getUsername().equalsIgnoreCase(query);
                         boolean exacto2 = u2.getUsername().equalsIgnoreCase(query);
@@ -88,9 +90,10 @@ public class UsuarioController {
             map.put("rolNombre", u.getRol().getNombre());
             map.put("activo", u.isActivo());
             map.put("permisosEspeciales", u.getPermisosEspeciales());
-            map.put("idSocio", u.getIdSocio());
-            map.put("numeroSocio", u.getIdSocio() != null ? socioNumeroMap.get(u.getIdSocio()) : null); // Return
-                                                                                                        // numeroSocio
+            map.put("idSocio", u.getSocio() != null ? u.getSocio().getId() : null);
+            map.put("numeroSocio", u.getSocio() != null ? u.getSocio().getNumeroSocio() : null); // Return
+
+            // numeroSocio
             map.put("sucursalId", u.getSucursal() != null ? u.getSucursal().getId() : null);
             map.put("sucursal", u.getSucursal() != null ? u.getSucursal().getNombre() : null);
             map.put("passwordVisible", u.getPasswordVisible()); // Contraseña visible para admins
@@ -132,7 +135,7 @@ public class UsuarioController {
                                                                                              // visualmente
                 } else {
                     // NUEVO: No estaba como usuario, agregarlo como socio puro
-                    // Verificar si ya fue agregado por IdSocio linkeado (edge case)
+                    // Verificar si ya fue agregado por socio linkeado (edge case)
                     boolean alreadyLinked = mergedResults.values().stream()
                             .anyMatch(m -> m.get("idSocio") != null
                                     && m.get("idSocio").toString().equals(s.getId().toString()));
@@ -241,11 +244,9 @@ public class UsuarioController {
             map.put("passwordVisible", u.getPasswordVisible()); // Contraseña visible para super admins
             map.put("tipo", "USUARIO");
 
-            if (u.getIdSocio() != null) {
-                socioRepository.findById(u.getIdSocio()).ifPresent(s -> {
-                    map.put("cedula", s.getCedula());
-                    map.put("numeroSocio", s.getNumeroSocio());
-                });
+            if (u.getSocio() != null) {
+                map.put("cedula", u.getSocio().getCedula());
+                map.put("numeroSocio", u.getSocio().getNumeroSocio());
             } else {
                 // Intentar recuperar cédula del username si es numérico
                 if (u.getUsername().matches("\\d+")) {
@@ -373,7 +374,8 @@ public class UsuarioController {
             usuario.setMeta(data.get("meta") != null ? ((Number) data.get("meta")).intValue() : 50);
 
             if (data.containsKey("idSocio") && data.get("idSocio") != null) {
-                usuario.setIdSocio(Long.parseLong(data.get("idSocio").toString()));
+                Long idSocio = Long.parseLong(data.get("idSocio").toString());
+                socioRepository.findById(idSocio).ifPresent(usuario::setSocio);
             }
 
             if (sucursalId != null) {
@@ -383,11 +385,10 @@ public class UsuarioController {
             usuarioRepository.save(usuario);
 
             // SYNC SOCIO: Si tiene socio vinculado, actualizar teléfono también
-            if (usuario.getIdSocio() != null && usuario.getTelefono() != null && !usuario.getTelefono().isEmpty()) {
-                socioRepository.findById(usuario.getIdSocio()).ifPresent(s -> {
-                    s.setTelefono(usuario.getTelefono());
-                    socioRepository.save(s);
-                });
+            if (usuario.getSocio() != null && usuario.getTelefono() != null && !usuario.getTelefono().isEmpty()) {
+                Socio s = usuario.getSocio();
+                s.setTelefono(usuario.getTelefono());
+                socioRepository.save(s);
             }
 
             auditService.registrar(
@@ -433,13 +434,13 @@ public class UsuarioController {
                     arizarService.notificarRegistro(usuario);
 
                     // SYNC SOCIO: Actualizar teléfono en el socio vinculado
-                    if (usuario.getIdSocio() != null) {
-                        socioRepository.findById(usuario.getIdSocio()).ifPresent(s -> {
-                            s.setTelefono(nuevoTelefono);
-                            socioRepository.save(s);
-                        });
+                    if (usuario.getSocio() != null) {
+                        Socio s = usuario.getSocio();
+                        s.setTelefono(nuevoTelefono);
+                        socioRepository.save(s);
                     }
                 }
+
             }
             if (data.containsKey("rol")) {
                 usuario.setRol(Usuario.Rol.valueOf((String) data.get("rol")));
@@ -460,8 +461,14 @@ public class UsuarioController {
                 usuario.setPermisosEspeciales((String) data.get("permisosEspeciales"));
             }
             if (data.containsKey("idSocio")) {
-                usuario.setIdSocio(data.get("idSocio") != null ? Long.parseLong(data.get("idSocio").toString()) : null);
+                Long idSocio = data.get("idSocio") != null ? Long.parseLong(data.get("idSocio").toString()) : null;
+                if (idSocio != null) {
+                    socioRepository.findById(idSocio).ifPresent(usuario::setSocio);
+                } else {
+                    usuario.setSocio(null);
+                }
             }
+
             if (data.containsKey("cargo")) {
                 usuario.setCargo((String) data.get("cargo"));
             }

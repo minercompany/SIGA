@@ -99,6 +99,14 @@ export default function UsuariosPage() {
     const [sociosFound, setSociosFound] = useState<any[]>([]);
     const [searchingSocio, setSearchingSocio] = useState(false);
     const [selectedSocio, setSelectedSocio] = useState<any | null>(null);
+    const [currentUser, setCurrentUser] = useState<any>(null);
+
+    useEffect(() => {
+        const userData = localStorage.getItem("user");
+        if (userData) {
+            setCurrentUser(JSON.parse(userData));
+        }
+    }, []);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -140,6 +148,7 @@ export default function UsuariosPage() {
         { id: "mensajes-avisos", label: "Avisos/Notif.", icon: Zap, color: "from-orange-500 to-red-500", bgColor: "bg-orange-50", borderColor: "border-orange-200", textColor: "text-orange-700" },
         { id: "usuarios", label: "Usuarios y Roles", icon: Shield, color: "from-rose-500 to-pink-500", bgColor: "bg-rose-50", borderColor: "border-rose-200", textColor: "text-rose-700" },
         { id: "auditoria", label: "Auditoría", icon: History, color: "from-gray-500 to-slate-500", bgColor: "bg-gray-50", borderColor: "border-gray-200", textColor: "text-gray-700" },
+        { id: "gestion-listas", label: "Gestión de Listas", icon: ClipboardList, color: "from-cyan-500 to-teal-500", bgColor: "bg-cyan-50", borderColor: "border-cyan-200", textColor: "text-cyan-700" },
         { id: "configuracion", label: "Configuración", icon: Settings, color: "from-zinc-500 to-gray-600", bgColor: "bg-zinc-50", borderColor: "border-zinc-200", textColor: "text-zinc-700" },
     ];
 
@@ -231,6 +240,37 @@ export default function UsuariosPage() {
             email: ""
         });
         setSociosFound([]);
+    };
+
+    const handleImpersonate = async (targetUser: Usuario) => {
+        if (!targetUser.id) return;
+
+        const result = await Swal.fire({
+            title: '🕵️ Iniciar Impersonación',
+            text: `¿Deseas ingresar al perfil de ${targetUser.nombreCompleto}? Se abrirá en una nueva pestaña.`,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, Ingresar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10b981'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.post(`/api/auth/impersonate/${targetUser.id}`, {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (res.data.token) {
+                    const bridgeUrl = `/admin/impersonate?token=${res.data.token}&adminToken=${token}`;
+                    window.open(bridgeUrl, '_blank');
+                }
+            } catch (error: any) {
+                console.error("Error impersonating:", error);
+                Swal.fire('Error', error.response?.data?.error || 'No se pudo impersonar', 'error');
+            }
+        }
     };
 
     const openGiveAccessModal = (socio: Usuario) => {
@@ -469,18 +509,34 @@ export default function UsuariosPage() {
                 <div className="flex gap-2">
                     {isOperator ? (
                         <>
-                            <button
-                                onClick={() => onEdit(user)}
-                                className="flex-1 py-2 bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-blue-600 transition-all"
-                            >
-                                <Edit2 className="h-3.5 w-3.5 mx-auto" />
-                            </button>
-                            <button
-                                onClick={() => user.activo ? onDelete(user) : onActivate(user)}
-                                className={`flex-1 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-wider transition-all ${user.activo ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
-                            >
-                                {user.activo ? <Trash2 className="h-3.5 w-3.5 mx-auto" /> : <CheckCircle2 className="h-3.5 w-3.5 mx-auto" />}
-                            </button>
+                            {user.rol !== 'SUPER_ADMIN' && (
+                                <>
+                                    <button
+                                        onClick={() => onEdit(user)}
+                                        className="flex-1 py-2 bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-blue-600 transition-all"
+                                    >
+                                        <Edit2 className="h-3.5 w-3.5 mx-auto" />
+                                    </button>
+                                    <button
+                                        onClick={() => user.activo ? onDelete(user) : onActivate(user)}
+                                        className={`flex-1 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-wider transition-all ${user.activo ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
+                                    >
+                                        {user.activo ? <Trash2 className="h-3.5 w-3.5 mx-auto" /> : <CheckCircle2 className="h-3.5 w-3.5 mx-auto" />}
+                                    </button>
+                                </>
+                            )}
+                            {(currentUser?.rol === 'SUPER_ADMIN' || currentUser?.rol === 'ADMIN' || (typeof window !== 'undefined' && localStorage.getItem("user")?.includes("SUPER_ADMIN"))) && user.id !== currentUser?.id && user.activo && (
+                                <button
+                                    onClick={() => handleImpersonate(user)}
+                                    className="flex-1 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 border-2 border-white"
+                                    title="Ingresar como este usuario"
+                                >
+                                    <div className="flex flex-col items-center gap-0.5">
+                                        <Monitor className="h-3 w-3" />
+                                        <span>LOGIN</span>
+                                    </div>
+                                </button>
+                            )}
                         </>
                     ) : (
                         <button
@@ -789,25 +845,39 @@ export default function UsuariosPage() {
                                         <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                                             {user.tipo === "USUARIO" ? (
                                                 <>
-                                                    <button
-                                                        onClick={() => openEditModal(user)}
-                                                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-black tracking-wide hover:shadow-lg hover:shadow-blue-200 hover:scale-105 transition-all"
-                                                        title="Editar Usuario"
-                                                    >
-                                                        <Edit2 className="h-3.5 w-3.5" />
-                                                        <span className="hidden lg:inline">Editar</span>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => user.activo ? handleDelete(user) : handleActivate(user)}
-                                                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black tracking-wide transition-all hover:scale-105 ${user.activo
-                                                            ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white hover:shadow-lg hover:shadow-red-200'
-                                                            : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-lg hover:shadow-emerald-200'
-                                                            }`}
-                                                        title={user.activo ? "Dar de Baja" : "Reactivar"}
-                                                    >
-                                                        {user.activo ? <Trash2 className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                                                        <span className="hidden lg:inline">{user.activo ? 'Baja' : 'Activar'}</span>
-                                                    </button>
+                                                    {user.rol !== 'SUPER_ADMIN' && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => openEditModal(user)}
+                                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-black tracking-wide hover:shadow-lg hover:shadow-blue-200 hover:scale-105 transition-all"
+                                                                title="Editar Usuario"
+                                                            >
+                                                                <Edit2 className="h-3.5 w-3.5" />
+                                                                <span className="hidden lg:inline">Editar</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => user.activo ? handleDelete(user) : handleActivate(user)}
+                                                                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black tracking-wide transition-all hover:scale-105 ${user.activo
+                                                                    ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white hover:shadow-lg hover:shadow-red-200'
+                                                                    : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-lg hover:shadow-emerald-200'
+                                                                    }`}
+                                                                title={user.activo ? "Dar de Baja" : "Reactivar"}
+                                                            >
+                                                                {user.activo ? <Trash2 className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                                                                <span className="hidden lg:inline">{user.activo ? 'Baja' : 'Activar'}</span>
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    {(currentUser?.rol === 'SUPER_ADMIN' || currentUser?.rol === 'ADMIN' || (typeof window !== 'undefined' && localStorage.getItem("user")?.includes("SUPER_ADMIN"))) && user.id !== currentUser?.id && user.activo && (
+                                                        <button
+                                                            onClick={() => handleImpersonate(user)}
+                                                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[10px] font-black tracking-wide hover:shadow-xl hover:shadow-emerald-300 hover:scale-105 transition-all border-2 border-emerald-100/50"
+                                                            title="Ingresar como este usuario"
+                                                        >
+                                                            <Monitor className="h-3.5 w-3.5" />
+                                                            <span>Ingresar</span>
+                                                        </button>
+                                                    )}
                                                 </>
                                             ) : (
                                                 <button

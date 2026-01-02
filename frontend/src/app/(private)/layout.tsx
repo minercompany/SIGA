@@ -15,6 +15,7 @@ import PageTransition from "@/components/PageTransition";
 import PushNotificationManager from "@/components/notifications/PushNotificationManager";
 import { UserActivityProvider } from "@/context/UserActivityContext";
 import { SessionExpiredModal } from "@/components/auth/SessionExpiredModal";
+import { HeartbeatManager } from "@/components/layout/HeartbeatManager";
 
 // Componente wrapper para el TourWelcome que necesita acceso al contexto
 function TourWelcomeWrapper({ userRole }: { userRole?: string }) {
@@ -91,7 +92,7 @@ export default function PrivateLayout({
         <TourProvider>
             <ImportProvider>
                 <UserActivityProvider>
-                    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-teal-50/30">
+                    <div className="flex min-h-[100dvh] h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-teal-50/30 relative">
                         {user?.requiresPasswordChange && (
                             <ForcePasswordChange onSuccess={() => {
                                 const newUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -103,18 +104,23 @@ export default function PrivateLayout({
                             <TourWelcomeWrapper userRole={user?.rol} />
                         )}
                         <Sidebar />
+                        {/* Gestor de Pulso de Actividad (Heartbeat) */}
+                        <HeartbeatManager />
+
                         <div className="flex flex-1 flex-col min-w-0">
-                            <TopBar />
-                            <main className="flex-1 overflow-y-auto px-4 pt-4 pb-4 md:p-6 lg:p-8">
+                            <header className="fixed top-0 right-0 left-0 md:left-64 z-40">
+                                <TopBar />
+                            </header>
+                            <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 pt-16 pb-4 md:p-6 lg:p-8 md:pt-20">
                                 <div className="animate-fade-in">
                                     {children}
                                 </div>
                             </main>
-                            <ImportStatusFloating />
-                            <ChatFAB />
-                            <PushNotificationManager userRole={user?.rol} />
                         </div>
                     </div>
+                    <ImportStatusFloating />
+                    <ChatFAB />
+                    <PushNotificationManager userRole={user?.rol} />
                     <TourOverlay />
                     <Suspense fallback={null}>
                         <PageTransition />

@@ -111,7 +111,18 @@ public class AsignacionController {
     }
 
     @GetMapping("/ranking-usuarios")
-    public ResponseEntity<List<Map<String, Object>>> getRankingUsuarios() {
+    public ResponseEntity<?> getRankingUsuarios(Authentication auth) {
+        if (auth == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // El ranking es público para todos los usuarios autenticados
+        // Es información de gamificación que motiva a los usuarios
+        Usuario usuario = usuarioRepository.findByUsername(auth.getName()).orElse(null);
+        if (usuario == null) {
+            return ResponseEntity.status(401).build();
+        }
+
         String sql = """
                     SELECT
                         u.id,
@@ -133,10 +144,17 @@ public class AsignacionController {
 
         List<Map<String, Object>> ranking = jdbcTemplate.queryForList(sql);
 
-        // Ajustar tipos de datos si es necesario (depende del driver DB, a veces
-        // devuelve BigInteger)
-        // El frontend espera números normales. JdbcTemplate devuelve Map<String,
-        // Object> que Jackson serializa bien.
+        // Enriquecer con id de lista real (activa)
+        for (Map<String, Object> row : ranking) {
+            Long userId = ((Number) row.get("id")).longValue();
+            List<ListaAsignacion> listas = listaRepository.findByUsuarioId(userId);
+            Optional<ListaAsignacion> activa = listas.stream().filter(l -> Boolean.TRUE.equals(l.getActiva()))
+                    .findFirst();
+            if (activa.isPresent()) {
+                row.put("idListaReal", activa.get().getId());
+                row.put("nombreLista", activa.get().getNombre());
+            }
+        }
 
         System.out.println("DEBUG RANKING SQL: Encontrados " + ranking.size() + " operadores");
         return ResponseEntity.ok(ranking);
@@ -569,9 +587,15 @@ public class AsignacionController {
             Authentication auth, HttpServletRequest request) {
         ListaAsignacion lista = listaRepository.findById(listaId).orElseThrow();
 
-        // Verificar propiedad
-        if (!lista.getUsuario().getUsername().equals(auth.getName())) {
-            return ResponseEntity.status(403).build();
+        // Verificar propiedad, SUPER_ADMIN, o permiso granular 'gestion-listas'
+        Usuario currentUser = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
+        boolean hasGranularPermission = currentUser.getPermisosEspeciales() != null
+                && currentUser.getPermisosEspeciales().contains("gestion-listas");
+
+        if (!lista.getUsuario().getUsername().equals(auth.getName())
+                && currentUser.getRol() != Usuario.Rol.SUPER_ADMIN
+                && !hasGranularPermission) {
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permisos para esta lista"));
         }
 
         Asignacion asignacion = asignacionRepository.findByListaAsignacionIdAndSocioId(listaId, socioId)
@@ -634,7 +658,14 @@ public class AsignacionController {
         }
 
         Usuario admin = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
-        if (admin.getRol() != Usuario.Rol.SUPER_ADMIN && admin.getRol() != Usuario.Rol.DIRECTIVO) {
+
+        // Verificar permisos: SUPER_ADMIN, DIRECTIVO, o permiso granular
+        // 'gestion-listas'
+        boolean hasGranularPermission = admin.getPermisosEspeciales() != null
+                && admin.getPermisosEspeciales().contains("gestion-listas");
+
+        if (admin.getRol() != Usuario.Rol.SUPER_ADMIN && admin.getRol() != Usuario.Rol.DIRECTIVO
+                && !hasGranularPermission) {
             return ResponseEntity.status(403).body(Map.of("error", "No tienes permisos"));
         }
 
@@ -697,6 +728,7 @@ public class AsignacionController {
                 "id", targetUser.getId(),
                 "nombre", targetUser.getNombreCompleto(),
                 "username", targetUser.getUsername()));
+        response.put("idListaActiva", listaActiva.isPresent() ? listaActiva.get().getId() : null);
         response.put("socios", sociosDetalle);
         response.put("stats", Map.of(
                 "total", sociosDetalle.size(),

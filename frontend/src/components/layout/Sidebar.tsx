@@ -114,6 +114,7 @@ const menuItems = [
         icon: Settings,
         submenu: [
             { id: "usuarios", name: "Usuarios y Roles", href: "/usuarios", icon: Shield },
+            { id: "gestion-listas", name: "Gestión de Listas", href: "/gestion-listas", icon: ClipboardList },
             { id: "auditoria", name: "Auditoría", href: "/auditoria", icon: History },
             { id: "configuracion", name: "Configuración", href: "/configuracion", icon: Settings },
         ]
@@ -178,7 +179,7 @@ export function Sidebar() {
             return hasPermission("mensajes-chat") || hasPermission("mensajes-avisos");
         }
         if (itemId === "admin") {
-            return hasPermission("usuarios") || hasPermission("auditoria") || hasPermission("configuracion");
+            return hasPermission("usuarios") || hasPermission("gestion-listas") || hasPermission("auditoria") || hasPermission("configuracion");
         }
 
         // --- Permisos por Item Individual ---
@@ -232,6 +233,7 @@ export function Sidebar() {
 
             // Admin
             case "usuarios":
+            case "gestion-listas":
             case "auditoria":
                 return user.rol === "SUPER_ADMIN";
             case "configuracion":

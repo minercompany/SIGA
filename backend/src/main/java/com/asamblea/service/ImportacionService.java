@@ -249,6 +249,14 @@ public class ImportacionService {
                             status.addErrorDetail(rowIndex, cedula, "Nombre del socio vacío");
                             continue;
                         }
+
+                        // EVITAR PROCESAR FILAS DE ENCABEZADO (Si detectamos palabras clave de header
+                        // en campos de datos)
+                        if (cedula.equalsIgnoreCase("Doc Num") || nombre.equalsIgnoreCase("SOCIO NOMBRE")) {
+                            log.info("Ignorando fila de encabezado detectada en fila {}", rowIndex);
+                            continue;
+                        }
+
                         if (nroSocio == null || nroSocio.isEmpty())
                             nroSocio = cedula;
 

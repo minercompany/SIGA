@@ -67,9 +67,11 @@ export default function DashboardPage() {
                 setUser(parsedUser);
 
                 const headers = { Authorization: `Bearer ${token}` };
-                const isSocio = parsedUser.rol === "USUARIO_SOCIO";
+                // Solo SUPER_ADMIN y DIRECTIVO ven el dashboard administrativo completo
+                const isAdmin = parsedUser.rol === "SUPER_ADMIN" || parsedUser.rol === "DIRECTIVO";
+                const isSocioView = !isAdmin; // Todos los demás roles ven el SocioDashboard
 
-                if (isSocio) {
+                if (isSocioView) {
                     try {
                         const listasRes = await axios.get("/api/asignaciones/mis-listas", { headers });
                         setMisListas(listasRes.data);
@@ -137,7 +139,9 @@ export default function DashboardPage() {
         );
     }
 
-    const isSocioView = user?.rol === "USUARIO_SOCIO";
+    // Solo SUPER_ADMIN y DIRECTIVO ven el dashboard administrativo
+    const isAdminView = user?.rol === "SUPER_ADMIN" || user?.rol === "DIRECTIVO";
+    const isSocioView = !isAdminView;
 
     return (
         <div className="animate-in fade-in duration-500">
@@ -155,7 +159,7 @@ export default function DashboardPage() {
                 />
             )}
 
-            {!isSocioView && (!stats || stats.totalPadron === 0) && (
+            {!isSocioView && stats && stats.totalPadron === 0 && (
                 <div className="mt-8 rounded-3xl bg-amber-50 border border-amber-200 p-12 text-center">
                     <AlertTriangle className="h-16 w-16 text-amber-500 mx-auto mb-4" />
                     <h2 className="text-xl font-black text-amber-800 mb-2 uppercase italic">Padrón Vacío</h2>

@@ -10,7 +10,11 @@ import java.util.Optional;
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByUsername(String username);
 
-    Optional<Usuario> findByIdSocio(Long idSocio);
+    Optional<Usuario> findBySocioId(Long socioId);
+
+    default Optional<Usuario> findByIdSocio(Long idSocio) {
+        return findBySocioId(idSocio);
+    }
 
     // Meta GLOBAL = Asesores + Funcionarios (todos los usuarios que pueden
     // registrar)
@@ -27,7 +31,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Long sumTotalMetasByRolNot(@Param("rol") Usuario.Rol rol);
 
     // Ranking de funcionarios por cantidad de registros en sus listas
-    // Sucursal: First try Usuario.sucursal, fallback to Socio.sucursal via idSocio
+    // Sucursal: First try Usuario.sucursal, fallback to Socio.sucursal via socio
+    // relationship
     @Query("SELECT u.username, u.cargo, u.meta, COUNT(a.id), " +
             "CASE WHEN u.meta > 0 THEN (COUNT(a.id) * 100.0 / u.meta) ELSE 0 END, " +
             "u.nombreCompleto, COALESCE(s.nombre, socioSuc.nombre), socio.nombreCompleto " +
@@ -35,7 +40,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
             "LEFT JOIN ListaAsignacion l ON l.usuario.id = u.id " +
             "LEFT JOIN Asignacion a ON a.listaAsignacion.id = l.id " +
             "LEFT JOIN Sucursal s ON u.sucursal.id = s.id " +
-            "LEFT JOIN Socio socio ON u.idSocio = socio.id " +
+            "LEFT JOIN u.socio socio " +
             "LEFT JOIN Sucursal socioSuc ON socio.sucursal.id = socioSuc.id " +
             "GROUP BY u.id, u.username, u.cargo, u.meta, u.nombreCompleto, s.nombre, socioSuc.nombre, socio.nombreCompleto "
             +

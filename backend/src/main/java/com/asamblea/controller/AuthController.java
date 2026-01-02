@@ -245,4 +245,59 @@ public class AuthController {
                                         .body(Map.of("success", false, "error", e.getMessage()));
                 }
         }
+
+        @PostMapping("/impersonate/{userId}")
+        public ResponseEntity<?> impersonate(@PathVariable Long userId, HttpServletRequest httpRequest) {
+                if (userId == null) {
+                        return ResponseEntity.badRequest().body(Map.of("error", "ID de usuario requerido"));
+                }
+                try {
+                        var auth = SecurityContextHolder.getContext().getAuthentication();
+                        if (auth == null || !auth.isAuthenticated()) {
+                                return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+                        }
+
+                        // Verificar que el usuario actual sea SUPER_ADMIN
+                        String currentUsername = auth.getName();
+                        Usuario admin = usuarioRepository.findByUsername(currentUsername).orElseThrow();
+                        if (admin.getRol() != Usuario.Rol.SUPER_ADMIN) {
+                                return ResponseEntity.status(403).body(
+                                                Map.of("error", "Acceso denegado. Solo Super Admin puede impersonar."));
+                        }
+
+                        // Buscar el usuario objetivo
+                        Usuario targetUser = usuarioRepository.findById(userId)
+                                        .orElseThrow(() -> new RuntimeException("Usuario objetivo no encontrado"));
+
+                        if (!targetUser.isActivo()) {
+                                return ResponseEntity.badRequest()
+                                                .body(Map.of("error", "No se puede entrar en un perfil inactivo."));
+                        }
+
+                        System.out.println("DEBUG: Impersonando a: " + targetUser.getUsername());
+
+                        auditService.registrar("USUARIOS", "IMPERSONATE",
+                                        String.format("Super Admin '%s' inició sesión como '%s' (ID: %d)",
+                                                        admin.getUsername(), targetUser.getUsername(),
+                                                        targetUser.getId() != null ? targetUser.getId() : 0L),
+                                        admin.getUsername(), httpRequest.getRemoteAddr());
+
+                        // Generar token para el usuario objetivo
+                        var jwtToken = jwtService.generateToken(targetUser);
+
+                        return ResponseEntity.ok(AuthResponse.builder()
+                                        .token(jwtToken)
+                                        .id(targetUser.getId())
+                                        .username(targetUser.getUsername())
+                                        .nombreCompleto(targetUser.getNombreCompleto())
+                                        .rol(targetUser.getRol().name())
+                                        .permisosEspeciales(targetUser.getPermisosEspeciales())
+                                        .requiresPasswordChange(targetUser.getRequiresPasswordChange())
+                                        .fotoPerfil(targetUser.getFotoPerfil())
+                                        .telefono(targetUser.getTelefono())
+                                        .build());
+                } catch (Exception e) {
+                        return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+                }
+        }
 }

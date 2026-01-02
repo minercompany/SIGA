@@ -12,32 +12,18 @@ echo "================================"
 
 # Function to deploy frontend
 deploy_frontend() {
-    echo "📦 Building frontend locally..."
-    cd /home/SIGA/frontend
-    
-    # Build locally (faster than in Docker)
-    npm run build
-    
-    echo "🔄 Restarting frontend container..."
+    echo "📦 Rebuilding and deploying frontend container..."
     cd /home/SIGA
-    docker compose restart frontend
-    
-    echo "✅ Frontend deployed!"
+    docker compose up -d --build frontend
+    echo "✅ Frontend deployed with latest changes!"
 }
 
 # Function to deploy backend
 deploy_backend() {
-    echo "📦 Building backend locally..."
-    cd /home/SIGA/backend
-    
-    # Build locally
-    ./mvnw package -DskipTests -B -q
-    
-    echo "🔄 Restarting backend container..."
+    echo "📦 Rebuilding and deploying backend container..."
     cd /home/SIGA
-    docker compose restart backend
-    
-    echo "✅ Backend deployed!"
+    docker compose up -d --build backend
+    echo "✅ Backend deployed with latest changes!"
 }
 
 case $TARGET in

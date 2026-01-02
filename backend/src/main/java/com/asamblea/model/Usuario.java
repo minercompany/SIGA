@@ -57,8 +57,9 @@ public class Usuario implements UserDetails {
     @Column(name = "permisos_especiales", columnDefinition = "TEXT")
     private String permisosEspeciales; // Comma separated screen keys
 
-    @Column(name = "id_socio")
-    private Long idSocio;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_socio", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private Socio socio;
 
     @Column(name = "password_visible")
     private String passwordVisible; // Contraseña en texto plano para visualización administrativa
@@ -71,6 +72,11 @@ public class Usuario implements UserDetails {
 
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
+    @Column(name = "total_online_seconds")
+    private Long totalOnlineSeconds = 0L;
+
+    @Column(name = "last_heartbeat")
+    private LocalDateTime lastHeartbeat;
 
     @Column(name = "token_version")
     private Integer tokenVersion = 0;
@@ -176,5 +182,16 @@ public class Usuario implements UserDetails {
      */
     public boolean esAsesor() {
         return rol == Rol.ASESOR_DE_CREDITO;
+    }
+
+    // --- MÉTODOS DE COMPATIBILIDAD (idSocio) ---
+    public Long getIdSocio() {
+        return socio != null ? socio.getId() : null;
+    }
+
+    public void setIdSocio(Long idSocio) {
+        // Nota: Este método no hace nada útil por sí solo para persistencia directa,
+        // pero permite compilar el código que intenta setear idSocio.
+        // La lógica de negocio debe usar el repositorio para buscar el socio real.
     }
 }

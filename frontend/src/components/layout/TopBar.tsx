@@ -65,6 +65,11 @@ export function TopBar() {
     const [currentDate, setCurrentDate] = useState<string>("");
     const [user, setUser] = useState<any>(null);
     const [daysUntil, setDaysUntil] = useState<number | null>(null);
+    const [isAdminSession, setIsAdminSession] = useState(false);
+
+    useEffect(() => {
+        setIsAdminSession(!!localStorage.getItem("adminToken"));
+    }, []);
 
     // Effect para fecha y hora
     useEffect(() => {
@@ -170,6 +175,18 @@ export function TopBar() {
         }
     };
 
+    const handleReturnToAdmin = () => {
+        const adminToken = localStorage.getItem("adminToken");
+        const adminUser = localStorage.getItem("adminUser");
+        if (adminToken && adminUser) {
+            localStorage.setItem("token", adminToken);
+            localStorage.setItem("user", adminUser);
+            localStorage.removeItem("adminToken");
+            localStorage.removeItem("adminUser");
+            window.location.href = "/usuarios";
+        }
+    };
+
     return (
         <>
             {/* Banner de Modo Prueba */}
@@ -195,6 +212,31 @@ export function TopBar() {
                     >
                         {isDeactivating ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertTriangle className="h-3 w-3" />}
                         Desactivar
+                    </button>
+                </div>
+            )}
+
+            {isAdminSession && (
+                <div className="bg-emerald-600 text-white px-4 py-3 flex items-center justify-between shadow-lg z-50 animate-in slide-in-from-top duration-500 border-b border-emerald-500">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-white/20 p-2 rounded-xl animate-pulse">
+                            <UserCheck className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-xs md:text-sm font-black uppercase tracking-widest italic flex items-center gap-2">
+                                🕵️ Sesión de Impersonación Activa
+                            </span>
+                            <span className="text-[10px] text-emerald-100 font-bold uppercase tracking-wider">
+                                Estás viendo el sistema como: <span className="text-white underline">{user?.nombreCompleto}</span>
+                            </span>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleReturnToAdmin}
+                        className="bg-white text-emerald-600 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:bg-emerald-50 hover:scale-105 shadow-xl flex items-center gap-2 border-2 border-transparent active:scale-95"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Volver a mi Sesión Admin
                     </button>
                 </div>
             )}

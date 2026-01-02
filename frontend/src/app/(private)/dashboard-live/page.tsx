@@ -248,7 +248,7 @@ export default function DashboardEnVivoPage() {
     const darkCardStyle = "bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-3xl border border-slate-700/50 shadow-2xl";
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-teal-50/30 p-4 lg:p-8">
+        <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-teal-50/30 p-3 md:p-4 lg:p-8">
             {/* Elementos decorativos de fondo */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-teal-200/30 to-emerald-200/30 rounded-full blur-3xl" />
@@ -298,8 +298,8 @@ export default function DashboardEnVivoPage() {
                         </div>
 
                         {/* Reloj Premium */}
-                        <div className={`${cardStyle} px-8 py-4`}>
-                            <div className="text-4xl lg:text-5xl font-mono font-black text-slate-800 tracking-wider">
+                        <div className={`${cardStyle} px-4 md:px-8 py-3 md:py-4`}>
+                            <div className="text-2xl md:text-4xl lg:text-5xl font-mono font-black text-slate-800 tracking-wider">
                                 {currentTime.toLocaleTimeString('es-PY', {
                                     hour: '2-digit',
                                     minute: '2-digit',
@@ -325,7 +325,7 @@ export default function DashboardEnVivoPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="mb-8 relative"
                     >
-                        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-[2rem] p-8 text-white shadow-2xl shadow-slate-900/50 border border-slate-700/50 relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-[2rem] p-4 md:p-8 text-white shadow-2xl shadow-slate-900/50 border border-slate-700/50 relative overflow-hidden">
                             {/* Decorative elements */}
                             <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-teal-500/10 to-emerald-500/10 rounded-full blur-3xl" />
                             <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-full blur-3xl" />
@@ -344,7 +344,7 @@ export default function DashboardEnVivoPage() {
                                     </div>
                                     <div className="flex items-center gap-3 bg-white/5 rounded-2xl px-6 py-3 border border-white/10">
                                         <div className="text-right">
-                                            <p className="text-4xl lg:text-5xl font-black text-emerald-400">{metasData.registradosVozYVoto}</p>
+                                            <p className="text-2xl md:text-4xl lg:text-5xl font-black text-emerald-400">{metasData.registradosVozYVoto}</p>
                                             <p className="text-xs text-slate-400 uppercase tracking-widest">de {metasData.meta} objetivo</p>
                                         </div>
                                     </div>
@@ -436,7 +436,7 @@ export default function DashboardEnVivoPage() {
                 )}
 
                 {/* KPIs Premium Grid - 6 Tarjetas */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-6 md:mb-8">
                     {/* 1. Total Padrón */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -450,7 +450,7 @@ export default function DashboardEnVivoPage() {
                             <div className="p-2.5 bg-white/20 backdrop-blur rounded-xl w-fit mb-3">
                                 <Users className="h-5 w-5" />
                             </div>
-                            <div className="text-3xl lg:text-4xl font-black tracking-tight">{stats.totalPadron.toLocaleString()}</div>
+                            <div className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight">{stats.totalPadron.toLocaleString()}</div>
                             <p className="text-violet-100 text-xs font-bold mt-1 uppercase tracking-wider">Total Padrón</p>
                         </div>
                     </motion.div>
@@ -468,7 +468,7 @@ export default function DashboardEnVivoPage() {
                             <div className="p-2.5 bg-white/20 backdrop-blur rounded-xl w-fit mb-3">
                                 <Shield className="h-5 w-5" />
                             </div>
-                            <div className="text-3xl lg:text-4xl font-black tracking-tight">{stats.conVozYVoto.toLocaleString()}</div>
+                            <div className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight">{stats.conVozYVoto.toLocaleString()}</div>
                             <p className="text-emerald-100 text-xs font-bold mt-1 uppercase tracking-wider">Con Voz y Voto</p>
                         </div>
                     </motion.div>
@@ -486,7 +486,7 @@ export default function DashboardEnVivoPage() {
                             <div className="p-2.5 bg-white/20 backdrop-blur rounded-xl w-fit mb-3">
                                 <AlertTriangle className="h-5 w-5" />
                             </div>
-                            <div className="text-3xl lg:text-4xl font-black tracking-tight">{stats.soloVoz.toLocaleString()}</div>
+                            <div className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight">{stats.soloVoz.toLocaleString()}</div>
                             <p className="text-amber-100 text-xs font-bold mt-1 uppercase tracking-wider">Solo Voz</p>
                         </div>
                     </motion.div>
@@ -507,7 +507,7 @@ export default function DashboardEnVivoPage() {
                             <div className="p-2.5 bg-white/20 backdrop-blur rounded-xl w-fit mb-3">
                                 <UserCheck className="h-5 w-5" />
                             </div>
-                            <div className="text-3xl lg:text-4xl font-black tracking-tight">{stats.presentes}</div>
+                            <div className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight">{stats.presentes}</div>
                             <p className="text-blue-100 text-xs font-bold mt-1 uppercase tracking-wider">Presentes Ahora</p>
                         </div>
                     </motion.div>
@@ -528,7 +528,7 @@ export default function DashboardEnVivoPage() {
                             <div className="p-2.5 bg-white/20 backdrop-blur rounded-xl w-fit mb-3">
                                 <Shield className="h-5 w-5" />
                             </div>
-                            <div className="text-3xl lg:text-4xl font-black tracking-tight">{stats.presentesVyV}</div>
+                            <div className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight">{stats.presentesVyV}</div>
                             <p className="text-green-100 text-xs font-bold mt-1 uppercase tracking-wider">Presentes V&V</p>
                         </div>
                     </motion.div>
@@ -549,14 +549,14 @@ export default function DashboardEnVivoPage() {
                             <div className="p-2.5 bg-white/20 backdrop-blur rounded-xl w-fit mb-3">
                                 <AlertTriangle className="h-5 w-5" />
                             </div>
-                            <div className="text-3xl lg:text-4xl font-black tracking-tight">{presentesSoloVoz}</div>
+                            <div className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight">{presentesSoloVoz}</div>
                             <p className="text-orange-100 text-xs font-bold mt-1 uppercase tracking-wider">Presentes Solo Voz</p>
                         </div>
                     </motion.div>
                 </div>
 
                 {/* Grid de Métricas de Asamblea (Participación y Mayoría) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
                     {/* Nivel de Participación */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
@@ -637,7 +637,7 @@ export default function DashboardEnVivoPage() {
                 </div>
 
                 {/* Grid de Gráficos */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -705,7 +705,7 @@ export default function DashboardEnVivoPage() {
                 </div>
 
                 {/* Segunda fila */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -807,8 +807,8 @@ export default function DashboardEnVivoPage() {
                         </div>
                     </div>
 
-                    {/* Tabla de Registros por Sucursal */}
-                    <div className="overflow-x-auto rounded-xl border border-slate-100">
+                    {/* Tabla de Registros por Sucursal - Desktop */}
+                    <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-100">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-slate-50/80 border-b border-slate-200">
@@ -878,6 +878,67 @@ export default function DashboardEnVivoPage() {
                         </table>
                     </div>
 
+                    {/* Tarjetas de Registros por Sucursal - Mobile */}
+                    <div className="md:hidden space-y-3">
+                        {registrosPorSucursal.length > 0 ? (
+                            registrosPorSucursal.slice(0, 10).map((reg, idx) => (
+                                <motion.div
+                                    key={reg.sucursal}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.03 }}
+                                    className="bg-slate-50 rounded-2xl p-4 border border-slate-100"
+                                >
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-xs font-bold text-indigo-600 border border-indigo-100">
+                                                {idx + 1}
+                                            </div>
+                                            <span className="font-bold text-sm text-slate-700">{reg.sucursal}</span>
+                                        </div>
+                                        <span className="px-3 py-1 rounded-lg bg-slate-200 text-slate-700 font-bold text-sm">
+                                            {reg.totalRegistros}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-around pt-3 border-t border-slate-200">
+                                        <div className="text-center">
+                                            <span className="flex items-center justify-center gap-1 text-emerald-500 font-bold text-lg">
+                                                <Shield className="h-4 w-4" />
+                                                {reg.conVozYVoto}
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 uppercase font-bold">V&V</span>
+                                        </div>
+                                        <div className="h-8 w-px bg-slate-200" />
+                                        <div className="text-center">
+                                            <span className="flex items-center justify-center gap-1 text-amber-600 font-bold text-lg">
+                                                <AlertTriangle className="h-4 w-4" />
+                                                {reg.soloVoz}
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 uppercase font-bold">Solo Voz</span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))
+                        ) : (
+                            <div className="py-10 text-center text-slate-400">
+                                <UserCheck className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                <p className="text-sm">Sin registros cargados hoy</p>
+                            </div>
+                        )}
+                        {registrosPorSucursal.length > 0 && (
+                            <div className="bg-slate-100 rounded-2xl p-4 border border-slate-200 mt-4">
+                                <div className="flex items-center justify-between">
+                                    <span className="font-bold text-sm text-slate-700">TOTAL</span>
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-emerald-500 font-bold">{registrosVyV} V&V</span>
+                                        <span className="text-amber-600 font-bold">{registrosSoloVoz} SV</span>
+                                        <span className="text-indigo-600 font-black">{registrosTotales}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Nota de aclaración */}
                     <div className="mt-4 pt-4 border-t border-slate-100">
                         <p className="text-xs text-slate-400 flex items-center gap-2">
@@ -888,7 +949,7 @@ export default function DashboardEnVivoPage() {
                 </motion.div>
 
                 {/* Tercera fila: Llegadas + Ranking */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -1028,7 +1089,7 @@ export default function DashboardEnVivoPage() {
                 </div>
 
                 {/* Métricas Footer */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
                     {[
                         { icon: Building2, value: sucursalesStats.length, label: 'Sucursales', color: 'from-indigo-500 to-purple-600', shadow: 'shadow-indigo-200' },
                         { icon: Users, value: rankingOperadores.length, label: 'Operadores Activos', color: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-200' },

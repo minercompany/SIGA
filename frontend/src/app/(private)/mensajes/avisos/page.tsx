@@ -299,38 +299,86 @@ export default function AdminAvisosPage() {
                                     1. Seleccioná el Alcance
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    {[
-                                        { id: 'MASIVO', icon: Users, label: 'Masivo Generál', desc: 'Enviar a toda la base de usuarios activas.', color: 'emerald' },
-                                        { id: 'POR_FILTRO', icon: Filter, label: 'Por Filtro', desc: 'Segmentar por Rol (Directivos, Operadores, Socios).', color: 'blue' },
-                                        { id: 'INDIVIDUAL', icon: User, label: 'Individual', desc: 'Mensaje directo a un usuario específico.', color: 'violet' }
-                                    ].map((option) => (
-                                        <div
-                                            key={option.id}
-                                            onClick={() => setTipo(option.id as any)}
-                                            className={`relative cursor-pointer group p-6 rounded-2xl border-2 transition-all duration-300 ${tipo === option.id
-                                                ? `border-${option.color}-500 bg-${option.color}-50/50${option.color}-900/10`
-                                                : 'border-slate-100 hover:border-slate-300'
-                                                }`}
-                                        >
-                                            <div className={`h-12 w-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${tipo === option.id ? `bg-${option.color}-500 text-white shadow-lg shadow-${option.color}-500/30` : 'bg-slate-100 text-slate-500'}`}>
-                                                <option.icon className="h-6 w-6" />
-                                            </div>
-                                            <h4 className={`font-bold text-lg mb-1 ${tipo === option.id ? 'text-slate-900' : 'text-slate-600'}`}>
-                                                {option.label}
-                                            </h4>
-                                            <p className="text-sm text-slate-500">
-                                                {option.desc}
-                                            </p>
-                                            {tipo === option.id && (
-                                                <motion.div
-                                                    layoutId="check"
-                                                    className={`absolute top-4 right-4 h-6 w-6 rounded-full bg-${option.color}-500 flex items-center justify-center text-white`}
-                                                >
-                                                    <Check className="h-4 w-4" />
-                                                </motion.div>
-                                            )}
+                                    {/* Masivo General */}
+                                    <div
+                                        onClick={() => setTipo('MASIVO')}
+                                        className={`relative cursor-pointer group p-6 rounded-2xl border-2 transition-all duration-300 ${tipo === 'MASIVO'
+                                            ? 'border-emerald-500 bg-emerald-50/50'
+                                            : 'border-slate-100 hover:border-slate-300'
+                                            }`}
+                                    >
+                                        <div className={`h-12 w-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${tipo === 'MASIVO' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-slate-100 text-slate-500'}`}>
+                                            <Users className="h-6 w-6" />
                                         </div>
-                                    ))}
+                                        <h4 className={`font-bold text-lg mb-1 ${tipo === 'MASIVO' ? 'text-slate-900' : 'text-slate-600'}`}>
+                                            Masivo Generál
+                                        </h4>
+                                        <p className="text-sm text-slate-500">
+                                            Enviar a toda la base de usuarios activas.
+                                        </p>
+                                        {tipo === 'MASIVO' && (
+                                            <motion.div
+                                                layoutId="check"
+                                                className="absolute top-4 right-4 h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center text-white"
+                                            >
+                                                <Check className="h-4 w-4" />
+                                            </motion.div>
+                                        )}
+                                    </div>
+
+                                    {/* Por Filtro */}
+                                    <div
+                                        onClick={() => setTipo('POR_FILTRO')}
+                                        className={`relative cursor-pointer group p-6 rounded-2xl border-2 transition-all duration-300 ${tipo === 'POR_FILTRO'
+                                            ? 'border-blue-500 bg-blue-50/50'
+                                            : 'border-slate-100 hover:border-slate-300'
+                                            }`}
+                                    >
+                                        <div className={`h-12 w-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${tipo === 'POR_FILTRO' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-slate-100 text-slate-500'}`}>
+                                            <Filter className="h-6 w-6" />
+                                        </div>
+                                        <h4 className={`font-bold text-lg mb-1 ${tipo === 'POR_FILTRO' ? 'text-slate-900' : 'text-slate-600'}`}>
+                                            Por Filtro
+                                        </h4>
+                                        <p className="text-sm text-slate-500">
+                                            Segmentar por Rol (Directivos, Operadores, Socios).
+                                        </p>
+                                        {tipo === 'POR_FILTRO' && (
+                                            <motion.div
+                                                layoutId="check"
+                                                className="absolute top-4 right-4 h-6 w-6 rounded-full bg-blue-500 flex items-center justify-center text-white"
+                                            >
+                                                <Check className="h-4 w-4" />
+                                            </motion.div>
+                                        )}
+                                    </div>
+
+                                    {/* Individual */}
+                                    <div
+                                        onClick={() => setTipo('INDIVIDUAL')}
+                                        className={`relative cursor-pointer group p-6 rounded-2xl border-2 transition-all duration-300 ${tipo === 'INDIVIDUAL'
+                                            ? 'border-violet-500 bg-violet-50/50'
+                                            : 'border-slate-100 hover:border-slate-300'
+                                            }`}
+                                    >
+                                        <div className={`h-12 w-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${tipo === 'INDIVIDUAL' ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/30' : 'bg-slate-100 text-slate-500'}`}>
+                                            <User className="h-6 w-6" />
+                                        </div>
+                                        <h4 className={`font-bold text-lg mb-1 ${tipo === 'INDIVIDUAL' ? 'text-slate-900' : 'text-slate-600'}`}>
+                                            Individual
+                                        </h4>
+                                        <p className="text-sm text-slate-500">
+                                            Mensaje directo a un usuario específico.
+                                        </p>
+                                        {tipo === 'INDIVIDUAL' && (
+                                            <motion.div
+                                                layoutId="check"
+                                                className="absolute top-4 right-4 h-6 w-6 rounded-full bg-violet-500 flex items-center justify-center text-white"
+                                            >
+                                                <Check className="h-4 w-4" />
+                                            </motion.div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Dynamic Filters */}
@@ -537,27 +585,56 @@ export default function AdminAvisosPage() {
                                             <div>
                                                 <label className="block text-sm font-bold text-slate-700 mb-3">Prioridad</label>
                                                 <div className="flex gap-2">
-                                                    {(Object.keys(priorities) as Array<keyof typeof priorities>).map((p) => (
-                                                        <button
-                                                            key={p}
-                                                            type="button"
-                                                            onClick={() => setPrioridad(p)}
-                                                            className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${prioridad === p
-                                                                ? `border-${priorities[p].color.split('-')[1]}-500 bg-${priorities[p].color.split('-')[1]}-50 text-slate-900`
-                                                                : 'border-slate-100 text-slate-400 hover:border-slate-300'
-                                                                }`}
-                                                        >
-                                                            {prioridad === p && (
-                                                                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="mb-1">
-                                                                    {(() => {
-                                                                        const Icon = priorities[p].icon;
-                                                                        return <Icon className={`h-5 w-5 text-${priorities[p].color.split('-')[1]}-500`} />;
-                                                                    })()}
-                                                                </motion.div>
-                                                            )}
-                                                            <span className="text-xs font-bold">{priorities[p].label}</span>
-                                                        </button>
-                                                    ))}
+                                                    {/* Normal */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setPrioridad('NORMAL')}
+                                                        className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${prioridad === 'NORMAL'
+                                                            ? 'border-emerald-500 bg-emerald-50 text-slate-900'
+                                                            : 'border-slate-100 text-slate-400 hover:border-slate-300'
+                                                            }`}
+                                                    >
+                                                        {prioridad === 'NORMAL' && (
+                                                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="mb-1">
+                                                                <Info className="h-5 w-5 text-emerald-500" />
+                                                            </motion.div>
+                                                        )}
+                                                        <span className="text-xs font-bold">Normal</span>
+                                                    </button>
+
+                                                    {/* Alta */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setPrioridad('ALTA')}
+                                                        className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${prioridad === 'ALTA'
+                                                            ? 'border-amber-500 bg-amber-50 text-slate-900'
+                                                            : 'border-slate-100 text-slate-400 hover:border-slate-300'
+                                                            }`}
+                                                    >
+                                                        {prioridad === 'ALTA' && (
+                                                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="mb-1">
+                                                                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                                                            </motion.div>
+                                                        )}
+                                                        <span className="text-xs font-bold">Alta</span>
+                                                    </button>
+
+                                                    {/* Crítica */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setPrioridad('CRITICA')}
+                                                        className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${prioridad === 'CRITICA'
+                                                            ? 'border-red-500 bg-red-50 text-slate-900'
+                                                            : 'border-slate-100 text-slate-400 hover:border-slate-300'
+                                                            }`}
+                                                    >
+                                                        {prioridad === 'CRITICA' && (
+                                                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="mb-1">
+                                                                <AlertCircle className="h-5 w-5 text-red-500" />
+                                                            </motion.div>
+                                                        )}
+                                                        <span className="text-xs font-bold">Crítica</span>
+                                                    </button>
                                                 </div>
                                             </div>
 
