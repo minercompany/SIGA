@@ -101,4 +101,13 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long> {
                         "ORDER BY a.id DESC")
 
         java.util.List<Object[]> findUltimasAsignaciones();
+
+        // ====== Queries para Estadísticas de Asignaciones por Día ======
+
+        @Query("SELECT COUNT(a) FROM Asignacion a WHERE DATE(a.fechaAsignacion) = CURRENT_DATE")
+        Long countAsignacionesHoy();
+
+        @Query("SELECT DATE(a.fechaAsignacion) as fecha, COUNT(a) as total FROM Asignacion a WHERE a.fechaAsignacion >= :fechaInicio GROUP BY DATE(a.fechaAsignacion) ORDER BY DATE(a.fechaAsignacion) DESC")
+        java.util.List<Object[]> countAsignacionesPorDia(
+                        @org.springframework.data.repository.query.Param("fechaInicio") java.time.LocalDateTime fechaInicio);
 }

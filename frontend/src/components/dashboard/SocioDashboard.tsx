@@ -173,12 +173,12 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-8 pb-12 px-4 md:px-6 pt-8"
+            className="space-y-8 pb-12 px-4 md:px-6 pt-32 md:pt-36"
         >
             {/* Banner de Bienvenida Premium */}
             <motion.div
                 variants={itemVariants}
-                className="relative mt-4 bg-gradient-to-br from-emerald-500/95 via-teal-500/95 to-emerald-600/95 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-2xl overflow-hidden border border-white/20"
+                className="relative bg-gradient-to-br from-emerald-500/95 via-teal-500/95 to-emerald-600/95 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-2xl overflow-hidden border border-white/20"
             >
                 <div className="absolute top-0 right-0 h-48 w-48 bg-white/10 rounded-full blur-[80px]" />
                 <div className="absolute -bottom-16 -left-16 h-48 w-48 bg-emerald-300/20 rounded-full blur-[80px]" />

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
     Users, ShieldCheck, TrendingUp, Building2, Clock, RefreshCw,
     Activity, UserCheck, PieChart as PieIcon, BarChart3, Award,
-    Zap, Target, CheckCircle2, AlertCircle, Crown, Medal, Star, AlertTriangle
+    Zap, Target, CheckCircle2, AlertCircle, Crown, Medal, Star, AlertTriangle, Eye
 } from "lucide-react";
 
 
@@ -21,7 +21,8 @@ import { useUserActivity } from "@/context/UserActivityContext";
 import { UserActivityReportModal } from "./UserActivityReportModal";
 import { ActiveUsersModal } from "./ActiveUsersModal";
 import { ActivityWidget } from "./ActivityWidget";
-
+import { DailyAssignmentsWidget } from "./DailyAssignmentsWidget";
+import { DailyAssignmentsModal } from "./DailyAssignmentsModal";
 
 interface AdminDashboardProps {
     stats: {
@@ -83,6 +84,7 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
     const [activityReportFilter, setActivityReportFilter] = useState<"todos" | "habituales" | "no-entraron" | "sin-registros">("todos");
     const [userRole, setUserRole] = useState<string>("");
     const [currentUsername, setCurrentUsername] = useState<string>("");
+    const [isDailyAssignmentsModalOpen, setIsDailyAssignmentsModalOpen] = useState(false);
 
     // Obtener username actual
     useEffect(() => {
@@ -201,6 +203,11 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                 isOpen={isActivityReportModalOpen}
                 onClose={() => setIsActivityReportModalOpen(false)}
                 initialFilter={activityReportFilter}
+            />
+
+            <DailyAssignmentsModal
+                isOpen={isDailyAssignmentsModalOpen}
+                onClose={() => setIsDailyAssignmentsModalOpen(false)}
             />
 
             {/* Header Centro de Control - REDISEÑO ULTRA PREMIUM */}
@@ -364,14 +371,14 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                         <ActivityWidget data={userActivity.hourlyStats.data} labels={userActivity.hourlyStats.labels} />
                     </div>
 
-                    {/* Summary Cards (Ocupa 2 columnas) */}
-                    <div className="md:col-span-2 lg:col-span-2 grid grid-cols-2 gap-4 h-full">
-                        {/* Activos - Clickable (Ocupa toda la altura izquierda) */}
+                    {/* Summary Cards (Ocupa 2 columnas) - Modificado para incluir widget de asignaciones */}
+                    <div className="md:col-span-2 lg:col-span-2 grid grid-cols-2 lg:grid-cols-2 gap-4 h-full">
+                        {/* Activos - Clickable (Ocupa toda la altura izquierda en móvil y desktop) */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setIsActiveUsersModalOpen(true)}
-                            className="row-span-2 bg-gradient-to-br from-emerald-500 to-teal-700 rounded-[2rem] p-6 text-white shadow-xl shadow-emerald-500/20 cursor-pointer relative overflow-hidden group flex flex-col items-center justify-center text-center border border-white/10"
+                            className="row-span-2 lg:col-span-1 bg-gradient-to-br from-emerald-500 to-teal-700 rounded-[2rem] p-6 text-white shadow-xl shadow-emerald-500/20 cursor-pointer relative overflow-hidden group flex flex-col items-center justify-center text-center border border-white/10"
                         >
                             <div className="relative z-10 mb-2">
                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-black/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10">
@@ -396,15 +403,19 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                                 setActivityReportFilter("habituales");
                                 setIsActivityReportModalOpen(true);
                             }}
-                            className="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer"
+                            className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer"
                         >
-                            <div className="relative z-10 mb-1">
-                                <div className="inline-flex items-center justify-center p-2.5 bg-blue-50 text-blue-500 rounded-2xl mb-1 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                    <UserCheck className="h-5 w-5" strokeWidth={2.5} />
+                            <div className="relative z-10 mb-2">
+                                <div className="inline-flex items-center justify-center p-3 bg-blue-50 text-blue-500 rounded-2xl mb-2 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <UserCheck className="h-7 w-7" strokeWidth={2.5} />
                                 </div>
-                                <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">Usuales</p>
+                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Usuales</p>
                             </div>
-                            <p className="relative z-10 text-3xl font-black text-slate-800 tracking-tighter"><AnimatedCounter value={userActivity.usuales} /></p>
+                            <p className="relative z-10 text-5xl font-black text-slate-800 tracking-tighter mb-3"><AnimatedCounter value={userActivity.usuales} /></p>
+                            <button className="relative z-10 flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-blue-600 transition-colors shadow-lg">
+                                <Eye size={14} />
+                                <span>Ver</span>
+                            </button>
                         </motion.div>
 
                         {/* Total (Derecha Centro) */}
@@ -414,15 +425,19 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                                 setActivityReportFilter("todos");
                                 setIsActivityReportModalOpen(true);
                             }}
-                            className="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer"
+                            className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer"
                         >
-                            <div className="relative z-10 mb-1">
-                                <div className="inline-flex items-center justify-center p-2.5 bg-indigo-50 text-indigo-500 rounded-2xl mb-1 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                    <Users className="h-5 w-5" strokeWidth={2.5} />
+                            <div className="relative z-10 mb-2">
+                                <div className="inline-flex items-center justify-center p-3 bg-indigo-50 text-indigo-500 rounded-2xl mb-2 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <Users className="h-7 w-7" strokeWidth={2.5} />
                                 </div>
-                                <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">Total</p>
+                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Total</p>
                             </div>
-                            <p className="relative z-10 text-3xl font-black text-slate-800 tracking-tighter"><AnimatedCounter value={userActivity.total} /></p>
+                            <p className="relative z-10 text-5xl font-black text-slate-800 tracking-tighter mb-3"><AnimatedCounter value={userActivity.total} /></p>
+                            <button className="relative z-10 flex items-center gap-1.5 px-4 py-2 bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-indigo-600 transition-colors shadow-lg">
+                                <Eye size={14} />
+                                <span>Ver</span>
+                            </button>
                         </motion.div>
 
                         {/* Cero Registros (Derecha Abajo - Solo si hay datos o como extra) */}
@@ -432,16 +447,25 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                                 setActivityReportFilter("sin-registros");
                                 setIsActivityReportModalOpen(true);
                             }}
-                            className="col-span-1 bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer hover:border-amber-200"
+                            className="col-span-1 bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer hover:border-amber-200"
                         >
-                            <div className="relative z-10 mb-1">
-                                <div className="inline-flex items-center justify-center p-2.5 bg-amber-50 text-amber-600 rounded-2xl mb-1 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                    <AlertTriangle className="h-5 w-5" strokeWidth={2.5} />
+                            <div className="relative z-10 mb-2">
+                                <div className="inline-flex items-center justify-center p-3 bg-amber-50 text-amber-600 rounded-2xl mb-2 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <AlertTriangle className="h-7 w-7" strokeWidth={2.5} />
                                 </div>
-                                <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">0 Registros</p>
+                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">0 Registros</p>
                             </div>
-                            <p className="relative z-10 text-3xl font-black text-slate-800 tracking-tighter"><AnimatedCounter value={userActivity.sinRegistros || 0} /></p>
+                            <p className="relative z-10 text-5xl font-black text-slate-800 tracking-tighter mb-3"><AnimatedCounter value={userActivity.sinRegistros || 0} /></p>
+                            <button className="relative z-10 flex items-center gap-1.5 px-4 py-2 bg-amber-500 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-amber-600 transition-colors shadow-lg">
+                                <Eye size={14} />
+                                <span>Ver</span>
+                            </button>
                         </motion.div>
+
+                        {/* Widget de Asignaciones Diarias - NUEVO */}
+                        <div className="col-span-1 lg:col-span-1 row-span-2">
+                            <DailyAssignmentsWidget onOpenModal={() => setIsDailyAssignmentsModalOpen(true)} />
+                        </div>
                     </div>
 
                 </div>

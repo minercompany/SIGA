@@ -162,6 +162,8 @@ public class UsuarioActivityController {
                 return -1;
             if (!a.isOnline() && b.isOnline())
                 return 1;
+            if (a.getLastLogin() == null && b.getLastLogin() == null)
+                return 0;
             if (a.getLastLogin() == null)
                 return 1;
             if (b.getLastLogin() == null)
