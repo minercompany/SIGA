@@ -58,7 +58,7 @@ public class Usuario implements UserDetails {
     private String permisosEspeciales; // Comma separated screen keys
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_socio", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "id_socio", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT), columnDefinition = "INT")
     private Socio socio;
 
     @Column(name = "password_visible")
@@ -190,8 +190,7 @@ public class Usuario implements UserDetails {
     }
 
     public void setIdSocio(Long idSocio) {
-        // Nota: Este método no hace nada útil por sí solo para persistencia directa,
-        // pero permite compilar el código que intenta setear idSocio.
-        // La lógica de negocio debe usar el repositorio para buscar el socio real.
+        // No hace nada para persistencia, pero ayuda a compilar
     }
+
 }
