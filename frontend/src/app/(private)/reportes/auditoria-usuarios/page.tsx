@@ -63,15 +63,26 @@ export default function AuditoriaUsuariosPage() {
     const fetchData = async () => {
         try {
             const token = localStorage.getItem("token");
+            console.log("[Audit] Fetching data from:", `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/reporte-actividad`);
+            console.log("[Audit] Token exists:", !!token);
+
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/reporte-actividad`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+
+            console.log("[Audit] Response status:", res.status);
+
             if (res.ok) {
                 const data = await res.json();
+                console.log("[Audit] Data received:", data.length, "users");
+                console.log("[Audit] Sample user:", data[0]);
                 setUsuarios(data);
+            } else {
+                const errorText = await res.text();
+                console.error("[Audit] Error response:", res.status, errorText);
             }
         } catch (error) {
-            console.error("Error fetching data:", error);
+            console.error("[Audit] Error fetching data:", error);
         } finally {
             setLoading(false);
         }
