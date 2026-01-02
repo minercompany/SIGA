@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import {
     Users, ShieldCheck, TrendingUp, Building2, Clock, RefreshCw,
     Activity, UserCheck, PieChart as PieIcon, BarChart3, Award,
-    Zap, Target, CheckCircle2, AlertCircle, Crown, Medal, Star
+    Zap, Target, CheckCircle2, AlertCircle, Crown, Medal, Star, AlertTriangle
 } from "lucide-react";
+
+
 import {
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar,
     XAxis, YAxis, CartesianGrid, Legend, AreaChart, Area, RadialBarChart, RadialBar
@@ -17,6 +19,9 @@ import { RankMotivationWidget } from "./RankMotivationWidget";
 
 import { useUserActivity } from "@/context/UserActivityContext";
 import { UserActivityReportModal } from "./UserActivityReportModal";
+import { ActiveUsersModal } from "./ActiveUsersModal";
+import { ActivityWidget } from "./ActivityWidget";
+
 
 interface AdminDashboardProps {
     stats: {
@@ -29,15 +34,17 @@ interface AdminDashboardProps {
     } | null;
     desempeno: any[];
     ranking?: any[];
-    userActivity?: {
+    userActivity: {
         total: number;
         usuales: number;
         activos: number;
+        sinRegistros?: number;
         activeList: any[];
         hourlyStats: { labels: string[], data: number[] };
     };
     onRefresh: (silent?: boolean) => void;
 }
+
 
 import { MetasWidgets } from "./MetasWidgets";
 
@@ -73,7 +80,7 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
     const [autoRefresh, setAutoRefresh] = useState(false);
     const [isActiveUsersModalOpen, setIsActiveUsersModalOpen] = useState(false);
     const [isActivityReportModalOpen, setIsActivityReportModalOpen] = useState(false);
-    const [activityReportFilter, setActivityReportFilter] = useState<"todos" | "habituales" | "no-entraron">("todos");
+    const [activityReportFilter, setActivityReportFilter] = useState<"todos" | "habituales" | "no-entraron" | "sin-registros">("todos");
     const [userRole, setUserRole] = useState<string>("");
     const [currentUsername, setCurrentUsername] = useState<string>("");
 
@@ -358,89 +365,85 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                     </div>
 
                     {/* Summary Cards (Ocupa 2 columnas) */}
-                    <div className="md:col-span-2 lg:col-span-2 grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 gap-4 h-full">
+                    <div className="md:col-span-2 lg:col-span-2 grid grid-cols-2 gap-4 h-full">
                         {/* Activos - Clickable (Ocupa toda la altura izquierda) */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setIsActiveUsersModalOpen(true)}
-                            className="row-span-1 md:row-span-2 bg-gradient-to-b from-emerald-500 to-teal-700 rounded-[2rem] lg:rounded-[2.5rem] p-6 lg:p-8 text-white shadow-2xl shadow-emerald-500/30 cursor-pointer relative overflow-hidden group flex flex-col items-center justify-center border border-emerald-400/30 text-center"
+                            className="row-span-2 bg-gradient-to-br from-emerald-500 to-teal-700 rounded-[2rem] p-6 text-white shadow-xl shadow-emerald-500/20 cursor-pointer relative overflow-hidden group flex flex-col items-center justify-center text-center border border-white/10"
                         >
-                            {/* Decoración Glass - Optimized for mobile */}
-                            <div className="absolute top-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.15),transparent_70%)] pointer-events-none" />
-                            <Activity className="absolute bottom-0 text-white/5 h-64 w-64 -mb-10 pointer-events-none hidden md:block" />
-
-                            <div className="relative z-10 flex flex-col items-center gap-1">
-                                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-black/20 backdrop-blur-xl rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10 shadow-sm transition-all group-hover:bg-black/30">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]"></span>
+                            <div className="relative z-10 mb-2">
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-black/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10">
+                                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
                                     En Vivo
                                 </span>
-                                <h3 className="text-lg font-medium text-emerald-100 mt-2">Usuarios Conectados</h3>
                             </div>
-
-                            <div className="relative z-10 my-2 lg:my-4">
-                                <div className="text-6xl xs:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter drop-shadow-2xl">
-                                    <AnimatedCounter value={activeUsersCount} />
-                                </div>
+                            <h3 className="relative z-10 text-xs font-bold uppercase tracking-widest opacity-80">Online</h3>
+                            <div className="relative z-10 my-3">
+                                <span className="text-6xl font-black tracking-tighter"><AnimatedCounter value={activeUsersCount} /></span>
                             </div>
-
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-2 text-xs font-bold bg-white/10 hover:bg-white/20 transition-colors px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 group-hover:border-white/30">
-                                    <Users size={14} />
-                                    <span>Ver Lista Completa</span>
-                                </div>
+                            <div className="relative z-10 flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">
+                                <Users size={12} />
+                                <span>Ver Lista</span>
                             </div>
                         </motion.div>
 
                         {/* Usuales (Derecha arriba) */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
-                            className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group"
+                            onClick={() => {
+                                setActivityReportFilter("habituales");
+                                setIsActivityReportModalOpen(true);
+                            }}
+                            className="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer"
                         >
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none transition-transform group-hover:scale-110" />
-
                             <div className="relative z-10 mb-1">
-                                <div className="inline-flex items-center justify-center p-3 bg-blue-50 text-blue-500 rounded-2xl mb-2 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                    <UserCheck className="h-6 w-6" strokeWidth={2.5} />
+                                <div className="inline-flex items-center justify-center p-2.5 bg-blue-50 text-blue-500 rounded-2xl mb-1 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <UserCheck className="h-5 w-5" strokeWidth={2.5} />
                                 </div>
-                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Usuarios Usuales</p>
+                                <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">Usuales</p>
                             </div>
-                            <p className="relative z-10 text-5xl lg:text-6xl font-black text-slate-800 tracking-tighter leading-none"><AnimatedCounter value={userActivity.usuales} /></p>
-
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => {
-                                    setActivityReportFilter("habituales");
-                                    setIsActivityReportModalOpen(true);
-                                }}
-                                className="relative z-10 mt-3 text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] border-b-2 border-blue-100 hover:border-blue-400 pb-0.5 transition-all"
-                            >
-                                Ver usuarios habituales
-                            </motion.button>
+                            <p className="relative z-10 text-3xl font-black text-slate-800 tracking-tighter"><AnimatedCounter value={userActivity.usuales} /></p>
                         </motion.div>
 
-                        {/* Total (Derecha abajo) */}
+                        {/* Total (Derecha Centro) */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
                             onClick={() => {
                                 setActivityReportFilter("todos");
                                 setIsActivityReportModalOpen(true);
                             }}
-                            className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer"
+                            className="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer"
                         >
-                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-50/50 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none transition-transform group-hover:scale-110 hidden md:block" />
-
                             <div className="relative z-10 mb-1">
-                                <div className="inline-flex items-center justify-center p-2 lg:p-3 bg-indigo-50 text-indigo-500 rounded-2xl mb-2 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                    <Users className="h-5 w-5 lg:h-6 lg:w-6" strokeWidth={2.5} />
+                                <div className="inline-flex items-center justify-center p-2.5 bg-indigo-50 text-indigo-500 rounded-2xl mb-1 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <Users className="h-5 w-5" strokeWidth={2.5} />
                                 </div>
-                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Total Cuentas</p>
+                                <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">Total</p>
                             </div>
-                            <p className="relative z-10 text-4xl md:text-5xl lg:text-6xl font-black text-slate-800 tracking-tighter leading-none"><AnimatedCounter value={userActivity.total} /></p>
+                            <p className="relative z-10 text-3xl font-black text-slate-800 tracking-tighter"><AnimatedCounter value={userActivity.total} /></p>
+                        </motion.div>
+
+                        {/* Cero Registros (Derecha Abajo - Solo si hay datos o como extra) */}
+                        <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            onClick={() => {
+                                setActivityReportFilter("sin-registros");
+                                setIsActivityReportModalOpen(true);
+                            }}
+                            className="col-span-1 bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer hover:border-amber-200"
+                        >
+                            <div className="relative z-10 mb-1">
+                                <div className="inline-flex items-center justify-center p-2.5 bg-amber-50 text-amber-600 rounded-2xl mb-1 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <AlertTriangle className="h-5 w-5" strokeWidth={2.5} />
+                                </div>
+                                <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">0 Registros</p>
+                            </div>
+                            <p className="relative z-10 text-3xl font-black text-slate-800 tracking-tighter"><AnimatedCounter value={userActivity.sinRegistros || 0} /></p>
                         </motion.div>
                     </div>
+
                 </div>
             )}
 

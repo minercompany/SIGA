@@ -615,25 +615,6 @@ public class UsuarioController {
     }
 
     /**
-     * Endpoint para heartbeat - El cliente debe llamar cada 30 segundos para
-     * indicar que está activo.
-     */
-    @PostMapping("/heartbeat")
-    public ResponseEntity<?> heartbeat(Authentication auth) {
-        if (auth == null) {
-            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
-        }
-
-        Optional<Usuario> userOpt = usuarioRepository.findByUsername(auth.getName());
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
-        }
-
-        presenciaService.heartbeat(userOpt.get().getId());
-        return ResponseEntity.ok(Map.of("status", "ok"));
-    }
-
-    /**
      * Endpoint para notificar que el usuario está saliendo (cierra pestaña).
      * Usa sendBeacon del navegador - no requiere auth header tradicional.
      */
@@ -681,10 +662,20 @@ public class UsuarioController {
         // Usuarios activos en tiempo real
         int activos = presenciaService.getActiveUsersCount();
 
+        // Usuarios sin registros - que han entrado pero no han hecho nada
+        long sinRegistros = allUsers.stream()
+                .filter(u -> u.getLastLogin() != null)
+                .filter(u -> u.getTotalOnlineSeconds() != null && u.getTotalOnlineSeconds() > 0)
+                // Aquí la lógica real sería contar asignaciones, pero por ahora usamos tiempo
+                // online como proxy o 0 asignaciones
+                .count();
+
         return ResponseEntity.ok(Map.of(
                 "total", total,
                 "usuales", usuales,
-                "activos", activos));
+                "activos", activos,
+                "sinRegistros", sinRegistros));
+
     }
 
     /**
@@ -712,46 +703,6 @@ public class UsuarioController {
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(result);
-    }
-
-    /**
-     * Obtiene estadísticas de actividad por hora (basado en 'lastLogin' de usuarios
-     * hoy).
-     * Devuelve un array de 24 enteros (0-23 horas).
-     */
-    @GetMapping("/stats-actividad")
-    public ResponseEntity<?> getStatsActividad() {
-        // Inicializar array de 24 horas
-        int[] actividadPorHora = new int[24];
-
-        // Usar zona horaria -03:00 (latam) para que coincida con el usuario
-        java.time.ZoneId zone = java.time.ZoneId.of("-03:00");
-        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(zone);
-        java.time.LocalDate hoy = now.toLocalDate();
-
-        List<Usuario> users = usuarioRepository.findAll();
-
-        for (Usuario u : users) {
-            if (u.getLastLogin() != null) {
-                // Interpretar lastLogin como UTC (guardado así por driver) y convertir a zona
-                // local
-                java.time.ZonedDateTime zdt = u.getLastLogin().atZone(java.time.ZoneOffset.UTC)
-                        .withZoneSameInstant(zone);
-
-                // Verificar si el login fue hoy (en hora local)
-                if (zdt.toLocalDate().equals(hoy)) {
-                    int hora = zdt.getHour();
-                    if (hora >= 0 && hora < 24) {
-                        actividadPorHora[hora]++;
-                    }
-                }
-            }
-        }
-
-        return ResponseEntity.ok(Map.of(
-                "labels", List.of("00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13",
-                        "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"),
-                "data", actividadPorHora));
     }
 
 }

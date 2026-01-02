@@ -237,7 +237,8 @@ export function Sidebar() {
             case "auditoria":
                 return user.rol === "SUPER_ADMIN";
             case "configuracion":
-                return user.rol === "USUARIO_SOCIO" || user.rol === "SUPER_ADMIN";
+                return true; // Todos los usuarios pueden ver su propia configuración
+
 
             default: return false;
         }

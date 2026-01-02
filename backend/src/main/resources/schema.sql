@@ -4,8 +4,9 @@ USE asamblea_db;
 
 -- 1. Sucursales
 CREATE TABLE IF NOT EXISTS sucursales (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     codigo VARCHAR(20) UNIQUE NOT NULL,
+
     nombre VARCHAR(100) NOT NULL,
     ciudad VARCHAR(100),
     activo BOOLEAN DEFAULT TRUE,
@@ -14,8 +15,9 @@ CREATE TABLE IF NOT EXISTS sucursales (
 
 -- 2. Asambleas
 CREATE TABLE IF NOT EXISTS asambleas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(200) NOT NULL,
+
     fecha DATE NOT NULL,
     horarios VARCHAR(200),
     activo BOOLEAN DEFAULT FALSE,
@@ -25,25 +27,27 @@ CREATE TABLE IF NOT EXISTS asambleas (
 
 -- 3. Usuarios
 CREATE TABLE IF NOT EXISTS usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     nombre_completo VARCHAR(150) NOT NULL,
     email VARCHAR(100),
     telefono VARCHAR(50),
     rol ENUM('SUPER_ADMIN', 'DIRECTIVO', 'OPERADOR', 'USUARIO_SOCIO') NOT NULL,
-    id_sucursal INT,
+    id_sucursal BIGINT,
     gohighlevel_contact_id VARCHAR(100),
     activo BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_sucursal) REFERENCES sucursales(id) ON DELETE SET NULL
 );
 
+
 -- 3.5. Funcionarios y Directivos (Tabla Permanente)
 -- Esta tabla NO se borra con el reset y define quiénes deben tener login automático
 CREATE TABLE IF NOT EXISTS funcionarios_directivos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     numero_socio VARCHAR(20) UNIQUE NOT NULL,
+
     cedula VARCHAR(20) NOT NULL,
     nombre_completo VARCHAR(200) NOT NULL,
     rol ENUM('DIRECTIVO', 'OPERADOR') DEFAULT 'DIRECTIVO',
@@ -54,12 +58,13 @@ CREATE TABLE IF NOT EXISTS funcionarios_directivos (
 
 -- 4. Socios
 CREATE TABLE IF NOT EXISTS socios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
     numero_socio VARCHAR(20) UNIQUE NOT NULL,
     cedula VARCHAR(20) UNIQUE NOT NULL,
     nombre_completo VARCHAR(200) NOT NULL,
     telefono VARCHAR(50),
-    id_sucursal INT,
+    id_sucursal BIGINT,
     aporte_al_dia BOOLEAN DEFAULT FALSE,
     solidaridad_al_dia BOOLEAN DEFAULT FALSE,
     fondo_al_dia BOOLEAN DEFAULT FALSE,
@@ -70,12 +75,14 @@ CREATE TABLE IF NOT EXISTS socios (
     FOREIGN KEY (id_sucursal) REFERENCES sucursales(id) ON DELETE SET NULL
 );
 
+
 -- 5. Asignaciones
 CREATE TABLE IF NOT EXISTS asignaciones (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_asamblea INT NOT NULL,
-    id_socio INT NOT NULL,
-    id_empleado INT NOT NULL,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_asamblea BIGINT NOT NULL,
+    id_socio BIGINT NOT NULL,
+    id_empleado BIGINT NOT NULL,
+
     fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
     ip_origen VARCHAR(45),
     notificacion_enviada BOOLEAN DEFAULT FALSE,
@@ -86,12 +93,14 @@ CREATE TABLE IF NOT EXISTS asignaciones (
     FOREIGN KEY (id_empleado) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
+
 -- 6. Asistencias (Check-in)
 CREATE TABLE IF NOT EXISTS asistencias (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_asamblea INT NOT NULL,
-    id_socio INT NOT NULL,
-    id_operador INT NOT NULL,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_asamblea BIGINT NOT NULL,
+    id_socio BIGINT NOT NULL,
+    id_operador BIGINT NOT NULL,
+
     fecha_hora_llegada DATETIME DEFAULT CURRENT_TIMESTAMP,
     estado_voz_voto BOOLEAN NOT NULL,
     carnet_impreso BOOLEAN DEFAULT FALSE,
@@ -100,6 +109,7 @@ CREATE TABLE IF NOT EXISTS asistencias (
     FOREIGN KEY (id_socio) REFERENCES socios(id) ON DELETE CASCADE,
     FOREIGN KEY (id_operador) REFERENCES usuarios(id) ON DELETE CASCADE
 );
+
 
 -- 7. Auditoría
 CREATE TABLE IF NOT EXISTS auditoria (

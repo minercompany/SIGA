@@ -356,6 +356,7 @@ public class ReporteController {
 
                 // Usar Set para evitar duplicados de socios
                 Set<Long> sociosProcesados = new HashSet<>();
+
                 List<Map<String, Object>> result = new ArrayList<>();
 
                 for (var asig : asignaciones) {
@@ -427,6 +428,7 @@ public class ReporteController {
                 var asistencias = asistenciaRepository.findAll();
 
                 Map<Long, Asistencia> asistenciaPorSocio = new HashMap<>();
+
                 for (Asistencia a : asistencias) {
                         asistenciaPorSocio.put(a.getSocio().getId(), a);
                 }

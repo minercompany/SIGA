@@ -161,21 +161,17 @@ public class AsignacionController {
     }
 
     @GetMapping("/stats-socio")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getStatsSocio(Authentication auth) {
-        System.out.println("DEBUG STATS-SOCIO: Method called");
-        System.out.println("DEBUG STATS-SOCIO: Auth object: " + auth);
-        System.out.println("DEBUG STATS-SOCIO: Auth name: " + (auth != null ? auth.getName() : "NULL"));
-
         if (auth == null) {
             return ResponseEntity.status(401).build();
         }
 
         try {
             Usuario user = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
-            System.out.println("DEBUG STATS-SOCIO: User found: " + user.getUsername() + ", ID: " + user.getId());
 
             List<ListaAsignacion> listas = listaRepository.findByUsuarioId(user.getId());
-            System.out.println("DEBUG STATS-SOCIO: Found " + listas.size() + " listas");
+            System.out.println("DEBUG: Found " + listas.size() + " listas for user " + user.getId());
 
             long totalAsignados = 0;
             long totalVyV = 0;
@@ -183,10 +179,14 @@ public class AsignacionController {
             long presentes = 0;
 
             for (ListaAsignacion lista : listas) {
-                totalAsignados += asignacionRepository.findByListaAsignacionId(lista.getId()).size();
-                totalVyV += asignacionRepository.countVyVByListaId(lista.getId());
-                totalSoloVoz += asignacionRepository.countSoloVozByListaId(lista.getId());
-                presentes += asistenciaRepository.countPresentesByListaId(lista.getId());
+                try {
+                    totalAsignados += asignacionRepository.findByListaAsignacionId(lista.getId()).size();
+                    totalVyV += asignacionRepository.countVyVByListaId(lista.getId());
+                    totalSoloVoz += asignacionRepository.countSoloVozByListaId(lista.getId());
+                    presentes += asistenciaRepository.countPresentesByListaId(lista.getId());
+                } catch (Exception ex) {
+                    System.err.println("Error calculating stats for list " + lista.getId() + ": " + ex.getMessage());
+                }
             }
 
             // Asegurar que presentes no supere el total de asignados
@@ -201,7 +201,8 @@ public class AsignacionController {
             stats.put("presentes", presentesCorregidos);
             stats.put("ausentes", ausentes);
 
-            System.out.println("DEBUG STATS-SOCIO: Returning stats: " + stats);
+            System.out.println(
+                    "DEBUG: Returning - total:" + totalAsignados + " vyv:" + totalVyV + " soloVoz:" + totalSoloVoz);
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
             System.out.println("DEBUG STATS-SOCIO: ERROR - " + e.getClass().getName() + ": " + e.getMessage());

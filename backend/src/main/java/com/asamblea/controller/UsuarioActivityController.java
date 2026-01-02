@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,6 +24,7 @@ public class UsuarioActivityController {
     private final UsuarioRepository usuarioRepository;
     private final JdbcTemplate jdbcTemplate;
     private final com.asamblea.service.ReporteExportService exportService;
+    private final com.asamblea.service.PresenciaService presenciaService;
 
     @PostMapping("/heartbeat")
     public ResponseEntity<?> heartbeat(Authentication auth) {
@@ -55,11 +54,56 @@ public class UsuarioActivityController {
         usuario.setLastHeartbeat(now);
         usuarioRepository.save(usuario);
 
+        // Notificar al servicio de presencia para el conteo en tiempo real
+        presenciaService.heartbeat(usuario.getId());
+
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Endpoint para el gráfico de actividad por hora (Dashboard).
+     */
     @GetMapping("/stats-actividad")
     public ResponseEntity<?> getStatsActividad(Authentication auth) {
+        if (auth == null)
+            return ResponseEntity.status(401).build();
+
+        // Inicializar array de 24 horas
+        int[] actividadPorHora = new int[24];
+
+        // Usar zona horaria -03:00 (latam)
+        java.time.ZoneId zone = java.time.ZoneId.of("-03:00");
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(zone);
+        java.time.LocalDate hoy = now.toLocalDate();
+
+        List<Usuario> users = usuarioRepository.findAll();
+
+        for (Usuario u : users) {
+            if (u.getLastLogin() != null) {
+                java.time.ZonedDateTime zdt = u.getLastLogin().atZone(java.time.ZoneOffset.UTC)
+                        .withZoneSameInstant(zone);
+
+                if (zdt.toLocalDate().equals(hoy)) {
+                    int hora = zdt.getHour();
+                    if (hora >= 0 && hora < 24) {
+                        actividadPorHora[hora]++;
+                    }
+                }
+            }
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "labels",
+                List.of("00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15",
+                        "16", "17", "18", "19", "20", "21", "22", "23"),
+                "data", actividadPorHora));
+    }
+
+    /**
+     * Endpoint para el reporte detallado (Modal de Auditoría).
+     */
+    @GetMapping("/reporte-actividad")
+    public ResponseEntity<?> getReporteActividad(Authentication auth) {
         if (auth == null)
             return ResponseEntity.status(401).build();
 
@@ -132,7 +176,7 @@ public class UsuarioActivityController {
         if (auth == null)
             return ResponseEntity.status(401).build();
 
-        ResponseEntity<?> response = getStatsActividad(auth);
+        ResponseEntity<?> response = getReporteActividad(auth);
         if (response.getStatusCode().isError())
             return ResponseEntity.status(response.getStatusCode()).build();
 
@@ -162,7 +206,7 @@ public class UsuarioActivityController {
         if (auth == null)
             return ResponseEntity.status(401).build();
 
-        ResponseEntity<?> response = getStatsActividad(auth);
+        ResponseEntity<?> response = getReporteActividad(auth);
         if (response.getStatusCode().isError())
             return ResponseEntity.status(response.getStatusCode()).build();
 

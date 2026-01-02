@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from "react";
 import {
     X, Users, Clock, Search, Download, FileText,
-    Table as TableIcon, Filter, ExternalLink, Activity
+    Table as TableIcon, Filter, ExternalLink, Activity, AlertTriangle
 } from "lucide-react";
+
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
+
 
 interface UsuarioActivity {
     id: number;
@@ -27,14 +29,15 @@ interface UsuarioActivity {
 interface UserActivityReportModalProps {
     isOpen: boolean;
     onClose: () => void;
-    initialFilter?: "todos" | "habituales" | "no-entraron";
+    initialFilter?: "todos" | "habituales" | "no-entraron" | "sin-registros";
 }
 
 export function UserActivityReportModal({ isOpen, onClose, initialFilter = "todos" }: UserActivityReportModalProps) {
     const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState<UsuarioActivity[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [filter, setFilter] = useState<"todos" | "habituales" | "no-entraron">(initialFilter);
+    const [filter, setFilter] = useState<"todos" | "habituales" | "no-entraron" | "sin-registros">(initialFilter);
+
 
     useEffect(() => {
         if (isOpen) {
@@ -46,10 +49,11 @@ export function UserActivityReportModal({ isOpen, onClose, initialFilter = "todo
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.get("/api/usuarios/stats-actividad", {
+            const res = await axios.get("/api/usuarios/reporte-actividad", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUsers(res.data);
+
         } catch (error) {
             console.error("Error fetching activity stats:", error);
             toast.error("Error al cargar estadísticas de usuarios");
@@ -87,8 +91,10 @@ export function UserActivityReportModal({ isOpen, onClose, initialFilter = "todo
 
         if (filter === "habituales") return matchesSearch && user.lastLogin !== null;
         if (filter === "no-entraron") return matchesSearch && user.lastLogin === null;
+        if (filter === "sin-registros") return matchesSearch && (user.totalRegistros === 0 && user.totalAsignaciones === 0);
         return matchesSearch;
     });
+
 
     if (!isOpen) return null;
 
@@ -163,14 +169,15 @@ export function UserActivityReportModal({ isOpen, onClose, initialFilter = "todo
                             {[
                                 { id: "todos", label: "Todos", icon: Users },
                                 { id: "habituales", label: "Habituales", icon: UserCheck },
-                                { id: "no-entraron", label: "Sin Acceso", icon: Clock }
+                                { id: "no-entraron", label: "Sin Acceso", icon: Clock },
+                                { id: "sin-registros", label: "Cero Registros", icon: AlertTriangle }
                             ].map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setFilter(tab.id as any)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${filter === tab.id
-                                            ? "bg-white text-indigo-600 shadow-sm border border-slate-200"
-                                            : "text-slate-400 hover:text-slate-600"
+                                        ? "bg-white text-indigo-600 shadow-sm border border-slate-200"
+                                        : "text-slate-400 hover:text-slate-600"
                                         }`}
                                 >
                                     <tab.icon size={14} />

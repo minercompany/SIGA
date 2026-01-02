@@ -58,7 +58,8 @@ public class Usuario implements UserDetails {
     private String permisosEspeciales; // Comma separated screen keys
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_socio", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT), columnDefinition = "INT")
+    @JoinColumn(name = "id_socio", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+
     private Socio socio;
 
     @Column(name = "password_visible")

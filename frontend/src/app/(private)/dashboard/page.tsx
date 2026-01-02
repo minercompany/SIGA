@@ -53,6 +53,7 @@ export default function DashboardPage() {
         total: number;
         usuales: number;
         activos: number;
+        sinRegistros?: number;
         activeList: any[];
         hourlyStats: { labels: string[], data: number[] };
     } | undefined>(undefined);
@@ -99,8 +100,9 @@ export default function DashboardPage() {
 
                     setRankingOperadores(mappedRanking);
 
-                    // Setear actividad de usuarios (SOLO si es SUPER_ADMIN)
-                    if (parsedUser.rol === "SUPER_ADMIN") {
+                    // Setear actividad de usuarios (SOLO si es ADMIN o DIRECTIVO)
+                    if (parsedUser.rol === "SUPER_ADMIN" || parsedUser.rol === "DIRECTIVO") {
+
                         const [activityRes, activeListRes, hourlyStatsRes] = await Promise.all([
                             axios.get("/api/usuarios/estadisticas", { headers }),
                             axios.get("/api/usuarios/activos-lista", { headers }),
@@ -111,9 +113,11 @@ export default function DashboardPage() {
                             total: activityRes.data.total,
                             usuales: activityRes.data.usuales,
                             activos: activityRes.data.activos,
+                            sinRegistros: activityRes.data.sinRegistros,
                             activeList: activeListRes.data,
                             hourlyStats: hourlyStatsRes.data
                         });
+
                     }
                 }
             }
@@ -154,7 +158,7 @@ export default function DashboardPage() {
                     stats={stats}
                     desempeno={desempeno}
                     ranking={rankingOperadores}
-                    userActivity={userActivity}
+                    userActivity={userActivity || { total: 0, usuales: 0, activos: 0, activeList: [], hourlyStats: { labels: [], data: [] } }}
                     onRefresh={fetchData}
                 />
             )}

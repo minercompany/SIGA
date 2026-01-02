@@ -1,0 +1,15 @@
+# Ignore mobile directory (React Native - no longer actively developed)
+mobile/
+
+# Ignore node_modules everywhere
+**/node_modules/
+
+# Ignore build artifacts
+**/build/
+**/dist/
+**/.next/
+
+# Ignore IDE specific files
+**/.settings/
+**/.eclipse/
+**/.idea/

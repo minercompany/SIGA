@@ -252,7 +252,8 @@ public class ImportacionService {
 
                         // EVITAR PROCESAR FILAS DE ENCABEZADO (Si detectamos palabras clave de header
                         // en campos de datos)
-                        if (cedula.equalsIgnoreCase("Doc Num") || nombre.equalsIgnoreCase("SOCIO NOMBRE")) {
+                        if ((cedula != null && cedula.equalsIgnoreCase("Doc Num"))
+                                || (nombre != null && nombre.equalsIgnoreCase("SOCIO NOMBRE"))) {
                             log.info("Ignorando fila de encabezado detectada en fila {}", rowIndex);
                             continue;
                         }
@@ -349,7 +350,9 @@ public class ImportacionService {
 
                         ps.setString(1, nroSocio);
                         ps.setString(2, cedula);
-                        ps.setString(3, nombre.toUpperCase());
+                        ps.setString(3, nombre.trim().toUpperCase()); // trim() already called in validation, safe to
+                                                                      // use
+
                         ps.setString(4, tel);
                         if (sucId != null)
                             ps.setLong(5, sucId);
