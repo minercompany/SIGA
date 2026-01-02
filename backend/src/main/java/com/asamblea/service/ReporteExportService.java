@@ -35,60 +35,146 @@ public class ReporteExportService {
 
     public byte[] generarPdfActividad(List<UsuarioActivityDto> data, String titulo) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Document document = new Document(PageSize.A4, 30, 30, 30, 30);
-        PdfWriter.getInstance(document, out);
-        document.open();
+        // A4 Horizontal (Landscape) para mayor amplitud
+        Document document = new Document(PageSize.A4.rotate(), 20, 20, 30, 30);
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            // Evento para pie de página (páginas)
+            writer.setPageEvent(new com.lowagie.text.pdf.PdfPageEventHelper() {
+                public void onEndPage(PdfWriter writer, Document document) {
+                    PdfPCell cell = new PdfPCell(new Phrase("Página " + document.getPageNumber(),
+                            new Font(Font.HELVETICA, 8, Font.NORMAL, Color.GRAY)));
+                    cell.setBorder(0);
+                    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    PdfPTable table = new PdfPTable(1);
+                    table.setTotalWidth(527);
+                    table.addCell(cell);
+                    table.writeSelectedRows(0, -1, 34, 30, writer.getDirectContent());
+                }
+            });
 
-        // Fuentes
-        Font fontTitle = new Font(Font.HELVETICA, 18, Font.BOLD, new Color(16, 185, 129)); // Emerald 500
-        Font fontSubtitle = new Font(Font.HELVETICA, 12, Font.BOLD, Color.GRAY);
-        Font fontHeader = new Font(Font.HELVETICA, 10, Font.BOLD, Color.WHITE);
-        Font fontBody = new Font(Font.HELVETICA, 9, Font.NORMAL, Color.DARK_GRAY);
+            document.open();
 
-        // Header
-        Paragraph pTitle = new Paragraph("COOPERATIVA REDUCTO LTDA.", fontTitle);
-        pTitle.setAlignment(Element.ALIGN_CENTER);
-        document.add(pTitle);
+            // Colores Premium
+            Color colorPrimary = new Color(16, 185, 129); // Emerald 500
+            Color colorSecondary = new Color(6, 78, 59); // Emerald 900
+            Color colorLight = new Color(236, 253, 245); // Emerald 50
+            Color colorHeaderTable = new Color(241, 245, 249); // Slate 100
 
-        Paragraph pSub = new Paragraph(titulo, fontSubtitle);
-        pSub.setAlignment(Element.ALIGN_CENTER);
-        pSub.setSpacingAfter(20);
-        document.add(pSub);
+            // Fuentes
+            Font fontTitle = new Font(Font.HELVETICA, 22, Font.BOLD, colorSecondary);
+            Font fontSubtitle = new Font(Font.HELVETICA, 14, Font.NORMAL, Color.DARK_GRAY);
+            Font fontHeader = new Font(Font.HELVETICA, 10, Font.BOLD, colorSecondary);
+            Font fontBody = new Font(Font.HELVETICA, 9, Font.NORMAL, Color.DARK_GRAY);
+            Font fontBodyBold = new Font(Font.HELVETICA, 9, Font.BOLD, Color.DARK_GRAY);
 
-        Paragraph pFecha = new Paragraph(
-                "Fecha de Reporte: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
-                fontBody);
-        pFecha.setAlignment(Element.ALIGN_RIGHT);
-        pFecha.setSpacingAfter(10);
-        document.add(pFecha);
+            // LOGO Y ENCABEZADO
+            PdfPTable headerTable = new PdfPTable(2);
+            headerTable.setWidthPercentage(100);
+            headerTable.setWidths(new float[] { 1f, 4f });
 
-        // Tabla
-        PdfPTable table = new PdfPTable(6);
-        table.setWidthPercentage(100);
-        table.setWidths(new float[] { 2.5f, 1.5f, 1.5f, 2f, 1.5f, 1.5f });
+            // Simulación de Logo (Círculo con Texto)
+            PdfPCell logoCell = new PdfPCell(new Phrase("CR", new Font(Font.HELVETICA, 24, Font.BOLD, Color.WHITE)));
+            logoCell.setBackgroundColor(colorPrimary);
+            logoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            logoCell.setFixedHeight(50);
+            logoCell.setBorder(0);
+            headerTable.addCell(logoCell);
 
-        String[] headers = { "Nombre Completo", "Rol", "Sucursal", "Última Conexión", "Tiempo Online", "Registros" };
-        for (String header : headers) {
-            PdfPCell cell = new PdfPCell(new Phrase(header, fontHeader));
-            cell.setBackgroundColor(new Color(16, 185, 129));
-            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-            cell.setPadding(5);
-            table.addCell(cell);
+            PdfPCell titleCell = new PdfPCell();
+            titleCell.setBorder(0);
+            titleCell.addElement(new Paragraph("COOPERATIVA REDUCTO LTDA.", fontTitle));
+            titleCell.addElement(new Paragraph("Sistema Integrado de Gestión de Asambleas",
+                    new Font(Font.HELVETICA, 10, Font.ITALIC, Color.GRAY)));
+            titleCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            titleCell.setPaddingLeft(15);
+            headerTable.addCell(titleCell);
+
+            document.add(headerTable);
+
+            // Espacio
+            Paragraph space = new Paragraph(" ");
+            space.setSpacingAfter(10);
+            document.add(space);
+
+            // Título del Reporte
+            PdfPTable metaTable = new PdfPTable(2);
+            metaTable.setWidthPercentage(100);
+            metaTable.setWidths(new float[] { 7f, 3f });
+
+            PdfPCell reportTitle = new PdfPCell(new Phrase(titulo.toUpperCase(), fontSubtitle));
+            reportTitle.setBorder(0);
+            reportTitle.setPaddingBottom(10);
+            metaTable.addCell(reportTitle);
+
+            PdfPCell reportDate = new PdfPCell(new Phrase(
+                    "Generado: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                    new Font(Font.HELVETICA, 9, Font.NORMAL, Color.GRAY)));
+            reportDate.setBorder(0);
+            reportDate.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            metaTable.addCell(reportDate);
+
+            document.add(metaTable);
+            document.add(space);
+
+            // TABLA DE DATOS
+            // Columnas: #, Nombre, Rol, Sucursal, Último Ingreso, Conteo, Tiempo, Registros
+            PdfPTable table = new PdfPTable(8);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[] { 0.5f, 3f, 1.5f, 1.5f, 2f, 1f, 1.5f, 1f });
+            table.setHeaderRows(1);
+
+            String[] headers = { "#", "Nombre Completo", "Rol", "Sucursal", "Último Ingreso", "Acc.", "Tiempo Online",
+                    "Reg." };
+            for (String header : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(header, fontHeader));
+                cell.setBackgroundColor(colorLight);
+                cell.setBorderColor(colorPrimary);
+                cell.setBorderWidthBottom(1.5f);
+                cell.setBorderWidthTop(0);
+                cell.setBorderWidthLeft(0);
+                cell.setBorderWidthRight(0);
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                cell.setPadding(8);
+                table.addCell(cell);
+            }
+
+            int i = 1;
+            boolean alternate = false;
+            for (UsuarioActivityDto user : data) {
+                Color bgColor = alternate ? colorHeaderTable : Color.WHITE;
+
+                addCell(table, String.valueOf(i++), fontBody, bgColor, Element.ALIGN_CENTER);
+                addCell(table, user.getNombreCompleto(), fontBodyBold, bgColor, Element.ALIGN_LEFT);
+                addCell(table, user.getRol(), fontBody, bgColor, Element.ALIGN_CENTER);
+                addCell(table, user.getSucursal(), fontBody, bgColor, Element.ALIGN_CENTER);
+                addCell(table, user.getLastSeenRelative(), fontBody, bgColor, Element.ALIGN_CENTER);
+                addCell(table, String.valueOf(user.getLoginCount()), fontBody, bgColor, Element.ALIGN_CENTER);
+                addCell(table, user.getTimeOnlineFormatted(), fontBody, bgColor, Element.ALIGN_CENTER);
+                addCell(table, String.valueOf(user.getTotalRegistros() + user.getTotalAsignaciones()), fontBodyBold,
+                        bgColor, Element.ALIGN_CENTER);
+
+                alternate = !alternate;
+            }
+
+            document.add(table);
+            document.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        for (UsuarioActivityDto user : data) {
-            table.addCell(new PdfPCell(new Phrase(user.getNombreCompleto(), fontBody)));
-            table.addCell(new PdfPCell(new Phrase(user.getRol(), fontBody)));
-            table.addCell(new PdfPCell(new Phrase(user.getSucursal(), fontBody)));
-            table.addCell(new PdfPCell(new Phrase(user.getLastSeenRelative(), fontBody)));
-            table.addCell(new PdfPCell(new Phrase(user.getTimeOnlineFormatted(), fontBody)));
-            table.addCell(new PdfPCell(
-                    new Phrase(String.valueOf(user.getTotalRegistros() + user.getTotalAsignaciones()), fontBody)));
-        }
-
-        document.add(table);
-        document.close();
         return out.toByteArray();
+    }
+
+    private void addCell(PdfPTable table, String text, Font font, Color bg, int align) {
+        PdfPCell cell = new PdfPCell(new Phrase(text != null ? text : "-", font));
+        cell.setBackgroundColor(bg);
+        cell.setHorizontalAlignment(align);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cell.setPadding(6);
+        cell.setBorderColor(Color.LIGHT_GRAY);
+        cell.setBorderWidth(0.5f);
+        table.addCell(cell);
     }
 
     public byte[] generarExcelActividad(List<UsuarioActivityDto> data, String titulo) {

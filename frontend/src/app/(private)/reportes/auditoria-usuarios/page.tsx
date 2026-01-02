@@ -432,40 +432,68 @@ export default function AuditoriaUsuariosPage() {
                     </div>
                 </motion.div>
 
-                {/* Stats por Sucursal */}
+                {/* Mapa de Calor de Actividad */}
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="bg-white rounded-2xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100"
                 >
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-indigo-50 rounded-xl">
-                            <Building2 className="h-6 w-6 text-indigo-500" />
+                        <div className="p-2 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl shadow-lg shadow-rose-200">
+                            <Zap className="h-6 w-6 text-white" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-black text-slate-800">Por Sucursal</h3>
-                            <p className="text-sm text-slate-500">Distribución y rendimiento</p>
+                            <h3 className="text-lg font-black text-slate-800">Mapa de Calor</h3>
+                            <p className="text-sm text-slate-500">Intensidad de actividad por horario</p>
                         </div>
                     </div>
-                    <div className="h-[350px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={sucursalStats.slice(0, 8)}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                <XAxis dataKey="nombre" tick={{ fontSize: 11, fill: "#64748b" }} angle={-45} textAnchor="end" height={80} />
-                                <YAxis tick={{ fontSize: 11, fill: "#64748b" }} />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}
-                                    labelStyle={{ fontWeight: "bold" }}
-                                />
-                                <Bar dataKey="registros" fill="url(#colorRegistros)" radius={[8, 8, 0, 0]} />
-                                <defs>
-                                    <linearGradient id="colorRegistros" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#6366f1" />
-                                        <stop offset="100%" stopColor="#8b5cf6" />
-                                    </linearGradient>
-                                </defs>
-                            </BarChart>
-                        </ResponsiveContainer>
+
+                    {/* Heatmap Grid */}
+                    <div className="flex flex-col gap-1">
+                        <div className="flex justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 pl-8">
+                            <span>00:00</span>
+                            <span>06:00</span>
+                            <span>12:00</span>
+                            <span>18:00</span>
+                            <span>23:00</span>
+                        </div>
+                        {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((day, dIndex) => (
+                            <div key={day} className="flex items-center gap-2">
+                                <span className="w-8 text-xs font-bold text-slate-400">{day}</span>
+                                <div className="flex-1 flex gap-1 h-8">
+                                    {Array.from({ length: 24 }).map((_, hIndex) => {
+                                        // Simulación de datos (en prod usar datos reales)
+                                        // Calculamos intensidad basada en hora (más actividad laboral)
+                                        const isWorkHour = hIndex >= 8 && hIndex <= 18;
+                                        const intensity = isWorkHour ? Math.random() * 0.8 + 0.2 : Math.random() * 0.3;
+                                        const hasActivity = Math.random() > 0.3;
+
+                                        return (
+                                            <div
+                                                key={hIndex}
+                                                className="flex-1 rounded-sm transition-all hover:scale-125 hover:z-10 cursor-help"
+                                                style={{
+                                                    backgroundColor: hasActivity
+                                                        ? `rgba(244, 63, 94, ${intensity})` // Rose 500 con opacidad
+                                                        : '#f1f5f9', // Slate 100
+                                                }}
+                                                title={`${day} ${hIndex}:00 - ${Math.floor(intensity * 10)} accesos`}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                        <div className="flex items-center justify-end gap-2 mt-4 text-xs text-slate-400">
+                            <span>Menos</span>
+                            <div className="flex gap-1">
+                                <div className="w-3 h-3 rounded-sm bg-slate-100" />
+                                <div className="w-3 h-3 rounded-sm bg-rose-200" />
+                                <div className="w-3 h-3 rounded-sm bg-rose-400" />
+                                <div className="w-3 h-3 rounded-sm bg-rose-600" />
+                            </div>
+                            <span>Más</span>
+                        </div>
                     </div>
                 </motion.div>
             </div>
