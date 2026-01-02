@@ -33,6 +33,7 @@ public class UsuarioController {
     // Buscar unificado (Usuarios + Socios) con FUSIÓN INTELIGENTE
     // Buscar unificado (Usuarios + Socios) con FUSIÓN INTELIGENTE
     // Este método maneja la búsqueda explícita.
+    @GetMapping("/unificados")
     public ResponseEntity<List<Map<String, Object>>> buscarUnificado(@RequestParam(required = false) String term) {
         String query = (term != null) ? term.trim() : "";
 
