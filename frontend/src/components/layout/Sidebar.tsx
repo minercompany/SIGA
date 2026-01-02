@@ -223,7 +223,7 @@ export function Sidebar() {
             case "reportes-asistencia":
                 return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
             case "auditoria-usuarios":
-                return user.rol === "SUPER_ADMIN";
+                return user.rol === "SUPER_ADMIN" || user.rol === "DIRECTIVO";
 
             // Mi Reporte (todos los operadores pueden ver su reporte)
             case "mi-reporte":
