@@ -39,7 +39,25 @@ export default function AuditoriaUsuariosPage() {
     }, []);
 
     useEffect(() => {
-        applyFilters();
+        // Aplicar filtros directamente en el useEffect
+        let result = [...usuarios];
+
+        if (filtro === "habituales") {
+            result = result.filter((u) => u.lastLogin !== null);
+        } else if (filtro === "no-entraron") {
+            result = result.filter((u) => u.lastLogin === null);
+        }
+
+        if (searchTerm.trim()) {
+            const search = searchTerm.toLowerCase().trim();
+            result = result.filter(
+                (u) =>
+                    u.nombreCompleto.toLowerCase().includes(search) ||
+                    u.username.toLowerCase().includes(search)
+            );
+        }
+
+        setFilteredUsuarios(result);
     }, [searchTerm, filtro, usuarios]);
 
     const fetchData = async () => {
@@ -57,26 +75,6 @@ export default function AuditoriaUsuariosPage() {
         } finally {
             setLoading(false);
         }
-    };
-
-    const applyFilters = () => {
-        let result = [...usuarios];
-
-        if (filtro === "habituales") {
-            result = result.filter((u) => u.lastLogin !== null);
-        } else if (filtro === "no-entraron") {
-            result = result.filter((u) => u.lastLogin === null);
-        }
-
-        if (searchTerm) {
-            result = result.filter(
-                (u) =>
-                    u.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    u.username.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        setFilteredUsuarios(result);
     };
 
     // Métricas avanzadas calculadas
@@ -404,9 +402,9 @@ export default function AuditoriaUsuariosPage() {
                                 onClick={() => setSelectedUser(user)}
                             >
                                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white' :
-                                        i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white' :
-                                            i === 2 ? 'bg-gradient-to-br from-orange-400 to-amber-600 text-white' :
-                                                'bg-slate-100 text-slate-600'
+                                    i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white' :
+                                        i === 2 ? 'bg-gradient-to-br from-orange-400 to-amber-600 text-white' :
+                                            'bg-slate-100 text-slate-600'
                                     }`}>
                                     {i + 1}
                                 </div>
@@ -519,8 +517,8 @@ export default function AuditoriaUsuariosPage() {
                                 key={f}
                                 onClick={() => setFiltro(f as any)}
                                 className={`px-3 lg:px-4 py-2 rounded-xl font-bold text-xs lg:text-sm uppercase tracking-wider transition-all ${filtro === f
-                                        ? "bg-indigo-500 text-white shadow-lg shadow-indigo-200"
-                                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                    ? "bg-indigo-500 text-white shadow-lg shadow-indigo-200"
+                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                     }`}
                             >
                                 {f === "todos" ? "Todos" : f === "habituales" ? "Activos" : "Sin Actividad"}
