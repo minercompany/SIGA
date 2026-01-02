@@ -60,6 +60,7 @@ public class AuthController {
                         // }
 
                         user.setLastLogin(LocalDateTime.now());
+                        user.setLoginCount((user.getLoginCount() != null ? user.getLoginCount() : 0) + 1);
                         usuarioRepository.save(user);
 
                         var jwtToken = jwtService.generateToken(user);

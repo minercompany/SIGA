@@ -73,6 +73,10 @@ public class Usuario implements UserDetails {
 
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
+
+    @Column(name = "login_count")
+    private Integer loginCount = 0;
+
     @Column(name = "total_online_seconds")
     private Long totalOnlineSeconds = 0L;
 

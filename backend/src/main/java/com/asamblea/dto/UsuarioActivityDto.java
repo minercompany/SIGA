@@ -18,10 +18,12 @@ public class UsuarioActivityDto {
     private String rol;
     private String sucursal;
     private LocalDateTime lastLogin;
+    private Integer loginCount;
     private Long totalOnlineSeconds;
     private boolean isOnline;
     private long totalRegistros;
     private long totalAsignaciones;
     private String timeOnlineFormatted;
     private String lastSeenRelative;
+
 }

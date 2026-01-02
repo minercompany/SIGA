@@ -147,6 +147,7 @@ public class UsuarioActivityController {
                     .rol(u.getRol().name())
                     .sucursal(u.getSucursal() != null ? u.getSucursal().getNombre() : "N/A")
                     .lastLogin(u.getLastLogin())
+                    .loginCount(u.getLoginCount() != null ? u.getLoginCount() : 0)
                     .totalOnlineSeconds(u.getTotalOnlineSeconds() != null ? u.getTotalOnlineSeconds() : 0L)
                     .isOnline(isOnline)
                     .totalRegistros(reg)
@@ -154,6 +155,7 @@ public class UsuarioActivityController {
                     .timeOnlineFormatted(formatTime(u.getTotalOnlineSeconds()))
                     .lastSeenRelative(formatLastSeen(u.getLastLogin(), isOnline))
                     .build();
+
         }).sorted((a, b) -> {
             // Ordenar: Online primero, luego por lastLogin desc
             if (a.isOnline() && !b.isOnline())
