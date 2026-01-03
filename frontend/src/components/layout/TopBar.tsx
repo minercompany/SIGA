@@ -247,55 +247,50 @@ export function TopBar() {
                 </div>
             )}
 
-            <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-emerald-100/50 px-4 pr-6 md:px-8 bg-white/90 backdrop-blur-md shadow-sm">
+            <header className="sticky top-0 z-40 flex h-14 md:h-16 w-full items-center justify-between border-b border-emerald-100/50 px-2 md:px-4 lg:px-8 bg-white/95 backdrop-blur-md shadow-sm">
 
                 {/* Izquierda - Hamburguesa y Búsqueda Responsive */}
-                <div className="flex items-center gap-2 md:gap-4 flex-1 md:flex-none">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
                     <button
                         onClick={handleSidebarToggle}
                         data-tour="sidebar-trigger"
                         className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg shrink-0"
                     >
-                        <Menu className="h-6 w-6" />
+                        <Menu className="h-5 w-5" />
                     </button>
 
-                    {/* Brand Mobile (Solo Logo, oculto en búsquedas muy pequeñas o priorizar búsqueda) */}
-                    <div className="md:hidden shrink-0 mr-1">
-                        <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded-full bg-white p-1 shadow-sm border border-emerald-50" />
-                    </div>
-
                     {/* Búsqueda Responsive (Siempre visible) */}
-                    <div className="flex flex-col relative flex-1 md:w-80 lg:w-96" ref={searchContainerRef}>
-                        <div className="w-full flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 md:px-4 md:py-2.5 border border-slate-200/80 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
+                    <div className="flex flex-col relative flex-1 max-w-xs md:max-w-sm lg:max-w-md" ref={searchContainerRef}>
+                        <div className="w-full flex items-center gap-2 rounded-lg md:rounded-xl bg-slate-100 px-3 py-2 md:py-2.5 border border-transparent focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 focus-within:bg-white transition-all">
                             <Search className={`h-4 w-4 text-slate-400 shrink-0 ${isSearching ? 'animate-spin text-emerald-500' : ''}`} />
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Buscar..." // Texto corto para móvil
+                                placeholder="Buscar socio..."
                                 className="bg-transparent text-sm outline-none w-full text-slate-700 placeholder:text-slate-400 min-w-0"
                             />
+                            {isSearching && <div className="h-4 w-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin shrink-0" />}
                         </div>
 
-                        {/* Resultados Dropdown */}
+                        {/* Resultados Dropdown - Fixed en móvil para mejor UX */}
                         {showResults && searchResults.length > 0 && (
-                            <div className="absolute top-12 left-0 w-full bg-white rounded-xl shadow-xl border border-slate-100 max-h-96 overflow-y-auto z-50 animate-in fade-in slide-in-from-top-2">
+                            <div className="fixed md:absolute top-14 md:top-12 left-2 right-2 md:left-0 md:right-auto md:w-full bg-white rounded-xl shadow-2xl border border-slate-200 max-h-[70vh] md:max-h-96 overflow-y-auto z-[60] animate-in fade-in slide-in-from-top-2">
                                 <div className="p-2">
                                     <p className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Resultados ({searchResults.length})</p>
                                     {searchResults.map((item: any) => (
                                         <button
                                             key={item.idSocio || item.id || Math.random()}
                                             onClick={() => handleSelectMember(item)}
-                                            className="w-full text-left px-3 py-3 hover:bg-slate-50 rounded-lg group transition-colors flex items-center gap-3"
+                                            className="w-full text-left px-3 py-3 hover:bg-emerald-50 active:bg-emerald-100 rounded-lg group transition-colors flex items-center gap-3"
                                         >
-                                            <div className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center font-bold text-xs group-hover:bg-emerald-100 group-hover:text-emerald-500 transition-colors shrink-0">
+                                            <div className="h-10 w-10 md:h-8 md:w-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm md:text-xs shrink-0">
                                                 {item.nombreCompleto?.charAt(0) || "?"}
                                             </div>
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-bold text-slate-700 group-hover:text-emerald-500 truncate">{item.nombreCompleto}</p>
-                                                <p className="text-xs text-slate-500 flex gap-2 truncate">
-                                                    <span>{item.cedula || item.username}</span>
-                                                    {item.nroSocio && <span className="bg-slate-100 px-1 rounded text-slate-600 font-mono hidden sm:inline">#{item.nroSocio}</span>}
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-sm font-bold text-slate-800 truncate">{item.nombreCompleto}</p>
+                                                <p className="text-xs text-slate-500 truncate">
+                                                    CI: {item.cedula || item.username} {item.nroSocio && `• #${item.nroSocio}`}
                                                 </p>
                                             </div>
                                         </button>
@@ -306,8 +301,8 @@ export function TopBar() {
 
                         {/* Empty State */}
                         {showResults && searchResults.length === 0 && searchTerm.length >= 2 && !isSearching && (
-                            <div className="absolute top-12 left-0 w-full bg-white rounded-xl shadow-xl border border-slate-100 p-4 text-center z-50">
-                                <p className="text-sm text-slate-500">No hay resultados</p>
+                            <div className="fixed md:absolute top-14 md:top-12 left-2 right-2 md:left-0 md:right-auto md:w-full bg-white rounded-xl shadow-2xl border border-slate-200 p-4 text-center z-[60]">
+                                <p className="text-sm text-slate-500">No se encontraron resultados</p>
                             </div>
                         )}
                     </div>
@@ -360,33 +355,32 @@ export function TopBar() {
                 </div>
 
                 {/* Derecha - Usuario y notificaciones */}
-                <div className="flex items-center gap-3">
-                    {/* Notificaciones */}
-                    {/* Botón Ayuda - Manual de Usuario */}
+                <div className="flex items-center gap-1 md:gap-3 shrink-0">
+                    {/* Botón Ayuda - Manual de Usuario (oculto en móvil muy pequeño) */}
                     <button
                         onClick={() => setIsHelpOpen(true)}
-                        className="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all"
+                        className="hidden sm:flex p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all"
                         title="Manual de Usuario"
                     >
-                        <HelpCircle className="h-6 w-6" />
+                        <HelpCircle className="h-5 w-5 md:h-6 md:w-6" />
                     </button>
 
                     {/* Notificaciones */}
                     <AvisosBell />
 
-                    <div className="h-8 w-px bg-slate-200 hidden md:block" />
+                    <div className="h-6 w-px bg-slate-200 hidden md:block" />
 
                     {/* Perfil de usuario con Dropdown */}
                     <div className="relative" ref={userMenuRef}>
                         <button
                             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                            className="flex items-center gap-3 p-1 rounded-xl hover:bg-slate-50 transition-colors outline-none focus:ring-2 focus:ring-emerald-100"
+                            className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-50 transition-colors outline-none focus:ring-2 focus:ring-emerald-100"
                         >
-                            <div className="text-right hidden md:block">
-                                <p className="text-sm font-bold text-slate-700">{user?.nombreCompleto || "Cargando..."}</p>
+                            <div className="text-right hidden lg:block">
+                                <p className="text-sm font-bold text-slate-700 truncate max-w-[120px]">{user?.nombreCompleto || "..."}</p>
                                 <p className="text-xs text-emerald-500 font-medium">{user?.rol || "Usuario"}</p>
                             </div>
-                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-200/50 ring-2 ring-white">
+                            <div className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200/50 ring-2 ring-white">
                                 {user?.fotoPerfil ? (
                                     <img
                                         src={user.fotoPerfil}
@@ -394,7 +388,7 @@ export function TopBar() {
                                         className="h-full w-full object-cover rounded-xl"
                                     />
                                 ) : (
-                                    <User className="h-5 w-5 text-white" />
+                                    <User className="h-4 w-4 md:h-5 md:w-5 text-white" />
                                 )}
                             </div>
                         </button>
@@ -463,9 +457,9 @@ export function TopBar() {
             {/* MODAL DETALLE DE SOCIO */}
             {/* MODAL DETALLE DE SOCIO PREMIUM VIVO */}
             {selectedMember && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-300">
                     <div
-                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity"
+                        className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity"
                         onClick={() => setSelectedMember(null)}
                     />
 
@@ -503,10 +497,10 @@ export function TopBar() {
                                 };
 
                         return (
-                            <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 flex flex-col">
+                            <div className="relative w-full sm:max-w-sm bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-300 flex flex-col max-h-[90vh] sm:max-h-none">
 
                                 {/* Header Compacto */}
-                                <div className={`relative h-28 bg-gradient-to-br ${theme.headerGradient} flex items-center justify-center shrink-0`}>
+                                <div className={`relative h-24 sm:h-28 bg-gradient-to-br ${theme.headerGradient} flex items-center justify-center shrink-0`}>
                                     <button
                                         onClick={() => setSelectedMember(null)}
                                         className="absolute top-3 right-3 z-20 p-1.5 bg-black/10 hover:bg-black/20 rounded-full text-white transition-all"
@@ -525,11 +519,11 @@ export function TopBar() {
                                 </div>
 
                                 {/* Contenido Compacto */}
-                                <div className="pt-10 pb-4 px-4 text-center space-y-3">
+                                <div className="pt-8 sm:pt-10 pb-6 px-4 text-center space-y-3 overflow-y-auto">
 
                                     {/* Info Principal */}
                                     <div>
-                                        <h2 className="text-lg font-black text-slate-800 leading-tight uppercase line-clamp-2">
+                                        <h2 className="text-base sm:text-lg font-black text-slate-800 leading-tight uppercase line-clamp-2">
                                             {selectedMember.nombreCompleto}
                                         </h2>
                                         <p className={`mt-1 text-[10px] font-bold uppercase tracking-wide ${theme.badgeText}`}>
@@ -539,13 +533,13 @@ export function TopBar() {
 
                                     {/* Datos - Grid Compacta */}
                                     <div className="flex gap-2 justify-center">
-                                        <div className={`flex-1 bg-slate-50 py-2 px-1 rounded-xl border border-slate-100 ${theme.cardBorder}`}>
+                                        <div className={`flex-1 bg-slate-50 py-2 px-2 rounded-xl border border-slate-100 ${theme.cardBorder}`}>
                                             <p className="text-[9px] font-black text-slate-400 uppercase">Cédula</p>
-                                            <p className="text-sm font-black text-slate-700">{selectedMember.cedula || "---"}</p>
+                                            <p className="text-xs sm:text-sm font-black text-slate-700">{selectedMember.cedula || "---"}</p>
                                         </div>
-                                        <div className={`flex-1 bg-slate-50 py-2 px-1 rounded-xl border border-slate-100 ${theme.cardBorder}`}>
+                                        <div className={`flex-1 bg-slate-50 py-2 px-2 rounded-xl border border-slate-100 ${theme.cardBorder}`}>
                                             <p className="text-[9px] font-black text-slate-400 uppercase">Nro. Socio</p>
-                                            <p className="text-sm font-black text-slate-700">#{selectedMember.nroSocio || "---"}</p>
+                                            <p className="text-xs sm:text-sm font-black text-slate-700">#{selectedMember.nroSocio || "---"}</p>
                                         </div>
                                     </div>
 

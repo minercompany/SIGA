@@ -210,26 +210,22 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                 onClose={() => setIsDailyAssignmentsModalOpen(false)}
             />
 
-            {/* Header Centro de Control - REDISEÑO ULTRA PREMIUM */}
+            {/* Header Centro de Control - REDISEÑO RESPONSIVE */}
             <motion.div
                 initial={{ opacity: 0, scale: 0.98, y: -20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="relative group h-full"
+                className="relative group"
             >
-                {/* Background Layer with Advanced Glassmorphism & Mesh Gradient */}
-                <div className="absolute inset-0 bg-white/40 backdrop-blur-[40px] rounded-[2.5rem] border border-white/50 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] ring-1 ring-slate-200/50 transition-all duration-700 group-hover:shadow-[0_48px_80px_-20px_rgba(0,0,0,0.12)]" />
+                {/* Background Layer */}
+                <div className="absolute inset-0 bg-white/60 backdrop-blur-xl rounded-2xl md:rounded-[2rem] border border-white/50 shadow-xl transition-all duration-500" />
 
-                {/* Secondary Border for Depth */}
-                <div className="absolute inset-[1px] rounded-[2.5rem] border border-slate-100/50 pointer-events-none" />
+                {/* Decorative Blobs - Ocultos en móvil para performance */}
+                <div className="hidden md:block absolute top-0 right-0 w-[300px] h-full bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent rounded-full blur-[80px] -mr-16 -mt-16 pointer-events-none" />
 
-                {/* Decorative High-End Blobs */}
-                <div className="absolute top-0 right-0 w-[400px] h-full bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none animate-pulse" />
-                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-blue-500/5 via-indigo-500/5 to-transparent rounded-full blur-[100px] -ml-20 -mb-20 pointer-events-none" />
-
-                <div className="relative p-6 lg:p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8 h-full">
+                <div className="relative p-4 md:p-6 lg:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
 
                     {/* Left Branding Group */}
-                    <div className="flex items-center gap-6 lg:gap-8">
+                    <div className="flex items-center gap-3 md:gap-5">
                         {/* Interactive Main Icon */}
                         <div className="relative group/icon cursor-help">
                             {/* Animated Outer Rings */}
