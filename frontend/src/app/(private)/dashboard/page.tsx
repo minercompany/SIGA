@@ -124,6 +124,27 @@ export default function DashboardPage() {
             }
         } catch (error) {
             console.error("Error al cargar estadísticas:", error);
+            // Fallback: Set empty stats to prevent infinite loading
+            setStats({
+                totalPadron: 0,
+                conVozYVoto: 0,
+                soloVoz: 0,
+                totalMeta: 0,
+                presentes: 0,
+                presentesVyV: 0
+            });
+            setDesempeno([]);
+            setRankingOperadores([]);
+            if (user?.rol === "SUPER_ADMIN" || user?.rol === "DIRECTIVO") {
+                setUserActivity({
+                    total: 0,
+                    usuales: 0,
+                    activos: 0,
+                    sinRegistros: 0,
+                    activeList: [],
+                    hourlyStats: { labels: [], data: [] }
+                });
+            }
         } finally {
             if (!isSilent) setLoading(false);
         }

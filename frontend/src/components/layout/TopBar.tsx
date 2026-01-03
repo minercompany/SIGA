@@ -89,7 +89,7 @@ export function TopBar() {
                     const target = new Date(data.fecha);
                     const now = new Date();
                     const diffTime = target.getTime() - now.getTime();
-                    const diffDays = Math.ceil(diffTime /(1000 * 60 * 60 * 24));
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                     setDaysUntil(diffDays);
                 }
             } catch { }
@@ -115,7 +115,7 @@ export function TopBar() {
     useEffect(() => {
         let isActive = true; // Prevents race conditions
         const timer = setTimeout(async () => {
-            if (searchTerm.trim().length>= 1) {
+            if (searchTerm.trim().length >= 1) {
                 setIsSearching(true);
                 try {
                     const token = localStorage.getItem("token");
@@ -216,7 +216,7 @@ export function TopBar() {
                         disabled={isDeactivating}
                         className="flex-shrink-0 bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-[10px] md:text-xs font-black uppercase tracking-wider transition-all border border-white/20 flex items-center gap-2"
                     >
-                        {isDeactivating ? <Loader2 className="h-3 w-3 animate-spin" />:<AlertTriangle className="h-3 w-3" />}
+                        {isDeactivating ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertTriangle className="h-3 w-3" />}
                         Desactivar
                     </button>
                 </div>
@@ -249,75 +249,36 @@ export function TopBar() {
 
             <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-emerald-100/50 px-4 pr-6 md:px-8 bg-white/90 backdrop-blur-md shadow-sm">
 
-                {/* Search Mobile Overlay */}
-                {mobileSearchOpen && (
-                    <div className="absolute inset-0 bg-white z-50 flex items-center px-4 animate-in fade-in slide-in-from-top-2">
-                        <button onClick={() => setMobileSearchOpen(false)} className="mr-3 text-slate-500">
-                            <ArrowLeft className="h-6 w-6" />
-                        </button>
-                        <div className="flex-1 flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2">
-                            <Search className="h-4 w-4 text-slate-500" />
-                            <input
-                                ref={mobileSearchRef}
-                                autoFocus
-                                type="text"
-                                className="bg-transparent outline-none w-full text-sm"
-                                placeholder="Buscar socio..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            {isSearching && <div className="h-4 w-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />}
-                        </div>
-                        {/* Resultados Mobile Flotantes */}
-                        {showResults && searchResults.length> 0 && (
-                            <div className="absolute top-16 left-0 right-0 bg-white shadow-2xl border-b border-slate-200 max-h-[60vh] overflow-y-auto">
-                                <div className="p-2">
-                                    {searchResults.map((item: any) => (
-                                        <button
-                                            key={item.idSocio || item.id || Math.random()}
-                                            onClick={() => handleSelectMember(item)}
-                                            className="w-full text-left px-4 py-4 border-b border-slate-50 hover:bg-slate-50 flex items-center gap-3"
-                                        >
-                                            <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center font-bold">
-                                                {item.nombreCompleto?.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-slate-800">{item.nombreCompleto}</p>
-                                                <p className="text-xs text-slate-500">CI: {item.cedula} • #{item.nroSocio}</p>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Izquierda - Hamburguesa y Búsqueda Desktop */}
-                <div className="flex items-center gap-4 relative">
+                {/* Izquierda - Hamburguesa y Búsqueda Responsive */}
+                <div className="flex items-center gap-2 md:gap-4 flex-1 md:flex-none">
                     <button
                         onClick={handleSidebarToggle}
                         data-tour="sidebar-trigger"
-                        className="md:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+                        className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg shrink-0"
                     >
                         <Menu className="h-6 w-6" />
                     </button>
 
-                    {/* Búsqueda Desktop */}
-                    <div className="hidden md:flex flex-col relative" ref={searchContainerRef}>
-                        <div className="w-80 lg:w-96 flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 border border-slate-200/80 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
-                            <Search className={`h-4 w-4 text-slate-400 ${isSearching ? 'animate-spin text-emerald-500':''}`} />
+                    {/* Brand Mobile (Solo Logo, oculto en búsquedas muy pequeñas o priorizar búsqueda) */}
+                    <div className="md:hidden shrink-0 mr-1">
+                        <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded-full bg-white p-1 shadow-sm border border-emerald-50" />
+                    </div>
+
+                    {/* Búsqueda Responsive (Siempre visible) */}
+                    <div className="flex flex-col relative flex-1 md:w-80 lg:w-96" ref={searchContainerRef}>
+                        <div className="w-full flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 md:px-4 md:py-2.5 border border-slate-200/80 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
+                            <Search className={`h-4 w-4 text-slate-400 shrink-0 ${isSearching ? 'animate-spin text-emerald-500' : ''}`} />
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Buscar socio, cédula..."
-                                className="bg-transparent text-sm outline-none w-full text-slate-700 placeholder:text-slate-400"
+                                placeholder="Buscar..." // Texto corto para móvil
+                                className="bg-transparent text-sm outline-none w-full text-slate-700 placeholder:text-slate-400 min-w-0"
                             />
                         </div>
 
-                        {/* Resultados Dropdown (Desktop) */}
-                        {showResults && searchResults.length> 0 && (
+                        {/* Resultados Dropdown */}
+                        {showResults && searchResults.length > 0 && (
                             <div className="absolute top-12 left-0 w-full bg-white rounded-xl shadow-xl border border-slate-100 max-h-96 overflow-y-auto z-50 animate-in fade-in slide-in-from-top-2">
                                 <div className="p-2">
                                     <p className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Resultados ({searchResults.length})</p>
@@ -327,14 +288,14 @@ export function TopBar() {
                                             onClick={() => handleSelectMember(item)}
                                             className="w-full text-left px-3 py-3 hover:bg-slate-50 rounded-lg group transition-colors flex items-center gap-3"
                                         >
-                                            <div className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center font-bold text-xs group-hover:bg-emerald-100 group-hover:text-emerald-500 transition-colors">
+                                            <div className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center font-bold text-xs group-hover:bg-emerald-100 group-hover:text-emerald-500 transition-colors shrink-0">
                                                 {item.nombreCompleto?.charAt(0) || "?"}
                                             </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-700 group-hover:text-emerald-500">{item.nombreCompleto}</p>
-                                                <p className="text-xs text-slate-500 flex gap-2">
-                                                    <span>CI: {item.cedula || item.username}</span>
-                                                    {item.nroSocio && <span className="bg-slate-100 px-1 rounded text-slate-600 font-mono">#{item.nroSocio}</span>}
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-bold text-slate-700 group-hover:text-emerald-500 truncate">{item.nombreCompleto}</p>
+                                                <p className="text-xs text-slate-500 flex gap-2 truncate">
+                                                    <span>{item.cedula || item.username}</span>
+                                                    {item.nroSocio && <span className="bg-slate-100 px-1 rounded text-slate-600 font-mono hidden sm:inline">#{item.nroSocio}</span>}
                                                 </p>
                                             </div>
                                         </button>
@@ -343,29 +304,13 @@ export function TopBar() {
                             </div>
                         )}
 
-                        {/* Empty State Desktop */}
-                        {showResults && searchResults.length === 0 && searchTerm.length>= 2 && !isSearching && (
+                        {/* Empty State */}
+                        {showResults && searchResults.length === 0 && searchTerm.length >= 2 && !isSearching && (
                             <div className="absolute top-12 left-0 w-full bg-white rounded-xl shadow-xl border border-slate-100 p-4 text-center z-50">
-                                <p className="text-sm text-slate-500">No se encontraron resultados</p>
+                                <p className="text-sm text-slate-500">No hay resultados</p>
                             </div>
                         )}
                     </div>
-
-                    {/* Botón Búsqueda Móvil */}
-                    <button
-                        onClick={() => setMobileSearchOpen(true)}
-                        className="md:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-full"
-                    >
-                        <Search className="h-5 w-5" />
-                    </button>
-                </div>
-
-                {/* Brand Mobile - Logo & Text */}
-                <div className="flex md:hidden flex-1 items-center justify-center gap-2 px-2 animate-in fade-in duration-700">
-                    <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded-full bg-white p-1 shadow-sm border border-emerald-50 flex-shrink-0" />
-                    <span className="text-[11px] font-black text-emerald-800 tracking-tight whitespace-nowrap leading-none">
-                        ASAMBLEA REDUCTO 2026
-                    </span>
                 </div>
 
                 {/* Centro - Fecha y hora y countdown */}
@@ -381,7 +326,7 @@ export function TopBar() {
                         <div className="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-500 rounded-2xl shadow-lg shadow-emerald-200/50 animate-pulse transition-all">
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black text-emerald-100 uppercase tracking-widest leading-none">Días para Asamblea</span>
-                                <span className="text-lg font-black text-white leading-none mt-1">{daysUntil} {daysUntil === 1 ? 'DÍA':'DÍAS'}</span>
+                                <span className="text-lg font-black text-white leading-none mt-1">{daysUntil} {daysUntil === 1 ? 'DÍA' : 'DÍAS'}</span>
                             </div>
                         </div>
                     )}
@@ -448,7 +393,7 @@ export function TopBar() {
                                         alt="Perfil"
                                         className="h-full w-full object-cover rounded-xl"
                                     />
-                                ):(
+                                ) : (
                                     <User className="h-5 w-5 text-white" />
                                 )}
                             </div>
@@ -462,7 +407,7 @@ export function TopBar() {
                                     <div className="h-12 w-12 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-500 flex items-center justify-center shadow-md text-white font-bold text-xl">
                                         {user?.fotoPerfil ? (
                                             <img src={user.fotoPerfil} alt="" className="h-full w-full rounded-full object-cover" />
-                                        ):(
+                                        ) : (
                                             user?.nombreCompleto?.charAt(0) || "U"
                                         )}
                                     </div>
@@ -539,7 +484,7 @@ export function TopBar() {
                                 cardBorder: "group-hover:border-blue-300",
                                 cardIcon: "group-hover:text-blue-500"
                             }
-                           :isVozVoto
+                            : isVozVoto
                                 ? { // Voz y Voto (VERDE VIBRANTE)
                                     headerGradient: "from-green-500 via-emerald-500 to-green-600",
                                     ringColor: "ring-green-500",
@@ -548,7 +493,7 @@ export function TopBar() {
                                     cardBorder: "group-hover:border-green-400",
                                     cardIcon: "group-hover:text-green-600"
                                 }
-                               :{ // Solo Voz (AMARILLO VIBRANTE - NO NARANJA)
+                                : { // Solo Voz (AMARILLO VIBRANTE - NO NARANJA)
                                     headerGradient: "from-yellow-400 via-amber-400 to-yellow-500",
                                     ringColor: "ring-yellow-400",
                                     badgeBg: "bg-yellow-50",
@@ -617,11 +562,11 @@ export function TopBar() {
                                                 ].map((item, idx) => (
                                                     <div key={idx} className={`flex flex-col items-center justify-center py-1.5 rounded-lg border ${item.val
                                                         ? 'bg-emerald-100/50 border-emerald-200 text-emerald-700'
-                                                       :'bg-red-50 border-red-100 text-red-600'
+                                                        : 'bg-red-50 border-red-100 text-red-600'
                                                         }`}>
                                                         {item.val
                                                             ? <Check className="h-3 w-3 mb-0.5" strokeWidth={4} />
-                                                           :<X className="h-3 w-3 mb-0.5" strokeWidth={4} />
+                                                            : <X className="h-3 w-3 mb-0.5" strokeWidth={4} />
                                                         }
                                                         <span className="text-[8px] font-black uppercase text-center leading-none">{item.label}</span>
                                                     </div>
@@ -639,7 +584,7 @@ export function TopBar() {
                                                     <span className="text-[9px] font-bold text-green-800 uppercase mt-0.5">Habilitado</span>
                                                 </div>
                                             </div>
-                                        ):(
+                                        ) : (
                                             <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-400 rounded-xl py-2 shadow-sm">
                                                 <div className="flex flex-col items-center">
                                                     <span className="text-xl font-black text-yellow-700 tracking-tighter leading-none">SOLO VOZ</span>
@@ -647,7 +592,7 @@ export function TopBar() {
                                                 </div>
                                             </div>
                                         )
-                                    ):(
+                                    ) : (
                                         <div className="bg-blue-50 border border-blue-200 rounded-xl py-2">
                                             <span className="font-bold text-blue-700 uppercase tracking-wide text-xs">PERSONAL ADMINISTRATIVO</span>
                                         </div>
