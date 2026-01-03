@@ -454,69 +454,64 @@ export function TopBar() {
                 </div>
             </header>
 
-            {/* MODAL DETALLE DE SOCIO */}
-            {/* MODAL DETALLE DE SOCIO PREMIUM VIVO */}
+            {/* MODAL DETALLE DE SOCIO - RESPONSIVE Y CENTRADO */}
             {selectedMember && (
-                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-300">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
                     <div
-                        className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity"
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                         onClick={() => setSelectedMember(null)}
                     />
 
-                    {/* Lógica de colores dinámica */}
+                    {/* Lógica de colores dinámica - Basada en estado de aportes */}
                     {(() => {
-                        const isSocio = selectedMember.tipo === 'SOCIO';
-                        const isVozVoto = isSocio && selectedMember.vozVoto !== false;
+                        // Determinar si tiene Voz y Voto basándose en los aportes
+                        const tieneVozVoto = selectedMember.vozVoto === true ||
+                            (selectedMember.aporteAlDia && selectedMember.solidaridadAlDia &&
+                                selectedMember.fondoAlDia && selectedMember.incoopAlDia && selectedMember.creditoAlDia);
 
-                        // Esquemas de colores VIVOS
-                        const theme = !isSocio
+                        const esAdmin = selectedMember.tipo === 'ADMIN' || (!selectedMember.nroSocio && !selectedMember.idSocio);
+
+                        // Esquemas de colores: VERDE = Voz y Voto, AMARILLO = Solo Voz, AZUL = Admin
+                        const theme = esAdmin
                             ? { // Admin (Azul)
-                                headerGradient: "from-blue-600 via-indigo-600 to-blue-700",
+                                headerGradient: "from-blue-500 via-indigo-500 to-blue-600",
                                 ringColor: "ring-blue-500",
-                                badgeBg: "bg-blue-50",
                                 badgeText: "text-blue-700",
-                                cardBorder: "group-hover:border-blue-300",
-                                cardIcon: "group-hover:text-blue-500"
                             }
-                            : isVozVoto
-                                ? { // Voz y Voto (VERDE VIBRANTE)
-                                    headerGradient: "from-green-500 via-emerald-500 to-green-600",
-                                    ringColor: "ring-green-500",
-                                    badgeBg: "bg-green-50",
-                                    badgeText: "text-green-700",
-                                    cardBorder: "group-hover:border-green-400",
-                                    cardIcon: "group-hover:text-green-600"
+                            : tieneVozVoto
+                                ? { // VOZ Y VOTO (VERDE)
+                                    headerGradient: "from-emerald-500 via-green-500 to-emerald-600",
+                                    ringColor: "ring-emerald-500",
+                                    badgeText: "text-emerald-700",
                                 }
-                                : { // Solo Voz (AMARILLO VIBRANTE - NO NARANJA)
-                                    headerGradient: "from-yellow-400 via-amber-400 to-yellow-500",
-                                    ringColor: "ring-yellow-400",
-                                    badgeBg: "bg-yellow-50",
-                                    badgeText: "text-yellow-700",
-                                    cardBorder: "group-hover:border-yellow-400",
-                                    cardIcon: "group-hover:text-yellow-600"
+                                : { // SOLO VOZ (AMARILLO)
+                                    headerGradient: "from-amber-400 via-yellow-400 to-amber-500",
+                                    ringColor: "ring-amber-400",
+                                    badgeText: "text-amber-700",
                                 };
 
                         return (
-                            <div className="relative w-full sm:max-w-sm bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-300 flex flex-col max-h-[90vh] sm:max-h-none">
+                            <div className="relative w-full max-w-[calc(100%-32px)] sm:max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col">
 
-                                {/* Header Compacto */}
-                                <div className={`relative h-24 sm:h-28 bg-gradient-to-br ${theme.headerGradient} flex items-center justify-center shrink-0`}>
+                                {/* Header con color dinámico */}
+                                <div className={`relative h-24 bg-gradient-to-br ${theme.headerGradient} flex items-center justify-center shrink-0`}>
                                     <button
                                         onClick={() => setSelectedMember(null)}
-                                        className="absolute top-3 right-3 z-20 p-1.5 bg-black/10 hover:bg-black/20 rounded-full text-white transition-all"
+                                        className="absolute top-3 right-3 z-20 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white transition-all"
                                     >
-                                        <X className="h-4 w-4" />
+                                        <X className="h-5 w-5" />
                                     </button>
 
                                     {/* Avatar superpuesto */}
-                                    <div className={`absolute -bottom-8 z-10 h-20 w-20 rounded-2xl bg-white p-1 shadow-lg ring-4 ring-offset-2 ${theme.ringColor} ring-offset-white`}>
+                                    <div className={`absolute -bottom-8 z-10 h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white p-1 shadow-lg ring-4 ring-offset-2 ${theme.ringColor} ring-offset-white`}>
                                         <div className="h-full w-full bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
-                                            <span className={`text-4xl font-black ${theme.badgeText} uppercase`}>
+                                            <span className={`text-2xl sm:text-4xl font-black ${theme.badgeText} uppercase`}>
                                                 {selectedMember.nombreCompleto?.charAt(0)}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
+
 
                                 {/* Contenido Compacto */}
                                 <div className="pt-8 sm:pt-10 pb-6 px-4 text-center space-y-3 overflow-y-auto">
@@ -533,18 +528,18 @@ export function TopBar() {
 
                                     {/* Datos - Grid Compacta */}
                                     <div className="flex gap-2 justify-center">
-                                        <div className={`flex-1 bg-slate-50 py-2 px-2 rounded-xl border border-slate-100 ${theme.cardBorder}`}>
+                                        <div className="flex-1 bg-slate-50 py-2 px-2 rounded-xl border border-slate-200">
                                             <p className="text-[9px] font-black text-slate-400 uppercase">Cédula</p>
                                             <p className="text-xs sm:text-sm font-black text-slate-700">{selectedMember.cedula || "---"}</p>
                                         </div>
-                                        <div className={`flex-1 bg-slate-50 py-2 px-2 rounded-xl border border-slate-100 ${theme.cardBorder}`}>
+                                        <div className="flex-1 bg-slate-50 py-2 px-2 rounded-xl border border-slate-200">
                                             <p className="text-[9px] font-black text-slate-400 uppercase">Nro. Socio</p>
                                             <p className="text-xs sm:text-sm font-black text-slate-700">#{selectedMember.nroSocio || "---"}</p>
                                         </div>
                                     </div>
 
-                                    {/* Aportes Compacto */}
-                                    {(isSocio || selectedMember.idSocio || selectedMember.nroSocio) && (
+                                    {/* Aportes Compacto - Solo si es socio */}
+                                    {!esAdmin && (selectedMember.idSocio || selectedMember.nroSocio) && (
                                         <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
                                             <div className="grid grid-cols-5 gap-1">
                                                 {[
@@ -569,25 +564,25 @@ export function TopBar() {
                                         </div>
                                     )}
 
-                                    {/* Estado Final (Voz/Voto) Banner Compacto */}
-                                    {isSocio || selectedMember.idSocio || selectedMember.nroSocio ? (
-                                        selectedMember.vozVoto || (selectedMember.aporteAlDia && selectedMember.solidaridadAlDia && selectedMember.fondoAlDia && selectedMember.incoopAlDia && selectedMember.creditoAlDia) ? (
-                                            <div className="bg-gradient-to-r from-emerald-100 to-green-100 border border-green-400 rounded-xl py-2 shadow-sm">
+                                    {/* Estado Final (Voz/Voto) Banner */}
+                                    {!esAdmin ? (
+                                        tieneVozVoto ? (
+                                            <div className="bg-gradient-to-r from-emerald-100 to-green-100 border-2 border-green-400 rounded-xl py-3 shadow-sm">
                                                 <div className="flex flex-col items-center">
-                                                    <span className="text-xl font-black text-green-700 tracking-tighter leading-none">VOZ Y VOTO</span>
+                                                    <span className="text-lg sm:text-xl font-black text-green-700 tracking-tighter leading-none">VOZ Y VOTO</span>
                                                     <span className="text-[9px] font-bold text-green-800 uppercase mt-0.5">Habilitado</span>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-400 rounded-xl py-2 shadow-sm">
+                                            <div className="bg-gradient-to-r from-yellow-100 to-amber-100 border-2 border-amber-400 rounded-xl py-3 shadow-sm">
                                                 <div className="flex flex-col items-center">
-                                                    <span className="text-xl font-black text-yellow-700 tracking-tighter leading-none">SOLO VOZ</span>
-                                                    <span className="text-[9px] font-bold text-yellow-800 uppercase mt-0.5">Sin Voto</span>
+                                                    <span className="text-lg sm:text-xl font-black text-amber-700 tracking-tighter leading-none">SOLO VOZ</span>
+                                                    <span className="text-[9px] font-bold text-amber-800 uppercase mt-0.5">Sin Voto</span>
                                                 </div>
                                             </div>
                                         )
                                     ) : (
-                                        <div className="bg-blue-50 border border-blue-200 rounded-xl py-2">
+                                        <div className="bg-blue-50 border-2 border-blue-300 rounded-xl py-3">
                                             <span className="font-bold text-blue-700 uppercase tracking-wide text-xs">PERSONAL ADMINISTRATIVO</span>
                                         </div>
                                     )}
