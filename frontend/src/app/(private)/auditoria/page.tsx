@@ -177,13 +177,13 @@ export default function AuditoriaPage() {
                         <div className="bg-white border border-slate-200 p-1 rounded-xl flex shadow-sm">
                             <button
                                 onClick={() => setRastreoMode(false)}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all ${!rastreoMode ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'}`}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all ${!rastreoMode ? 'bg-slate-900 text-white shadow-lg':'text-slate-500 hover:text-slate-700'}`}
                             >
                                 General
                             </button>
                             <button
                                 onClick={() => setRastreoMode(true)}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all ${rastreoMode ? 'bg-teal-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700'}`}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all ${rastreoMode ? 'bg-teal-500 text-white shadow-lg':'text-slate-500 hover:text-slate-700'}`}
                             >
                                 Rastrear
                             </button>
@@ -193,7 +193,7 @@ export default function AuditoriaPage() {
                             onClick={() => fetchLogs(page)}
                             className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all shadow-sm active:scale-95"
                         >
-                            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin':''}`} />
                         </button>
                         <div className="bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl hidden sm:flex items-center gap-2">
                             <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -224,7 +224,7 @@ export default function AuditoriaPage() {
                                 disabled={searchingSocio}
                                 className="bg-teal-500 hover:bg-teal-400 text-white px-8 rounded-2xl font-black shadow-lg shadow-teal-900/50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {searchingSocio ? <RefreshCw className="animate-spin" /> : <Search />}
+                                {searchingSocio ? <RefreshCw className="animate-spin" />:<Search />}
                             </button>
                         </form>
                     </div>
@@ -263,7 +263,7 @@ export default function AuditoriaPage() {
                                             )}
                                         </div>
                                     </div>
-                                ) : (
+                                ):(
                                     <div className="bg-slate-50 rounded-[2rem] p-8 border border-slate-200 border-dashed text-center">
                                         <p className="text-slate-400 font-bold italic">Este socio no se encuentra asignado a ninguna lista activa.</p>
                                     </div>
@@ -278,19 +278,19 @@ export default function AuditoriaPage() {
                                 </h3>
 
                                 <div className="space-y-0 relative pl-4 border-l-2 border-slate-100 ml-4">
-                                    {rastreoData.historial.length > 0 ? (
+                                    {rastreoData.historial.length> 0 ? (
                                         rastreoData.historial.map((log: any, idx: number) => (
                                             <div key={log.id} className="relative pl-8 pb-10 last:pb-0">
                                                 {/* Bullet */}
                                                 <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-white ${log.accion.includes('FALLIDO') ? 'bg-red-500 shadow-red-200' :
-                                                    log.accion.includes('ASIGNAR') ? 'bg-emerald-500 shadow-emerald-200' : 'bg-slate-400'
+                                                    log.accion.includes('ASIGNAR') ? 'bg-emerald-500 shadow-emerald-200':'bg-slate-400'
                                                     } shadow-lgbox`} style={{ boxShadow: '0 0 0 4px white' }}></div>
 
                                                 <div className="flex flex-col gap-1">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <span className="text-xs font-black uppercase tracking-widest text-slate-400">{formatDate(log.createdAt)}</span>
                                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${log.accion.includes('FALLIDO') ? 'bg-red-100 text-red-700' :
-                                                            log.accion.includes('ASIGNAR') ? 'bg-emerald-100 text-teal-500' : 'bg-slate-100 text-slate-600'
+                                                            log.accion.includes('ASIGNAR') ? 'bg-emerald-100 text-teal-500':'bg-slate-100 text-slate-600'
                                                             }`}>
                                                             {log.accion.replace(/_/g, ' ')}
                                                         </span>
@@ -306,7 +306,7 @@ export default function AuditoriaPage() {
                                                 </div>
                                             </div>
                                         ))
-                                    ) : (
+                                    ):(
                                         <div className="text-center py-10">
                                             <p className="text-slate-400 font-medium">No hay registros de auditoría reciente para este socio.</p>
                                             <p className="text-xs text-slate-300 mt-2">Nota: Solo se muestran eventos registrados a partir de la actualización del sistema.</p>
@@ -323,7 +323,7 @@ export default function AuditoriaPage() {
                         </div>
                     )}
                 </div>
-            ) : (
+            ):(
                 <>
                     {/* Filtros Inteligentes */}
                     <div className="bg-white/70 backdrop-blur-md rounded-[2.5rem] border border-slate-200 p-6 shadow-xl shadow-slate-100/50">
@@ -346,7 +346,7 @@ export default function AuditoriaPage() {
                                         onClick={() => setFilterModulo(mod)}
                                         className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all uppercase tracking-widest border ${filterModulo === mod
                                             ? 'bg-slate-900 text-white border-slate-900 shadow-lg'
-                                            : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
+                                           :'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
                                             }`}
                                     >
                                         {mod}
@@ -364,9 +364,9 @@ export default function AuditoriaPage() {
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <div key={i} className="h-32 bg-white rounded-2xl animate-pulse" />
                                 ))
-                            ) : filteredLogs.length > 0 ? (
+                            ):filteredLogs.length> 0 ? (
                                 filteredLogs.map((log) => <AuditLogCard key={log.id} log={log} />)
-                            ) : (
+                            ):(
                                 <div className="py-10 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Sin registros</div>
                             )}
                         </div>
@@ -378,7 +378,7 @@ export default function AuditoriaPage() {
                                     <tr className="bg-slate-50/50 border-b border-slate-100">
                                         <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Fecha y Hora</th>
                                         <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Módulo</th>
-                                        <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Usuario / IP</th>
+                                        <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Usuario /IP</th>
                                         <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Acción</th>
                                         <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Detalles del Evento</th>
                                     </tr>
@@ -392,7 +392,7 @@ export default function AuditoriaPage() {
                                                 </td>
                                             </tr>
                                         ))
-                                    ) : filteredLogs.length > 0 ? (
+                                    ):filteredLogs.length> 0 ? (
                                         filteredLogs.map((log) => (
                                             <motion.tr
                                                 initial={{ opacity: 0 }}
@@ -438,7 +438,7 @@ export default function AuditoriaPage() {
                                                 </td>
                                             </motion.tr>
                                         ))
-                                    ) : (
+                                    ):(
                                         <tr>
                                             <td colSpan={5} className="px-8 py-20 text-center">
                                                 <div className="flex flex-col items-center gap-4">
@@ -461,7 +461,7 @@ export default function AuditoriaPage() {
                             </span>
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() => fetchLogs(page - 1)}
+                                    onClick={() => fetchLogs(page-1)}
                                     disabled={page === 0 || loading}
                                     className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 disabled:opacity-30 hover:bg-slate-50 transition-all shadow-sm"
                                 >
@@ -469,7 +469,7 @@ export default function AuditoriaPage() {
                                 </button>
                                 <button
                                     onClick={() => fetchLogs(page + 1)}
-                                    disabled={page >= totalPages - 1 || loading}
+                                    disabled={page>= totalPages-1 || loading}
                                     className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 disabled:opacity-30 hover:bg-slate-50 transition-all shadow-sm"
                                 >
                                     <ChevronRight className="h-5 w-5" />

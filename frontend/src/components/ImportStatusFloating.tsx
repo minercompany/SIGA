@@ -39,7 +39,7 @@ export default function ImportStatusFloating() {
                     <div className="p-4">
                         <div className="flex items-center justify-between mb-2">
                             <h4 className="font-bold text-sm text-slate-800">
-                                {isImporting ? "Importando Padrón..." : stats ? "Importación Completada" : "Error en Importación"}
+                                {isImporting ? "Importando Padrón...":stats ? "Importación Completada":"Error en Importación"}
                             </h4>
                             <button onClick={() => { setIsVisible(false); if (!isImporting) resetImport(); }} className="text-slate-400 hover:text-slate-600">
                                 <X size={16} />

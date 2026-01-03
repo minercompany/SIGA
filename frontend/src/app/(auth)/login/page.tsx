@@ -134,7 +134,7 @@ export default function LoginPage() {
                                 disabled={loading}
                                 className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-500 py-4 font-black text-white shadow-xl hover:shadow-2xl active:scale-[0.98] transition-all disabled:opacity-50"
                             >
-                                {loading ? "ACTUALIZANDO..." : "CAMBIAR Y CONTINUAR"}
+                                {loading ? "ACTUALIZANDO...":"CAMBIAR Y CONTINUAR"}
                             </button>
                         </form>
                     </div>
@@ -187,7 +187,7 @@ export default function LoginPage() {
                                         SIGA
                                     </p>
                                     <p className="text-emerald-100 text-lg font-bold">
-                                        San Lorenzo Reducto - 2026
+                                        San Lorenzo Reducto-2026
                                     </p>
                                 </div>
                             </div>
@@ -253,7 +253,7 @@ export default function LoginPage() {
                                                 </div>
                                                 <input
                                                     id="password"
-                                                    type={showPassword ? "text" : "password"}
+                                                    type={showPassword ? "text":"password"}
                                                     autoComplete="current-password"
                                                     required
                                                     value={password}
@@ -264,10 +264,10 @@ export default function LoginPage() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPassword(!showPassword)}
-                                                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                                    aria-label={showPassword ? "Ocultar contraseña":"Mostrar contraseña"}
                                                     className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-500 transition-colors"
                                                 >
-                                                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                                    {showPassword ? <EyeOff className="h-5 w-5" />:<Eye className="h-5 w-5" />}
                                                 </button>
                                             </div>
                                         </div>
@@ -289,7 +289,7 @@ export default function LoginPage() {
                                                         <RefreshCcw className="h-5 w-5 animate-spin" />
                                                         <span>INGRESANDO...</span>
                                                     </>
-                                                ) : (
+                                                ):(
                                                     <>
                                                         <span>INGRESAR AL SISTEMA</span>
                                                         <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />

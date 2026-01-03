@@ -83,7 +83,7 @@ export default function AvisosBell() {
             const newCount = countRes.data.unreadCount || 0;
 
             // Reproducir sonido si hay nuevos
-            if (newCount > unreadCount && soundEnabled && audioRef.current) {
+            if (newCount> unreadCount && soundEnabled && audioRef.current) {
                 audioRef.current.play().catch(() => { });
             }
 
@@ -186,7 +186,7 @@ export default function AvisosBell() {
 
         // El backend envía la hora en UTC (ej: 21:00) pero sin la 'Z'.
         // Le agregamos 'Z' para que JS sepa que es UTC.
-        const utcDateStr = dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`;
+        const utcDateStr = dateStr.endsWith('Z') ? dateStr:`${dateStr}Z`;
         const date = new Date(utcDateStr);
 
         // Usamos Intl para formatear correctamente a la zona horaria de Paraguay
@@ -209,7 +209,7 @@ export default function AvisosBell() {
                     onClick={() => {
                         const willOpen = !isOpen;
                         setIsOpen(willOpen);
-                        if (willOpen && unreadCount > 0) {
+                        if (willOpen && unreadCount> 0) {
                             marcarTodosLeidos();
                         }
                     }}
@@ -218,13 +218,13 @@ export default function AvisosBell() {
                     className="relative p-2.5 rounded-2xl bg-white border border-slate-200 hover:border-teal-300 hover:shadow-lg hover:shadow-teal-100 transition-all"
                 >
                     <Bell className="h-5 w-5 text-slate-600" />
-                    {unreadCount > 0 && (
+                    {unreadCount> 0 && (
                         <motion.span
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-full text-white text-[10px] font-black flex items-center justify-center shadow-lg shadow-teal-200"
                         >
-                            {unreadCount > 9 ? '9+' : unreadCount}
+                            {unreadCount> 9 ? '9+':unreadCount}
                         </motion.span>
                     )}
                 </motion.button>
@@ -267,7 +267,7 @@ export default function AvisosBell() {
                                         <p className="text-slate-400 font-bold">Sin avisos pendientes</p>
                                         <p className="text-slate-300 text-sm mt-1">Estás al día</p>
                                     </div>
-                                ) : (
+                                ):(
                                     <div className="divide-y divide-slate-100">
                                         {avisos.map((aviso) => (
                                             <motion.div
@@ -278,12 +278,12 @@ export default function AvisosBell() {
                                                     setShowModal(true);
                                                     if (!aviso.leidoAt) marcarLeido(aviso.id);
                                                 }}
-                                                className={`px-6 py-4 cursor-pointer transition-all ${!aviso.leidoAt ? 'bg-teal-50/50' : ''
+                                                className={`px-6 py-4 cursor-pointer transition-all ${!aviso.leidoAt ? 'bg-teal-50/50':''
                                                     } ${getPrioridadStyle(aviso.prioridad)}`}
                                             >
                                                 <div className="flex items-start gap-4">
                                                     <div className={`p-2.5 rounded-xl flex-shrink-0 ${aviso.prioridad === 'CRITICA' ? 'bg-red-100' :
-                                                        aviso.prioridad === 'ALTA' ? 'bg-amber-100' : 'bg-teal-100'
+                                                        aviso.prioridad === 'ALTA' ? 'bg-amber-100':'bg-teal-100'
                                                         }`}>
                                                         {getPrioridadIcon(aviso.prioridad)}
                                                     </div>

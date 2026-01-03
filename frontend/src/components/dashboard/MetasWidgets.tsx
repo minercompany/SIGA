@@ -54,7 +54,7 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                 const headers = { Authorization: `Bearer ${token}` };
                 const url = userId
                     ? `/api/dashboard/metas?userId=${userId}`
-                    : "/api/dashboard/metas";
+                   :"/api/dashboard/metas";
 
                 const response = await axios.get(url, { headers });
                 setData(response.data);
@@ -127,25 +127,25 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                             initial={{ width: 0 }}
                             animate={{ width: `${progressWidth}%` }}
                             transition={{ duration: 1.5, ease: "easeOut" }}
-                            className={`h-full rounded-full relative ${data.cumplida ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-blue-500 to-indigo-500'}`}
+                            className={`h-full rounded-full relative ${data.cumplida ? 'bg-gradient-to-r from-emerald-400 to-teal-500':'bg-gradient-to-r from-blue-500 to-indigo-500'}`}
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_infinite]" />
                         </motion.div>
                     </div>
                 </div>
 
-                {/* Insight / Mensaje */}
+                {/* Insight /Mensaje */}
                 <div className="flex items-center gap-3 relative z-10 bg-white/5 rounded-xl p-3 border border-white/5">
                     {data.cumplida ? (
                         <>
                             <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                             <span className="text-emerald-100 font-medium text-sm">¡Excelente! Has cumplido tu meta como {data.cargo}.</span>
                         </>
-                    ) : (
+                    ):(
                         <>
                             <TrendingUp className="h-5 w-5 text-amber-400" />
                             <span className="text-slate-300 font-medium text-sm">
-                                {data.porcentajeMeta < 50 ? "Necesitas aumentar registros de Voz y Voto." : "¡Vas bien! Sigue registrando socios habilitados."}
+                                {data.porcentajeMeta < 50 ? "Necesitas aumentar registros de Voz y Voto.":"¡Vas bien! Sigue registrando socios habilitados."}
                             </span>
                         </>
                     )}
@@ -167,7 +167,7 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                 </div>
 
                 <div className="flex flex-col items-center justify-center flex-1 py-2">
-                    {data.faltanMeta > 0 ? (
+                    {data.faltanMeta> 0 ? (
                         <>
                             <span className="text-3xl xs:text-5xl md:text-5xl font-black text-slate-800 tracking-tighter group-hover:scale-110 transition-transform duration-300">
                                 {data.faltanMeta}
@@ -176,7 +176,7 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                                 Socios Voz y Voto
                             </span>
                         </>
-                    ) : (
+                    ):(
                         <div className="text-center">
                             <span className="inline-flex items-center justify-center h-16 w-16 bg-emerald-100 text-emerald-500 rounded-full mb-2">
                                 <Award className="h-8 w-8" />
@@ -207,8 +207,8 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                     </div>
                 </div>
 
-                <div className="relative flex-1 min-h-[140px]">
-                    <ResponsiveContainer width="100%" height="100%">
+                <div className="relative w-full h-[180px]">
+                    <ResponsiveContainer width="100%" height="100%" minHeight={150}>
                         <PieChart>
                             <Pie
                                 data={pieData}

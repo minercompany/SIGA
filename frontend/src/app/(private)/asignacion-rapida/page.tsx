@@ -77,7 +77,7 @@ export default function AsignacionRapidaPage() {
 
                     // Recargar
                     const newResponse = await axios.get("/api/asignaciones/mis-listas", { headers });
-                    if (newResponse.data.length > 0) {
+                    if (newResponse.data.length> 0) {
                         setMiLista(newResponse.data[0]);
                         await loadSocios(newResponse.data[0].id);
                     }
@@ -115,7 +115,7 @@ export default function AsignacionRapidaPage() {
 
     // Búsqueda automática con debounce
     useEffect(() => {
-        if (searchTerm.length >= 1) {
+        if (searchTerm.length>= 1) {
             const timer = setTimeout(() => {
                 handleSearch();
             }, 500);
@@ -137,7 +137,7 @@ export default function AsignacionRapidaPage() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            if (response.data && response.data.length > 0) {
+            if (response.data && response.data.length> 0) {
                 setSearchedSocio(response.data[0]);
             } else {
                 setErrorMessage("No se encontró ningún socio con ese dato");
@@ -352,8 +352,8 @@ export default function AsignacionRapidaPage() {
                                             <div className="flex flex-wrap gap-2 sm:gap-4 mt-1">
                                                 <span className="text-xs sm:text-sm text-slate-600">CI: <span className="font-bold">{searchedSocio.cedula}</span></span>
                                                 <span className="text-xs sm:text-sm text-slate-600">Nro: <span className="font-bold">{searchedSocio.numeroSocio}</span></span>
-                                                <span className={`text-xs sm:text-sm font-bold ${tieneVozYVoto(searchedSocio) ? 'text-emerald-500' : 'text-amber-600'}`}>
-                                                    {tieneVozYVoto(searchedSocio) ? '✓ V&V' : '⚠ SV'}
+                                                <span className={`text-xs sm:text-sm font-bold ${tieneVozYVoto(searchedSocio) ? 'text-emerald-500':'text-amber-600'}`}>
+                                                    {tieneVozYVoto(searchedSocio) ? '✓ V&V':'⚠ SV'}
                                                 </span>
                                             </div>
                                         </div>
@@ -393,7 +393,7 @@ export default function AsignacionRapidaPage() {
                             <Loader2 className="w-8 h-8 text-violet-500 animate-spin mx-auto mb-2" />
                             <p className="text-slate-500 text-sm">Cargando...</p>
                         </div>
-                    ) : socios.length > 0 ? (
+                    ):socios.length> 0 ? (
                         <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
                             {socios.map((socio, index) => {
                                 const esVyV = tieneVozYVoto(socio);
@@ -406,7 +406,7 @@ export default function AsignacionRapidaPage() {
                                         className="p-3 sm:p-4 hover:bg-slate-50 transition-colors group flex items-center justify-between gap-2"
                                     >
                                         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-                                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex-shrink-0 flex items-center justify-center font-bold text-white text-xs sm:text-sm ${esVyV ? 'bg-emerald-500' : 'bg-amber-500'
+                                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex-shrink-0 flex items-center justify-center font-bold text-white text-xs sm:text-sm ${esVyV ? 'bg-emerald-500':'bg-amber-500'
                                                 }`}>
                                                 {index + 1}
                                             </div>
@@ -418,9 +418,9 @@ export default function AsignacionRapidaPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
-                                            <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold ${esVyV ? 'bg-emerald-100 text-teal-500' : 'bg-amber-100 text-amber-700'
+                                            <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold ${esVyV ? 'bg-emerald-100 text-teal-500':'bg-amber-100 text-amber-700'
                                                 }`}>
-                                                {esVyV ? 'V&V' : 'SV'}
+                                                {esVyV ? 'V&V':'SV'}
                                             </span>
                                             <button
                                                 onClick={() => handleRemoveSocio(socio.id)}
@@ -433,7 +433,7 @@ export default function AsignacionRapidaPage() {
                                 );
                             })}
                         </div>
-                    ) : (
+                    ):(
                         <div className="p-12 text-center">
                             <Users className="w-16 h-16 text-slate-200 mx-auto mb-4" />
                             <p className="text-slate-500 font-medium">Aún no tienes socios asignados</p>
@@ -492,7 +492,7 @@ export default function AsignacionRapidaPage() {
                                                 hour: '2-digit',
                                                 minute: '2-digit'
                                             })
-                                            : 'Fecha no disponible'}
+                                           :'Fecha no disponible'}
                                     </p>
                                 </div>
                             </div>

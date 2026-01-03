@@ -74,14 +74,14 @@ export default function DirectAssignmentMaster() {
     useEffect(() => {
         const timer = setTimeout(() => {
             const isNumeric = /^\d+$/.test(searchSocio);
-            const minLength = isNumeric ? 1 : 2;
+            const minLength = isNumeric ? 1:2;
 
-            if (searchSocio.length >= minLength) {
+            if (searchSocio.length>= minLength) {
                 performSearchSocio(searchSocio);
             } else if (searchSocio.length === 0) {
                 setSocioEncontrado(null);
             }
-        }, /^\d+$/.test(searchSocio) ? 100 : 300);
+        }, /^\d+$/.test(searchSocio) ? 100:300);
 
         return () => clearTimeout(timer);
     }, [searchSocio]);
@@ -124,7 +124,7 @@ export default function DirectAssignmentMaster() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            if (Array.isArray(res.data) && res.data.length > 0) {
+            if (Array.isArray(res.data) && res.data.length> 0) {
                 setSocioEncontrado(res.data[0]);
             }
         } catch (error) {
@@ -164,7 +164,7 @@ export default function DirectAssignmentMaster() {
                                 <div class="flex justify-between items-center pt-2 mt-2 border-t border-red-200/50">
                                     <span class="text-slate-500 font-medium">Fecha/Hora:</span>
                                     <span class="font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
-                                        ${socioEncontrado.fechaAsignacion ? new Date(socioEncontrado.fechaAsignacion).toLocaleString() : 'N/A'}
+                                        ${socioEncontrado.fechaAsignacion ? new Date(socioEncontrado.fechaAsignacion).toLocaleString():'N/A'}
                                     </span>
                                 </div>
                             </div>
@@ -213,10 +213,10 @@ export default function DirectAssignmentMaster() {
             });
 
             // Actualizar contador visualmente
-            setSelectedTarget(prev => prev ? ({ ...prev, total: prev.total + 1 }) : null);
+            setSelectedTarget(prev => prev ? ({ ...prev, total: prev.total + 1 }):null);
 
             // Actualizar lista global también para cuando volvamos al paso 1
-            setResponsables(prev => prev.map(r => r.id === selectedTarget.id ? { ...r, total: r.total + 1 } : r));
+            setResponsables(prev => prev.map(r => r.id === selectedTarget.id ? { ...r, total: r.total + 1 }:r));
 
             // RESETEO RÁPIDO PARA SEGUIR ASIGNANDO
             setSocioEncontrado(null);
@@ -282,7 +282,7 @@ export default function DirectAssignmentMaster() {
                                             <span class="text-sm text-slate-600">Fecha/Hora</span>
                                         </div>
                                         <span class="font-mono font-bold text-slate-800 text-xs bg-white px-2 py-1 rounded-lg border border-slate-200">
-                                            ${data.fechaAsignacion ? new Date(data.fechaAsignacion).toLocaleString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                                            ${data.fechaAsignacion ? new Date(data.fechaAsignacion).toLocaleString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }):'N/A'}
                                         </span>
                                     </div>
                                 </div>
@@ -362,7 +362,7 @@ export default function DirectAssignmentMaster() {
                                 <div className="p-8 text-center text-slate-400">
                                     No se encontraron responsables.
                                 </div>
-                            ) : (
+                            ):(
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                     {filteredResponsables.map((resp) => (
                                         <button
@@ -434,7 +434,7 @@ export default function DirectAssignmentMaster() {
                         <div className="relative">
                             <div className="text-sm font-bold text-slate-400 uppercase mb-2">Paso 2: Buscar Socio</div>
                             <div className="relative">
-                                <Search className={`absolute left-5 top-1/2 -translate-y-1/2 h-8 w-8 transition-colors ${searchingSocio ? 'text-emerald-500 animate-pulse' : 'text-slate-300'}`} />
+                                <Search className={`absolute left-5 top-1/2 -translate-y-1/2 h-8 w-8 transition-colors ${searchingSocio ? 'text-emerald-500 animate-pulse':'text-slate-300'}`} />
                                 <input
                                     ref={socioInputRef}
                                     type="text"
@@ -471,7 +471,7 @@ export default function DirectAssignmentMaster() {
                                 </div>
                             )}
 
-                            {!socioEncontrado && !searchingSocio && searchSocio.length > 2 && (
+                            {!socioEncontrado && !searchingSocio && searchSocio.length> 2 && (
                                 <div className="text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
                                     <div className="text-4xl mb-2">🤷‍♂️</div>
                                     <p className="text-slate-500 font-bold">No se encontró al socio</p>
@@ -480,7 +480,7 @@ export default function DirectAssignmentMaster() {
                             )}
 
                             {socioEncontrado && (
-                                <div className={`rounded-2xl border p-6 md:p-8 animate-in zoom-in-95 duration-200 ${socioEncontrado.yaAsignado ? 'bg-red-50 border-red-200' : 'bg-emerald-50/50 border-emerald-100'}`}>
+                                <div className={`rounded-2xl border p-6 md:p-8 animate-in zoom-in-95 duration-200 ${socioEncontrado.yaAsignado ? 'bg-red-50 border-red-200':'bg-emerald-50/50 border-emerald-100'}`}>
                                     <div className="flex flex-col md:flex-row items-center gap-6">
 
                                         {/* Datos Socio */}
@@ -489,7 +489,7 @@ export default function DirectAssignmentMaster() {
                                                 <div className="inline-block bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded mb-2 uppercase animate-pulse">
                                                     ⚠️ YA ASIGNADO
                                                 </div>
-                                            ) : (
+                                            ):(
                                                 <div className="inline-block bg-emerald-100 text-teal-500 text-xs font-bold px-2 py-1 rounded mb-2 uppercase">
                                                     Socio Encontrado
                                                 </div>
@@ -514,7 +514,7 @@ export default function DirectAssignmentMaster() {
                                                     <div className="text-sm space-y-1">
                                                         <div>👤 Registrado por: <strong className="text-slate-900">{socioEncontrado.asignadoAUsuario}</strong></div>
                                                         <div>📋 Lista: <strong>{socioEncontrado.asignadoA}</strong></div>
-                                                        <div>🕒 Fecha: <span className="font-mono text-red-600">{socioEncontrado.fechaAsignacion ? new Date(socioEncontrado.fechaAsignacion).toLocaleString() : 'N/A'}</span></div>
+                                                        <div>🕒 Fecha: <span className="font-mono text-red-600">{socioEncontrado.fechaAsignacion ? new Date(socioEncontrado.fechaAsignacion).toLocaleString():'N/A'}</span></div>
                                                     </div>
                                                 </div>
                                             )}
@@ -527,13 +527,13 @@ export default function DirectAssignmentMaster() {
                                                 disabled={loading} // SE PERMITE CLIC AUNQUE ESTÉ ASIGNADO PARA VER EL DETALLE
                                                 className={`w-full md:w-auto text-xl font-bold py-4 px-8 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${socioEncontrado.yaAsignado
                                                     ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/30'
-                                                    : 'bg-slate-900 hover:bg-emerald-500 text-white hover:shadow-emerald-500/30 active:scale-95'
+                                                   :'bg-slate-900 hover:bg-emerald-500 text-white hover:shadow-emerald-500/30 active:scale-95'
                                                     }`}
                                             >
-                                                {loading ? <Loader2 className="animate-spin" /> : (
+                                                {loading ? <Loader2 className="animate-spin" />:(
                                                     <>
-                                                        {socioEncontrado.yaAsignado ? "ASIGNAR (Verificar)" : "ASIGNAR"}
-                                                        {socioEncontrado.yaAsignado ? <ShieldAlert className="h-6 w-6" /> : <Check className="h-6 w-6" />}
+                                                        {socioEncontrado.yaAsignado ? "ASIGNAR (Verificar)":"ASIGNAR"}
+                                                        {socioEncontrado.yaAsignado ? <ShieldAlert className="h-6 w-6" />:<Check className="h-6 w-6" />}
                                                     </>
                                                 )}
                                             </button>

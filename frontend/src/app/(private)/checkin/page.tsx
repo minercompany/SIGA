@@ -108,7 +108,7 @@ export default function CheckInPage() {
                 { headers }
             );
 
-            if (response.data && response.data.length > 0) {
+            if (response.data && response.data.length> 0) {
                 // Si la búsqueda es exacta (ej. cédula completa o nro socio), el backend lo pone primero
                 setSocioEncontrado(response.data[0]);
             } else {
@@ -126,7 +126,7 @@ export default function CheckInPage() {
     // Effect para búsqueda automática (Debounce)
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (query.trim().length >= 1) {
+            if (query.trim().length>= 1) {
                 performSearch(query);
             } else if (query.trim().length === 0) {
                 setSocioEncontrado(null);
@@ -294,7 +294,7 @@ export default function CheckInPage() {
                             <div className="absolute left-4 top-1/2 -translate-y-1/2">
                                 {searching ? (
                                     <Loader2 className="h-5 w-5 text-emerald-500 animate-spin" />
-                                ) : (
+                                ):(
                                     <Search className="h-5 w-5 text-emerald-500 group-focus-within:text-emerald-500 transition-colors" />
                                 )}
                             </div>
@@ -314,7 +314,7 @@ export default function CheckInPage() {
                             disabled={searching || !query.trim()}
                             className="bg-emerald-500 hover:bg-teal-500 disabled:bg-emerald-400 text-white font-bold py-3 md:py-4 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-200 text-sm md:text-base"
                         >
-                            {searching ? "Buscando..." : "Buscar Socio"}
+                            {searching ? "Buscando...":"Buscar Socio"}
                         </button>
                     </div>
                 </form>
@@ -334,9 +334,9 @@ export default function CheckInPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Ficha del Socio */}
                     <div className="lg:col-span-2 space-y-6">
-                        <div className={`rounded-3xl p-8 border ${tieneVozYVoto(socioEncontrado) ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'} shadow-sm relative overflow-hidden`}>
+                        <div className={`rounded-3xl p-8 border ${tieneVozYVoto(socioEncontrado) ? 'bg-emerald-50 border-emerald-200':'bg-amber-50 border-amber-200'} shadow-sm relative overflow-hidden`}>
                             <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-                                <div className={`h-32 w-32 rounded-3xl flex items-center justify-center font-black text-4xl shadow-inner ${tieneVozYVoto(socioEncontrado) ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
+                                <div className={`h-32 w-32 rounded-3xl flex items-center justify-center font-black text-4xl shadow-inner ${tieneVozYVoto(socioEncontrado) ? 'bg-emerald-500 text-white':'bg-amber-500 text-white'}`}>
                                     {socioEncontrado.numeroSocio.slice(-2)}
                                 </div>
                                 <div className="flex-1 space-y-4">
@@ -359,7 +359,7 @@ export default function CheckInPage() {
                                                 <ShieldCheck className="h-4 w-4" />
                                                 VOZ Y VOTO
                                             </div>
-                                        ) : (
+                                        ):(
                                             <div className="bg-amber-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm font-bold">
                                                 <AlertCircle className="h-4 w-4" />
                                                 SOLO VOZ
@@ -374,32 +374,32 @@ export default function CheckInPage() {
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                             <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
                                 <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Aporte</p>
-                                <p className={`font-bold ${socioEncontrado.aporteAlDia ? 'text-emerald-500' : 'text-red-600'}`}>
-                                    {socioEncontrado.aporteAlDia ? 'AL DÍA' : 'PENDIENTE'}
+                                <p className={`font-bold ${socioEncontrado.aporteAlDia ? 'text-emerald-500':'text-red-600'}`}>
+                                    {socioEncontrado.aporteAlDia ? 'AL DÍA':'PENDIENTE'}
                                 </p>
                             </div>
                             <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
                                 <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Solidaridad</p>
-                                <p className={`font-bold ${socioEncontrado.solidaridadAlDia ? 'text-emerald-500' : 'text-red-600'}`}>
-                                    {socioEncontrado.solidaridadAlDia ? 'AL DÍA' : 'PENDIENTE'}
+                                <p className={`font-bold ${socioEncontrado.solidaridadAlDia ? 'text-emerald-500':'text-red-600'}`}>
+                                    {socioEncontrado.solidaridadAlDia ? 'AL DÍA':'PENDIENTE'}
                                 </p>
                             </div>
                             <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
                                 <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Fondo</p>
-                                <p className={`font-bold ${socioEncontrado.fondoAlDia ? 'text-emerald-500' : 'text-red-600'}`}>
-                                    {socioEncontrado.fondoAlDia ? 'AL DÍA' : 'PENDIENTE'}
+                                <p className={`font-bold ${socioEncontrado.fondoAlDia ? 'text-emerald-500':'text-red-600'}`}>
+                                    {socioEncontrado.fondoAlDia ? 'AL DÍA':'PENDIENTE'}
                                 </p>
                             </div>
                             <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
                                 <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Incoop</p>
-                                <p className={`font-bold ${socioEncontrado.incoopAlDia ? 'text-emerald-500' : 'text-red-600'}`}>
-                                    {socioEncontrado.incoopAlDia ? 'AL DÍA' : 'PENDIENTE'}
+                                <p className={`font-bold ${socioEncontrado.incoopAlDia ? 'text-emerald-500':'text-red-600'}`}>
+                                    {socioEncontrado.incoopAlDia ? 'AL DÍA':'PENDIENTE'}
                                 </p>
                             </div>
                             <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
                                 <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Crédito</p>
-                                <p className={`font-bold ${socioEncontrado.creditoAlDia ? 'text-emerald-500' : 'text-red-600'}`}>
-                                    {socioEncontrado.creditoAlDia ? 'AL DÍA' : 'PENDIENTE'}
+                                <p className={`font-bold ${socioEncontrado.creditoAlDia ? 'text-emerald-500':'text-red-600'}`}>
+                                    {socioEncontrado.creditoAlDia ? 'AL DÍA':'PENDIENTE'}
                                 </p>
                             </div>
                         </div>
@@ -414,10 +414,10 @@ export default function CheckInPage() {
                         >
                             {checkinLoading ? (
                                 <Loader2 className="h-8 w-8 animate-spin" />
-                            ) : (
+                            ):(
                                 <UserCheck className="h-8 w-8" />
                             )}
-                            {checkinLoading ? "PROCESANDO..." : "CONFIRMAR INGRESO"}
+                            {checkinLoading ? "PROCESANDO...":"CONFIRMAR INGRESO"}
                         </button>
 
                         <button
@@ -453,7 +453,7 @@ export default function CheckInPage() {
             )}
 
             {/* Últimos Check-ins */}
-            {ultimosCheckins.length > 0 && (
+            {ultimosCheckins.length> 0 && (
                 <div className="bg-white rounded-2xl p-6 border border-slate-100">
                     <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
                         <Clock className="h-5 w-5 text-emerald-500" />

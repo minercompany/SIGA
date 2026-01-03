@@ -87,7 +87,7 @@ export default function ForcePasswordChange({ onSuccess }: ForcePasswordChangePr
                             </div>
                             <p className="text-teal-500 font-black uppercase tracking-widest text-xs">Acceso Autorizado</p>
                         </div>
-                    ) : (
+                    ):(
                         <>
                             <div className="space-y-4">
                                 <div className="relative group">
@@ -95,7 +95,7 @@ export default function ForcePasswordChange({ onSuccess }: ForcePasswordChangePr
                                     <div className="relative">
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-teal-500 transition-colors" />
                                         <input
-                                            type={showPass ? "text" : "password"}
+                                            type={showPass ? "text":"password"}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none transition-all font-mono"
@@ -107,7 +107,7 @@ export default function ForcePasswordChange({ onSuccess }: ForcePasswordChangePr
                                             onClick={() => setShowPass(!showPass)}
                                             className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                         >
-                                            {showPass ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                            {showPass ? <EyeOff className="h-5 w-5" />:<Eye className="h-5 w-5" />}
                                         </button>
                                     </div>
                                 </div>
@@ -117,7 +117,7 @@ export default function ForcePasswordChange({ onSuccess }: ForcePasswordChangePr
                                     <div className="relative">
                                         <Shield className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-teal-500 transition-colors" />
                                         <input
-                                            type={showPass ? "text" : "password"}
+                                            type={showPass ? "text":"password"}
                                             value={confirm}
                                             onChange={(e) => setConfirm(e.target.value)}
                                             className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none transition-all font-mono"
@@ -133,7 +133,7 @@ export default function ForcePasswordChange({ onSuccess }: ForcePasswordChangePr
                                 disabled={loading}
                                 className="w-full py-5 bg-teal-500 text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-teal-100 hover:bg-teal-500 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                             >
-                                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Actualizar Contraseña"}
+                                {loading ? <Loader2 className="h-5 w-5 animate-spin" />:"Actualizar Contraseña"}
                             </button>
                         </>
                     )}

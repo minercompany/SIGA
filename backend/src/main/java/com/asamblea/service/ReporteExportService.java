@@ -27,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.awt.Color;
 
 @Service
@@ -164,6 +165,83 @@ public class ReporteExportService {
             e.printStackTrace();
         }
         return out.toByteArray();
+    }
+
+    public byte[] generarPdfAsignacionesDiarias(List<Map<String, Object>> data, int dias) {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document document = new Document(PageSize.A4);
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            // Título
+            Font fontTitle = new Font(Font.HELVETICA, 18, Font.BOLD, new Color(16, 185, 129));
+            Paragraph title = new Paragraph("Reporte de Asignaciones Diarias", fontTitle);
+            title.setAlignment(Element.ALIGN_CENTER);
+            document.add(title);
+
+            Paragraph subtitle = new Paragraph("Últimos " + dias + " días",
+                    new Font(Font.HELVETICA, 12, Font.NORMAL, Color.GRAY));
+            subtitle.setAlignment(Element.ALIGN_CENTER);
+            subtitle.setSpacingAfter(20);
+            document.add(subtitle);
+
+            // Tabla
+            PdfPTable table = new PdfPTable(2);
+            table.setWidthPercentage(80);
+            table.setWidths(new float[] { 1, 1 });
+
+            // Headers
+            Font fontHeader = new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE);
+            Color headerColor = new Color(16, 185, 129);
+
+            addCellAsignaciones(table, "Fecha", fontHeader, headerColor, Element.ALIGN_CENTER);
+            addCellAsignaciones(table, "Total Asignaciones", fontHeader, headerColor, Element.ALIGN_CENTER);
+
+            // Data
+            Font fontData = new Font(Font.HELVETICA, 11, Font.NORMAL, Color.BLACK);
+            Color altColor = new Color(240, 253, 244);
+            boolean alternate = false;
+
+            for (Map<String, Object> row : data) {
+                Color bg = alternate ? altColor : Color.WHITE;
+                String fecha = row.get("fecha").toString();
+                String total = row.get("total").toString();
+
+                addCellAsignaciones(table, fecha, fontData, bg, Element.ALIGN_CENTER);
+                addCellAsignaciones(table, total, fontData, bg, Element.ALIGN_CENTER);
+                alternate = !alternate;
+            }
+
+            document.add(table);
+            document.close();
+            return out.toByteArray();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+    }
+
+    // Helper para celdas de asignaciones
+    private void addCellAsignaciones(PdfPTable table, String text, Font font, Color bg, int align) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setBackgroundColor(bg);
+        cell.setHorizontalAlignment(align);
+        cell.setPadding(8);
+        cell.setBorderColor(new Color(226, 232, 240));
+        table.addCell(cell);
+    }
+
+    public byte[] generarExcelAsignacionesDiarias(List<Map<String, Object>> data, int dias) {
+        // TODO: Implementar Excel real con Apache POI si se requiere, por ahora
+        // simulación o CSV simple
+        // Dado que el usuario pidió específicamente PDF, priorizamos eso.
+        // Para Excel rápido: CSV
+        StringBuilder csv = new StringBuilder();
+        csv.append("Fecha,Total Asignaciones\n");
+        for (Map<String, Object> row : data) {
+            csv.append(row.get("fecha")).append(",").append(row.get("total")).append("\n");
+        }
+        return csv.toString().getBytes();
     }
 
     private void addCell(PdfPTable table, String text, Font font, Color bg, int align) {

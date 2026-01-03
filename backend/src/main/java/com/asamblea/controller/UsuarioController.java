@@ -100,6 +100,16 @@ public class UsuarioController {
             map.put("passwordVisible", u.getPasswordVisible()); // Contraseña visible para admins
             map.put("tipo", "USUARIO");
 
+            // FUSIÓN: Si tiene socio vinculado, agregar detalles de estado
+            if (u.getSocio() != null) {
+                Socio s = u.getSocio();
+                map.put("aporteAlDia", s.isAporteAlDia());
+                map.put("solidaridadAlDia", s.isSolidaridadAlDia());
+                map.put("fondoAlDia", s.isFondoAlDia());
+                map.put("incoopAlDia", s.isIncoopAlDia());
+                map.put("creditoAlDia", s.isCreditoAlDia());
+            }
+
             // Usamos username como clave de fusión (asumiendo que es la cédula)
             String key = u.getUsername().replaceAll("[^0-9]", "");
             if (!key.isEmpty()) {
@@ -134,6 +144,14 @@ public class UsuarioController {
                     existingMap.put("vozVoto", s.isEstadoVozVoto());
                     existingMap.put("rolNombre", existingMap.get("rolNombre") + " / Socio"); // Mostrar ambos roles
                                                                                              // visualmente
+
+                    // Agregar estados
+                    existingMap.put("aporteAlDia", s.isAporteAlDia());
+                    existingMap.put("solidaridadAlDia", s.isSolidaridadAlDia());
+                    existingMap.put("fondoAlDia", s.isFondoAlDia());
+                    existingMap.put("incoopAlDia", s.isIncoopAlDia());
+                    existingMap.put("creditoAlDia", s.isCreditoAlDia());
+
                 } else {
                     // NUEVO: No estaba como usuario, agregarlo como socio puro
                     // Verificar si ya fue agregado por socio linkeado (edge case)
@@ -156,6 +174,15 @@ public class UsuarioController {
                     map.put("cedula", s.getCedula());
                     map.put("tipo", "SOCIO");
                     map.put("vozVoto", s.isEstadoVozVoto());
+                    map.put("sucursal", s.getSucursal() != null ? s.getSucursal().getNombre() : null);
+
+                    // Agregar estados
+                    map.put("aporteAlDia", s.isAporteAlDia());
+                    map.put("solidaridadAlDia", s.isSolidaridadAlDia());
+                    map.put("fondoAlDia", s.isFondoAlDia());
+                    map.put("incoopAlDia", s.isIncoopAlDia());
+                    map.put("creditoAlDia", s.isCreditoAlDia());
+
                     mergedResults.put("SOCIO_" + s.getId(), map);
                 }
             }

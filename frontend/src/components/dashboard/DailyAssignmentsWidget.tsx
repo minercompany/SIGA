@@ -61,7 +61,7 @@ export function DailyAssignmentsWidget({ onOpenModal }: DailyAssignmentsWidgetPr
                     {/* Main Number */}
                     <div className="flex-1 flex flex-col justify-center">
                         <h2 className="text-6xl font-black text-slate-800 tracking-tight leading-none mb-2">
-                            {loading ? "..." : totalHoy}
+                            {loading ? "...":totalHoy}
                         </h2>
                         <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-4">
                             Nuevos Socios Asignados

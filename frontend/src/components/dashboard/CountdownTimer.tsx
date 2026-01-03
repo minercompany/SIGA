@@ -14,19 +14,19 @@ export const CountdownTimer = () => {
         if (!fechaAsamblea) return;
 
         const [year, month, day] = fechaAsamblea.split('-').map(Number);
-        const targetDate = new Date(year, month - 1, day, 8, 0, 0);
+        const targetDate = new Date(year, month-1, day, 8, 0, 0);
 
         const calculateTimeLeft = () => {
             const now = new Date();
             const difference = targetDate.getTime() - now.getTime();
 
-            if (difference > 0) {
+            if (difference> 0) {
                 setIsPast(false);
                 setTimeLeft({
-                    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-                    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                    minutes: Math.floor((difference / 1000 / 60) % 60),
-                    seconds: Math.floor((difference / 1000) % 60)
+                    days: Math.floor(difference /(1000 * 60 * 60 * 24)),
+                    hours: Math.floor((difference /(1000 * 60 * 60)) % 24),
+                    minutes: Math.floor((difference /1000 /60) % 60),
+                    seconds: Math.floor((difference /1000) % 60)
                 });
             } else {
                 setIsPast(true);
@@ -51,7 +51,7 @@ export const CountdownTimer = () => {
                 relative overflow-hidden rounded-[2rem] w-full shadow-2xl shadow-emerald-900/20
                 ${isPast
                         ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600'
-                        : 'bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500'
+                       :'bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500'
                     }
             `}>
                 {/* Decorative Background Elements - Glassy & Vivid */}
@@ -67,11 +67,11 @@ export const CountdownTimer = () => {
                     <div className="flex items-center gap-4 lg:gap-6 w-full lg:w-auto z-10">
                         <div className={`
                             p-3 lg:p-4 rounded-2xl shadow-xl shrink-0 backdrop-blur-md border border-white/20
-                            ${isPast ? 'bg-white/20' : 'bg-white/10'}
+                            ${isPast ? 'bg-white/20':'bg-white/10'}
                         `}>
                             {isPast
                                 ? <AlertCircle className="w-6 h-6 lg:w-8 lg:h-8 text-white drop-shadow-md" />
-                                : <Calendar className="w-6 h-6 lg:w-8 lg:h-8 text-white drop-shadow-md" />
+                               :<Calendar className="w-6 h-6 lg:w-8 lg:h-8 text-white drop-shadow-md" />
                             }
                         </div>
                         <div className="min-w-0 flex-1">
@@ -83,7 +83,7 @@ export const CountdownTimer = () => {
                                     </span>
                                 )}
                                 <h3 className="text-[10px] lg:text-xs font-bold text-emerald-100 uppercase tracking-[0.2em] drop-shadow-sm">
-                                    {isPast ? 'Evento Finalizado' : 'Cuenta Regresiva Oficial'}
+                                    {isPast ? 'Evento Finalizado':'Cuenta Regresiva Oficial'}
                                 </h3>
                             </div>
                             <h2 className="text-xl lg:text-3xl font-black text-white leading-tight tracking-tight drop-shadow-md">
@@ -125,9 +125,9 @@ export const CountdownTimer = () => {
                     {/* Status Badge (Desktop Only) */}
                     <div className="hidden lg:block z-10">
                         <div className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${isPast ? 'bg-amber-400' : 'bg-emerald-400'} shadow-[0_0_8px_rgba(52,211,153,0.6)]`} />
+                            <div className={`w-2 h-2 rounded-full ${isPast ? 'bg-amber-400':'bg-emerald-400'} shadow-[0_0_8px_rgba(52,211,153,0.6)]`} />
                             <span className="text-xs font-bold text-white uppercase tracking-wider">
-                                {isPast ? 'Finalizado' : 'Sistema Activo'}
+                                {isPast ? 'Finalizado':'Sistema Activo'}
                             </span>
                         </div>
                     </div>

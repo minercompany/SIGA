@@ -88,7 +88,7 @@ export default function AsistenciaPage() {
             clearTimeout(searchTimeoutRef.current);
         }
 
-        if (searchTerm.trim().length >= 1) {
+        if (searchTerm.trim().length>= 1) {
             searchTimeoutRef.current = setTimeout(() => {
                 buscarSocios(searchTerm);
             }, 600);
@@ -118,7 +118,7 @@ export default function AsistenciaPage() {
             const socios = res.data.map((s: any) => ({
                 ...s,
                 // Si el backend no devuelve 'conVozYVoto' calculado, lo calculamos aquí
-                conVozYVoto: s.estadoVozVoto !== undefined ? s.estadoVozVoto : (s.aporteAlDia && s.solidaridadAlDia && s.fondoAlDia && s.incoopAlDia && s.creditoAlDia),
+                conVozYVoto: s.estadoVozVoto !== undefined ? s.estadoVozVoto:(s.aporteAlDia && s.solidaridadAlDia && s.fondoAlDia && s.incoopAlDia && s.creditoAlDia),
 
                 // Chequear si ya está en asistenciasHoy
                 asistenciaConfirmada: asistenciasHoy.some(a => a.socioNumero === s.numeroSocio)
@@ -147,7 +147,7 @@ export default function AsistenciaPage() {
             setFoundSocios(prev => prev.map(s =>
                 s.id === socioId
                     ? { ...s, asistenciaConfirmada: true, fechaAsistencia: new Date().toISOString() }
-                    : s
+                   :s
             ));
 
             toast.success("Asistencia registrada correctamente");
@@ -182,7 +182,7 @@ export default function AsistenciaPage() {
             setFoundSocios(prev => prev.map(s =>
                 s.id === socioId
                     ? { ...s, asistenciaConfirmada: false, fechaAsistencia: undefined }
-                    : s
+                   :s
             ));
 
             toast.success("Asistencia eliminada correctamente");
@@ -284,19 +284,19 @@ export default function AsistenciaPage() {
                             key={socio.id}
                             className={`group relative bg-white border rounded-xl sm:rounded-[2rem] p-4 sm:p-6 shadow-sm hover:shadow-xl transition-all duration-300 ${socio.asistenciaConfirmada
                                 ? 'border-emerald-200 bg-emerald-50/20'
-                                : 'border-slate-100 hover:border-violet-200'
+                               :'border-slate-100 hover:border-violet-200'
                                 }`}
                         >
                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
 
-                                {/* Avatar / Estado */}
+                                {/* Avatar /Estado */}
                                 <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-inner transition-colors ${socio.asistenciaConfirmada
                                     ? 'bg-emerald-100 text-emerald-500'
-                                    : 'bg-slate-50 text-slate-400 group-hover:bg-violet-50 group-hover:text-violet-500'
+                                   :'bg-slate-50 text-slate-400 group-hover:bg-violet-50 group-hover:text-violet-500'
                                     }`}>
                                     {socio.asistenciaConfirmada
                                         ? <CheckCircle className="w-7 h-7 sm:w-10 sm:h-10" />
-                                        : <User className="w-7 h-7 sm:w-10 sm:h-10" />
+                                       :<User className="w-7 h-7 sm:w-10 sm:h-10" />
                                     }
                                 </div>
 
@@ -330,7 +330,7 @@ export default function AsistenciaPage() {
                                             <span className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-blue-100 text-blue-700 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
                                                 Voz y Voto
                                             </span>
-                                        ) : (
+                                        ):(
                                             <span className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-amber-100 text-amber-700 text-[9px] sm:text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
                                                 <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Solo Voz
                                             </span>
@@ -358,14 +358,14 @@ export default function AsistenciaPage() {
                                                 >
                                                     {deleting === socio.id ? (
                                                         <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
-                                                    ) : (
+                                                    ):(
                                                         <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                                                     )}
                                                     <span>Borrar Asistencia</span>
                                                 </button>
                                             )}
                                         </div>
-                                    ) : (
+                                    ):(
                                         <button
                                             onClick={() => marcarAsistencia(socio.id)}
                                             disabled={marking === socio.id}
@@ -373,7 +373,7 @@ export default function AsistenciaPage() {
                                         >
                                             {marking === socio.id ? (
                                                 <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                                            ) : (
+                                            ):(
                                                 <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                                             )}
                                             <span>Registrar</span>
@@ -417,10 +417,10 @@ export default function AsistenciaPage() {
                     <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                         {asistenciasHoy.length === 0 ? (
                             <p className="text-center text-slate-400 text-sm py-8">No hay ingresos registrados hoy.</p>
-                        ) : (
+                        ):(
                             asistenciasHoy.slice(0, 10).map((a, i) => (
                                 <div key={a.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                                    <div className={`w-2 h-10 rounded-full ${a.vozVoto ? 'bg-blue-500' : 'bg-amber-500'}`} />
+                                    <div className={`w-2 h-10 rounded-full ${a.vozVoto ? 'bg-blue-500':'bg-amber-500'}`} />
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-bold text-slate-800 truncate">{a.socioNombre}</p>
                                         <div className="flex items-center gap-2">
@@ -434,7 +434,7 @@ export default function AsistenciaPage() {
                                 </div>
                             ))
                         )}
-                        {asistenciasHoy.length > 10 && (
+                        {asistenciasHoy.length> 10 && (
                             <div className="text-center pt-2 border-t border-slate-100">
                                 <span className="text-xs font-bold text-violet-600 cursor-pointer hover:underline">Ver todos...</span>
                             </div>

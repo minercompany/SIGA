@@ -32,55 +32,55 @@ export function TourOverlay() {
 
                 // Calcular posición del tooltip (Ahora para AMBOS: Móvil y Desktop)
                 const isSmallScreen = window.innerWidth < 768;
-                const tooltipWidth = isSmallScreen ? window.innerWidth - 32 : 400;
+                const tooltipWidth = isSmallScreen ? window.innerWidth-32:400;
                 // Estimación de altura, o dejar que se ajuste y luego corregir.
                 // Para simplificar, usaremos una altura fija estimada o cálculo dinámico simple.
-                const tooltipHeight = isSmallScreen ? 200 : 280;
-                const margin = isSmallScreen ? 12 : 20;
+                const tooltipHeight = isSmallScreen ? 200:280;
+                const margin = isSmallScreen ? 12:20;
 
                 let top = 0;
                 let left = 0;
 
                 // Determinar la mejor posición según dónde está el elemento
-                const spaceBottom = window.innerHeight - rect.bottom;
+                const spaceBottom = window.innerHeight-rect.bottom;
                 const spaceTop = rect.top;
 
                 // Lógica simplificada de posicionamiento automático
                 // 1. Si es sidebar/menú (izquierda), intentar poner a la derecha (solo desktop)
                 if (!isSmallScreen && rect.left < 300) {
                     left = rect.right + margin;
-                    top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+                    top = rect.top + (rect.height /2) - (tooltipHeight /2);
                 }
                 // 2. Si hay espacio abajo, poner abajo (Preferido en móvil para elementos superiores)
-                else if (spaceBottom > tooltipHeight + margin) {
+                else if (spaceBottom> tooltipHeight + margin) {
                     top = rect.bottom + margin;
                     // Centrar horizontalmente respecto al target
-                    left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+                    left = rect.left + (rect.width /2) - (tooltipWidth /2);
                 }
                 // 3. Si no, poner arriba
                 else {
-                    top = rect.top - tooltipHeight - margin;
-                    left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+                    top = rect.top-tooltipHeight-margin;
+                    left = rect.left + (rect.width /2) - (tooltipWidth /2);
                 }
 
                 // Asegurar que no se salga de la pantalla (Horizontal)
-                left = Math.max(16, Math.min(left, window.innerWidth - tooltipWidth - 16));
+                left = Math.max(16, Math.min(left, window.innerWidth-tooltipWidth-16));
 
                 // Asegurar que no se salga de la pantalla (Vertical)
                 // Si se sale por arriba, topar con margen superior
                 if (top < 80) top = rect.bottom + margin;
 
                 // CRÍTICO: Si se sale por abajo, pegarlo al fondo
-                if (top + tooltipHeight > window.innerHeight - 10) {
-                    top = window.innerHeight - tooltipHeight - 20;
+                if (top + tooltipHeight> window.innerHeight-10) {
+                    top = window.innerHeight-tooltipHeight-20;
                 }
 
                 setTooltipPosition({ top, left });
 
                 // Scroll al elemento si está lejos
-                const elementCenter = rect.top + rect.height / 2;
-                const viewportCenter = window.innerHeight / 2;
-                if (Math.abs(elementCenter - viewportCenter) > window.innerHeight * 0.4) {
+                const elementCenter = rect.top + rect.height /2;
+                const viewportCenter = window.innerHeight /2;
+                if (Math.abs(elementCenter-viewportCenter) > window.innerHeight * 0.4) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }
@@ -148,8 +148,8 @@ export function TourOverlay() {
                             <rect x="0" y="0" width="100%" height="100%" fill="white" />
                             {targetRect && (
                                 <rect
-                                    x={targetRect.left - 8}
-                                    y={targetRect.top - 8}
+                                    x={targetRect.left-8}
+                                    y={targetRect.top-8}
                                     width={targetRect.width + 16}
                                     height={targetRect.height + 16}
                                     rx="16"
@@ -178,8 +178,8 @@ export function TourOverlay() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="absolute pointer-events-none"
                         style={{
-                            top: targetRect.top - 8,
-                            left: targetRect.left - 8,
+                            top: targetRect.top-8,
+                            left: targetRect.left-8,
                             width: targetRect.width + 16,
                             height: targetRect.height + 16,
                         }}
@@ -199,7 +199,7 @@ export function TourOverlay() {
                     style={{
                         top: tooltipPosition.top,
                         left: tooltipPosition.left,
-                        width: isMobile ? 'calc(100vw - 32px)' : '400px',
+                        width: isMobile ? 'calc(100vw-32px)':'400px',
                     }}
                 >
                     <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
@@ -231,7 +231,7 @@ export function TourOverlay() {
                             <div className="mt-3 md:mt-4 h-1 bg-white/20 rounded-full overflow-hidden">
                                 <motion.div
                                     initial={{ width: 0 }}
-                                    animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                                    animate={{ width: `${((currentStep + 1) /steps.length) * 100}%` }}
                                     className="h-full bg-white rounded-full"
                                 />
                             </div>
@@ -264,7 +264,7 @@ export function TourOverlay() {
                             </button>
 
                             <div className="flex items-center gap-2">
-                                {currentStep > 0 && (
+                                {currentStep> 0 && (
                                     <button
                                         onClick={prevStep}
                                         className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
@@ -276,8 +276,8 @@ export function TourOverlay() {
                                     onClick={handleNext}
                                     className="px-4 py-2 md:px-5 md:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-bold text-xs md:text-sm hover:from-emerald-500 hover:to-teal-500 transition-all shadow-lg shadow-emerald-200 flex items-center gap-2 whitespace-nowrap"
                                 >
-                                    {currentStep === steps.length - 1 ? '¡Listo!' : 'Siguiente'}
-                                    {currentStep < steps.length - 1 && <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />}
+                                    {currentStep === steps.length-1 ? '¡Listo!':'Siguiente'}
+                                    {currentStep <steps.length-1 && <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />}
                                 </button>
                             </div>
                         </div>

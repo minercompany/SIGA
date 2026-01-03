@@ -153,7 +153,7 @@ export default function DashboardPage() {
 
             {isSocioView ? (
                 <SocioDashboard misListas={misListas} />
-            ) : (
+            ):(
                 <AdminDashboard
                     stats={stats}
                     desempeno={desempeno}

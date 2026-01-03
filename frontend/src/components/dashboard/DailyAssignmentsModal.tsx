@@ -137,8 +137,8 @@ export function DailyAssignmentsModal({ isOpen, onClose }: DailyAssignmentsModal
                                 key={d}
                                 onClick={() => setDias(d)}
                                 className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${dias === d
-                                        ? "bg-blue-500 text-white shadow-md"
-                                        : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+                                    ? "bg-blue-500 text-white shadow-md"
+                                    : "bg-slate-100 text-slate-400 hover:bg-slate-200"
                                     }`}
                             >
                                 {d} días
@@ -191,37 +191,39 @@ export function DailyAssignmentsModal({ isOpen, onClose }: DailyAssignmentsModal
                                 <p className="text-slate-400 font-bold uppercase tracking-widest text-xs animate-pulse">Cargando datos...</p>
                             </div>
                         ) : stats.length > 0 ? (
-                            <div className="h-[400px] bg-white rounded-2xl border border-slate-100 p-6">
+                            <div className="bg-white rounded-2xl border border-slate-100 p-6">
                                 <h3 className="font-black text-slate-800 uppercase tracking-wider text-sm mb-6">Tendencia de Asignaciones</h3>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={chartData}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                        <XAxis
-                                            dataKey="fecha"
-                                            tick={{ fontSize: 12, fill: '#64748b' }}
-                                            stroke="#94a3b8"
-                                        />
-                                        <YAxis
-                                            tick={{ fontSize: 12, fill: '#64748b' }}
-                                            stroke="#94a3b8"
-                                        />
-                                        <Tooltip
-                                            contentStyle={{
-                                                borderRadius: '1rem',
-                                                border: 'none',
-                                                boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
-                                                fontWeight: 'bold'
-                                            }}
-                                        />
-                                        <Bar dataKey="total" fill="url(#colorGradient)" radius={[8, 8, 0, 0]} />
-                                        <defs>
-                                            <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="0%" stopColor="#3b82f6" />
-                                                <stop offset="100%" stopColor="#6366f1" />
-                                            </linearGradient>
-                                        </defs>
-                                    </BarChart>
-                                </ResponsiveContainer>
+                                <div style={{ width: '100%', height: '350px', minHeight: '250px' }}>
+                                    <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+                                        <BarChart data={chartData}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                            <XAxis
+                                                dataKey="fecha"
+                                                tick={{ fontSize: 12, fill: '#64748b' }}
+                                                stroke="#94a3b8"
+                                            />
+                                            <YAxis
+                                                tick={{ fontSize: 12, fill: '#64748b' }}
+                                                stroke="#94a3b8"
+                                            />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    borderRadius: '1rem',
+                                                    border: 'none',
+                                                    boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            />
+                                            <Bar dataKey="total" fill="url(#colorGradient)" radius={[8, 8, 0, 0]} />
+                                            <defs>
+                                                <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="0%" stopColor="#3b82f6" />
+                                                    <stop offset="100%" stopColor="#6366f1" />
+                                                </linearGradient>
+                                            </defs>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-64 text-slate-400">

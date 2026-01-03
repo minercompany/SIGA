@@ -17,8 +17,8 @@ interface CarnetDataProps {
 // Componente Presentacional Puro (Sin Hooks de Contexto)
 export const SocioCarnetBase: React.FC<CarnetDataProps> = ({ socio, config }) => {
     const { nombreAsamblea, fechaAsamblea } = config;
-    const votingStatus = socio.tieneVoto ? "VOZ Y VOTO" : "SOLO VOZ";
-    const year = fechaAsamblea ? new Date(fechaAsamblea).getFullYear() : new Date().getFullYear();
+    const votingStatus = socio.tieneVoto ? "VOZ Y VOTO":"SOLO VOZ";
+    const year = fechaAsamblea ? new Date(fechaAsamblea).getFullYear():new Date().getFullYear();
 
     // Colores base basados en la imagen oficial
     const darkText = "#1a2e26";
@@ -26,9 +26,9 @@ export const SocioCarnetBase: React.FC<CarnetDataProps> = ({ socio, config }) =>
     const lineSecondary = "#d1d5db";
 
     // Colores condicionales para la pastilla (Pill)
-    const pillBg = socio.tieneVoto ? "#22c55e" : "#fedb39";
-    const pillShadow = socio.tieneVoto ? "#16a34a" : "#e5c100";
-    const pillTextColor = socio.tieneVoto ? "#ffffff" : "#1a2e26";
+    const pillBg = socio.tieneVoto ? "#22c55e":"#fedb39";
+    const pillShadow = socio.tieneVoto ? "#16a34a":"#e5c100";
+    const pillTextColor = socio.tieneVoto ? "#ffffff":"#1a2e26";
 
     return (
         <div id={`carnet-${socio.nroSocio}`} style={{
@@ -84,7 +84,7 @@ export const SocioCarnetBase: React.FC<CarnetDataProps> = ({ socio, config }) =>
                             marginTop: '5px',
                             letterSpacing: '0.5px'
                         }}>
-                            {nombreAsamblea.includes(String(year)) ? nombreAsamblea : `${nombreAsamblea} ${year}`}
+                            {nombreAsamblea.includes(String(year)) ? nombreAsamblea:`${nombreAsamblea} ${year}`}
                         </div>
                     </div>
                 </div>

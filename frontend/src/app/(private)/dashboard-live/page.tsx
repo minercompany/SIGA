@@ -101,7 +101,7 @@ export default function DashboardEnVivoPage() {
         funcionarios?: { meta: number; registradosVozYVoto: number; porcentajeMeta: number };
     } | null>(null);
 
-    // Verificar permisos de acceso - redirigir USUARIO_SOCIO a su dashboard
+    // Verificar permisos de acceso-redirigir USUARIO_SOCIO a su dashboard
     useEffect(() => {
         const userData = localStorage.getItem("user");
         if (userData) {
@@ -181,12 +181,12 @@ export default function DashboardEnVivoPage() {
                     sucursalMap[suc].soloVoz++;
                 }
             });
-            const regsPorSuc = Object.values(sucursalMap).sort((a, b) => b.totalRegistros - a.totalRegistros);
+            const regsPorSuc = Object.values(sucursalMap).sort((a, b) => b.totalRegistros-a.totalRegistros);
             setRegistrosPorSucursal(regsPorSuc);
             // =====================================================
 
-            const quorum = Math.floor(statsRes.data.totalPadron / 2) + 1;
-            if (statsRes.data.presentes >= quorum && !quorumReached) {
+            const quorum = Math.floor(statsRes.data.totalPadron /2) + 1;
+            if (statsRes.data.presentes>= quorum && !quorumReached) {
                 setQuorumReached(true);
             }
         } catch (error) {
@@ -216,11 +216,11 @@ export default function DashboardEnVivoPage() {
         );
     }
 
-    const quorumNecesario = Math.floor(stats.totalPadron / 2) + 1;
-    const faltanParaQuorum = Math.max(0, quorumNecesario - stats.presentes);
-    const porcentajeQuorum = Math.min((stats.presentes / quorumNecesario) * 100, 100);
-    const porcentajeAsistencia = stats.totalPadron > 0 ? (stats.presentes / stats.totalPadron) * 100 : 0;
-    const presentesSoloVoz = stats.presentes - stats.presentesVyV;
+    const quorumNecesario = Math.floor(stats.totalPadron /2) + 1;
+    const faltanParaQuorum = Math.max(0, quorumNecesario-stats.presentes);
+    const porcentajeQuorum = Math.min((stats.presentes /quorumNecesario) * 100, 100);
+    const porcentajeAsistencia = stats.totalPadron> 0 ? (stats.presentes /stats.totalPadron) * 100:0;
+    const presentesSoloVoz = stats.presentes-stats.presentesVyV;
 
     const distribucionPresentes = [
         { name: 'Con V&V', value: stats.presentesVyV, color: '#10b981' },
@@ -233,13 +233,13 @@ export default function DashboardEnVivoPage() {
     ];
 
     const topSucursales = [...sucursalesStats]
-        .sort((a, b) => b.padron - a.padron)
+        .sort((a, b) => b.padron-a.padron)
         .slice(0, 6)
         .map(s => ({
             name: s.sucursal?.substring(0, 12) || 'N/A',
             padron: s.padron,
             vyv: s.vozVoto,
-            soloVoz: s.soloVoz || (s.presentes - s.vozVoto),
+            soloVoz: s.soloVoz || (s.presentes-s.vozVoto),
             presentes: s.presentes || 0,
         }));
 
@@ -435,7 +435,7 @@ export default function DashboardEnVivoPage() {
                     </motion.div>
                 )}
 
-                {/* KPIs Premium Grid - 6 Tarjetas */}
+                {/* KPIs Premium Grid-6 Tarjetas */}
                 <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-6 md:mb-8">
                     {/* 1. Total Padrón */}
                     <motion.div
@@ -583,9 +583,9 @@ export default function DashboardEnVivoPage() {
                                 initial={{ width: 0 }}
                                 animate={{ width: `${porcentajeAsistencia}%` }}
                                 transition={{ duration: 1.5, ease: "easeOut" }}
-                                className={`h-full rounded-full relative overflow-hidden ${porcentajeAsistencia >= 50
+                                className={`h-full rounded-full relative overflow-hidden ${porcentajeAsistencia>= 50
                                     ? 'bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-500'
-                                    : 'bg-gradient-to-r from-blue-400 via-indigo-500 to-violet-500'
+                                   :'bg-gradient-to-r from-blue-400 via-indigo-500 to-violet-500'
                                     }`}
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-shimmer" />
@@ -619,7 +619,7 @@ export default function DashboardEnVivoPage() {
                             <div>
                                 <div className="flex items-baseline gap-1">
                                     <span className="text-4xl lg:text-5xl font-black text-emerald-400 tracking-tight">
-                                        {(Math.floor(stats.presentesVyV / 2) + 1).toLocaleString()}
+                                        {(Math.floor(stats.presentesVyV /2) + 1).toLocaleString()}
                                     </span>
                                     <span className="text-lg font-bold text-slate-300">votos</span>
                                 </div>
@@ -649,7 +649,7 @@ export default function DashboardEnVivoPage() {
                             </div>
                             <h2 className="text-lg font-bold text-slate-800">Evolución de Asistencia por Hora</h2>
                         </div>
-                        {evolucionHora.length > 0 ? (
+                        {evolucionHora.length> 0 ? (
                             <ResponsiveContainer width="100%" height={280}>
                                 <AreaChart data={evolucionHora}>
                                     <defs>
@@ -665,7 +665,7 @@ export default function DashboardEnVivoPage() {
                                     <Area type="monotone" dataKey="presentes" stroke="#0d9488" strokeWidth={3} fillOpacity={1} fill="url(#colorPresentes)" name="Presentes" />
                                 </AreaChart>
                             </ResponsiveContainer>
-                        ) : (
+                        ):(
                             <div className="h-[280px] flex items-center justify-center text-slate-400">
                                 <p>Sin datos de evolución</p>
                             </div>
@@ -819,7 +819,7 @@ export default function DashboardEnVivoPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {registrosPorSucursal.length > 0 ? (
+                                {registrosPorSucursal.length> 0 ? (
                                     registrosPorSucursal.slice(0, 10).map((reg, idx) => (
                                         <motion.tr
                                             key={reg.sucursal}
@@ -856,7 +856,7 @@ export default function DashboardEnVivoPage() {
                                             </td>
                                         </motion.tr>
                                     ))
-                                ) : (
+                                ):(
                                     <tr>
                                         <td colSpan={4} className="py-10 text-center text-slate-400">
                                             <UserCheck className="h-12 w-12 mx-auto mb-3 opacity-20" />
@@ -865,7 +865,7 @@ export default function DashboardEnVivoPage() {
                                     </tr>
                                 )}
                             </tbody>
-                            {registrosPorSucursal.length > 0 && (
+                            {registrosPorSucursal.length> 0 && (
                                 <tfoot className="bg-slate-50 border-t border-slate-200 font-bold text-slate-700">
                                     <tr>
                                         <td className="py-3 px-4 text-sm">TOTAL REGISTROS</td>
@@ -880,7 +880,7 @@ export default function DashboardEnVivoPage() {
 
                     {/* Tarjetas de Registros por Sucursal - Mobile */}
                     <div className="md:hidden space-y-3">
-                        {registrosPorSucursal.length > 0 ? (
+                        {registrosPorSucursal.length> 0 ? (
                             registrosPorSucursal.slice(0, 10).map((reg, idx) => (
                                 <motion.div
                                     key={reg.sucursal}
@@ -919,13 +919,13 @@ export default function DashboardEnVivoPage() {
                                     </div>
                                 </motion.div>
                             ))
-                        ) : (
+                        ):(
                             <div className="py-10 text-center text-slate-400">
                                 <UserCheck className="h-12 w-12 mx-auto mb-3 opacity-20" />
                                 <p className="text-sm">Sin registros cargados hoy</p>
                             </div>
                         )}
-                        {registrosPorSucursal.length > 0 && (
+                        {registrosPorSucursal.length> 0 && (
                             <div className="bg-slate-100 rounded-2xl p-4 border border-slate-200 mt-4">
                                 <div className="flex items-center justify-between">
                                     <span className="font-bold text-sm text-slate-700">TOTAL</span>
@@ -962,7 +962,7 @@ export default function DashboardEnVivoPage() {
                             <h2 className="text-lg font-bold text-slate-800">Últimas Llegadas</h2>
                         </div>
                         <div className="space-y-3 max-h-[380px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
-                            {ultimasLlegadas.length > 0 ? (
+                            {ultimasLlegadas.length> 0 ? (
                                 ultimasLlegadas.map((llegada, index) => (
                                     <motion.div
                                         key={llegada.id}
@@ -978,9 +978,9 @@ export default function DashboardEnVivoPage() {
                                                 </p>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <span className="text-xs font-bold text-slate-400 bg-white px-2 py-0.5 rounded-lg border border-slate-200">#{llegada.socioNumero}</span>
-                                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${llegada.vozVoto ? 'bg-emerald-100 text-emerald-500' : 'bg-amber-100 text-amber-600'
+                                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${llegada.vozVoto ? 'bg-emerald-100 text-emerald-500':'bg-amber-100 text-amber-600'
                                                         }`}>
-                                                        {llegada.vozVoto ? 'Voz y Voto' : 'Solo Voz'}
+                                                        {llegada.vozVoto ? 'Voz y Voto':'Solo Voz'}
                                                     </span>
                                                 </div>
                                             </div>
@@ -990,14 +990,14 @@ export default function DashboardEnVivoPage() {
                                         </div>
                                     </motion.div>
                                 ))
-                            ) : (
+                            ):(
                                 <div className="text-center py-10 text-slate-400">
                                     <Clock className="h-12 w-12 mx-auto mb-3 opacity-20" />
                                     <p className="text-sm">Esperando registros...</p>
                                 </div>
                             )}
                         </div>
-                        {ultimasLlegadas.length > 0 && (
+                        {ultimasLlegadas.length> 0 && (
                             <div className="mt-4 pt-4 border-t border-slate-100">
                                 <p className="text-center text-xs text-slate-400 flex items-center justify-center gap-2">
                                     <span className="relative flex h-2 w-2">
@@ -1021,7 +1021,7 @@ export default function DashboardEnVivoPage() {
                             </div>
                             <h2 className="text-lg font-bold text-slate-800">Ranking de Operadores</h2>
                         </div>
-                        {rankingOperadores.length > 0 ? (
+                        {rankingOperadores.length> 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {rankingOperadores.slice(0, 6).map((operador, index) => (
                                     <motion.div
@@ -1032,11 +1032,11 @@ export default function DashboardEnVivoPage() {
                                         whileHover={{ y: -3, scale: 1.02 }}
                                         className={`relative rounded-2xl p-4 border transition-all duration-300 ${index === 0
                                             ? 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200 shadow-lg shadow-amber-100'
-                                            : index === 1
+                                           :index === 1
                                                 ? 'bg-gradient-to-br from-slate-50 to-gray-100 border-slate-200 shadow-lg shadow-slate-100'
-                                                : index === 2
+                                               :index === 2
                                                     ? 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200 shadow-lg shadow-orange-100'
-                                                    : 'bg-slate-50 border-slate-100'
+                                                   :'bg-slate-50 border-slate-100'
                                             }`}
                                     >
                                         {index < 3 && (
@@ -1045,7 +1045,7 @@ export default function DashboardEnVivoPage() {
                                                     index === 1 ? 'bg-gradient-to-br from-slate-400 to-gray-500 shadow-slate-200' :
                                                         'bg-gradient-to-br from-orange-400 to-amber-500 shadow-orange-200'
                                                     }`}>
-                                                    {index === 0 ? <Crown className="h-4 w-4 text-white" /> : <Medal className="h-4 w-4 text-white" />}
+                                                    {index === 0 ? <Crown className="h-4 w-4 text-white" />:<Medal className="h-4 w-4 text-white" />}
                                                 </div>
                                             </div>
                                         )}
@@ -1079,7 +1079,7 @@ export default function DashboardEnVivoPage() {
                                     </motion.div>
                                 ))}
                             </div>
-                        ) : (
+                        ):(
                             <div className="text-center py-10 text-slate-400">
                                 <Award className="h-12 w-12 mx-auto mb-3 opacity-30" />
                                 <p className="text-sm">Sin registros de operadores</p>
@@ -1093,7 +1093,7 @@ export default function DashboardEnVivoPage() {
                     {[
                         { icon: Building2, value: sucursalesStats.length, label: 'Sucursales', color: 'from-indigo-500 to-purple-600', shadow: 'shadow-indigo-200' },
                         { icon: Users, value: rankingOperadores.length, label: 'Operadores Activos', color: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-200' },
-                        { icon: TrendingUp, value: `${(stats.conVozYVoto > 0 ? ((stats.conVozYVoto / stats.totalPadron) * 100) : 0).toFixed(1)}%`, label: 'Ratio V&V General', color: 'from-emerald-500 to-teal-500', shadow: 'shadow-emerald-200' },
+                        { icon: TrendingUp, value: `${(stats.conVozYVoto> 0 ? ((stats.conVozYVoto /stats.totalPadron) * 100):0).toFixed(1)}%`, label: 'Ratio V&V General', color: 'from-emerald-500 to-teal-500', shadow: 'shadow-emerald-200' },
                         { icon: AlertTriangle, value: stats.soloVoz.toLocaleString(), label: 'Solo Voz (Total)', color: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-200' },
                     ].map((metric, index) => (
                         <motion.div

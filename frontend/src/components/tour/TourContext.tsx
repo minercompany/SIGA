@@ -54,7 +54,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const nextStep = useCallback(() => {
-        if (currentStep < steps.length - 1) {
+        if (currentStep <steps.length-1) {
             setCurrentStep(prev => prev + 1);
         } else {
             endTour();
@@ -62,8 +62,8 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     }, [currentStep, steps.length]);
 
     const prevStep = useCallback(() => {
-        if (currentStep > 0) {
-            setCurrentStep(prev => prev - 1);
+        if (currentStep> 0) {
+            setCurrentStep(prev => prev-1);
         }
     }, [currentStep]);
 

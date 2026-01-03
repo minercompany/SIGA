@@ -226,7 +226,7 @@ export default function ReporteFuncionariosPage() {
         doc.text('Documento Oficial', 50, 33);
 
         doc.setFontSize(9);
-        doc.text(`Fecha: ${fechaHora} a. m.`, pageWidth - 15, 33, { align: 'right' });
+        doc.text(`Fecha: ${fechaHora} a. m.`, pageWidth-15, 33, { align: 'right' });
 
         // ===== TÍTULO Y DATOS DEL OPERADOR =====
         doc.setFontSize(16);
@@ -240,10 +240,10 @@ export default function ReporteFuncionariosPage() {
 
         // Tarjeta de Operador
         doc.setFillColor(240, 253, 250); // teal-50
-        doc.roundedRect(14, 64, pageWidth - 28, 28, 3, 3, 'F');
+        doc.roundedRect(14, 64, pageWidth-28, 28, 3, 3, 'F');
         doc.setDrawColor(153, 246, 228); // teal-200
         doc.setLineWidth(0.3);
-        doc.roundedRect(14, 64, pageWidth - 28, 28, 3, 3, 'S');
+        doc.roundedRect(14, 64, pageWidth-28, 28, 3, 3, 'S');
 
         doc.setTextColor(100, 116, 139);
         doc.setFontSize(8);
@@ -262,10 +262,10 @@ export default function ReporteFuncionariosPage() {
         const total = listaDetalle.stats.total;
         const vyv = listaDetalle.stats.vyv;
         const soloVoz = listaDetalle.stats.soloVoz;
-        const porcVyV = total > 0 ? Math.round((vyv / total) * 100) : 0;
-        const porcSoloVoz = total > 0 ? Math.round((soloVoz / total) * 100) : 0;
+        const porcVyV = total> 0 ? Math.round((vyv /total) * 100):0;
+        const porcSoloVoz = total> 0 ? Math.round((soloVoz /total) * 100):0;
 
-        const statsX = pageWidth - 110;
+        const statsX = pageWidth-110;
 
         // TOTAL badge
         doc.setFillColor(13, 148, 136);
@@ -379,28 +379,28 @@ export default function ReporteFuncionariosPage() {
         const finalY = (doc as any).lastAutoTable.finalY + 8;
 
         // Solo agregar pie si hay espacio
-        if (finalY < pageHeight - 35) {
+        if (finalY <pageHeight-35) {
             // Línea separadora
             doc.setDrawColor(226, 232, 240);
             doc.setLineWidth(0.3);
-            doc.line(14, pageHeight - 25, pageWidth - 14, pageHeight - 25);
+            doc.line(14, pageHeight-25, pageWidth-14, pageHeight-25);
 
             // Información de generación
             doc.setFontSize(8);
             doc.setTextColor(148, 163, 184);
 
-            doc.text('Documento generado automáticamente por SIGA - Sistema Integral de Gestión de Asamblea', 14, pageHeight - 20);
-            doc.text(`Operador: ${opNombre}`, 14, pageHeight - 16);
-            doc.text(`Generado el: ${fechaHora} a. m.`, 14, pageHeight - 12);
-            doc.text(`| Usuario: @${opUser}`, 120, pageHeight - 16);
+            doc.text('Documento generado automáticamente por SIGA - Sistema Integral de Gestión de Asamblea', 14, pageHeight-20);
+            doc.text(`Operador: ${opNombre}`, 14, pageHeight-16);
+            doc.text(`Generado el: ${fechaHora} a. m.`, 14, pageHeight-12);
+            doc.text(`| Usuario: @${opUser}`, 120, pageHeight-16);
 
             // Marca SIGA
             doc.setFillColor(65, 140, 120); // tono suave similar al logo
-            doc.roundedRect(pageWidth - 30, pageHeight - 18, 16, 8, 2, 2, 'F');
+            doc.roundedRect(pageWidth-30, pageHeight-18, 16, 8, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(8);
             doc.setFont('helvetica', 'bold');
-            doc.text('SIGA', pageWidth - 26, pageHeight - 12);
+            doc.text('SIGA', pageWidth-26, pageHeight-12);
         }
 
         doc.save(`Reporte_Funcionarios_${opUser}_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -420,7 +420,7 @@ const formatDate = (dateStr: string) => {
 
 // Estadísticas globales
 const totalAsignados = funcionarios.reduce((sum, f) => sum + (f.total || 0), 0);
-const funcionariosConAsignaciones = funcionarios.filter(f => f.total > 0).length;
+const funcionariosConAsignaciones = funcionarios.filter(f => f.total> 0).length;
 
 return (
     <div className="mx-auto space-y-6" style={{ maxWidth: 'clamp(320px, 98vw, 1400px)', padding: 'clamp(0.5rem, 2vw, 1.5rem)' }}>
@@ -543,7 +543,7 @@ return (
                     <Loader2 className="h-10 w-10 text-teal-500 animate-spin mx-auto mb-4" />
                     <p className="text-slate-500 font-medium">Cargando operadores...</p>
                 </div>
-            ) : filteredFuncionarios.length === 0 ? (
+            ):filteredFuncionarios.length === 0 ? (
                 <div className="p-12 text-center">
                     <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Users className="h-10 w-10 text-slate-300" />
@@ -551,14 +551,14 @@ return (
                     <p className="text-slate-500 font-medium text-lg">No se encontraron operadores</p>
                     <p className="text-slate-400 text-sm mt-1">Intenta con otro término de búsqueda</p>
                 </div>
-            ) : (
+            ):(
                 <div className="divide-y divide-slate-100">
                     {filteredFuncionarios.map((func) => (
                         <div key={func.id}>
                             {/* Fila del funcionario */}
                             <motion.div
                                 onClick={() => handleSelectFuncionario(func)}
-                                className={`p-4 sm:p-5 cursor-pointer transition-all hover:bg-slate-50 ${selectedFuncionario?.id === func.id ? 'bg-teal-50 border-l-4 border-teal-500' : ''
+                                className={`p-4 sm:p-5 cursor-pointer transition-all hover:bg-slate-50 ${selectedFuncionario?.id === func.id ? 'bg-teal-50 border-l-4 border-teal-500':''
                                     }`}
                                 whileHover={{ x: 4 }}
                             >
@@ -577,11 +577,11 @@ return (
                                             <p className="text-2xl font-black text-teal-500">{func.total}</p>
                                             <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Asignados</p>
                                         </div>
-                                        <div className={`p-2 rounded-xl transition-all ${selectedFuncionario?.id === func.id ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-400'
+                                        <div className={`p-2 rounded-xl transition-all ${selectedFuncionario?.id === func.id ? 'bg-teal-500 text-white':'bg-slate-100 text-slate-400'
                                             }`}>
                                             {selectedFuncionario?.id === func.id ? (
                                                 <ChevronUp className="h-5 w-5" />
-                                            ) : (
+                                            ):(
                                                 <ChevronDown className="h-5 w-5" />
                                             )}
                                         </div>
@@ -604,7 +604,7 @@ return (
                                                 <Loader2 className="h-8 w-8 text-teal-500 animate-spin mx-auto mb-3" />
                                                 <p className="text-slate-500 text-sm">Cargando socios asignados...</p>
                                             </div>
-                                        ) : !listaDetalle || listaDetalle.socios.length === 0 ? (
+                                        ):!listaDetalle || listaDetalle.socios.length === 0 ? (
                                             <div className="p-8 text-center">
                                                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
                                                     <Users className="h-8 w-8 text-slate-300" />
@@ -612,7 +612,7 @@ return (
                                                 <p className="text-slate-500 font-medium">Sin socios asignados</p>
                                                 <p className="text-slate-400 text-sm mt-1">Este operador no tiene socios en su lista</p>
                                             </div>
-                                        ) : (
+                                        ):(
                                             <div className="p-4 sm:p-6">
                                                 {/* Stats del funcionario */}
                                                 <div className="grid grid-cols-3 gap-3 mb-5">
@@ -652,7 +652,7 @@ return (
                                                                         initial={{ opacity: 0, x: -10 }}
                                                                         animate={{ opacity: 1, x: 0 }}
                                                                         transition={{ delay: idx * 0.02 }}
-                                                                        className={`${socio.esVyV ? 'bg-emerald-50/50' : 'bg-amber-50/50'} hover:bg-slate-50 transition-colors`}
+                                                                        className={`${socio.esVyV ? 'bg-emerald-50/50':'bg-amber-50/50'} hover:bg-slate-50 transition-colors`}
                                                                     >
                                                                         <td className="px-2 py-2 text-sm text-center font-bold text-teal-500">{idx + 1}</td>
                                                                         <td className="px-2 py-2 text-sm text-center font-bold text-teal-500">{socio.numeroSocio}</td>
@@ -671,7 +671,7 @@ return (
                                                                         <td className="px-2 py-2 text-center">
                                                                             <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${socio.esVyV
                                                                                 ? 'bg-emerald-100 text-teal-500 border border-emerald-200'
-                                                                                : 'bg-amber-100 text-amber-700 border border-amber-200'
+                                                                               :'bg-amber-100 text-amber-700 border border-amber-200'
                                                                                 }`}>
                                                                                 {socio.condicion}
                                                                             </span>
@@ -693,7 +693,7 @@ return (
             )}
 
             {/* Footer */}
-            {filteredFuncionarios.length > 0 && (
+            {filteredFuncionarios.length> 0 && (
                 <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
                     <p className="text-sm text-slate-500">
                         Mostrando <span className="font-bold text-slate-700">{filteredFuncionarios.length}</span> de <span className="font-bold text-slate-700">{funcionarios.length}</span> operadores

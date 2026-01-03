@@ -68,7 +68,7 @@ export default function PantallaPublicaPage() {
     // Rotation Timers
     useEffect(() => {
         const leftRotation = setInterval(() => {
-            setActiveLeftView(current => current === 'stats' ? 'ranking' : 'stats');
+            setActiveLeftView(current => current === 'stats' ? 'ranking':'stats');
         }, 15000);
 
         const rightRotation = setInterval(() => {
@@ -190,7 +190,7 @@ export default function PantallaPublicaPage() {
                                                         {metasData.porcentajeMeta.toFixed(1)}%
                                                     </span>
                                                     <span className="text-emerald-300/80 text-lg font-mono font-bold bg-black/30 px-3 py-1 rounded-lg border border-emerald-500/20">
-                                                        {metasData.registradosVozYVoto} / {metasData.meta}
+                                                        {metasData.registradosVozYVoto} /{metasData.meta}
                                                     </span>
                                                 </div>
                                             </div>
@@ -216,7 +216,7 @@ export default function PantallaPublicaPage() {
                                                 </div>
                                                 <div className="relative z-10 flex flex-col items-end">
                                                     <span className="text-5xl md:text-6xl font-black text-white tabular-nums drop-shadow-xl" style={{ textShadow: '0 4px 10px rgba(220, 38, 38, 0.5)' }}>
-                                                        {(metasData.meta - metasData.registradosVozYVoto).toLocaleString()}
+                                                        {(metasData.meta-metasData.registradosVozYVoto).toLocaleString()}
                                                     </span>
                                                 </div>
                                             </div>
@@ -275,7 +275,7 @@ export default function PantallaPublicaPage() {
                                     </div>
                                 )}
                             </motion.div>
-                        ) : (
+                        ):(
                             <motion.div
                                 key="ranking"
                                 initial={{ opacity: 0, rotateY: 90 }}

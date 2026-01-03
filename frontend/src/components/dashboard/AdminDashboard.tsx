@@ -535,12 +535,11 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                         </motion.div>
                     ))
                 }
-            </div >
+            </div>
 
             {/* Barra de Progreso Quórum Premium */}
-            < motion.div
-                initial={{ opacity: 0, y: 20 }
-                }
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100"
             >
@@ -556,7 +555,7 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                     </div>
                     <div className="text-right">
                         <p className="text-4xl font-black text-slate-800">{porcentajeAsistencia}%</p>
-                        <p className="text-slate-400 text-sm font-medium">{presentes.toLocaleString()} / {stats.totalPadron.toLocaleString()}</p>
+                        <p className="text-slate-400 text-sm font-medium">{presentes.toLocaleString()} /{stats.totalPadron.toLocaleString()}</p>
                     </div>
                 </div>
                 <div className="h-6 bg-slate-100 rounded-full overflow-hidden relative">
@@ -570,13 +569,13 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                     </motion.div>
                 </div>
 
-            </motion.div >
+            </motion.div>
 
             {/* Grid Principal de Estadísticas */}
-            < div className="grid grid-cols-1 lg:grid-cols-3 gap-6" >
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* Gráfico Radial de Quórum */}
-                < motion.div
+                <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100"
@@ -589,7 +588,7 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                     </div>
 
                     <div className="h-[220px] relative">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minHeight={150}>
                             <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="95%" data={radialData} startAngle={90} endAngle={-270}>
                                 <RadialBar background dataKey="value" cornerRadius={10} />
                             </RadialBarChart>
@@ -610,10 +609,10 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                             <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Ausentes</p>
                         </div>
                     </div>
-                </motion.div >
+                </motion.div>
 
                 {/* Gráfico de Habilitación */}
-                < motion.div
+                <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1 }}
@@ -627,7 +626,7 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                     </div>
 
                     <div className="h-[220px] relative">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minHeight={150}>
                             <PieChart>
                                 <Pie
                                     data={pieHabilitacion}
@@ -662,7 +661,7 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                             <p className="text-amber-600/70 text-xs font-bold uppercase tracking-widest">Solo Voz</p>
                         </div>
                     </div>
-                </motion.div >
+                </motion.div>
 
                 {/* Ranking de Operadores */}
                 {/* Ranking de Operadores - DISEÑO PREMIUM */}
@@ -742,12 +741,12 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                         )}
                     </div>
                 </motion.div>
-            </div >
+            </div>
 
             {/* Segunda Fila - Gráficos Grandes */}
-            < div className="grid grid-cols-1 lg:grid-cols-2 gap-6" >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" >
                 {/* Gráfico Torta Composición por Sucursal (Voz y Voto vs Solo Voz) */}
-                < motion.div
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100"
@@ -762,7 +761,7 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                     </div>
 
                     <div className="h-[280px] relative">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
                             <PieChart>
                                 <Pie
                                     data={pieHabilitacion}
@@ -804,10 +803,10 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                             <p className="text-white/60 text-[10px] font-bold mt-1">{(100 - parseFloat(porcentajeHabilitacion)).toFixed(1)}%</p>
                         </div>
                     </div>
-                </motion.div >
+                </motion.div>
 
                 {/* Tabla de Ranking Regional */}
-                < motion.div
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
@@ -866,11 +865,11 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                             </tbody>
                         </table>
                     </div>
-                </motion.div >
-            </div >
+                </motion.div>
+            </div>
 
             {/* Mini Stats Footer */}
-            < div className="grid grid-cols-2 lg:grid-cols-4 gap-4" >
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {
                     [
                         { label: "Sucursales", value: desempeno.length, icon: Building2, color: "text-indigo-600", bg: "bg-indigo-50" },
@@ -896,7 +895,7 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                         </motion.div>
                     ))
                 }
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }

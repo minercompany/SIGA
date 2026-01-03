@@ -90,7 +90,7 @@ export function ActiveUsersModal({ isOpen, onClose, users }: ActiveUsersModalPro
 
                             {/* List */}
                             <div className="overflow-y-auto p-2">
-                                {filteredUsers.length > 0 ? (
+                                {filteredUsers.length> 0 ? (
                                     <div className="grid gap-2">
                                         {filteredUsers.map((user) => (
                                             <motion.div
@@ -102,7 +102,7 @@ export function ActiveUsersModal({ isOpen, onClose, users }: ActiveUsersModalPro
                                                 <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200">
                                                     {user.foto ? (
                                                         <img src={user.foto} alt={user.nombre} className="h-full w-full object-cover" />
-                                                    ) : (
+                                                    ):(
                                                         <span className="font-black text-slate-400 text-lg">{user.nombre.charAt(0)}</span>
                                                     )}
                                                 </div>
@@ -134,7 +134,7 @@ export function ActiveUsersModal({ isOpen, onClose, users }: ActiveUsersModalPro
                                             </motion.div>
                                         ))}
                                     </div>
-                                ) : (
+                                ):(
                                     <div className="flex flex-col items-center justify-center py-12 text-slate-400">
                                         <Users className="h-12 w-12 mb-3 opacity-20" />
                                         <p className="font-medium">No se encontraron usuarios</p>

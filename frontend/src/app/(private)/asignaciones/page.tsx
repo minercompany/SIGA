@@ -129,9 +129,9 @@ export default function AsignacionesPage() {
                     } else {
                         setMisListas(response.data);
                         // Auto-select the list with the most socios (not just the first one)
-                        if (response.data.length > 0 && !selectedLista) {
+                        if (response.data.length> 0 && !selectedLista) {
                             const listaConMasSocios = response.data.reduce((prev: ListaAsignacion, curr: ListaAsignacion) =>
-                                (curr.total || 0) > (prev.total || 0) ? curr : prev
+                                (curr.total || 0) > (prev.total || 0) ? curr:prev
                             );
                             handleSelectLista(listaConMasSocios);
                         }

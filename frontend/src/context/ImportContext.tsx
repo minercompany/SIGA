@@ -129,7 +129,7 @@ export function ImportProvider({ children }: { children: React.ReactNode }) {
                     } else {
                         setStats(status.result);
                     }
-                    if (status.errorDetails && status.errorDetails.length > 0) {
+                    if (status.errorDetails && status.errorDetails.length> 0) {
                         setErrorDetails(status.errorDetails);
                     }
                 }

@@ -4,6 +4,8 @@ import com.asamblea.model.Asignacion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import java.util.List;
+import java.util.Map;
+import org.springframework.data.repository.query.Param;
 
 public interface AsignacionRepository extends JpaRepository<Asignacion, Long> {
 
@@ -12,6 +14,11 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long> {
 
         List<Asignacion> findByListaAsignacionId(
                         @org.springframework.data.repository.query.Param("listaId") Long listaId);
+
+        @Query(value = "SELECT DATE(fecha_asignacion) as fecha, COUNT(*) as total FROM asignaciones_socios " +
+                        "WHERE fecha_asignacion >= DATE_SUB(CURDATE(), INTERVAL :dias DAY) " +
+                        "GROUP BY DATE(fecha_asignacion) ORDER BY fecha DESC", nativeQuery = true)
+        List<Map<String, Object>> findStatsPorDia(@Param("dias") int dias);
 
         @Query("SELECT COUNT(a) FROM Asignacion a WHERE a.listaAsignacion.id = :listaId AND a.socio.aporteAlDia = true AND a.socio.solidaridadAlDia = true AND a.socio.fondoAlDia = true AND a.socio.incoopAlDia = true AND a.socio.creditoAlDia = true")
 

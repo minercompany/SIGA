@@ -224,7 +224,7 @@ export default function UsuariosPage() {
             ...form,
             nombreCompleto: socio.nombreCompleto,
             // Pre-fill username with CI if available
-            username: socio.cedula ? socio.cedula.replace(/\D/g, '') : "",
+            username: socio.cedula ? socio.cedula.replace(/\D/g, ''):"",
             idSocio: socio.id,
             // Pre-fill phone/email if they exist on socio, otherwise empty for manual entry
             // BUT user specifically requested "telefono y email el usuario carga por su cuenta"
@@ -291,7 +291,38 @@ export default function UsuariosPage() {
         setShowModal(true);
     };
 
-    const openEditModal = (user: Usuario) => {
+    const openEditModal = async (user: Usuario) => {
+        // SEGURIDAD: Si soy el Super Admin Original (ID 1), pedir código para editar
+        if (currentUser?.id === 1) {
+            const { value: code } = await Swal.fire({
+                title: '🔐 Acceso Protegido',
+                text: 'Ingrese el código de seguridad para gestionar roles/usuarios',
+                input: 'password',
+                inputPlaceholder: 'Código de acceso',
+                inputAttributes: {
+                    maxlength: '6',
+                    autocapitalize: 'off',
+                    autocorrect: 'off'
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                confirmButtonText: 'Verificar'
+            });
+
+            if (!code) return; // Cancelado
+
+            if (code !== "226118") {
+                Swal.fire({
+                    title: 'Acceso Denegado',
+                    text: 'Código incorrecto',
+                    icon: 'error',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+        }
+
         setEditingUser(user);
         setForm({
             username: user.username || "",
@@ -312,7 +343,7 @@ export default function UsuariosPage() {
     const togglePermiso = (screenId: string) => {
         const current = form.permisosEspeciales.split(',').filter(p => p !== "");
         const index = current.indexOf(screenId);
-        if (index > -1) {
+        if (index> -1) {
             current.splice(index, 1);
         } else {
             current.push(screenId);
@@ -331,8 +362,8 @@ export default function UsuariosPage() {
 
             const payload = {
                 ...form,
-                sucursalId: form.sucursalId ? parseInt(form.sucursalId) : null,
-                idSocio: form.idSocio ? parseInt(form.idSocio.toString()) : null
+                sucursalId: form.sucursalId ? parseInt(form.sucursalId):null,
+                idSocio: form.idSocio ? parseInt(form.idSocio.toString()):null
             };
 
             if (editingUser && editingUser.id) {
@@ -361,6 +392,24 @@ export default function UsuariosPage() {
 
     const handleDelete = async (user: Usuario) => {
         if (!user.id) return;
+
+        // SEGURIDAD: Si soy ID 1 y quiero borrar, pedir código (especialmente si es otro admin)
+        if (currentUser?.id === 1) {
+            const { value: code } = await Swal.fire({
+                title: '🔐 Seguridad Requerida',
+                text: 'Ingrese código para confirmar la eliminación',
+                input: 'password',
+                inputAttributes: { maxlength: '6' },
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Verificar y Borrar'
+            });
+            if (!code) return;
+            if (code !== "226118") {
+                Swal.fire('Error', 'Código incorrecto', 'error');
+                return;
+            }
+        }
 
         const result = await Swal.fire({
             title: '¿Estás seguro?',
@@ -435,13 +484,13 @@ export default function UsuariosPage() {
     // Filter by active role
     const filteredUsuarios = activeRolFilter
         ? usuarios.filter(u => u.rol === activeRolFilter && u.tipo === "USUARIO")
-        : usuarios;
+       :usuarios;
 
     // Pagination Logic
     const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
     const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
     const currentUsers = filteredUsuarios.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredUsuarios.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(filteredUsuarios.length /ITEMS_PER_PAGE);
 
     const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
@@ -474,15 +523,15 @@ export default function UsuariosPage() {
                         {user.rolNombre}
                     </div>
                     {user.tipo === "USUARIO" ? (
-                        <span className={`h-2 w-2 rounded-full ${user.activo ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
-                    ) : (
+                        <span className={`h-2 w-2 rounded-full ${user.activo ? 'bg-emerald-500 animate-pulse':'bg-red-500'}`} />
+                    ):(
                         <span className="text-[10px] font-bold text-slate-400">SIN ACCESO</span>
                     )}
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${isOperator ? 'bg-teal-50 text-teal-500' : 'bg-slate-50 text-slate-400'}`}>
-                        {isOperator ? <Shield className="h-6 w-6" /> : <UserCircle2 className="h-6 w-6" />}
+                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${isOperator ? 'bg-teal-50 text-teal-500':'bg-slate-50 text-slate-400'}`}>
+                        {isOperator ? <Shield className="h-6 w-6" />:<UserCircle2 className="h-6 w-6" />}
                     </div>
                     <div className="min-w-0 flex-1">
                         <h4 className="font-black text-slate-800 text-sm leading-tight truncate">{user.nombreCompleto}</h4>
@@ -501,7 +550,7 @@ export default function UsuariosPage() {
                     <div className="bg-slate-50/50 p-2 rounded-lg">
                         <p className="text-[8px] font-black text-slate-400 uppercase">Identificación</p>
                         <p className="text-[10px] font-bold text-slate-600 truncate">
-                            {user.numeroSocio || user.nroSocio ? `Socio #${user.numeroSocio || user.nroSocio}` : 'Operativo'}
+                            {user.numeroSocio || user.nroSocio ? `Socio #${user.numeroSocio || user.nroSocio}`:'Operativo'}
                         </p>
                     </div>
                 </div>
@@ -509,7 +558,7 @@ export default function UsuariosPage() {
                 <div className="flex gap-2">
                     {isOperator ? (
                         <>
-                            {user.rol !== 'SUPER_ADMIN' && (
+                            {(user.rol !== 'SUPER_ADMIN' || (currentUser?.id === 1 && user.id !== 1)) && (
                                 <>
                                     <button
                                         onClick={() => onEdit(user)}
@@ -518,10 +567,10 @@ export default function UsuariosPage() {
                                         <Edit2 className="h-3.5 w-3.5 mx-auto" />
                                     </button>
                                     <button
-                                        onClick={() => user.activo ? onDelete(user) : onActivate(user)}
-                                        className={`flex-1 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-wider transition-all ${user.activo ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
+                                        onClick={() => user.activo ? onDelete(user):onActivate(user)}
+                                        className={`flex-1 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-wider transition-all ${user.activo ? 'bg-red-500 hover:bg-red-600':'bg-emerald-500 hover:bg-emerald-600'}`}
                                     >
-                                        {user.activo ? <Trash2 className="h-3.5 w-3.5 mx-auto" /> : <CheckCircle2 className="h-3.5 w-3.5 mx-auto" />}
+                                        {user.activo ? <Trash2 className="h-3.5 w-3.5 mx-auto" />:<CheckCircle2 className="h-3.5 w-3.5 mx-auto" />}
                                     </button>
                                 </>
                             )}
@@ -538,7 +587,7 @@ export default function UsuariosPage() {
                                 </button>
                             )}
                         </>
-                    ) : (
+                    ):(
                         <button
                             onClick={() => onGiveAccess(user)}
                             className="flex-1 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-100"
@@ -585,12 +634,12 @@ export default function UsuariosPage() {
                 u.nombreCompleto,
                 u.rolNombre || u.rol,
                 u.sucursal || "General",
-                u.activo ? "Activo" : "Inactivo"
+                u.activo ? "Activo":"Inactivo"
             ]);
 
             autoTable(doc, {
                 startY: 40,
-                head: [['N° Socio', 'Usuario', 'Nombre Completo', 'Rol / Cargo', 'Sucursal', 'Estado']],
+                head: [['N° Socio', 'Usuario', 'Nombre Completo', 'Rol /Cargo', 'Sucursal', 'Estado']],
                 body: tableData,
                 theme: 'grid',
                 styles: { fontSize: 8 },
@@ -619,7 +668,7 @@ export default function UsuariosPage() {
                 "Cargo": u.cargo || "",
                 "Sucursal": u.sucursal || "General",
                 "Meta": u.meta || 0,
-                "Estado": u.activo ? "Activo" : "Inactivo"
+                "Estado": u.activo ? "Activo":"Inactivo"
             }));
 
             const ws = utils.json_to_sheet(dataToExport);
@@ -674,21 +723,21 @@ export default function UsuariosPage() {
                             className={`relative overflow-hidden rounded-2xl p-4 border-2 transition-all duration-300 cursor-pointer group
                                 ${isActive
                                     ? `${colors.bgActive} border-transparent shadow-xl scale-[1.02] ring-4 ${colors.ring}/30`
-                                    : `${colors.bg} ${colors.border} hover:shadow-lg hover:scale-[1.01] hover:border-transparent`
+                                   :`${colors.bg} ${colors.border} hover:shadow-lg hover:scale-[1.01] hover:border-transparent`
                                 }`}
                         >
                             {/* Shine effect on hover */}
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
 
                             <div className="flex items-center justify-between relative z-10">
-                                <div className={`p-2 rounded-xl ${isActive ? 'bg-white/20' : `bg-gradient-to-br ${colors.gradient}`}`}>
-                                    <Shield className={`h-5 w-5 ${isActive ? 'text-white' : 'text-white'}`} />
+                                <div className={`p-2 rounded-xl ${isActive ? 'bg-white/20':`bg-gradient-to-br ${colors.gradient}`}`}>
+                                    <Shield className={`h-5 w-5 ${isActive ? 'text-white':'text-white'}`} />
                                 </div>
-                                <p className={`text-3xl font-black ${isActive ? 'text-white' : colors.text}`}>{count}</p>
+                                <p className={`text-3xl font-black ${isActive ? 'text-white':colors.text}`}>{count}</p>
                             </div>
-                            <p className={`font-bold mt-3 text-sm ${isActive ? 'text-white' : colors.text}`}>{rol.nombre}</p>
-                            <p className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${isActive ? 'text-white/70' : 'text-slate-400'}`}>
-                                {isActive ? '✓ Filtro Activo' : 'Click para filtrar'}
+                            <p className={`font-bold mt-3 text-sm ${isActive ? 'text-white':colors.text}`}>{rol.nombre}</p>
+                            <p className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${isActive ? 'text-white/70':'text-slate-400'}`}>
+                                {isActive ? '✓ Filtro Activo':'Click para filtrar'}
                             </p>
                         </button>
                     );
@@ -755,7 +804,7 @@ export default function UsuariosPage() {
                     </div>
 
                     <div className="flex justify-between items-center">
-                        {(searchTerm.length > 0 || activeRolFilter) && (
+                        {(searchTerm.length> 0 || activeRolFilter) && (
                             <p className="text-xs text-emerald-500 font-bold bg-emerald-50 px-3 py-1 rounded-full">
                                 ✓ Mostrando {filteredUsuarios.length} de {usuarios.length} usuarios
                             </p>
@@ -771,7 +820,7 @@ export default function UsuariosPage() {
                     <div className="grid grid-cols-1 gap-4 p-4 md:hidden">
                         {currentUsers.map((user, idx) => (
                             <UserCard
-                                key={user.id ? `card-u-${user.id}` : `card-s-${user.idSocio}-${idx}`}
+                                key={user.id ? `card-u-${user.id}`:`card-s-${user.idSocio}-${idx}`}
                                 user={user}
                                 onEdit={openEditModal}
                                 onDelete={handleDelete}
@@ -787,13 +836,13 @@ export default function UsuariosPage() {
                             <tr>
                                 <th className="px-4 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Identificación</th>
                                 <th className="px-4 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Nombre y Detalles</th>
-                                <th className="px-4 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado / Rol</th>
+                                <th className="px-4 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado /Rol</th>
                                 <th className="px-4 py-4 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Acciones Rápidas</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {currentUsers.map((user, idx) => (
-                                <tr key={user.id ? `u-${user.id}` : `s-${user.idSocio}-${idx}`} className="hover:bg-gradient-to-r hover:from-teal-50/50 hover:to-emerald-50/30 transition-all duration-200 group">
+                                <tr key={user.id ? `u-${user.id}`:`s-${user.idSocio}-${idx}`} className="hover:bg-gradient-to-r hover:from-teal-50/50 hover:to-emerald-50/30 transition-all duration-200 group">
                                     <td className="px-6 py-4">
                                         {user.tipo === "USUARIO" ? (
                                             <div className="flex flex-col">
@@ -803,7 +852,7 @@ export default function UsuariosPage() {
                                                 )}
                                                 {!user.numeroSocio && !user.nroSocio && <span className="text-[10px] text-slate-400 font-bold uppercase">Sist. Operativo</span>}
                                             </div>
-                                        ) : (
+                                        ):(
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-bold text-slate-600">Socio #{user.nroSocio || user.numeroSocio}</span>
                                                 <span className="text-[10px] text-slate-400">Sin acceso activo</span>
@@ -812,8 +861,8 @@ export default function UsuariosPage() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${user.tipo === "USUARIO" ? 'bg-teal-50 text-teal-500' : 'bg-slate-100 text-slate-400'}`}>
-                                                {user.tipo === "USUARIO" ? <Shield className="h-5 w-5" /> : <UserCircle2 className="h-5 w-5" />}
+                                            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${user.tipo === "USUARIO" ? 'bg-teal-50 text-teal-500':'bg-slate-100 text-slate-400'}`}>
+                                                {user.tipo === "USUARIO" ? <Shield className="h-5 w-5" />:<UserCircle2 className="h-5 w-5" />}
                                             </div>
                                             <div>
                                                 <p className="font-bold text-slate-700">{user.nombreCompleto}</p>
@@ -827,7 +876,7 @@ export default function UsuariosPage() {
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-2">
                                             <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-black border ${getRolColor(user.rol)}`}>
-                                                {user.tipo === "USUARIO" ? <CheckCircle2 className="h-3 w-3 mr-1.5" /> : <XCircle className="h-3 w-3 mr-1.5" />}
+                                                {user.tipo === "USUARIO" ? <CheckCircle2 className="h-3 w-3 mr-1.5" />:<XCircle className="h-3 w-3 mr-1.5" />}
                                                 {user.rolNombre}
                                             </span>
                                             {user.permisosEspeciales && (
@@ -845,7 +894,7 @@ export default function UsuariosPage() {
                                         <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                                             {user.tipo === "USUARIO" ? (
                                                 <>
-                                                    {user.rol !== 'SUPER_ADMIN' && (
+                                                    {(user.rol !== 'SUPER_ADMIN' || (currentUser?.id === 1 && user.id !== 1)) && (
                                                         <>
                                                             <button
                                                                 onClick={() => openEditModal(user)}
@@ -856,15 +905,15 @@ export default function UsuariosPage() {
                                                                 <span className="hidden lg:inline">Editar</span>
                                                             </button>
                                                             <button
-                                                                onClick={() => user.activo ? handleDelete(user) : handleActivate(user)}
+                                                                onClick={() => user.activo ? handleDelete(user):handleActivate(user)}
                                                                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black tracking-wide transition-all hover:scale-105 ${user.activo
                                                                     ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white hover:shadow-lg hover:shadow-red-200'
-                                                                    : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-lg hover:shadow-emerald-200'
+                                                                   :'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-lg hover:shadow-emerald-200'
                                                                     }`}
-                                                                title={user.activo ? "Dar de Baja" : "Reactivar"}
+                                                                title={user.activo ? "Dar de Baja":"Reactivar"}
                                                             >
-                                                                {user.activo ? <Trash2 className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                                                                <span className="hidden lg:inline">{user.activo ? 'Baja' : 'Activar'}</span>
+                                                                {user.activo ? <Trash2 className="h-3.5 w-3.5" />:<CheckCircle2 className="h-3.5 w-3.5" />}
+                                                                <span className="hidden lg:inline">{user.activo ? 'Baja':'Activar'}</span>
                                                             </button>
                                                         </>
                                                     )}
@@ -879,7 +928,7 @@ export default function UsuariosPage() {
                                                         </button>
                                                     )}
                                                 </>
-                                            ) : (
+                                            ):(
                                                 <button
                                                     onClick={() => openGiveAccessModal(user)}
                                                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[10px] font-black tracking-widest hover:shadow-xl hover:shadow-emerald-200 hover:scale-105 transition-all uppercase"
@@ -906,14 +955,14 @@ export default function UsuariosPage() {
                     </table>
 
                     {/* Controles de Paginación */}
-                    {usuarios.length > 0 && (
+                    {usuarios.length> 0 && (
                         <div className="border-t border-slate-100 px-6 py-4 flex items-center justify-between">
                             <p className="text-xs text-slate-400 font-medium">
                                 Mostrando <span className="font-bold text-slate-600">{indexOfFirstItem + 1}</span> a <span className="font-bold text-slate-600">{Math.min(indexOfLastItem, usuarios.length)}</span> de <span className="font-bold text-slate-600">{usuarios.length}</span> resultados
                             </p>
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() => paginate(currentPage - 1)}
+                                    onClick={() => paginate(currentPage-1)}
                                     disabled={currentPage === 1}
                                     className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                 >
@@ -924,10 +973,10 @@ export default function UsuariosPage() {
                                         // Simple logic to show first 5 pages or sliding window could be added
                                         // For now, let's keep it simple or minimal
                                         let pageNum = i + 1;
-                                        if (totalPages > 5 && currentPage > 3) {
-                                            pageNum = currentPage - 2 + i;
+                                        if (totalPages> 5 && currentPage> 3) {
+                                            pageNum = currentPage-2 + i;
                                         }
-                                        if (pageNum > totalPages) return null;
+                                        if (pageNum> totalPages) return null;
 
                                         return (
                                             <button
@@ -935,7 +984,7 @@ export default function UsuariosPage() {
                                                 onClick={() => paginate(pageNum)}
                                                 className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${currentPage === pageNum
                                                     ? "bg-teal-500 text-white shadow-md shadow-teal-200"
-                                                    : "bg-white text-slate-600 hover:bg-slate-50"
+                                                   :"bg-white text-slate-600 hover:bg-slate-50"
                                                     }`}
                                             >
                                                 {pageNum}
@@ -967,7 +1016,7 @@ export default function UsuariosPage() {
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-bold text-slate-800">
-                                        {editingUser ? "Configurar Operador" : "Habilitar Nuevo Usuario"}
+                                        {editingUser ? "Configurar Operador":"Habilitar Nuevo Usuario"}
                                     </h2>
                                     <p className="text-slate-500 text-xs font-medium">Define el rol y los permisos granulares</p>
                                 </div>
@@ -979,8 +1028,8 @@ export default function UsuariosPage() {
 
                         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
                             {message && (
-                                <div className={`p-4 rounded-2xl text-sm font-bold flex items-center gap-3 ${message.type === "success" ? "bg-emerald-50 text-teal-500 border border-emerald-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
-                                    {message.type === "success" ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
+                                <div className={`p-4 rounded-2xl text-sm font-bold flex items-center gap-3 ${message.type === "success" ? "bg-emerald-50 text-teal-500 border border-emerald-100":"bg-red-50 text-red-700 border border-red-100"}`}>
+                                    {message.type === "success" ? <CheckCircle2 className="h-5 w-5" />:<XCircle className="h-5 w-5" />}
                                     {message.text}
                                 </div>
                             )}
@@ -1009,13 +1058,13 @@ export default function UsuariosPage() {
                                                     disabled={searchingSocio}
                                                     className="px-6 py-3 bg-teal-500 text-white font-bold rounded-xl hover:bg-teal-500 transition-all flex items-center gap-2"
                                                 >
-                                                    {searchingSocio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                                                    {searchingSocio ? <Loader2 className="h-4 w-4 animate-spin" />:<Search className="h-4 w-4" />}
                                                     Buscar
                                                 </button>
                                             </div>
 
                                             {/* Results List */}
-                                            {sociosFound.length > 0 && (
+                                            {sociosFound.length> 0 && (
                                                 <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-xl bg-slate-50 divide-y divide-slate-100">
                                                     {sociosFound.map((sobj: any) => (
                                                         <button
@@ -1046,7 +1095,7 @@ export default function UsuariosPage() {
                                                 </p>
                                             )}
                                         </div>
-                                    ) : (
+                                    ):(
                                         <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center justify-between animate-in fade-in slide-in-from-top-2">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 bg-emerald-100 rounded-full text-emerald-500">
@@ -1125,15 +1174,15 @@ export default function UsuariosPage() {
 
                                     <div>
                                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">
-                                            {editingUser ? "Nueva Contraseña (opcional)" : "Contraseña"}
+                                            {editingUser ? "Nueva Contraseña (opcional)":"Contraseña"}
                                         </label>
                                         <div className="relative">
                                             <input
-                                                type={showPassword ? "text" : "password"}
+                                                type={showPassword ? "text":"password"}
                                                 value={form.password}
                                                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                                                 className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:border-teal-500 focus:bg-white outline-none transition-all pr-12 font-mono"
-                                                placeholder={editingUser ? "Dejar vacío para no cambiar" : "••••••••"}
+                                                placeholder={editingUser ? "Dejar vacío para no cambiar":"••••••••"}
                                                 required={!editingUser}
                                             />
                                             <button
@@ -1141,7 +1190,7 @@ export default function UsuariosPage() {
                                                 onClick={() => setShowPassword(!showPassword)}
                                                 className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                                             >
-                                                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                                {showPassword ? <EyeOff className="h-5 w-5" />:<Eye className="h-5 w-5" />}
                                             </button>
                                         </div>
 
@@ -1175,7 +1224,7 @@ export default function UsuariosPage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Email / Contacto</label>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Email /Contacto</label>
                                         <input
                                             type="email"
                                             value={form.email}
@@ -1286,7 +1335,7 @@ export default function UsuariosPage() {
                                                 onClick={() => togglePermiso(screen.id)}
                                                 className={`relative flex flex-col items-center justify-center gap-2 p-4 rounded-2xl text-[10px] font-bold border-2 transition-all duration-300 overflow-hidden group ${hasAccess
                                                     ? `${screen.bgColor} ${screen.borderColor} ${screen.textColor} shadow-lg`
-                                                    : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300 hover:shadow-md'
+                                                   :'bg-white border-slate-200 text-slate-400 hover:border-slate-300 hover:shadow-md'
                                                     }`}
                                             >
                                                 {/* Background gradient on active */}
@@ -1297,9 +1346,9 @@ export default function UsuariosPage() {
                                                 {/* Icon container */}
                                                 <div className={`relative z-10 p-2 rounded-xl transition-all ${hasAccess
                                                     ? `bg-gradient-to-br ${screen.color} shadow-lg`
-                                                    : 'bg-slate-100 group-hover:bg-slate-200'
+                                                   :'bg-slate-100 group-hover:bg-slate-200'
                                                     }`}>
-                                                    <Icon className={`h-5 w-5 ${hasAccess ? 'text-white' : 'text-slate-400'}`} />
+                                                    <Icon className={`h-5 w-5 ${hasAccess ? 'text-white':'text-slate-400'}`} />
                                                 </div>
 
                                                 {/* Label */}
@@ -1351,7 +1400,7 @@ export default function UsuariosPage() {
                                     className="flex-1 py-4 bg-teal-500 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-teal-500 disabled:opacity-50 flex items-center justify-center gap-2 shadow-xl shadow-teal-100 transition-all"
                                 >
                                     {saving && <Loader2 className="h-5 w-5 animate-spin" />}
-                                    {editingUser ? "Actualizar" : "Activar Acceso"}
+                                    {editingUser ? "Actualizar":"Activar Acceso"}
                                 </button>
                             </div>
                         </form>

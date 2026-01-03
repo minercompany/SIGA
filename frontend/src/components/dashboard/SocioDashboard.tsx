@@ -295,7 +295,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center">
                             <div className="h-56 md:h-64 w-full relative">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minHeight={180}>
                                     <PieChart>
                                         <Pie
                                             data={pieData}
@@ -397,7 +397,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                             <div className="relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 hover:border-amber-500/50 transition-all">
                                                 <div className="flex items-center gap-4">
                                                     {/* Badge de posición */}
-                                                    <div className={`flex - shrink - 0 h - 10 w - 10 rounded - xl flex items - center justify - center font - black text - lg shadow - lg ${index === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white' :
+                                                    <div className={`flex-shrink-0 h-10 w-10 rounded-xl flex items-center justify-center font-black text-lg shadow-lg ${index === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white' :
                                                         index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500 text-white' :
                                                             index === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' :
                                                                 'bg-slate-700 text-slate-300'
@@ -647,7 +647,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                         transition={{ delay: i * 0.05 }}
                                         className="relative group/socio"
                                     >
-                                        <div className={`absolute inset - 0 rounded - 2xl blur - lg opacity - 0 group - hover / socio: opacity - 100 transition - opacity duration - 300 ${socio.presente ? 'bg-emerald-500/20' : 'bg-slate-300/20'
+                                        <div className={`absolute inset-0 rounded-2xl blur-lg opacity-0 group-hover /socio: opacity-100 transition-opacity duration-300 ${socio.presente ? 'bg-emerald-500/20' : 'bg-slate-300/20'
                                             } `} />
                                         <div className="relative p-4 bg-white rounded-2xl border border-slate-200/50 shadow-md hover:shadow-lg transition-shadow">
                                             <div className="flex items-start justify-between mb-3">

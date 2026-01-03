@@ -16,6 +16,7 @@ import PushNotificationManager from "@/components/notifications/PushNotification
 import { UserActivityProvider } from "@/context/UserActivityContext";
 import { SessionExpiredModal } from "@/components/auth/SessionExpiredModal";
 import { HeartbeatManager } from "@/components/layout/HeartbeatManager";
+import { DeadlineNotification } from "@/components/DeadlineNotification";
 
 // Componente wrapper para el TourWelcome que necesita acceso al contexto
 function TourWelcomeWrapper({ userRole }: { userRole?: string }) {
@@ -25,10 +26,10 @@ function TourWelcomeWrapper({ userRole }: { userRole?: string }) {
         // Determinar el tour según el rol
         const tourSteps = userRole === "SUPER_ADMIN" || userRole === "DIRECTIVO"
             ? dashboardAdminTour
-            : dashboardSocioTour;
+           :dashboardSocioTour;
         const tourId = userRole === "SUPER_ADMIN" || userRole === "DIRECTIVO"
             ? "dashboard-admin"
-            : "dashboard";
+           :"dashboard";
 
         // Solo iniciar si no lo ha visto
         if (!hasSeenTour(tourId)) {
@@ -100,7 +101,7 @@ export default function PrivateLayout({
                             }} />
                         )}
                         {user && <WelcomeModal user={user} onUpdateUser={setUser} />}
-                        {user && !user.requiresPasswordChange && (user.telefono && user.telefono.length >= 6) && (
+                        {user && !user.requiresPasswordChange && (user.telefono && user.telefono.length>= 6) && (
                             <TourWelcomeWrapper userRole={user?.rol} />
                         )}
                         <Sidebar />
@@ -126,6 +127,7 @@ export default function PrivateLayout({
                         <PageTransition />
                     </Suspense>
                     <SessionExpiredModal isOpen={isSessionExpired} />
+                    <DeadlineNotification />
                 </UserActivityProvider>
             </ImportProvider>
         </TourProvider>

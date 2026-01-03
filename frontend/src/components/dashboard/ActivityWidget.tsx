@@ -65,8 +65,8 @@ export function ActivityWidget({ data, labels }: ActivityWidgetProps) {
                 </div>
             </div>
 
-            <div className="flex-1 w-full relative z-10 min-h-[180px] overflow-hidden">
-                <ResponsiveContainer width="100%" height="100%">
+            <div className="w-full relative z-10 h-[260px] overflow-hidden">
+                <ResponsiveContainer width="100%" height="100%" minHeight={180}>
                     <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorUsersPremium" x1="0" y1="0" x2="0" y2="1">

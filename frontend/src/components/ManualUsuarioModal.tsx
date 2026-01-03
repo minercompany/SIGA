@@ -163,10 +163,10 @@ export function ManualUsuarioModal({ isOpen, onClose }: ManualUsuarioModalProps)
                                         onClick={() => setActiveSection(section.id)}
                                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeSection === section.id
                                                 ? "bg-white text-teal-500 shadow-sm ring-1 ring-slate-200"
-                                                : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                                               :"text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                                             }`}
                                     >
-                                        <section.icon className={`h-4 w-4 ${activeSection === section.id ? "text-emerald-500" : "text-slate-400"}`} />
+                                        <section.icon className={`h-4 w-4 ${activeSection === section.id ? "text-emerald-500":"text-slate-400"}`} />
                                         {section.title}
                                     </button>
                                 ))}

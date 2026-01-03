@@ -102,7 +102,7 @@ export const dashboardAdminTour: TourStep[] = [
     }
 ];
 
-// Tour para la página de Asignaciones / Mis Listas
+// Tour para la página de Asignaciones /Mis Listas
 export const asignacionesTour: TourStep[] = [
     {
         id: 'welcome',

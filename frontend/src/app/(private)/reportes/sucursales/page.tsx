@@ -185,7 +185,7 @@ export default function SucursalesReportPage() {
                         </h2>
                     </div>
                     <div className="h-[400px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minHeight={350}>
                             <BarChart
                                 data={data}
                                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
@@ -205,7 +205,7 @@ export default function SucursalesReportPage() {
                                 />
                                 <Tooltip
                                     cursor={{ fill: '#f1f5f9' }}
-                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0/0.1)' }}
                                 />
                                 <Legend wrapperStyle={{ paddingTop: '20px' }} />
                                 <Bar dataKey="registros" name="Registros Reales" fill="#10b981" radius={[4, 4, 0, 0]} barSize={50} />
@@ -224,7 +224,7 @@ export default function SucursalesReportPage() {
                             Participación
                         </h2>
                         <div className="h-[300px] w-full relative">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minHeight={250}>
                                 <PieChart>
                                     <Pie
                                         data={data}

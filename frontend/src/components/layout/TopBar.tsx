@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, User, Calendar, Menu, X, ArrowLeft, LogOut, Settings, Mail, UserCircle, HelpCircle, Users, Activity, UserCheck } from "lucide-react";
+import { Bell, Search, User, Calendar, Menu, X, ArrowLeft, LogOut, Settings, Mail, UserCircle, HelpCircle, Users, Activity, UserCheck, Check } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { WelcomeModal } from "../onboarding/WelcomeModal";
 import AvisosBell from "../AvisosBell";
@@ -89,7 +89,7 @@ export function TopBar() {
                     const target = new Date(data.fecha);
                     const now = new Date();
                     const diffTime = target.getTime() - now.getTime();
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const diffDays = Math.ceil(diffTime /(1000 * 60 * 60 * 24));
                     setDaysUntil(diffDays);
                 }
             } catch { }
@@ -113,15 +113,16 @@ export function TopBar() {
     // No necesitamos duplicar la lógica aquí
 
     useEffect(() => {
+        let isActive = true; // Prevents race conditions
         const timer = setTimeout(async () => {
-            if (searchTerm.trim().length >= 1) {
+            if (searchTerm.trim().length>= 1) {
                 setIsSearching(true);
                 try {
                     const token = localStorage.getItem("token");
                     const res = await fetch(`/api/usuarios/unificados?term=${searchTerm}`, {
                         headers: { "Authorization": `Bearer ${token}` }
                     });
-                    if (res.ok) {
+                    if (res.ok && isActive) {
                         const data = await res.json();
                         setSearchResults(data);
                         setShowResults(true);
@@ -129,15 +130,20 @@ export function TopBar() {
                 } catch (error) {
                     console.error("Error buscando", error);
                 } finally {
-                    setIsSearching(false);
+                    if (isActive) setIsSearching(false);
                 }
             } else {
-                setSearchResults([]);
-                setShowResults(false);
+                if (isActive) {
+                    setSearchResults([]);
+                    setShowResults(false);
+                }
             }
-        }, 100);
+        }, 500); // Increased debounce to 500ms
 
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            isActive = false;
+        };
     }, [searchTerm]);
 
     const handleSelectMember = (member: any) => {
@@ -210,7 +216,7 @@ export function TopBar() {
                         disabled={isDeactivating}
                         className="flex-shrink-0 bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-[10px] md:text-xs font-black uppercase tracking-wider transition-all border border-white/20 flex items-center gap-2"
                     >
-                        {isDeactivating ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertTriangle className="h-3 w-3" />}
+                        {isDeactivating ? <Loader2 className="h-3 w-3 animate-spin" />:<AlertTriangle className="h-3 w-3" />}
                         Desactivar
                     </button>
                 </div>
@@ -263,7 +269,7 @@ export function TopBar() {
                             {isSearching && <div className="h-4 w-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />}
                         </div>
                         {/* Resultados Mobile Flotantes */}
-                        {showResults && searchResults.length > 0 && (
+                        {showResults && searchResults.length> 0 && (
                             <div className="absolute top-16 left-0 right-0 bg-white shadow-2xl border-b border-slate-200 max-h-[60vh] overflow-y-auto">
                                 <div className="p-2">
                                     {searchResults.map((item: any) => (
@@ -300,7 +306,7 @@ export function TopBar() {
                     {/* Búsqueda Desktop */}
                     <div className="hidden md:flex flex-col relative" ref={searchContainerRef}>
                         <div className="w-80 lg:w-96 flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 border border-slate-200/80 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
-                            <Search className={`h-4 w-4 text-slate-400 ${isSearching ? 'animate-spin text-emerald-500' : ''}`} />
+                            <Search className={`h-4 w-4 text-slate-400 ${isSearching ? 'animate-spin text-emerald-500':''}`} />
                             <input
                                 type="text"
                                 value={searchTerm}
@@ -311,7 +317,7 @@ export function TopBar() {
                         </div>
 
                         {/* Resultados Dropdown (Desktop) */}
-                        {showResults && searchResults.length > 0 && (
+                        {showResults && searchResults.length> 0 && (
                             <div className="absolute top-12 left-0 w-full bg-white rounded-xl shadow-xl border border-slate-100 max-h-96 overflow-y-auto z-50 animate-in fade-in slide-in-from-top-2">
                                 <div className="p-2">
                                     <p className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Resultados ({searchResults.length})</p>
@@ -338,7 +344,7 @@ export function TopBar() {
                         )}
 
                         {/* Empty State Desktop */}
-                        {showResults && searchResults.length === 0 && searchTerm.length >= 2 && !isSearching && (
+                        {showResults && searchResults.length === 0 && searchTerm.length>= 2 && !isSearching && (
                             <div className="absolute top-12 left-0 w-full bg-white rounded-xl shadow-xl border border-slate-100 p-4 text-center z-50">
                                 <p className="text-sm text-slate-500">No se encontraron resultados</p>
                             </div>
@@ -375,7 +381,7 @@ export function TopBar() {
                         <div className="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-500 rounded-2xl shadow-lg shadow-emerald-200/50 animate-pulse transition-all">
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black text-emerald-100 uppercase tracking-widest leading-none">Días para Asamblea</span>
-                                <span className="text-lg font-black text-white leading-none mt-1">{daysUntil} {daysUntil === 1 ? 'DÍA' : 'DÍAS'}</span>
+                                <span className="text-lg font-black text-white leading-none mt-1">{daysUntil} {daysUntil === 1 ? 'DÍA':'DÍAS'}</span>
                             </div>
                         </div>
                     )}
@@ -442,7 +448,7 @@ export function TopBar() {
                                         alt="Perfil"
                                         className="h-full w-full object-cover rounded-xl"
                                     />
-                                ) : (
+                                ):(
                                     <User className="h-5 w-5 text-white" />
                                 )}
                             </div>
@@ -456,7 +462,7 @@ export function TopBar() {
                                     <div className="h-12 w-12 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-500 flex items-center justify-center shadow-md text-white font-bold text-xl">
                                         {user?.fotoPerfil ? (
                                             <img src={user.fotoPerfil} alt="" className="h-full w-full rounded-full object-cover" />
-                                        ) : (
+                                        ):(
                                             user?.nombreCompleto?.charAt(0) || "U"
                                         )}
                                     </div>
@@ -533,7 +539,7 @@ export function TopBar() {
                                 cardBorder: "group-hover:border-blue-300",
                                 cardIcon: "group-hover:text-blue-500"
                             }
-                            : isVozVoto
+                           :isVozVoto
                                 ? { // Voz y Voto (VERDE VIBRANTE)
                                     headerGradient: "from-green-500 via-emerald-500 to-green-600",
                                     ringColor: "ring-green-500",
@@ -542,7 +548,7 @@ export function TopBar() {
                                     cardBorder: "group-hover:border-green-400",
                                     cardIcon: "group-hover:text-green-600"
                                 }
-                                : { // Solo Voz (AMARILLO VIBRANTE - NO NARANJA)
+                               :{ // Solo Voz (AMARILLO VIBRANTE - NO NARANJA)
                                     headerGradient: "from-yellow-400 via-amber-400 to-yellow-500",
                                     ringColor: "ring-yellow-400",
                                     badgeBg: "bg-yellow-50",
@@ -552,105 +558,100 @@ export function TopBar() {
                                 };
 
                         return (
-                            <div className="relative w-full max-w-md bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 max-h-[90vh] flex flex-col">
+                            <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 flex flex-col">
 
-                                {/* Contenedor con Scroll para Móvil */}
-                                <div className="overflow-y-auto no-scrollbar">
-
-                                    {/* Botón Cerrar Flotante */}
+                                {/* Header Compacto */}
+                                <div className={`relative h-28 bg-gradient-to-br ${theme.headerGradient} flex items-center justify-center shrink-0`}>
                                     <button
                                         onClick={() => setSelectedMember(null)}
-                                        className="absolute top-4 right-4 z-20 p-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full text-white transition-all shadow-lg hover:rotate-90 hover:scale-110"
+                                        className="absolute top-3 right-3 z-20 p-1.5 bg-black/10 hover:bg-black/20 rounded-full text-white transition-all"
                                     >
-                                        <X className="h-5 w-5 md:h-6 md:w-6" />
+                                        <X className="h-4 w-4" />
                                     </button>
 
-                                    {/* Encabezado Visual DINÁMICO Responsive */}
-                                    <div className={`relative h-36 md:h-48 bg-gradient-to-br ${theme.headerGradient} flex items-center justify-center transition-colors duration-500 shrink-0`}>
-                                        <div className="absolute inset-0 overflow-hidden">
-                                            <div className="absolute top-0 left-0 w-full h-full opacity-30 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.9),transparent)]"></div>
-                                            <div className="absolute -right-10 -top-10 w-40 h-40 bg-white rounded-full blur-3xl opacity-20"></div>
-                                            <div className="absolute -left-10 bottom-0 w-40 h-40 bg-white rounded-full blur-3xl opacity-20"></div>
+                                    {/* Avatar superpuesto */}
+                                    <div className={`absolute -bottom-8 z-10 h-20 w-20 rounded-2xl bg-white p-1 shadow-lg ring-4 ring-offset-2 ${theme.ringColor} ring-offset-white`}>
+                                        <div className="h-full w-full bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
+                                            <span className={`text-4xl font-black ${theme.badgeText} uppercase`}>
+                                                {selectedMember.nombreCompleto?.charAt(0)}
+                                            </span>
                                         </div>
+                                    </div>
+                                </div>
 
-                                        {/* Avatar Flotante Responsive */}
-                                        <div className={`absolute -bottom-10 md:-bottom-14 z-10 h-24 w-24 md:h-32 md:w-32 rounded-2xl md:rounded-3xl bg-white p-1.5 md:p-2 shadow-2xl rotate-3 transform transition-transform hover:rotate-0 hover:scale-105 duration-300 ring-4 ring-offset-4 ${theme.ringColor} ring-offset-white`}>
-                                            <div className="h-full w-full bg-slate-50 rounded-xl md:rounded-2xl flex items-center justify-center border border-slate-100">
-                                                <span className={`text-4xl md:text-6xl font-black ${theme.badgeText} uppercase drop-shadow-sm`}>
-                                                    {selectedMember.nombreCompleto?.charAt(0)}
-                                                </span>
-                                            </div>
+                                {/* Contenido Compacto */}
+                                <div className="pt-10 pb-4 px-4 text-center space-y-3">
+
+                                    {/* Info Principal */}
+                                    <div>
+                                        <h2 className="text-lg font-black text-slate-800 leading-tight uppercase line-clamp-2">
+                                            {selectedMember.nombreCompleto}
+                                        </h2>
+                                        <p className={`mt-1 text-[10px] font-bold uppercase tracking-wide ${theme.badgeText}`}>
+                                            {selectedMember.rolNombre || "Socio Cooperativa"}
+                                        </p>
+                                    </div>
+
+                                    {/* Datos - Grid Compacta */}
+                                    <div className="flex gap-2 justify-center">
+                                        <div className={`flex-1 bg-slate-50 py-2 px-1 rounded-xl border border-slate-100 ${theme.cardBorder}`}>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase">Cédula</p>
+                                            <p className="text-sm font-black text-slate-700">{selectedMember.cedula || "---"}</p>
+                                        </div>
+                                        <div className={`flex-1 bg-slate-50 py-2 px-1 rounded-xl border border-slate-100 ${theme.cardBorder}`}>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase">Nro. Socio</p>
+                                            <p className="text-sm font-black text-slate-700">#{selectedMember.nroSocio || "---"}</p>
                                         </div>
                                     </div>
 
-                                    {/* Contenido Responsive */}
-                                    <div className="pt-14 md:pt-20 pb-6 md:pb-8 px-5 md:px-8 text-center space-y-6 md:space-y-8">
-
-                                        {/* Información Principal */}
-                                        <div className="space-y-1 md:space-y-2">
-                                            <h2 className="text-xl md:text-3xl font-black text-slate-800 leading-tight uppercase tracking-tight break-words">
-                                                {selectedMember.nombreCompleto}
-                                            </h2>
-                                            <div className={`inline-block px-3 py-1 md:px-4 md:py-1.5 rounded-full border border-transparent ${theme.badgeBg}`}>
-                                                <p className={`font-black text-xs md:text-sm uppercase tracking-wide ${theme.badgeText}`}>
-                                                    {selectedMember.rolNombre || "Socio Cooperativa"}
-                                                </p>
+                                    {/* Aportes Compacto */}
+                                    {(isSocio || selectedMember.idSocio || selectedMember.nroSocio) && (
+                                        <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
+                                            <div className="grid grid-cols-5 gap-1">
+                                                {[
+                                                    { label: "Aporte", val: selectedMember.aporteAlDia },
+                                                    { label: "Solid.", val: selectedMember.solidaridadAlDia },
+                                                    { label: "Fondo", val: selectedMember.fondoAlDia },
+                                                    { label: "INCOOP", val: selectedMember.incoopAlDia },
+                                                    { label: "Créd.", val: selectedMember.creditoAlDia },
+                                                ].map((item, idx) => (
+                                                    <div key={idx} className={`flex flex-col items-center justify-center py-1.5 rounded-lg border ${item.val
+                                                        ? 'bg-emerald-100/50 border-emerald-200 text-emerald-700'
+                                                       :'bg-red-50 border-red-100 text-red-600'
+                                                        }`}>
+                                                        {item.val
+                                                            ? <Check className="h-3 w-3 mb-0.5" strokeWidth={4} />
+                                                           :<X className="h-3 w-3 mb-0.5" strokeWidth={4} />
+                                                        }
+                                                        <span className="text-[8px] font-black uppercase text-center leading-none">{item.label}</span>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
+                                    )}
 
-                                        {/* Grid de Datos Clave */}
-                                        <div className="grid grid-cols-2 gap-3 md:gap-4">
-                                            <div className={`bg-slate-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm group hover:shadow-lg transition-all duration-300 ${theme.cardBorder}`}>
-                                                <p className={`text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 transition-colors ${theme.cardIcon}`}>Cédula</p>
-                                                <p className="text-lg md:text-xl font-black text-slate-700 tracking-tight group-hover:text-slate-900 truncate">{selectedMember.cedula || "---"}</p>
-                                            </div>
-                                            <div className={`bg-slate-50 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm group hover:shadow-lg transition-all duration-300 ${theme.cardBorder}`}>
-                                                <p className={`text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 transition-colors ${theme.cardIcon}`}>Nro. Socio</p>
-                                                <p className="text-lg md:text-xl font-black text-slate-700 tracking-tight group-hover:text-slate-900 truncate">#{selectedMember.nroSocio || "---"}</p>
-                                            </div>
-                                        </div>
-
-                                        {/* Estado de Habilitación WOW Responsive */}
-                                        <div className="pt-2">
-                                            {isSocio ? (
-                                                isVozVoto ? (
-                                                    <div className="relative overflow-hidden bg-gradient-to-r from-emerald-100 to-green-100 border-2 border-green-500 rounded-2xl p-4 md:p-6 shadow-[0_10px_30px_-10px_rgba(34,197,94,0.6)] transform hover:scale-[1.03] transition-transform duration-300">
-                                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent w-full h-full -translate-x-full animate-[shimmer_2s_infinite]"></div>
-                                                        <div className="relative flex flex-col items-center gap-1 md:gap-2">
-                                                            <span className="text-2xl md:text-3xl font-black text-green-700 tracking-tighter drop-shadow-sm">VOZ Y VOTO</span>
-                                                            <div className="flex items-center gap-2 bg-green-200/50 px-2 py-0.5 md:px-3 md:py-1 rounded-full">
-                                                                <div className="h-1.5 w-1.5 md:h-2 md:w-2 bg-green-600 rounded-full animate-pulse"></div>
-                                                                <span className="text-[10px] md:text-xs font-bold text-green-800 uppercase">Habilitado</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="relative overflow-hidden bg-gradient-to-r from-yellow-100 to-amber-100 border-2 border-yellow-500 rounded-2xl p-4 md:p-6 shadow-[0_10px_30px_-10px_rgba(234,179,8,0.6)] transform hover:scale-[1.03] transition-transform duration-300">
-                                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent w-full h-full -translate-x-full animate-[shimmer_2s_infinite]"></div>
-                                                        <div className="relative flex flex-col items-center gap-1 md:gap-2">
-                                                            <span className="text-2xl md:text-3xl font-black text-yellow-700 tracking-tighter drop-shadow-sm">SOLO VOZ</span>
-                                                            <div className="flex items-center gap-2 bg-yellow-200/50 px-2 py-0.5 md:px-3 md:py-1 rounded-full">
-                                                                <div className="h-1.5 w-1.5 md:h-2 md:w-2 bg-yellow-600 rounded-full"></div>
-                                                                <span className="text-[10px] md:text-xs font-bold text-yellow-800 uppercase">Sin Voto</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )
-                                            ) : (
-                                                <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4">
-                                                    <span className="font-bold text-blue-700 uppercase tracking-wide text-sm">PERSONAL ADMINISTRATIVO</span>
+                                    {/* Estado Final (Voz/Voto) Banner Compacto */}
+                                    {isSocio || selectedMember.idSocio || selectedMember.nroSocio ? (
+                                        selectedMember.vozVoto || (selectedMember.aporteAlDia && selectedMember.solidaridadAlDia && selectedMember.fondoAlDia && selectedMember.incoopAlDia && selectedMember.creditoAlDia) ? (
+                                            <div className="bg-gradient-to-r from-emerald-100 to-green-100 border border-green-400 rounded-xl py-2 shadow-sm">
+                                                <div className="flex flex-col items-center">
+                                                    <span className="text-xl font-black text-green-700 tracking-tighter leading-none">VOZ Y VOTO</span>
+                                                    <span className="text-[9px] font-bold text-green-800 uppercase mt-0.5">Habilitado</span>
                                                 </div>
-                                            )}
+                                            </div>
+                                        ):(
+                                            <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-400 rounded-xl py-2 shadow-sm">
+                                                <div className="flex flex-col items-center">
+                                                    <span className="text-xl font-black text-yellow-700 tracking-tighter leading-none">SOLO VOZ</span>
+                                                    <span className="text-[9px] font-bold text-yellow-800 uppercase mt-0.5">Sin Voto</span>
+                                                </div>
+                                            </div>
+                                        )
+                                    ):(
+                                        <div className="bg-blue-50 border border-blue-200 rounded-xl py-2">
+                                            <span className="font-bold text-blue-700 uppercase tracking-wide text-xs">PERSONAL ADMINISTRATIVO</span>
                                         </div>
-
-                                        {/* Botón Cerrar */}
-                                        <button
-                                            onClick={() => setSelectedMember(null)}
-                                            className="w-full py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-slate-500 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 active:scale-[0.98] transition-all text-xs md:text-sm tracking-widest shadow-sm"
-                                        >
-                                            CERRAR
-                                        </button>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -659,13 +660,6 @@ export function TopBar() {
                     <style jsx global>{`
                         @keyframes shimmer {
                             100% { transform: translateX(100%); }
-                        }
-                        .no-scrollbar::-webkit-scrollbar {
-                            display: none;
-                        }
-                        .no-scrollbar {
-                            -ms-overflow-style: none; /* IE and Edge */
-                            scrollbar-width: none;  /* Firefox */
                         }
                     `}</style>
                 </div>

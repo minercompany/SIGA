@@ -76,7 +76,7 @@ export default function AdminChatPage() {
             setMensajes(res.data.mensajes || []);
             // Actualizar unread count localmente
             setConversaciones(prev => prev.map(c =>
-                c.id === convId ? { ...c, unreadCount: 0 } : c
+                c.id === convId ? { ...c, unreadCount: 0 }:c
             ));
         } catch (error) {
             console.error('Error loading messages:', error);
@@ -173,7 +173,7 @@ export default function AdminChatPage() {
     const formatDate = (dateStr: string) => {
         const date = new Date(dateStr);
         const now = new Date();
-        const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+        const diffDays = Math.floor((now.getTime() - date.getTime()) /(1000 * 60 * 60 * 24));
 
         if (diffDays === 0) {
             return date.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' });
@@ -253,7 +253,7 @@ export default function AdminChatPage() {
                                 </div>
                                 <p className="text-slate-400 font-medium">Sin conversaciones</p>
                             </div>
-                        ) : (
+                        ):(
                             filteredConversaciones.map((conv) => (
                                 <motion.button
                                     key={conv.id}
@@ -265,17 +265,17 @@ export default function AdminChatPage() {
                                     }}
                                     className={`w-full p-4 flex items-start gap-4 border-b border-slate-50 transition-all ${selectedConv?.id === conv.id
                                         ? 'bg-teal-50 border-l-4 border-l-teal-500'
-                                        : 'border-l-4 border-l-transparent hover:border-l-slate-200'
+                                       :'border-l-4 border-l-transparent hover:border-l-slate-200'
                                         }`}
                                 >
                                     <div className="relative flex-shrink-0">
                                         <div className={`h-12 w-12 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-lg ${selectedConv?.id === conv.id
                                             ? 'bg-gradient-to-br from-teal-500 to-emerald-500 shadow-teal-200'
-                                            : 'bg-gradient-to-br from-slate-400 to-slate-500 shadow-slate-200'
+                                           :'bg-gradient-to-br from-slate-400 to-slate-500 shadow-slate-200'
                                             }`}>
                                             {conv.usuarioNombre?.charAt(0)}
                                         </div>
-                                        {conv.unreadCount > 0 && (
+                                        {conv.unreadCount> 0 && (
                                             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-lg">
                                                 {conv.unreadCount}
                                             </span>
@@ -283,7 +283,7 @@ export default function AdminChatPage() {
                                     </div>
                                     <div className="flex-1 text-left min-w-0">
                                         <div className="flex justify-between items-center mb-1">
-                                            <span className={`font-bold text-sm truncate ${selectedConv?.id === conv.id ? 'text-teal-500' : 'text-slate-700'
+                                            <span className={`font-bold text-sm truncate ${selectedConv?.id === conv.id ? 'text-teal-500':'text-slate-700'
                                                 }`}>
                                                 {conv.usuarioNombre}
                                             </span>
@@ -338,29 +338,29 @@ export default function AdminChatPage() {
                                         <p className="text-slate-400 font-medium">Sin mensajes aún</p>
                                         <p className="text-slate-300 text-sm">Iniciá la conversación</p>
                                     </div>
-                                ) : (
+                                ):(
                                     mensajes.map((msg, idx) => (
                                         <motion.div
                                             key={msg.id}
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: idx * 0.03 }}
-                                            className={`flex ${msg.senderRole === 'ADMIN' ? 'justify-end' : 'justify-start'}`}
+                                            className={`flex ${msg.senderRole === 'ADMIN' ? 'justify-end':'justify-start'}`}
                                         >
                                             <div
                                                 className={`max-w-[70%] px-5 py-3 ${msg.senderRole === 'ADMIN'
                                                     ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-2xl rounded-br-md shadow-lg shadow-teal-200'
-                                                    : 'bg-white text-slate-700 rounded-2xl rounded-bl-md border border-slate-100 shadow-sm'
+                                                   :'bg-white text-slate-700 rounded-2xl rounded-bl-md border border-slate-100 shadow-sm'
                                                     }`}
                                             >
                                                 <p className="text-sm leading-relaxed">{msg.contenido}</p>
-                                                <div className={`flex items-center justify-end gap-1.5 mt-2 text-[10px] font-semibold ${msg.senderRole === 'ADMIN' ? 'text-teal-100' : 'text-slate-400'
+                                                <div className={`flex items-center justify-end gap-1.5 mt-2 text-[10px] font-semibold ${msg.senderRole === 'ADMIN' ? 'text-teal-100':'text-slate-400'
                                                     }`}>
                                                     <span>
                                                         {new Date(msg.createdAt).toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' })}
                                                     </span>
                                                     {msg.senderRole === 'ADMIN' && (
-                                                        msg.readAt ? <CheckCheck className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />
+                                                        msg.readAt ? <CheckCheck className="h-3.5 w-3.5" />:<Check className="h-3.5 w-3.5" />
                                                     )}
                                                 </div>
                                             </div>
@@ -393,7 +393,7 @@ export default function AdminChatPage() {
                                 </div>
                             </div>
                         </>
-                    ) : (
+                    ):(
                         <div className="flex-1 flex flex-col items-center justify-center">
                             <motion.div
                                 initial={{ scale: 0.8, opacity: 0 }}
@@ -472,7 +472,7 @@ export default function AdminChatPage() {
                                         <div className="w-6 h-6 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
                                         <span className="ml-3 text-slate-500 font-medium">Buscando...</span>
                                     </div>
-                                ) : userSearchResults.length > 0 ? (
+                                ):userSearchResults.length> 0 ? (
                                     <div className="space-y-2">
                                         {userSearchResults.map((user: any) => (
                                             <motion.button
@@ -507,7 +507,7 @@ export default function AdminChatPage() {
                                             </motion.button>
                                         ))}
                                     </div>
-                                ) : userSearchTerm.length > 0 ? (
+                                ):userSearchTerm.length> 0 ? (
                                     <div className="text-center py-8">
                                         <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                             <User className="h-8 w-8 text-slate-300" />
@@ -515,7 +515,7 @@ export default function AdminChatPage() {
                                         <p className="text-slate-500 font-medium">No se encontraron usuarios</p>
                                         <p className="text-slate-400 text-sm mt-1">Intentá con otro término de búsqueda</p>
                                     </div>
-                                ) : (
+                                ):(
                                     <div className="text-center py-8">
                                         <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                             <Search className="h-8 w-8 text-teal-300" />

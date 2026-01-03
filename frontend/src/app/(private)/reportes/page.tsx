@@ -125,7 +125,7 @@ export default function IntelligenceHubPage() {
         const totalVoz = Math.round(totalHabilitados * 0.15);
         const totalVoto = Math.round(totalHabilitados * 0.85);
 
-        // 3. Generar estructuras para Gráficos / Tablas
+        // 3. Generar estructuras para Gráficos /Tablas
         let chartData: any[] = [];
 
         // Lógica diferenciada para ASISTENCIA vs GESTION/PADRON
@@ -353,7 +353,7 @@ export default function IntelligenceHubPage() {
             labelPct = "QUORUM";
         }
 
-        headRow = [['#', 'ENTIDAD / NOMBRE', labelRegVyV, labelRegSV, labelMetaVyV, labelMetaSV, labelPct]];
+        headRow = [['#', 'ENTIDAD /NOMBRE', labelRegVyV, labelRegSV, labelMetaVyV, labelMetaSV, labelPct]];
 
         bodyData = processedData.chartData.map((d: any, index: number) => {
             // Cálculos estimados por fila
@@ -705,7 +705,7 @@ export default function IntelligenceHubPage() {
                         </div>
 
                         <div className="h-[320px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minHeight={280}>
                                 <BarChart data={processedData.chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }} barGap={8}>
                                     <defs>
                                         <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
@@ -728,7 +728,7 @@ export default function IntelligenceHubPage() {
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
                                     <RechartsTooltip
                                         cursor={{ fill: '#f1f5f9', radius: 12 }}
-                                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px -5px rgb(0 0 0 / 0.1)' }}
+                                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px -5px rgb(0 0 0/0.1)' }}
                                         itemStyle={{ color: '#1e293b', fontWeight: 600 }}
                                         formatter={(value: any) => value?.toLocaleString()}
                                     />
@@ -760,7 +760,7 @@ export default function IntelligenceHubPage() {
                         <p className="text-sm text-slate-400 mb-4">{reporteTipo === 'ASISTENCIA' ? 'Presentes vs Ausentes' : 'Voz y Voto vs Solo Voz'}</p>
 
                         <div className="h-[250px] w-full relative">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
                                 <RechartsPieChart>
                                     <Pie
                                         data={
@@ -861,7 +861,7 @@ export default function IntelligenceHubPage() {
                                 <p className="text-indigo-200 text-sm mb-4">Comportamiento del registro en tiempo real.</p>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 h-32">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minHeight={100}>
                                     <AreaChart data={processedData.chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorTrend" x1="0" y1="0" x2="0" y2="1">

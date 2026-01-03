@@ -951,4 +951,57 @@ public class AsignacionController {
 
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/stats-por-dia")
+    public ResponseEntity<List<Map<String, Object>>> getStatsPorDia(@RequestParam(defaultValue = "30") int dias,
+            Authentication auth) {
+        if (auth == null)
+            return ResponseEntity.status(401).build();
+
+        List<Map<String, Object>> stats = asignacionRepository.findStatsPorDia(dias);
+        return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/exportar-asignaciones-pdf")
+    public ResponseEntity<byte[]> exportarAsignacionesPdf(@RequestParam(defaultValue = "30") int dias,
+            Authentication auth) {
+        if (auth == null)
+            return ResponseEntity.status(401).build();
+
+        List<Map<String, Object>> stats = asignacionRepository.findStatsPorDia(dias);
+        com.asamblea.service.ReporteExportService exportService = new com.asamblea.service.ReporteExportService(); // O
+                                                                                                                   // inyectarlo
+        byte[] pdf = exportService.generarPdfAsignacionesDiarias(stats, dias);
+
+        return ResponseEntity.ok()
+                .header("Content-Type", "application/pdf")
+                .header("Content-Disposition", "attachment; filename=asignaciones_diarias.pdf")
+                .body(pdf);
+    }
+
+    @GetMapping("/exportar-asignaciones-excel")
+    public ResponseEntity<byte[]> exportarAsignacionesExcel(@RequestParam(defaultValue = "30") int dias,
+            Authentication auth) {
+        if (auth == null)
+            return ResponseEntity.status(401).build();
+
+        List<Map<String, Object>> stats = asignacionRepository.findStatsPorDia(dias);
+        com.asamblea.service.ReporteExportService exportService = new com.asamblea.service.ReporteExportService(); // O
+                                                                                                                   // inyectarlo
+        byte[] excel = exportService.generarExcelAsignacionesDiarias(stats, dias); // Retorna CSV por ahora
+
+        return ResponseEntity.ok()
+                .header("Content-Type", "text/csv")
+                .header("Content-Disposition", "attachment; filename=asignaciones_diarias.csv")
+                .body(excel);
+    }
+
+    @GetMapping("/stats-dia-hoy")
+    public ResponseEntity<Map<String, Object>> getStatsDiaHoy(Authentication auth) {
+        if (auth == null) {
+            return ResponseEntity.status(401).build();
+        }
+        Long count = asignacionRepository.countAsignacionesHoy();
+        return ResponseEntity.ok(Map.of("totalHoy", count != null ? count : 0));
+    }
 }

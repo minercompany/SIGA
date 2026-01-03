@@ -84,7 +84,7 @@ export default function AdminAvisosPage() {
     // Search Users
     useEffect(() => {
         const timer = setTimeout(async () => {
-            if (searchTerm.length >= 1 && !selectedUser) {
+            if (searchTerm.length>= 1 && !selectedUser) {
                 setIsSearching(true);
                 try {
                     const token = localStorage.getItem('token');
@@ -263,7 +263,7 @@ export default function AdminAvisosPage() {
                             onClick={() => setActiveTab(tab as any)}
                             className={`relative px-8 py-3 rounded-xl text-sm font-bold transition-colors z-10 ${activeTab === tab
                                 ? 'text-slate-900'
-                                : 'text-slate-500 hover:text-slate-700'
+                               :'text-slate-500 hover:text-slate-700'
                                 }`}
                         >
                             {activeTab === tab && (
@@ -274,8 +274,8 @@ export default function AdminAvisosPage() {
                                 />
                             )}
                             <span className="relative z-20 flex items-center gap-2">
-                                {tab === 'crear' ? <Send className="h-4 w-4" /> : <BarChart2 className="h-4 w-4" />}
-                                {tab === 'crear' ? 'Redactar Aviso' : 'Historial de Envíos'}
+                                {tab === 'crear' ? <Send className="h-4 w-4" />:<BarChart2 className="h-4 w-4" />}
+                                {tab === 'crear' ? 'Redactar Aviso':'Historial de Envíos'}
                             </span>
                         </button>
                     ))}
@@ -304,13 +304,13 @@ export default function AdminAvisosPage() {
                                         onClick={() => setTipo('MASIVO')}
                                         className={`relative cursor-pointer group p-6 rounded-2xl border-2 transition-all duration-300 ${tipo === 'MASIVO'
                                             ? 'border-emerald-500 bg-emerald-50/50'
-                                            : 'border-slate-100 hover:border-slate-300'
+                                           :'border-slate-100 hover:border-slate-300'
                                             }`}
                                     >
-                                        <div className={`h-12 w-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${tipo === 'MASIVO' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-slate-100 text-slate-500'}`}>
+                                        <div className={`h-12 w-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${tipo === 'MASIVO' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30':'bg-slate-100 text-slate-500'}`}>
                                             <Users className="h-6 w-6" />
                                         </div>
-                                        <h4 className={`font-bold text-lg mb-1 ${tipo === 'MASIVO' ? 'text-slate-900' : 'text-slate-600'}`}>
+                                        <h4 className={`font-bold text-lg mb-1 ${tipo === 'MASIVO' ? 'text-slate-900':'text-slate-600'}`}>
                                             Masivo Generál
                                         </h4>
                                         <p className="text-sm text-slate-500">
@@ -331,13 +331,13 @@ export default function AdminAvisosPage() {
                                         onClick={() => setTipo('POR_FILTRO')}
                                         className={`relative cursor-pointer group p-6 rounded-2xl border-2 transition-all duration-300 ${tipo === 'POR_FILTRO'
                                             ? 'border-blue-500 bg-blue-50/50'
-                                            : 'border-slate-100 hover:border-slate-300'
+                                           :'border-slate-100 hover:border-slate-300'
                                             }`}
                                     >
-                                        <div className={`h-12 w-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${tipo === 'POR_FILTRO' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-slate-100 text-slate-500'}`}>
+                                        <div className={`h-12 w-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${tipo === 'POR_FILTRO' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30':'bg-slate-100 text-slate-500'}`}>
                                             <Filter className="h-6 w-6" />
                                         </div>
-                                        <h4 className={`font-bold text-lg mb-1 ${tipo === 'POR_FILTRO' ? 'text-slate-900' : 'text-slate-600'}`}>
+                                        <h4 className={`font-bold text-lg mb-1 ${tipo === 'POR_FILTRO' ? 'text-slate-900':'text-slate-600'}`}>
                                             Por Filtro
                                         </h4>
                                         <p className="text-sm text-slate-500">
@@ -358,13 +358,13 @@ export default function AdminAvisosPage() {
                                         onClick={() => setTipo('INDIVIDUAL')}
                                         className={`relative cursor-pointer group p-6 rounded-2xl border-2 transition-all duration-300 ${tipo === 'INDIVIDUAL'
                                             ? 'border-violet-500 bg-violet-50/50'
-                                            : 'border-slate-100 hover:border-slate-300'
+                                           :'border-slate-100 hover:border-slate-300'
                                             }`}
                                     >
-                                        <div className={`h-12 w-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${tipo === 'INDIVIDUAL' ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/30' : 'bg-slate-100 text-slate-500'}`}>
+                                        <div className={`h-12 w-12 rounded-xl mb-4 flex items-center justify-center transition-colors ${tipo === 'INDIVIDUAL' ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/30':'bg-slate-100 text-slate-500'}`}>
                                             <User className="h-6 w-6" />
                                         </div>
-                                        <h4 className={`font-bold text-lg mb-1 ${tipo === 'INDIVIDUAL' ? 'text-slate-900' : 'text-slate-600'}`}>
+                                        <h4 className={`font-bold text-lg mb-1 ${tipo === 'INDIVIDUAL' ? 'text-slate-900':'text-slate-600'}`}>
                                             Individual
                                         </h4>
                                         <p className="text-sm text-slate-500">
@@ -417,7 +417,7 @@ export default function AdminAvisosPage() {
                                                                         <X className="h-5 w-5 text-violet-600" />
                                                                     </button>
                                                                 </motion.div>
-                                                            ) : (
+                                                            ):(
                                                                 <>
                                                                     <div className="relative group">
                                                                         <input
@@ -438,7 +438,7 @@ export default function AdminAvisosPage() {
                                                             )}
 
                                                             <AnimatePresence>
-                                                                {searchResults.length > 0 ? (
+                                                                {searchResults.length> 0 ? (
                                                                     <motion.div
                                                                         initial={{ opacity: 0, y: 10 }}
                                                                         animate={{ opacity: 1, y: 0 }}
@@ -457,14 +457,14 @@ export default function AdminAvisosPage() {
                                                                                 <div>
                                                                                     <p className="font-bold text-sm text-slate-900">{u.nombreCompleto}</p>
                                                                                     <p className="text-xs font-medium text-violet-600">
-                                                                                        {u.cedula ? `CI: ${u.cedula}` : `Usuario: ${u.username || 'N/A'}`}
+                                                                                        {u.cedula ? `CI: ${u.cedula}`:`Usuario: ${u.username || 'N/A'}`}
                                                                                     </p>
                                                                                 </div>
                                                                                 <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-violet-500 transition-colors" />
                                                                             </motion.div>
                                                                         ))}
                                                                     </motion.div>
-                                                                ) : searchTerm.length >= 1 && !isSearching && (
+                                                                ):searchTerm.length>= 1 && !isSearching && (
                                                                     <motion.div
                                                                         initial={{ opacity: 0, y: 10 }}
                                                                         animate={{ opacity: 1, y: 0 }}
@@ -549,7 +549,7 @@ export default function AdminAvisosPage() {
                                                         <X className="h-4 w-4" />
                                                     </button>
                                                 </div>
-                                            ) : (
+                                            ):(
                                                 <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/50 transition-all">
                                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                                         <Upload className="w-8 h-8 mb-2 text-slate-400" />
@@ -591,7 +591,7 @@ export default function AdminAvisosPage() {
                                                         onClick={() => setPrioridad('NORMAL')}
                                                         className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${prioridad === 'NORMAL'
                                                             ? 'border-emerald-500 bg-emerald-50 text-slate-900'
-                                                            : 'border-slate-100 text-slate-400 hover:border-slate-300'
+                                                           :'border-slate-100 text-slate-400 hover:border-slate-300'
                                                             }`}
                                                     >
                                                         {prioridad === 'NORMAL' && (
@@ -608,7 +608,7 @@ export default function AdminAvisosPage() {
                                                         onClick={() => setPrioridad('ALTA')}
                                                         className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${prioridad === 'ALTA'
                                                             ? 'border-amber-500 bg-amber-50 text-slate-900'
-                                                            : 'border-slate-100 text-slate-400 hover:border-slate-300'
+                                                           :'border-slate-100 text-slate-400 hover:border-slate-300'
                                                             }`}
                                                     >
                                                         {prioridad === 'ALTA' && (
@@ -625,7 +625,7 @@ export default function AdminAvisosPage() {
                                                         onClick={() => setPrioridad('CRITICA')}
                                                         className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${prioridad === 'CRITICA'
                                                             ? 'border-red-500 bg-red-50 text-slate-900'
-                                                            : 'border-slate-100 text-slate-400 hover:border-slate-300'
+                                                           :'border-slate-100 text-slate-400 hover:border-slate-300'
                                                             }`}
                                                     >
                                                         {prioridad === 'CRITICA' && (
@@ -676,7 +676,7 @@ export default function AdminAvisosPage() {
                                         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out skew-y-12" />
                                         {isSending ? (
                                             <div className="h-6 w-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                                        ) : (
+                                        ):(
                                             <>
                                                 <Send className="h-6 w-6" />
                                                 <span>Enviar Aviso</span>
@@ -687,7 +687,7 @@ export default function AdminAvisosPage() {
                             </div>
                         </form>
                     </motion.div>
-                ) : (
+                ):(
                     <motion.div
                         key="historial"
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -699,7 +699,7 @@ export default function AdminAvisosPage() {
                             <table className="w-full">
                                 <thead className="bg-slate-50 border-b border-slate-200">
                                     <tr>
-                                        {['Aviso Detalles', 'Destinatarios', 'Fecha / Hora', 'Estado', 'Acciones'].map((h) => (
+                                        {['Aviso Detalles', 'Destinatarios', 'Fecha /Hora', 'Estado', 'Acciones'].map((h) => (
                                             <th key={h} className="px-8 py-5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{h}</th>
                                         ))}
                                     </tr>
@@ -716,7 +716,7 @@ export default function AdminAvisosPage() {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ) : (
+                                    ):(
                                         avisos.map((aviso, i) => (
                                             <motion.tr
                                                 key={aviso.id}
@@ -727,7 +727,7 @@ export default function AdminAvisosPage() {
                                             >
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-start gap-4">
-                                                        <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${aviso.prioridad === 'CRITICA' ? 'bg-red-500' : aviso.prioridad === 'ALTA' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                                                        <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${aviso.prioridad === 'CRITICA' ? 'bg-red-500':aviso.prioridad === 'ALTA' ? 'bg-amber-500':'bg-emerald-500'}`} />
                                                         <div>
                                                             <div className="font-bold text-slate-800 text-lg mb-1">{aviso.titulo}</div>
                                                             {aviso.imagenUrl && (
@@ -743,7 +743,7 @@ export default function AdminAvisosPage() {
                                                                     {aviso.tipo}
                                                                 </span>
                                                                 {aviso.prioridad !== 'NORMAL' && (
-                                                                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold tracking-tight ${aviso.prioridad === 'CRITICA' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold tracking-tight ${aviso.prioridad === 'CRITICA' ? 'bg-red-100 text-red-700':'bg-amber-100 text-amber-700'}`}>
                                                                         {aviso.prioridad}
                                                                     </span>
                                                                 )}
@@ -843,6 +843,6 @@ export default function AdminAvisosPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div >
+        </div>
     );
 }

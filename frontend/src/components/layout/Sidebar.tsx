@@ -196,7 +196,7 @@ export function Sidebar() {
             case "importar-funcionarios":
                 return user.rol === "SUPER_ADMIN";
             case "socios":
-                return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
+                return true;
 
             // Operativa
             case "asignacion-rapida":
@@ -266,7 +266,7 @@ export function Sidebar() {
             {/* Logo y título */}
             <div className={cn(
                 "flex items-center border-b border-emerald-500/30 transition-all duration-300",
-                effectiveCollapsed ? "h-20 justify-center p-2" : "h-24 justify-start p-4 gap-3 ml-2"
+                effectiveCollapsed ? "h-20 justify-center p-2":"h-24 justify-start p-4 gap-3 ml-2"
             )}>
                 <div className="flex-shrink-0">
                     <img
@@ -274,7 +274,7 @@ export function Sidebar() {
                         alt="Logo"
                         className={cn(
                             "object-contain rounded-full bg-white shadow-lg transition-all duration-300",
-                            effectiveCollapsed ? "h-10 w-10 p-0.5" : "h-12 w-12 p-1"
+                            effectiveCollapsed ? "h-10 w-10 p-0.5":"h-12 w-12 p-1"
                         )}
                     />
                 </div>
@@ -287,7 +287,7 @@ export function Sidebar() {
             </div>
 
             {/* Navegación */}
-            <nav data-tour={isMobile && !mobileOpen ? undefined : "sidebar-panel"} className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+            <nav data-tour={isMobile && !mobileOpen ? undefined:"sidebar-panel"} className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
                 {(() => {
                     const isPowerUser = user?.rol === "SUPER_ADMIN" || user?.rol === "DIRECTIVO";
 
@@ -309,7 +309,7 @@ export function Sidebar() {
                     return itemsToRender.filter(item => hasPermission(item.id)).map((item) => {
                         // Verificar si el grupo tiene items visibles (solo relevante para PowerUsers que ven grupos)
                         const filteredSubmenu = (item.submenu || []).filter((sub: any) => hasPermission(sub.id));
-                        const hasVisibleSubmenu = filteredSubmenu.length > 0;
+                        const hasVisibleSubmenu = filteredSubmenu.length> 0;
 
                         // Si es un grupo vacio (por permisos), no mostrarlo
                         if (isPowerUser && !hasVisibleSubmenu && item.href === '#') return null;
@@ -333,16 +333,16 @@ export function Sidebar() {
                                         href={item.href}
                                         className={cn(
                                             "group flex items-center rounded-xl font-medium transition-all duration-200",
-                                            effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
+                                            effectiveCollapsed ? "justify-center px-2 py-3":"px-3 py-2.5",
                                             isActive
                                                 ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
-                                                : "text-emerald-100 hover:bg-white/10 hover:text-white"
+                                               :"text-emerald-100 hover:bg-white/10 hover:text-white"
                                         )}
                                     >
                                         <item.icon className={cn(
                                             "h-5 w-5 flex-shrink-0 transition-colors",
-                                            effectiveCollapsed ? "" : "mr-3",
-                                            isActive ? "text-white" : "text-emerald-200 group-hover:text-white"
+                                            effectiveCollapsed ? "":"mr-3",
+                                            isActive ? "text-white":"text-emerald-200 group-hover:text-white"
                                         )} />
                                         {!effectiveCollapsed && <span className="text-sm truncate">{item.name}</span>}
                                     </Link>
@@ -378,28 +378,28 @@ export function Sidebar() {
                                         if (effectiveCollapsed && hasVisibleSubmenu) {
                                             router.push(filteredSubmenu[0].href);
                                         } else {
-                                            setExpandedMenu(isExpanded ? null : item.id);
+                                            setExpandedMenu(isExpanded ? null:item.id);
                                         }
                                     }}
                                     className={cn(
                                         "group flex items-center w-full rounded-xl font-medium transition-all duration-200",
-                                        effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
+                                        effectiveCollapsed ? "justify-center px-2 py-3":"px-3 py-2.5",
                                         (isActive)
                                             ? "text-white"
-                                            : "text-emerald-100 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/5"
+                                           :"text-emerald-100 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/5"
                                     )}
                                 >
                                     <item.icon className={cn(
                                         "h-5 w-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110",
-                                        effectiveCollapsed ? "" : "mr-3",
-                                        isActive ? "text-white" : "text-emerald-200 group-hover:text-white"
+                                        effectiveCollapsed ? "":"mr-3",
+                                        isActive ? "text-white":"text-emerald-200 group-hover:text-white"
                                     )} />
                                     {!effectiveCollapsed && (
                                         <>
                                             <span className="text-sm truncate flex-1 text-left font-bold">{item.name}</span>
                                             <ChevronDown className={cn(
                                                 "h-4 w-4 transition-transform duration-200 text-emerald-300",
-                                                isExpanded ? "rotate-180" : ""
+                                                isExpanded ? "rotate-180":""
                                             )} />
                                         </>
                                     )}
@@ -417,12 +417,12 @@ export function Sidebar() {
                                                         "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
                                                         isSubActive
                                                             ? "bg-white/20 text-white shadow-sm backdrop-blur-sm"
-                                                            : "text-emerald-200 hover:bg-white/10 hover:text-white"
+                                                           :"text-emerald-200 hover:bg-white/10 hover:text-white"
                                                     )}
                                                 >
                                                     <sub.icon className={cn(
                                                         "h-4 w-4 mr-2",
-                                                        isSubActive ? "text-white" : "text-emerald-300"
+                                                        isSubActive ? "text-white":"text-emerald-300"
                                                     )} />
                                                     {sub.name}
                                                 </Link>
@@ -460,12 +460,12 @@ export function Sidebar() {
                                                                 "group flex items-center rounded-xl px-3 py-3 text-sm font-bold transition-all duration-300",
                                                                 isSubActive
                                                                     ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
-                                                                    : "text-slate-300 hover:bg-white/10 hover:text-white"
+                                                                   :"text-slate-300 hover:bg-white/10 hover:text-white"
                                                             )}
                                                         >
                                                             <sub.icon className={cn(
                                                                 "h-4 w-4 mr-3 transition-transform duration-300 group-hover:scale-110",
-                                                                isSubActive ? "text-white" : "text-emerald-500/70"
+                                                                isSubActive ? "text-white":"text-emerald-500/70"
                                                             )} />
                                                             {sub.name}
                                                         </Link>
@@ -495,7 +495,7 @@ export function Sidebar() {
                         >
                             {collapsed ? (
                                 <ChevronRight className="h-5 w-5" />
-                            ) : (
+                            ):(
                                 <>
                                     <ChevronLeft className="h-5 w-5 mr-2" />
                                     <span className="text-sm font-medium">Colapsar</span>
@@ -530,10 +530,10 @@ export function Sidebar() {
                         onClick={handleLogout}
                         className={cn(
                             "flex w-full items-center rounded-xl text-emerald-200 hover:bg-red-500/20 hover:text-red-300 transition-all",
-                            effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5"
+                            effectiveCollapsed ? "justify-center px-2 py-3":"px-3 py-2.5"
                         )}
                     >
-                        <LogOut className={cn("h-5 w-5 flex-shrink-0", effectiveCollapsed ? "" : "mr-3")} />
+                        <LogOut className={cn("h-5 w-5 flex-shrink-0", effectiveCollapsed ? "":"mr-3")} />
                         {!effectiveCollapsed && <span className="text-sm font-medium">Cerrar Sesión</span>}
                     </button>
 
@@ -572,16 +572,16 @@ export function Sidebar() {
                     // Gradiente verde pastel (RESTAURADO)
                     "bg-gradient-to-b from-emerald-500 via-emerald-500 to-emerald-500",
                     // Ancho
-                    effectiveCollapsed ? "w-16" : "w-64",
+                    effectiveCollapsed ? "w-16":"w-64",
                     // Posición móvil
-                    isMobile ? "fixed z-50 left-0 top-0" : "relative hidden md:flex",
-                    isMobile && !mobileOpen ? "-translate-x-full invisible" : "translate-x-0"
+                    isMobile ? "fixed z-50 left-0 top-0":"relative hidden md:flex",
+                    isMobile && !mobileOpen ? "-translate-x-full invisible":"translate-x-0"
                 )}
             >
                 {/* Logo y título */}
                 <div className={cn(
                     "flex items-center border-b border-emerald-500/30 transition-all duration-300",
-                    effectiveCollapsed ? "h-20 justify-center p-2" : "h-24 justify-start p-4 gap-3 ml-2"
+                    effectiveCollapsed ? "h-20 justify-center p-2":"h-24 justify-start p-4 gap-3 ml-2"
                 )}>
                     <div className="flex-shrink-0">
                         <img
@@ -589,7 +589,7 @@ export function Sidebar() {
                             alt="Logo"
                             className={cn(
                                 "object-contain rounded-full bg-white shadow-lg transition-all duration-300",
-                                effectiveCollapsed ? "h-10 w-10 p-0.5" : "h-12 w-12 p-1"
+                                effectiveCollapsed ? "h-10 w-10 p-0.5":"h-12 w-12 p-1"
                             )}
                         />
                     </div>
@@ -602,7 +602,7 @@ export function Sidebar() {
                 </div>
 
                 {/* Navegación */}
-                <nav data-tour={isMobile && !mobileOpen ? undefined : "sidebar-panel"} className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+                <nav data-tour={isMobile && !mobileOpen ? undefined:"sidebar-panel"} className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
                     {(() => {
                         const isPowerUser = user?.rol === "SUPER_ADMIN" || user?.rol === "DIRECTIVO";
 
@@ -622,7 +622,7 @@ export function Sidebar() {
 
                         return itemsToRender.filter(item => hasPermission(item.id)).map((item) => {
                             const filteredSubmenu = (item.submenu || []).filter((sub: any) => hasPermission(sub.id));
-                            const hasVisibleSubmenu = filteredSubmenu.length > 0;
+                            const hasVisibleSubmenu = filteredSubmenu.length> 0;
 
                             if (isPowerUser && !hasVisibleSubmenu && item.href === '#') return null;
 
@@ -645,16 +645,16 @@ export function Sidebar() {
                                             href={item.href}
                                             className={cn(
                                                 "group flex items-center rounded-xl font-medium transition-all duration-200",
-                                                effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
+                                                effectiveCollapsed ? "justify-center px-2 py-3":"px-3 py-2.5",
                                                 isActive
                                                     ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
-                                                    : "text-emerald-100 hover:bg-white/10 hover:text-white"
+                                                   :"text-emerald-100 hover:bg-white/10 hover:text-white"
                                             )}
                                         >
                                             <item.icon className={cn(
                                                 "h-5 w-5 flex-shrink-0 transition-colors",
-                                                effectiveCollapsed ? "" : "mr-3",
-                                                isActive ? "text-white" : "text-emerald-200 group-hover:text-white"
+                                                effectiveCollapsed ? "":"mr-3",
+                                                isActive ? "text-white":"text-emerald-200 group-hover:text-white"
                                             )} />
                                             {!effectiveCollapsed && <span className="text-sm truncate">{item.name}</span>}
                                         </Link>
@@ -690,28 +690,28 @@ export function Sidebar() {
                                             if (effectiveCollapsed && hasVisibleSubmenu) {
                                                 router.push(filteredSubmenu[0].href);
                                             } else {
-                                                setExpandedMenu(isExpanded ? null : item.id);
+                                                setExpandedMenu(isExpanded ? null:item.id);
                                             }
                                         }}
                                         className={cn(
                                             "group flex items-center w-full rounded-xl font-medium transition-all duration-200",
-                                            effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5",
+                                            effectiveCollapsed ? "justify-center px-2 py-3":"px-3 py-2.5",
                                             (isActive)
                                                 ? "text-white"
-                                                : "text-emerald-100 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/5"
+                                               :"text-emerald-100 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/5"
                                         )}
                                     >
                                         <item.icon className={cn(
                                             "h-5 w-5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110",
-                                            effectiveCollapsed ? "" : "mr-3",
-                                            isActive ? "text-white" : "text-emerald-200 group-hover:text-white"
+                                            effectiveCollapsed ? "":"mr-3",
+                                            isActive ? "text-white":"text-emerald-200 group-hover:text-white"
                                         )} />
                                         {!effectiveCollapsed && (
                                             <>
                                                 <span className="text-sm truncate flex-1 text-left font-bold">{item.name}</span>
                                                 <ChevronDown className={cn(
                                                     "h-4 w-4 transition-transform duration-200 text-emerald-300",
-                                                    isExpanded ? "rotate-180" : ""
+                                                    isExpanded ? "rotate-180":""
                                                 )} />
                                             </>
                                         )}
@@ -729,12 +729,12 @@ export function Sidebar() {
                                                             "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
                                                             isSubActive
                                                                 ? "bg-white/20 text-white shadow-sm backdrop-blur-sm"
-                                                                : "text-emerald-200 hover:bg-white/10 hover:text-white"
+                                                               :"text-emerald-200 hover:bg-white/10 hover:text-white"
                                                         )}
                                                     >
                                                         <sub.icon className={cn(
                                                             "h-4 w-4 mr-2",
-                                                            isSubActive ? "text-white" : "text-emerald-300"
+                                                            isSubActive ? "text-white":"text-emerald-300"
                                                         )} />
                                                         {sub.name}
                                                     </Link>
@@ -768,7 +768,7 @@ export function Sidebar() {
                                                                     "block px-3 py-2 text-xs font-medium rounded-lg transition-colors",
                                                                     isSubActive
                                                                         ? "bg-emerald-500 text-white shadow-sm"
-                                                                        : "text-slate-300 hover:bg-white/5 hover:text-white"
+                                                                       :"text-slate-300 hover:bg-white/5 hover:text-white"
                                                                 )}
                                                             >
                                                                 {sub.name}
@@ -799,7 +799,7 @@ export function Sidebar() {
                             >
                                 {collapsed ? (
                                     <ChevronRight className="h-5 w-5" />
-                                ) : (
+                                ):(
                                     <>
                                         <ChevronLeft className="h-5 w-5 mr-2" />
                                         <span className="text-sm font-medium">Colapsar</span>
@@ -835,10 +835,10 @@ export function Sidebar() {
                             onClick={handleLogout}
                             className={cn(
                                 "flex w-full items-center rounded-xl text-emerald-200 hover:bg-red-500/20 hover:text-red-300 transition-all",
-                                effectiveCollapsed ? "justify-center px-2 py-3" : "px-3 py-2.5"
+                                effectiveCollapsed ? "justify-center px-2 py-3":"px-3 py-2.5"
                             )}
                         >
-                            <LogOut className={cn("h-5 w-5 flex-shrink-0", effectiveCollapsed ? "" : "mr-3")} />
+                            <LogOut className={cn("h-5 w-5 flex-shrink-0", effectiveCollapsed ? "":"mr-3")} />
                             {!effectiveCollapsed && <span className="text-sm font-medium">Cerrar Sesión</span>}
                         </button>
 

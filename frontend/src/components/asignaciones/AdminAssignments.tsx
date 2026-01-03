@@ -98,18 +98,18 @@ export default function AdminAssignments() {
                     <div className="overflow-y-auto flex-1 p-2 space-y-2 custom-scrollbar">
                         {loading ? (
                             <div className="text-center py-10"><Loader2 className="h-6 w-6 animate-spin mx-auto text-emerald-500" /></div>
-                        ) : (
+                        ):(
                             filteredListas.map(lista => (
                                 <button
                                     key={lista.id}
                                     onClick={() => handleSelectList(lista)}
-                                    className={`w-full text-left p-3 rounded-lg border transition-all ${selectedLista?.id === lista.id ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500' : 'bg-white border-slate-100 hover:border-emerald-200 hover:bg-slate-50'}`}
+                                    className={`w-full text-left p-3 rounded-lg border transition-all ${selectedLista?.id === lista.id ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500':'bg-white border-slate-100 hover:border-emerald-200 hover:bg-slate-50'}`}
                                 >
                                     <div className="font-bold text-slate-800 text-sm">{lista.responsable}</div>
                                     <div className="text-xs text-slate-500 mb-1">{lista.nombre}</div>
                                     <div className="flex justify-between items-center mt-2">
-                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${lista.activa ? 'bg-emerald-100 text-teal-500' : 'bg-slate-100 text-slate-500'}`}>
-                                            {lista.activa ? 'ACTIVA' : 'INACTIVA'}
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${lista.activa ? 'bg-emerald-100 text-teal-500':'bg-slate-100 text-slate-500'}`}>
+                                            {lista.activa ? 'ACTIVA':'INACTIVA'}
                                         </span>
                                         <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-600 flex items-center gap-1">
                                             <Users className="h-3 w-3" /> {lista.total}
@@ -134,7 +134,7 @@ export default function AdminAssignments() {
                                     <div className="flex justify-center items-center h-40">
                                         <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
                                     </div>
-                                ) : (
+                                ):(
                                     <table className="w-full text-sm text-left">
                                         <thead className="text-xs text-slate-500 uppercase bg-slate-50 sticky top-0">
                                             <tr>
@@ -163,7 +163,7 @@ export default function AdminAssignments() {
                                 )}
                             </div>
                         </>
-                    ) : (
+                    ):(
                         <div className="flex flex-col items-center justify-center h-full text-slate-300">
                             <ListIcon className="h-16 w-16 mb-4 opacity-50" />
                             <p className="font-medium">Selecciona una lista para ver detalles</p>

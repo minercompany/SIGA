@@ -149,7 +149,7 @@ export function WelcomeModal({ user, onUpdateUser }: WelcomeModalProps) {
                                         <Loader2 className="w-5 h-5 animate-spin" />
                                         <span>Registrando...</span>
                                     </>
-                                ) : (
+                                ):(
                                     <span>Confirmar Acceso</span>
                                 )}
                             </button>
@@ -165,7 +165,7 @@ export function WelcomeModal({ user, onUpdateUser }: WelcomeModalProps) {
                                 }}
                                 className="text-[10px] text-slate-400 font-bold hover:text-red-500 transition-colors uppercase tracking-widest"
                             >
-                                Cerrar Sesión / Cancelar
+                                Cerrar Sesión /Cancelar
                             </button>
                             <p className="text-[10px] text-slate-300 uppercase font-bold tracking-widest mt-2">
                                 Secured by Arizar Tech

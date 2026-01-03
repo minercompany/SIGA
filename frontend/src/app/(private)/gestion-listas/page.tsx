@@ -252,12 +252,12 @@ export default function GestionListasPage() {
                         </div>
                         <p className="text-slate-500 font-bold animate-pulse text-sm">Analizando todas las listas activas...</p>
                     </div>
-                ) : filteredRanking.length === 0 ? (
+                ):filteredRanking.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-[2.5rem] border border-dashed border-slate-300">
                         <Users className="h-16 w-16 text-slate-200 mx-auto mb-4" />
                         <h3 className="text-xl font-bold text-slate-400 italic">No se encontraron operadores con socios asignados</h3>
                     </div>
-                ) : (
+                ):(
                     <div className="grid gap-3 sm:gap-6">
                         {filteredRanking.map((user, index) => (
                             <motion.div
@@ -270,7 +270,7 @@ export default function GestionListasPage() {
                                     "bg-white rounded-2xl sm:rounded-[2.5rem] border transition-all duration-300 overflow-hidden",
                                     expandedUser === user.id
                                         ? "ring-2 ring-teal-500/20 border-teal-200 shadow-2xl"
-                                        : "border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200"
+                                       :"border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200"
                                 )}
                             >
                                 {/* User Card Header - Responsivo */}
@@ -287,7 +287,7 @@ export default function GestionListasPage() {
                                                     index === 2 ? "bg-orange-50 text-orange-600" :
                                                         "bg-teal-50 text-teal-600"
                                         )}>
-                                            {index < 3 ? <Trophy className="h-6 w-6 sm:h-8 sm:w-8" /> : <User className="h-6 w-6 sm:h-8 sm:w-8" />}
+                                            {index < 3 ? <Trophy className="h-6 w-6 sm:h-8 sm:w-8" />:<User className="h-6 w-6 sm:h-8 sm:w-8" />}
                                             <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-white border-2 border-current rounded-full h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center font-black text-[10px] sm:text-xs">
                                                 #{index + 1}
                                             </span>
@@ -302,7 +302,7 @@ export default function GestionListasPage() {
                                             </div>
                                         </div>
                                         <div className="transition-transform duration-300 flex-shrink-0">
-                                            {expandedUser === user.id ? <ChevronUp className="h-5 w-5 sm:h-6 sm:w-6 text-teal-500" /> : <ChevronDown className="h-5 w-5 sm:h-6 sm:w-6 text-slate-300" />}
+                                            {expandedUser === user.id ? <ChevronUp className="h-5 w-5 sm:h-6 sm:w-6 text-teal-500" />:<ChevronDown className="h-5 w-5 sm:h-6 sm:w-6 text-slate-300" />}
                                         </div>
                                     </div>
 
@@ -358,7 +358,7 @@ export default function GestionListasPage() {
                                                         <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-teal-500" />
                                                         <span className="text-slate-400 font-bold text-xs sm:text-sm">Cargando...</span>
                                                     </div>
-                                                ) : userDetails ? (
+                                                ):userDetails ? (
                                                     <div className="space-y-3 sm:space-y-4">
                                                         {/* Buscador Interno - Full width en móvil */}
                                                         <div className="w-full sm:flex sm:justify-end">
@@ -380,7 +380,7 @@ export default function GestionListasPage() {
                                                                 <div className="text-center py-8">
                                                                     <p className="text-sm font-bold text-slate-300 italic">Sin resultados</p>
                                                                 </div>
-                                                            ) : filteredSocios.map((socio: any) => (
+                                                            ):filteredSocios.map((socio: any) => (
                                                                 <div key={socio.id} className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
                                                                     <div className="flex items-start justify-between gap-2">
                                                                         <div className="flex-1 min-w-0">
@@ -392,9 +392,9 @@ export default function GestionListasPage() {
                                                                                     "px-1.5 py-0.5 rounded text-[8px] font-black uppercase",
                                                                                     socio.esVyV
                                                                                         ? "bg-emerald-50 text-emerald-600"
-                                                                                        : "bg-red-50 text-red-600"
+                                                                                       :"bg-red-50 text-red-600"
                                                                                 )}>
-                                                                                    {socio.esVyV ? "VyV" : "Solo Voz"}
+                                                                                    {socio.esVyV ? "VyV":"Solo Voz"}
                                                                                 </span>
                                                                                 {socio.fechaHoraIngreso && (
                                                                                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
@@ -434,7 +434,7 @@ export default function GestionListasPage() {
                                                                                 <p className="text-sm font-bold text-slate-300 italic">No se encontraron socios</p>
                                                                             </td>
                                                                         </tr>
-                                                                    ) : filteredSocios.map((socio: any) => (
+                                                                    ):filteredSocios.map((socio: any) => (
                                                                         <tr key={socio.id} className="hover:bg-slate-50 transition-colors group">
                                                                             <td className="px-6 py-4">
                                                                                 <span className="text-xs font-mono font-black text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
@@ -452,9 +452,9 @@ export default function GestionListasPage() {
                                                                                     "px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border",
                                                                                     socio.esVyV
                                                                                         ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                                                                        : "bg-red-50 text-red-600 border-red-100"
+                                                                                       :"bg-red-50 text-red-600 border-red-100"
                                                                                 )}>
-                                                                                    {socio.esVyV ? "Voz y Voto" : "Solo Voz"}
+                                                                                    {socio.esVyV ? "Voz y Voto":"Solo Voz"}
                                                                                 </span>
                                                                             </td>
                                                                             <td className="px-6 py-4">
@@ -468,7 +468,7 @@ export default function GestionListasPage() {
                                                                                         <CheckCircle2 className="h-3 w-3" />
                                                                                         <span className="text-[9px] font-black">SÍ</span>
                                                                                     </div>
-                                                                                ) : (
+                                                                                ):(
                                                                                     <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-slate-100 text-slate-400 rounded-lg border border-slate-200">
                                                                                         <XCircle className="h-3 w-3" />
                                                                                         <span className="text-[9px] font-black">NO</span>
@@ -490,7 +490,7 @@ export default function GestionListasPage() {
                                                             </table>
                                                         </div>
                                                     </div>
-                                                ) : (
+                                                ):(
                                                     <div className="flex flex-col items-center py-8 sm:py-10 text-slate-400 gap-2">
                                                         <AlertCircle className="h-8 w-8 sm:h-10 sm:w-10" />
                                                         <p className="text-xs sm:text-sm font-bold">No se pudieron cargar los socios.</p>

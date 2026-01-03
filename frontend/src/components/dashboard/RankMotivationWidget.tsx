@@ -81,7 +81,7 @@ export const RankMotivationWidget: React.FC<RankMotivationWidgetProps> = ({ rank
                 iconColor: "text-emerald-500",
                 shadow: "shadow-emerald-200/50"
             };
-        } else if (rank <= totalUsers / 2) {
+        } else if (rank <= totalUsers /2) {
             config = {
                 title: "¡SUPERANDO EL PROMEDIO!",
                 message: "Estás por encima de la media. ¡Gran trabajo! Sigue escalando hacia el Top 10.",
@@ -120,19 +120,19 @@ export const RankMotivationWidget: React.FC<RankMotivationWidgetProps> = ({ rank
 
     const goalInfo = useMemo(() => {
         const milestones = [50, 100, 150, 200, 300, 400, 500, 750, 1000];
-        let nextGoal = milestones.find(m => m > currentTotal) || Math.ceil((currentTotal + 100) / 100) * 100;
-        const progress = Math.min((currentTotal / nextGoal) * 100, 100);
-        const remaining = nextGoal - currentTotal;
+        let nextGoal = milestones.find(m => m> currentTotal) || Math.ceil((currentTotal + 100) /100) * 100;
+        const progress = Math.min((currentTotal /nextGoal) * 100, 100);
+        const remaining = nextGoal-currentTotal;
 
         let goalShadow = "shadow-slate-200/50";
         let goalBarColor = "bg-slate-200";
         let goalMessage = "";
 
-        if (remaining <= 5 && remaining > 0) {
+        if (remaining <= 5 && remaining> 0) {
             goalMessage = `¡ESTÁS A SOLO ${remaining} DE TU META DE ${nextGoal}!`;
             goalShadow = "shadow-orange-200/50";
             goalBarColor = "bg-orange-500 animate-pulse";
-        } else if (progress >= 80) {
+        } else if (progress>= 80) {
             goalMessage = "¡Casi llegas! Un último esfuerzo para el siguiente nivel.";
         } else {
             goalMessage = `Próximo objetivo: ${nextGoal} registros`;
@@ -166,7 +166,7 @@ export const RankMotivationWidget: React.FC<RankMotivationWidgetProps> = ({ rank
                 {/* Rank Badge Container */}
                 <div className="relative">
                     <motion.div
-                        whileHover={{ scale: 1.05, rotate: rank <= 3 ? [0, -5, 5, 0] : 0 }}
+                        whileHover={{ scale: 1.05, rotate: rank <= 3 ? [0, -5, 5, 0]:0 }}
                         transition={{ duration: 0.5 }}
                         className={`w-32 h-32 md:w-40 md:h-40 rounded-[3rem] bg-gradient-to-br ${config.gradient} flex flex-col items-center justify-center text-white shadow-[0_30px_60px_rgba(0,0,0,0.15)] relative overflow-hidden group border-4 border-white/40`}
                     >
@@ -188,7 +188,7 @@ export const RankMotivationWidget: React.FC<RankMotivationWidgetProps> = ({ rank
                                     key={i}
                                     animate={{
                                         y: [0, -30, 0],
-                                        x: [0, (i % 2 === 0 ? 15 : -15), 0],
+                                        x: [0, (i % 2 === 0 ? 15:-15), 0],
                                         opacity: [0, 1, 0],
                                         scale: [0.5, 1.2, 0.5]
                                     }}
@@ -203,7 +203,7 @@ export const RankMotivationWidget: React.FC<RankMotivationWidgetProps> = ({ rank
                                         top: `${Math.random() * 100}%`
                                     }}
                                 >
-                                    {rank <= 3 ? <Sparkles className="h-5 w-5" /> : <Star className="h-4 w-4" />}
+                                    {rank <= 3 ? <Sparkles className="h-5 w-5" />:<Star className="h-4 w-4" />}
                                 </motion.div>
                             ))}
                         </div>
@@ -268,7 +268,7 @@ export const RankMotivationWidget: React.FC<RankMotivationWidgetProps> = ({ rank
                                 initial={{ width: 0 }}
                                 animate={{ width: `${goalInfo.progress}%` }}
                                 transition={{ duration: 1.5, ease: "easeOut" }}
-                                className={`h-full rounded-xl relative shadow-lg overflow-hidden ${goalInfo.remaining <= 5 ? 'bg-gradient-to-r from-orange-400 to-amber-500' : `bg-gradient-to-r ${config.gradient}`}`}
+                                className={`h-full rounded-xl relative shadow-lg overflow-hidden ${goalInfo.remaining <= 5 ? 'bg-gradient-to-r from-orange-400 to-amber-500':`bg-gradient-to-r ${config.gradient}`}`}
                             >
                                 <div className="absolute inset-0 bg-white/20 translate-x-[-100%] animate-[shimmer_3s_infinite]" />
                             </motion.div>
@@ -301,7 +301,7 @@ export const RankMotivationWidget: React.FC<RankMotivationWidgetProps> = ({ rank
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black text-white/70 uppercase tracking-[0.15em]">Nivel Actual</span>
                                 <span className="text-base font-black italic tracking-tight uppercase leading-none">
-                                    {rank <= 3 ? "LEYENDA GLOBAL" : rank <= 10 ? "ÉLITE DE ASAMBLEA" : "COLABORADOR EXPERTO"}
+                                    {rank <= 3 ? "LEYENDA GLOBAL":rank <= 10 ? "ÉLITE DE ASAMBLEA":"COLABORADOR EXPERTO"}
                                 </span>
                             </div>
                         </motion.div>
