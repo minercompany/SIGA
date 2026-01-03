@@ -34,6 +34,7 @@ public class AsignacionController {
     private final com.asamblea.service.LogAuditoriaService auditService;
     private final com.asamblea.service.PushNotificationService pushService;
     private final com.asamblea.service.AvisoService avisoService;
+    private final com.asamblea.service.ConfiguracionService configuracionService;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -214,6 +215,13 @@ public class AsignacionController {
     @PostMapping("/crear-lista")
     public ResponseEntity<?> crearLista(@RequestBody ListaAsignacion lista, Authentication auth,
             HttpServletRequest request) {
+
+        // VALIDACIÓN DE FECHA LÍMITE
+        Map<String, Object> bloqueo = configuracionService.verificarBloqueoAsignaciones();
+        if (Boolean.TRUE.equals(bloqueo.get("bloqueado"))) {
+            return ResponseEntity.status(403).body(bloqueo);
+        }
+
         Usuario user = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
 
         // VALIDACIÓN: Un usuario NORMAL (no admin) solo puede tener UNA lista
@@ -399,6 +407,12 @@ public class AsignacionController {
         if (admin.getRol() != Usuario.Rol.SUPER_ADMIN)
             return ResponseEntity.status(403).build();
 
+        // VALIDACIÓN DE FECHA LÍMITE
+        Map<String, Object> bloqueo = configuracionService.verificarBloqueoAsignaciones();
+        if (Boolean.TRUE.equals(bloqueo.get("bloqueado"))) {
+            return ResponseEntity.status(403).body(bloqueo);
+        }
+
         String term = body.get("term");
         Optional<Socio> socioOpt = socioRepository.findByNumeroSocio(term);
         if (socioOpt.isEmpty())
@@ -490,6 +504,13 @@ public class AsignacionController {
     @PostMapping("/{listaId}/agregar-socio")
     public ResponseEntity<?> agregarSocio(@PathVariable Long listaId, @RequestBody Map<String, String> body,
             Authentication auth, HttpServletRequest request) {
+
+        // VALIDACIÓN DE FECHA LÍMITE
+        Map<String, Object> bloqueo = configuracionService.verificarBloqueoAsignaciones();
+        if (Boolean.TRUE.equals(bloqueo.get("bloqueado"))) {
+            return ResponseEntity.status(403).body(bloqueo);
+        }
+
         String term = body.get("term");
         Optional<Socio> socioOpt = socioRepository.findByNumeroSocio(term);
         if (socioOpt.isEmpty()) {

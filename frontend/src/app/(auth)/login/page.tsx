@@ -134,7 +134,7 @@ export default function LoginPage() {
                                 disabled={loading}
                                 className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-500 py-4 font-black text-white shadow-xl hover:shadow-2xl active:scale-[0.98] transition-all disabled:opacity-50"
                             >
-                                {loading ? "ACTUALIZANDO...":"CAMBIAR Y CONTINUAR"}
+                                {loading ? "ACTUALIZANDO..." : "CAMBIAR Y CONTINUAR"}
                             </button>
                         </form>
                     </div>
@@ -195,42 +195,42 @@ export default function LoginPage() {
 
                         {/* Panel derecho - Formulario */}
                         <div className="flex flex-col min-h-auto">
-                            {/* Header Mobile Premium */}
-                            <div className="md:hidden relative overflow-hidden bg-gradient-to-br from-emerald-500 via-emerald-500 to-emerald-500 px-5 py-6 animation-fade-in shadow-lg">
+                            {/* Header Mobile Premium - Optimized for space */}
+                            <div className="md:hidden relative overflow-hidden bg-gradient-to-br from-emerald-500 via-emerald-500 to-emerald-500 px-5 py-5 animation-fade-in shadow-lg">
                                 <div className="relative z-10 flex flex-col items-center text-center">
-                                    <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center shadow-2xl border-4 border-white/30 overflow-hidden mb-3">
+                                    <div className="h-14 w-14 sm:h-20 sm:w-20 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center shadow-2xl border-4 border-white/30 overflow-hidden mb-2">
                                         <Image
                                             src="/logo-cooperativa.webp"
                                             alt="Logo oficial de Cooperativa Reducto Ltda"
-                                            width={96}
-                                            height={96}
+                                            width={56}
+                                            height={56}
                                             priority
                                             className="object-contain"
                                         />
                                     </div>
-                                    <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+                                    <h1 className="text-lg sm:text-xl font-black text-white tracking-tight leading-tight">
                                         Cooperativa Reducto Ltda.
                                     </h1>
-                                    <div className="h-0.5 w-16 mx-auto bg-white/40 rounded-full my-2"></div>
-                                    <p className="text-emerald-50 text-lg sm:text-xl font-black tracking-widest uppercase">SIGA</p>
+                                    <div className="h-0.5 w-12 mx-auto bg-white/40 rounded-full my-1.5"></div>
+                                    <p className="text-emerald-50 text-base sm:text-lg font-black tracking-widest uppercase">SIGA</p>
                                 </div>
                             </div>
 
                             {/* Formulario */}
-                            <div className="p-8 sm:p-10 md:p-12 flex-1 flex flex-col justify-center">
-                                <section className="space-y-8">
+                            <div className="p-6 sm:p-10 md:p-12 flex-1 flex flex-col justify-center">
+                                <section className="space-y-6 md:space-y-8">
                                     <div className="text-center md:text-left">
                                         <h3 className="hidden md:block text-2xl md:text-3xl font-black text-slate-800 mb-1">Iniciar Sesión</h3>
-                                        <h2 className="md:hidden text-xl font-black text-slate-800 mb-1 text-center">ACCESO AL SISTEMA</h2>
-                                        <p className="text-slate-500 font-medium text-sm md:text-base">Ingresa tus credenciales para continuar</p>
+                                        <h2 className="md:hidden text-lg font-black text-slate-800 mb-0.5 text-center">ACCESO AL SISTEMA</h2>
+                                        <p className="text-slate-500 font-medium text-xs md:text-base">Ingresa tus credenciales para continuar</p>
                                     </div>
 
-                                    <form onSubmit={handleLogin} className="space-y-6">
-                                        <div className="space-y-2">
-                                            <label htmlFor="username" className="text-xs font-black text-slate-400 uppercase tracking-widest">Usuario</label>
+                                    <form onSubmit={handleLogin} className="space-y-4 md:space-y-6">
+                                        <div className="space-y-1.5">
+                                            <label htmlFor="username" className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest">Usuario</label>
                                             <div className="relative group">
                                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                                                    <User className="h-5 w-5" />
+                                                    <User className="h-4 w-4 md:h-5 md:w-5" />
                                                 </div>
                                                 <input
                                                     id="username"
@@ -239,35 +239,35 @@ export default function LoginPage() {
                                                     required
                                                     value={username}
                                                     onChange={(e) => setUsername(e.target.value)}
-                                                    className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 py-4 pl-12 pr-4 text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all font-bold"
+                                                    className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 py-3 md:py-4 pl-12 pr-4 text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all font-bold text-sm md:text-base"
                                                     placeholder="Usuario del sistema"
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <label htmlFor="password" className="text-xs font-black text-slate-400 uppercase tracking-widest">Contraseña</label>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor="password" className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest">Contraseña</label>
                                             <div className="relative group">
                                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                                                    <Lock className="h-5 w-5" />
+                                                    <Lock className="h-4 w-4 md:h-5 md:w-5" />
                                                 </div>
                                                 <input
                                                     id="password"
-                                                    type={showPassword ? "text":"password"}
+                                                    type={showPassword ? "text" : "password"}
                                                     autoComplete="current-password"
                                                     required
                                                     value={password}
                                                     onChange={(e) => setPassword(e.target.value)}
-                                                    className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 py-4 pl-12 pr-12 text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all font-bold"
+                                                    className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 py-3 md:py-4 pl-12 pr-12 text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all font-bold text-sm md:text-base"
                                                     placeholder="Tu contraseña"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPassword(!showPassword)}
-                                                    aria-label={showPassword ? "Ocultar contraseña":"Mostrar contraseña"}
+                                                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                                                     className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-500 transition-colors"
                                                 >
-                                                    {showPassword ? <EyeOff className="h-5 w-5" />:<Eye className="h-5 w-5" />}
+                                                    {showPassword ? <EyeOff className="h-4 w-4 md:h-5 md:w-5" /> : <Eye className="h-4 w-4 md:h-5 md:w-5" />}
                                                 </button>
                                             </div>
                                         </div>
@@ -281,7 +281,7 @@ export default function LoginPage() {
                                         <button
                                             type="submit"
                                             disabled={loading}
-                                            className="group w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-500 py-4 sm:py-5 font-black text-white shadow-xl shadow-emerald-200 hover:shadow-2xl hover:shadow-emerald-300 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 relative overflow-hidden"
+                                            className="group w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-500 py-3.5 sm:py-5 font-black text-white shadow-xl shadow-emerald-200 hover:shadow-2xl hover:shadow-emerald-300 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 relative overflow-hidden"
                                         >
                                             <span className="relative flex items-center gap-3">
                                                 {loading ? (
@@ -289,7 +289,7 @@ export default function LoginPage() {
                                                         <RefreshCcw className="h-5 w-5 animate-spin" />
                                                         <span>INGRESANDO...</span>
                                                     </>
-                                                ):(
+                                                ) : (
                                                     <>
                                                         <span>INGRESAR AL SISTEMA</span>
                                                         <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -299,11 +299,11 @@ export default function LoginPage() {
                                         </button>
                                     </form>
 
-                                    <footer className="pt-6 border-t border-slate-100 flex flex-col items-center gap-1">
-                                        <p className="text-center text-[10px] md:text-xs text-slate-600 font-bold uppercase tracking-widest">
+                                    <footer className="pt-4 border-t border-slate-100 flex flex-col items-center gap-0.5">
+                                        <p className="text-center text-[9px] md:text-xs text-slate-600 font-bold uppercase tracking-widest">
                                             SIGA - Gestión Integral de Asambleas
                                         </p>
-                                        <p className="text-center text-[8px] md:text-[10px] text-slate-400 font-semibold tracking-wide">
+                                        <p className="text-center text-[7px] md:text-[10px] text-slate-400 font-semibold tracking-wide">
                                             &copy; 2026 Avanzantec Group SRL
                                         </p>
                                     </footer>

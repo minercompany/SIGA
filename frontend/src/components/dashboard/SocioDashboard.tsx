@@ -173,7 +173,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-8 pb-12 px-4 md:px-6 pt-32 md:pt-36"
+            className="space-y-8 pb-12 px-4 md:px-6"
         >
             {/* Banner de Bienvenida Premium */}
             <motion.div
@@ -236,9 +236,9 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                         />
 
                         {/* Card Content */}
-                        <div className="relative bg-white/90 backdrop-blur-2xl p-5 md:p-6 rounded-3xl border border-white/60 shadow-xl overflow-hidden h-full">
+                        <div className="relative bg-white p-5 md:p-6 rounded-3xl border border-slate-100 shadow-xl overflow-hidden h-full">
                             {/* Decorative Background Icon */}
-                            <stat.icon className={`absolute -right-4 -bottom-4 h-24 w-24 opacity-[0.03] transform group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500
+                            <stat.icon className={`absolute -right-4 -bottom-4 h-24 w-24 opacity-[0.05] transform group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500
                                 ${stat.color === 'emerald' ? 'text-emerald-600' :
                                     stat.color === 'blue' ? 'text-blue-600' :
                                         stat.color === 'amber' ? 'text-amber-600' :
@@ -248,24 +248,24 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                             <div className="relative z-10 flex flex-col h-full justify-between">
                                 <div>
                                     <div className={`inline-flex p-3 rounded-2xl mb-4 shadow-lg transform group-hover:scale-110 transition-transform duration-300
-                                        ${stat.color === 'emerald' ? 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/30' :
-                                            stat.color === 'blue' ? 'bg-gradient-to-br from-blue-500 to-cyan-600 shadow-blue-500/30' :
-                                                stat.color === 'amber' ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30' :
-                                                    'bg-gradient-to-br from-violet-500 to-purple-600 shadow-violet-500/30'}`}
+                                        ${stat.color === 'emerald' ? 'bg-gradient-to-br from-emerald-600 to-teal-700 shadow-emerald-500/30' :
+                                            stat.color === 'blue' ? 'bg-gradient-to-br from-blue-600 to-cyan-700 shadow-blue-500/30' :
+                                                stat.color === 'amber' ? 'bg-gradient-to-br from-amber-600 to-orange-700 shadow-amber-500/30' :
+                                                    'bg-gradient-to-br from-violet-600 to-purple-700 shadow-violet-500/30'}`}
                                     >
                                         <stat.icon className="h-6 w-6 text-white" />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <h2 className="text-3xl xs:text-4xl md:text-5xl font-black text-slate-800 tracking-tight leading-none group-hover:translate-x-1 transition-transform duration-300">
+                                    <h2 className="text-4xl xs:text-5xl md:text-5xl font-black text-slate-900 tracking-tight leading-none group-hover:translate-x-1 transition-transform duration-300">
                                         {stat.value}
                                     </h2>
-                                    <p className={`text-[10px] md:text-xs font-bold uppercase tracking-widest mt-2
-                                        ${stat.color === 'emerald' ? 'text-emerald-600' :
-                                            stat.color === 'blue' ? 'text-blue-600' :
-                                                stat.color === 'amber' ? 'text-amber-600' :
-                                                    'text-violet-600'}`}
+                                    <p className={`text-[10px] md:text-xs font-black uppercase tracking-[0.1em] mt-2
+                                        ${stat.color === 'emerald' ? 'text-emerald-700' :
+                                            stat.color === 'blue' ? 'text-blue-700' :
+                                                stat.color === 'amber' ? 'text-amber-700' :
+                                                    'text-violet-700'}`}
                                     >
                                         {stat.label}
                                     </p>

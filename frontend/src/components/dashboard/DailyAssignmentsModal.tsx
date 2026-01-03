@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Download, Calendar, TrendingUp, Award, BarChart3 } from "lucide-react";
+import { X, Download, Calendar, TrendingUp, Award, BarChart3, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import axios from "axios";
@@ -66,6 +66,28 @@ export function DailyAssignmentsModal({ isOpen, onClose }: DailyAssignmentsModal
         }
     };
 
+    const handleExportPDF = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await axios.get(`/api/asignaciones/exportar-asignaciones-pdf?dias=${dias}`, {
+                headers: { Authorization: `Bearer ${token}` },
+                responseType: 'blob'
+            });
+
+            const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `asignaciones_diarias_${dias}_dias.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            toast.success("PDF descargado correctamente");
+        } catch (error) {
+            console.error("Error downloading PDF:", error);
+            toast.error("Error al descargar PDF");
+        }
+    };
+
     // Calcular estadísticas
     const total = stats.reduce((sum, s) => sum + s.total, 0);
     const promedio = stats.length > 0 ? Math.round(total / stats.length) : 0;
@@ -114,6 +136,12 @@ export function DailyAssignmentsModal({ isOpen, onClose }: DailyAssignmentsModal
                         </div>
 
                         <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleExportPDF}
+                                className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 rounded-xl font-bold text-sm hover:bg-rose-100 transition-colors border border-rose-100"
+                            >
+                                <FileText size={16} /> PDF
+                            </button>
                             <button
                                 onClick={handleExportExcel}
                                 className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl font-bold text-sm hover:bg-emerald-100 transition-colors border border-emerald-100"
@@ -191,10 +219,10 @@ export function DailyAssignmentsModal({ isOpen, onClose }: DailyAssignmentsModal
                                 <p className="text-slate-400 font-bold uppercase tracking-widest text-xs animate-pulse">Cargando datos...</p>
                             </div>
                         ) : stats.length > 0 ? (
-                            <div className="bg-white rounded-2xl border border-slate-100 p-6">
-                                <h3 className="font-black text-slate-800 uppercase tracking-wider text-sm mb-6">Tendencia de Asignaciones</h3>
-                                <div style={{ width: '100%', height: '350px', minHeight: '250px' }}>
-                                    <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+                            <div className="bg-white rounded-2xl border border-slate-100 p-4">
+                                <h3 className="font-black text-slate-800 uppercase tracking-wider text-sm mb-4">Tendencia de Asignaciones</h3>
+                                <div style={{ width: '100%', height: '220px', minHeight: '180px' }}>
+                                    <ResponsiveContainer width="100%" height="100%" minHeight={180}>
                                         <BarChart data={chartData}>
                                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                                             <XAxis

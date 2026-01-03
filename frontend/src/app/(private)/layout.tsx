@@ -26,10 +26,10 @@ function TourWelcomeWrapper({ userRole }: { userRole?: string }) {
         // Determinar el tour según el rol
         const tourSteps = userRole === "SUPER_ADMIN" || userRole === "DIRECTIVO"
             ? dashboardAdminTour
-           :dashboardSocioTour;
+            : dashboardSocioTour;
         const tourId = userRole === "SUPER_ADMIN" || userRole === "DIRECTIVO"
             ? "dashboard-admin"
-           :"dashboard";
+            : "dashboard";
 
         // Solo iniciar si no lo ha visto
         if (!hasSeenTour(tourId)) {
@@ -101,7 +101,7 @@ export default function PrivateLayout({
                             }} />
                         )}
                         {user && <WelcomeModal user={user} onUpdateUser={setUser} />}
-                        {user && !user.requiresPasswordChange && (user.telefono && user.telefono.length>= 6) && (
+                        {user && !user.requiresPasswordChange && (user.telefono && user.telefono.length >= 6) && (
                             <TourWelcomeWrapper userRole={user?.rol} />
                         )}
                         <Sidebar />
@@ -109,10 +109,10 @@ export default function PrivateLayout({
                         <HeartbeatManager />
 
                         <div className="flex flex-1 flex-col min-w-0">
-                            <header className="fixed top-0 right-0 left-0 md:left-64 z-40">
+                            <header className="z-40 w-full relative">
                                 <TopBar />
                             </header>
-                            <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 pt-16 pb-4 md:p-6 lg:p-8 md:pt-20">
+                            <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:p-6 lg:p-8">
                                 <div className="animate-fade-in">
                                     {children}
                                 </div>

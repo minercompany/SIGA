@@ -23,9 +23,13 @@ import {
     Hammer,
     Bell,
     Settings2,
-    ClipboardList
+    ClipboardList,
+    Clock,
+    Calendar,
+    Plus
 } from "lucide-react";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useCallback } from "react";
 import { useConfig } from "@/context/ConfigContext";
 import Swal from 'sweetalert2';
@@ -112,7 +116,7 @@ const ConfiguracionEvento = () => {
                     disabled={saving}
                     className="rounded-xl bg-slate-900 px-8 py-3 font-bold text-white hover:bg-black shadow-lg shadow-slate-200 transition-all active:scale-95 disabled:opacity-50"
                 >
-                    {saving ? "Guardando...":"Guardar Configuración"}
+                    {saving ? "Guardando..." : "Guardar Configuración"}
                 </button>
             </div>
         </>
@@ -132,17 +136,17 @@ const ConfiguracionMantenimiento = () => {
         const newValue = !enabled;
         setSaving(true);
         try {
-            await updateConfig("MODO_MANTENIMIENTO", newValue ? "true":"false");
+            await updateConfig("MODO_MANTENIMIENTO", newValue ? "true" : "false");
             setEnabled(newValue);
 
             Swal.fire({
-                title: newValue ? '¡Modo Mantenimiento ACTIVADO!':'¡Modo Mantenimiento DESACTIVADO!',
+                title: newValue ? '¡Modo Mantenimiento ACTIVADO!' : '¡Modo Mantenimiento DESACTIVADO!',
                 text: newValue
                     ? 'El sistema ha sido bloqueado para todos los usuarios excepto Super Administradores.'
-                   :'El sistema ya está disponible nuevamente para todos los usuarios.',
-                icon: newValue ? 'warning':'success',
+                    : 'El sistema ya está disponible nuevamente para todos los usuarios.',
+                icon: newValue ? 'warning' : 'success',
                 confirmButtonText: 'Entendido',
-                confirmButtonColor: newValue ? '#f59e0b':'#10b981',
+                confirmButtonColor: newValue ? '#f59e0b' : '#10b981',
                 padding: '2em',
                 customClass: {
                     popup: 'rounded-[2rem] shadow-2xl'
@@ -169,7 +173,7 @@ const ConfiguracionMantenimiento = () => {
 
             <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl transition-colors ${enabled ? 'bg-amber-500 text-white':'bg-slate-200 text-slate-400'}`}>
+                    <div className={`p-3 rounded-xl transition-colors ${enabled ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
                         <Hammer className="h-6 w-6" />
                     </div>
                     <div>
@@ -184,12 +188,12 @@ const ConfiguracionMantenimiento = () => {
                 <button
                     onClick={handleToggle}
                     disabled={saving}
-                    className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 ${enabled ? 'bg-amber-500':'bg-slate-300'}`}
+                    className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 ${enabled ? 'bg-amber-500' : 'bg-slate-300'}`}
                 >
                     <span className="sr-only">Activar Mantenimiento</span>
                     <span
                         aria-hidden="true"
-                        className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-8':'translate-x-0'}`}
+                        className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-8' : 'translate-x-0'}`}
                     >
                         {saving && <Loader2 className="h-6 w-6 m-2.5 animate-spin text-amber-500" />}
                     </span>
@@ -240,17 +244,17 @@ const ConfiguracionNotificaciones = () => {
         const newValue = !enabled;
         setSaving(true);
         try {
-            await updateConfig("notificaciones_asignacion_activas", newValue ? "true":"false");
+            await updateConfig("notificaciones_asignacion_activas", newValue ? "true" : "false");
             setEnabled(newValue);
 
             Swal.fire({
-                title: newValue ? '¡Notificaciones ACTIVADAS!':'¡Notificaciones DESACTIVADAS!',
+                title: newValue ? '¡Notificaciones ACTIVADAS!' : '¡Notificaciones DESACTIVADAS!',
                 text: newValue
                     ? 'Recibirás avisos cada vez que alguien asigne un socio a una lista.'
-                   :'Ya no recibirás notificaciones de asignación de socios.',
-                icon: newValue ? 'success':'info',
+                    : 'Ya no recibirás notificaciones de asignación de socios.',
+                icon: newValue ? 'success' : 'info',
                 confirmButtonText: 'Entendido',
-                confirmButtonColor: newValue ? '#10b981':'#6b7280',
+                confirmButtonColor: newValue ? '#10b981' : '#6b7280',
                 padding: '2em',
                 customClass: {
                     popup: 'rounded-[2rem] shadow-2xl'
@@ -374,7 +378,7 @@ const ConfiguracionNotificaciones = () => {
             <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100 space-y-4">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-xl transition-colors ${enabled ? 'bg-blue-500 text-white':'bg-slate-200 text-slate-400'}`}>
+                        <div className={`p-3 rounded-xl transition-colors ${enabled ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
                             <Bell className="h-6 w-6" />
                         </div>
                         <div>
@@ -389,12 +393,12 @@ const ConfiguracionNotificaciones = () => {
                     <button
                         onClick={handleToggle}
                         disabled={saving}
-                        className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${enabled ? 'bg-blue-500':'bg-slate-300'}`}
+                        className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${enabled ? 'bg-blue-500' : 'bg-slate-300'}`}
                     >
                         <span className="sr-only">Activar Notificaciones</span>
                         <span
                             aria-hidden="true"
-                            className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-8':'translate-x-0'}`}
+                            className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-8' : 'translate-x-0'}`}
                         >
                             {saving && <Loader2 className="h-6 w-6 m-2.5 animate-spin text-blue-500" />}
                         </span>
@@ -449,6 +453,194 @@ const ConfiguracionGestionListas = () => {
                 </button>
             </div>
         </>
+    );
+};
+
+// Componente para Fecha Límite de Asignación - REDISEÑO PREMIUM
+const ConfiguracionFechaLimite = () => {
+    const { updateConfig } = useConfig();
+    const [activa, setActiva] = useState(false);
+    const [fechaLimite, setFechaLimite] = useState("");
+    const [pruebaActiva, setPruebaActiva] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get("/api/configuracion/fecha-limite", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const data = res.data;
+                setActiva(data.activa);
+                setFechaLimite(data.fechaLimite || "");
+                setPruebaActiva(data.pruebaActiva);
+            } catch (error) {
+                console.error("Error cargando config de fecha límite:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchConfig();
+    }, []);
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            await updateConfig("FECHA_LIMITE_ACTIVA", activa ? "true" : "false");
+            await updateConfig("FECHA_LIMITE_ASIGNACION", fechaLimite);
+
+            Swal.fire({
+                title: '<span class="text-2xl font-black italic">¡TIEMPO CONFIGURADO!</span>',
+                html: `<p class="text-slate-600">${activa
+                    ? `Las listas se cerrarán automáticamente el <b>${new Date(fechaLimite).toLocaleString()}</b>`
+                    : 'Se ha desactivado la restricción de tiempo.'}</p>`,
+                icon: 'success',
+                confirmButtonColor: '#f59e0b',
+                customClass: {
+                    popup: 'rounded-[2rem] border-4 border-orange-100 shadow-2xl'
+                }
+            });
+        } catch (error) {
+            Swal.fire({ title: 'Error', text: 'No se pudo guardar la configuración', icon: 'error' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleTogglePrueba = async () => {
+        const token = localStorage.getItem("token");
+        const action = pruebaActiva ? 'desactivar-prueba' : 'activar-prueba';
+
+        try {
+            const res = await axios.post(`/api/configuracion/fecha-limite/${action}`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (res.data.success) {
+                setPruebaActiva(!pruebaActiva);
+                Swal.fire({
+                    title: !pruebaActiva ? '🧪 MODO PRUEBA ACTIVO' : '✅ SISTEMA RESTABLECIDO',
+                    text: res.data.message,
+                    icon: !pruebaActiva ? 'warning' : 'success',
+                    confirmButtonColor: !pruebaActiva ? '#f59e0b' : '#10b981',
+                    customClass: {
+                        popup: 'rounded-[2rem] shadow-2xl'
+                    }
+                });
+            }
+        } catch (error) {
+            Swal.fire({ title: 'Error', text: 'Error al cambiar estado de prueba', icon: 'error' });
+        }
+    };
+
+    if (loading) return null;
+
+    return (
+        <div className="relative group">
+            {/* Título decorativo */}
+            <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3 italic uppercase mt-10 mb-6 group-hover:translate-x-1 transition-transform">
+                <div className="p-2 bg-orange-100 rounded-lg group-hover:bg-orange-500 group-hover:text-white transition-all shadow-sm">
+                    <Clock className="h-6 w-6" />
+                </div>
+                Cronograma de Asignación
+            </h2>
+
+            <div className="relative overflow-hidden bg-white/40 backdrop-blur-xl rounded-[2.5rem] border border-slate-200/50 shadow-2xl shadow-slate-200/50 p-1 md:p-2">
+                <div className={`rounded-[2rem] p-6 md:p-10 transition-all duration-700 ${activa ? 'bg-gradient-to-br from-orange-50/80 via-white to-amber-50/50' : 'bg-slate-50/50'}`}>
+
+                    {/* Header: Switch */}
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-10">
+                        <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-3 h-3 rounded-full animate-pulse ${activa ? 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]' : 'bg-slate-300'}`} />
+                                <h3 className="text-xl font-black text-slate-800 uppercase italic tracking-tight">Cierre Automatizado</h3>
+                            </div>
+                            <p className="text-slate-500 font-medium max-w-lg leading-relaxed">
+                                Al activar esta opción, el sistema bloqueará nuevas asignaciones una vez alcanzada la fecha límite. Los socios recibirán un aviso premium de impacto al entrar.
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={() => setActiva(!activa)}
+                            className={`relative inline-flex h-12 w-24 flex-shrink-0 cursor-pointer rounded-full border-4 border-white shadow-inner transition-all duration-500 ease-in-out focus:outline-none ${activa ? 'bg-orange-500' : 'bg-slate-300'}`}
+                        >
+                            <div className={`pointer-events-none absolute inset-y-0 left-0 w-10 transform scale-90 rounded-full bg-white shadow-lg transition-all duration-500 ease-in-out ${activa ? 'translate-x-12' : 'translate-x-0'}`}>
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${activa ? 'bg-orange-500' : 'bg-slate-300'}`} />
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <AnimatePresence>
+                        {activa && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0, y: 20 }}
+                                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                                exit={{ opacity: 0, height: 0, y: 20 }}
+                                className="space-y-8"
+                            >
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="group/input relative">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 block pl-2">Fecha y Hora de Cierre</label>
+                                        <div className="relative">
+                                            <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-400 group-hover/input:scale-110 transition-transform" />
+                                            <input
+                                                type="datetime-local"
+                                                value={fechaLimite}
+                                                onChange={(e) => setFechaLimite(e.target.value)}
+                                                className="w-full bg-white/70 backdrop-blur rounded-2xl border-2 border-slate-100 pl-16 pr-6 py-5 text-lg font-black text-slate-800 focus:border-orange-400 focus:bg-white outline-none transition-all shadow-sm hover:border-orange-200"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-end">
+                                        <button
+                                            onClick={handleSave}
+                                            disabled={saving}
+                                            className="group/btn relative w-full overflow-hidden rounded-2xl bg-slate-900 px-8 py-5 transition-all active:scale-95 shadow-xl hover:shadow-orange-200"
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500" />
+                                            <span className="relative flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest text-white">
+                                                {saving ? "Procesando..." : (
+                                                    <><Plus className="h-5 w-5" /> Confirmar Programación</>
+                                                )}
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Footer: Modo Prueba */}
+                    <div className={`mt-10 pt-8 border-t border-slate-200/60 flex flex-col md:flex-row items-center justify-between gap-6 ${!activa ? 'opacity-50 grayscale' : ''}`}>
+                        <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-2xl ${pruebaActiva ? 'bg-red-100 animate-pulse' : 'bg-slate-100'}`}>
+                                <Hammer className={`h-6 w-6 ${pruebaActiva ? 'text-red-500' : 'text-slate-400'}`} />
+                            </div>
+                            <div>
+                                <h4 className="font-black text-slate-800 text-sm uppercase italic">Simulador de Cierre</h4>
+                                <p className="text-xs text-slate-500 font-medium">Fuerza el bloqueo inmediato para verificar la UX del socio.</p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleTogglePrueba}
+                            disabled={!activa}
+                            className={`px-8 py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95 ${pruebaActiva
+                                ? 'bg-red-500 text-white shadow-red-200 hover:bg-red-600'
+                                : 'bg-white border-2 border-slate-200 text-slate-700 hover:border-orange-500 hover:text-orange-500'
+                                }`}
+                        >
+                            {pruebaActiva ? "Finalizar Prueba" : "Probar Cierre Ahora"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 
@@ -556,9 +748,9 @@ const ConfiguracionModoPrueba = () => {
                 Modo de Prueba /Sandbox
             </h2>
 
-            <div className={`rounded-2xl p-6 border flex flex-col md:flex-row items-center justify-between gap-6 transition-all ${isTestMode ? 'bg-violet-100 border-violet-300':'bg-violet-50 border-violet-100'}`}>
+            <div className={`rounded-2xl p-6 border flex flex-col md:flex-row items-center justify-between gap-6 transition-all ${isTestMode ? 'bg-violet-100 border-violet-300' : 'bg-violet-50 border-violet-100'}`}>
                 <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl transition-colors ${isTestMode ? 'bg-violet-600 text-white animate-pulse':'bg-slate-200 text-slate-400'}`}>
+                    <div className={`p-3 rounded-xl transition-colors ${isTestMode ? 'bg-violet-600 text-white animate-pulse' : 'bg-slate-200 text-slate-400'}`}>
                         <Database className="h-6 w-6" />
                     </div>
                     <div>
@@ -576,7 +768,7 @@ const ConfiguracionModoPrueba = () => {
                                         </span>
                                     )}
                                 </>
-                            ):(
+                            ) : (
                                 <>
                                     Activa para probar el sistema sin afectar los datos reales. Se creará una copia de seguridad automática.
                                 </>
@@ -586,14 +778,14 @@ const ConfiguracionModoPrueba = () => {
                 </div>
 
                 <button
-                    onClick={isTestMode ? handleDeactivate:handleActivate}
+                    onClick={isTestMode ? handleDeactivate : handleActivate}
                     disabled={saving}
-                    className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-offset-2 ${isTestMode ? 'bg-violet-600':'bg-slate-300'}`}
+                    className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-offset-2 ${isTestMode ? 'bg-violet-600' : 'bg-slate-300'}`}
                 >
                     <span className="sr-only">Activar Modo Prueba</span>
                     <span
                         aria-hidden="true"
-                        className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isTestMode ? 'translate-x-8':'translate-x-0'}`}
+                        className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isTestMode ? 'translate-x-8' : 'translate-x-0'}`}
                     >
                         {saving && <Loader2 className="h-6 w-6 m-2.5 animate-spin text-violet-600" />}
                     </span>
@@ -671,7 +863,7 @@ const ResetOptionsPanel = ({ isAdminMode, accessCode, setAccessCode, checkAccess
                             </button>
                         </div>
                     </div>
-                ):(
+                ) : (
                     <div className="space-y-6">
                         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex justify-between items-center">
                             <span className="text-sm font-bold text-teal-500 flex items-center gap-2">
@@ -691,7 +883,7 @@ const ResetOptionsPanel = ({ isAdminMode, accessCode, setAccessCode, checkAccess
                                     { key: "asistencias", label: "Control de Asistencia", desc: "Borra registros de check-in" },
                                     { key: "importaciones", label: "Historial de Importación", desc: "Limpia el log de importaciones" },
                                 ].map((opt) => (
-                                    <label key={opt.key} className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${(options as any)[opt.key] ? 'border-red-200 bg-red-50/50':'border-slate-100 hover:border-slate-200'
+                                    <label key={opt.key} className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${(options as any)[opt.key] ? 'border-red-200 bg-red-50/50' : 'border-slate-100 hover:border-slate-200'
                                         }`}>
                                         <input
                                             type="checkbox"
@@ -713,7 +905,7 @@ const ResetOptionsPanel = ({ isAdminMode, accessCode, setAccessCode, checkAccess
                             disabled={loading}
                             className="w-full py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black rounded-xl shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-2"
                         >
-                            {loading ? <Loader2 className="animate-spin" />:<Trash2 />}
+                            {loading ? <Loader2 className="animate-spin" /> : <Trash2 />}
                             EJECUTAR LIMPIEZA SELECCIONADA
                         </button>
                     </div>
@@ -788,7 +980,7 @@ export default function ConfiguracionPage() {
     const handleFotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            if (file.size> 5000000) { // 5MB limit
+            if (file.size > 5000000) { // 5MB limit
                 setMessage({ type: 'error', text: 'La imagen es demasiado grande (Máx 5MB)' });
                 return;
             }
@@ -1013,7 +1205,7 @@ export default function ConfiguracionPage() {
             );
             // Actualizar localmente
             setFoundSocios(prev => prev.map(s =>
-                s.id === socioId ? { ...s, [field]: !currentValue }:s
+                s.id === socioId ? { ...s, [field]: !currentValue } : s
             ));
         } catch (error) {
             console.error("Error actualizando estado:", error);
@@ -1040,7 +1232,7 @@ export default function ConfiguracionPage() {
                         <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-4 border-4 border-white shadow-xl overflow-hidden">
                             {fotoPerfil || user?.fotoPerfil ? (
                                 <img src={fotoPerfil || user?.fotoPerfil} alt="Perfil" className="w-full h-full object-cover" />
-                            ):(
+                            ) : (
                                 <UserCircle2 className="h-12 w-12 text-emerald-500" />
                             )}
                         </div>
@@ -1101,7 +1293,7 @@ export default function ConfiguracionPage() {
                                 disabled={savingPersonal}
                                 className="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-black transition-colors disabled:opacity-50 flex items-center gap-2"
                             >
-                                {savingPersonal ? <Loader2 className="h-3 w-3 animate-spin" />:<Save className="h-3 w-3" />}
+                                {savingPersonal ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
                                 Guardar Datos
                             </button>
                         </div>
@@ -1110,8 +1302,8 @@ export default function ConfiguracionPage() {
                     <form onSubmit={handleChangePassword} className="p-5 space-y-4">
                         <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Seguridad de la Cuenta</h3>
                         {message && message.text.includes("Contraseña") && (
-                            <div className={`p-3 rounded-lg text-xs font-bold flex items-center gap-2 ${message.type === 'success' ? 'bg-emerald-50 text-teal-500':'bg-red-50 text-red-700'}`}>
-                                {message.type === 'success' ? <Check className="h-4 w-4" />:<ShieldAlert className="h-4 w-4" />}
+                            <div className={`p-3 rounded-lg text-xs font-bold flex items-center gap-2 ${message.type === 'success' ? 'bg-emerald-50 text-teal-500' : 'bg-red-50 text-red-700'}`}>
+                                {message.type === 'success' ? <Check className="h-4 w-4" /> : <ShieldAlert className="h-4 w-4" />}
                                 {message.text}
                             </div>
                         )}
@@ -1148,7 +1340,7 @@ export default function ConfiguracionPage() {
                             disabled={savingPass}
                             className="bg-emerald-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-teal-500 transition-colors shadow-lg shadow-emerald-500/20 disabled:opacity-50"
                         >
-                            {savingPass ? "Guardando...":"Actualizar Contraseña"}
+                            {savingPass ? "Guardando..." : "Actualizar Contraseña"}
                         </button>
                     </form>
                 </div>
@@ -1198,7 +1390,7 @@ export default function ConfiguracionPage() {
                         disabled={closingSessions}
                         className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-xl font-bold text-sm hover:from-red-600 hover:to-orange-600 transition-all shadow-lg shadow-red-200 disabled:opacity-50"
                     >
-                        {closingSessions ? <Loader2 className="h-4 w-4 animate-spin" />:<ShieldAlert className="h-4 w-4" />}
+                        {closingSessions ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
                         Cerrar Todas las Sesiones
                     </button>
                 </div>
@@ -1214,6 +1406,7 @@ export default function ConfiguracionPage() {
                         <ConfiguracionEvento />
                         <ConfiguracionMantenimiento />
                         <ConfiguracionNotificaciones />
+                        <ConfiguracionFechaLimite />
                         <ConfiguracionGestionListas />
                         <ConfiguracionModoPrueba />
                     </div>
@@ -1241,7 +1434,7 @@ export default function ConfiguracionPage() {
                                     />
                                 </div>
                             </div>
-                        ):(
+                        ) : (
                             <div className="rounded-3xl bg-white p-8 shadow-2xl border-4 border-emerald-500/20 space-y-8 animate-in zoom-in-95 duration-300">
                                 <div className="flex items-center justify-between border-b border-slate-100 pb-6">
                                     <div className="flex items-center gap-4">
@@ -1306,15 +1499,15 @@ export default function ConfiguracionPage() {
                                                                 onClick={() => toggleStatus(socio.id, item.field, (socio as any)[item.field])}
                                                                 className={`h-8 w-14 rounded-full p-1 transition-all flex items-center ${(socio as any)[item.field]
                                                                     ? 'bg-emerald-500'
-                                                                   :'bg-slate-200'
+                                                                    : 'bg-slate-200'
                                                                     } group relative`}
                                                                 disabled={updatingSocioId === socio.id}
                                                             >
-                                                                <div className={`h-6 w-6 rounded-full bg-white shadow flex items-center justify-center transition-all transform ${(socio as any)[item.field] ? 'translate-x-6':'translate-x-0'
+                                                                <div className={`h-6 w-6 rounded-full bg-white shadow flex items-center justify-center transition-all transform ${(socio as any)[item.field] ? 'translate-x-6' : 'translate-x-0'
                                                                     }`}>
                                                                     {(socio as any)[item.field] ? (
                                                                         <Check className="h-3 w-3 text-emerald-500" />
-                                                                    ):(
+                                                                    ) : (
                                                                         <X className="h-3 w-3 text-slate-300" />
                                                                     )}
                                                                 </div>

@@ -15,6 +15,7 @@ import {
 import axios from "axios";
 import { useTour } from "@/components/tour/TourContext";
 import { asignacionesTour } from "@/components/tour/tourSteps";
+import Swal from 'sweetalert2';
 
 // interfaces locales adicionales
 interface Sucursal {
@@ -129,9 +130,9 @@ export default function AsignacionesPage() {
                     } else {
                         setMisListas(response.data);
                         // Auto-select the list with the most socios (not just the first one)
-                        if (response.data.length> 0 && !selectedLista) {
+                        if (response.data.length > 0 && !selectedLista) {
                             const listaConMasSocios = response.data.reduce((prev: ListaAsignacion, curr: ListaAsignacion) =>
-                                (curr.total || 0) > (prev.total || 0) ? curr:prev
+                                (curr.total || 0) > (prev.total || 0) ? curr : prev
                             );
                             handleSelectLista(listaConMasSocios);
                         }
@@ -307,6 +308,41 @@ export default function AsignacionesPage() {
                     listaUsuario: 'TÚ MISMO'
                 });
                 setShowAlreadyAssignedModal(true);
+                setSearchedSocio(null);
+                setSocioSearchTerm("");
+            }
+            else if (error.response?.status === 403 && error.response?.data?.bloqueado) {
+                // MENSAJE AMABLE DE TIEMPO EXPIRADO - REDISEÑO PREMIUM
+                Swal.fire({
+                    title: '<span class="text-3xl font-black italic uppercase">¡Tiempo Finalizado!</span>',
+                    html: `
+                        <div class="p-4 space-y-4">
+                            <div class="relative w-24 h-24 mx-auto bg-orange-100 rounded-3xl flex items-center justify-center border-4 border-orange-50 mb-6 group">
+                                <span class="text-5xl group-hover:scale-110 transition-transform">🔒</span>
+                                <div class="absolute -bottom-2 -right-2 bg-white p-2 rounded-xl shadow-lg border border-orange-100">
+                                    <svg class="h-5 w-5 text-orange-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <p class="text-slate-600 font-medium text-lg leading-relaxed">
+                                ${error.response.data.mensaje || 'El periodo de asignación ha concluido oficialmente.'}
+                            </p>
+                            <div class="pt-4 border-t border-slate-100">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">
+                                    Las asignaciones están selladas para esta asamblea. <br/> ¡Muchas gracias por tu valiosa colaboración!
+                                </p>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'ENTENDIDO',
+                    confirmButtonColor: '#f59e0b',
+                    padding: '2rem',
+                    customClass: {
+                        popup: 'rounded-[3rem] shadow-[0_30px_100px_rgba(249,115,22,0.2)] border-2 border-orange-100',
+                        confirmButton: 'rounded-2xl px-12 py-4 font-black uppercase tracking-widest text-xs hover:scale-105 transition-transform'
+                    }
+                });
                 setSearchedSocio(null);
                 setSocioSearchTerm("");
             }

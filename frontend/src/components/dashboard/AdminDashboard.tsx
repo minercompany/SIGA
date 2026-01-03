@@ -365,105 +365,179 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
 
             {/* SECCIÓN DE ACTIVIDAD DE USUARIOS - SOLO SUPER_ADMIN */}
             {userRole === "SUPER_ADMIN" && userActivity && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                    {/* Widget Graph (Ocupa 3 columnas en desktop grande) */}
-                    <div className="md:col-span-2 lg:col-span-3 h-[380px]">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    {/* Widget Graph (Ocupa 7 columnas en desktop grande) */}
+                    <div className="lg:col-span-7 h-[360px]">
                         <ActivityWidget data={userActivity.hourlyStats.data} labels={userActivity.hourlyStats.labels} />
                     </div>
 
-                    {/* Summary Cards (Ocupa 2 columnas) - Modificado para incluir widget de asignaciones */}
-                    <div className="md:col-span-2 lg:col-span-2 grid grid-cols-2 lg:grid-cols-2 gap-4 h-full">
-                        {/* Activos - Clickable (Ocupa toda la altura izquierda en móvil y desktop) */}
+                    {/* Summary Cards (Ocupa 5 columnas) - Grid interno 2x3 */}
+                    <div className="lg:col-span-5 grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {/* Activos - Ocupa 2 filas - NÚMERO GIGANTE */}
                         <motion.div
-                            whileHover={{ scale: 1.02 }}
+                            whileHover={{ scale: 1.03, y: -5 }}
                             whileTap={{ scale: 0.98 }}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ type: "spring", stiffness: 200, damping: 20 }}
                             onClick={() => setIsActiveUsersModalOpen(true)}
-                            className="row-span-2 lg:col-span-1 bg-gradient-to-br from-emerald-500 to-teal-700 rounded-[2rem] p-6 text-white shadow-xl shadow-emerald-500/20 cursor-pointer relative overflow-hidden group flex flex-col items-center justify-center text-center border border-white/10"
+                            className="row-span-2 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-2xl shadow-emerald-500/30 cursor-pointer relative overflow-hidden group flex flex-col items-center justify-center text-center border border-white/20"
                         >
-                            <div className="relative z-10 mb-2">
-                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-black/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10">
-                                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                            {/* Decorative glow */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                            <motion.div
+                                animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+                                transition={{ duration: 3, repeat: Infinity }}
+                                className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-3xl -mr-10 -mt-10"
+                            />
+
+                            <div className="relative z-10 mb-1">
+                                <motion.span
+                                    animate={{ scale: [1, 1.05, 1] }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest border border-white/30 shadow-lg"
+                                >
+                                    <div className="w-2.5 h-2.5 bg-emerald-300 rounded-full animate-pulse shadow-[0_0_12px_rgba(110,231,183,0.9)]" />
                                     En Vivo
-                                </span>
+                                </motion.span>
                             </div>
-                            <h3 className="relative z-10 text-xs font-bold uppercase tracking-widest opacity-80">Online</h3>
-                            <div className="relative z-10 my-3">
-                                <span className="text-6xl font-black tracking-tighter"><AnimatedCounter value={activeUsersCount} /></span>
-                            </div>
-                            <div className="relative z-10 flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">
+                            <h3 className="relative z-10 text-xs font-bold uppercase tracking-widest opacity-90 mt-2">Online</h3>
+                            <motion.div
+                                className="relative z-10 my-3"
+                                animate={{ scale: [1, 1.02, 1] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                            >
+                                <span className="text-7xl lg:text-8xl font-black tracking-tighter drop-shadow-lg"><AnimatedCounter value={activeUsersCount} /></span>
+                            </motion.div>
+                            <motion.div
+                                whileHover={{ scale: 1.1 }}
+                                className="relative z-10 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-white/20 backdrop-blur px-4 py-2 rounded-xl border border-white/30 shadow-lg hover:bg-white/30 transition-all"
+                            >
                                 <Users size={12} />
                                 <span>Ver Lista</span>
-                            </div>
+                            </motion.div>
                         </motion.div>
 
-                        {/* Usuales (Derecha arriba) */}
+                        {/* Usuales */}
                         <motion.div
-                            whileHover={{ scale: 1.02 }}
+                            whileHover={{ scale: 1.05, y: -3 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
                             onClick={() => {
                                 setActivityReportFilter("habituales");
                                 setIsActivityReportModalOpen(true);
                             }}
-                            className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer"
+                            className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl border border-slate-100 hover:border-blue-200 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer transition-all duration-300"
                         >
-                            <div className="relative z-10 mb-2">
-                                <div className="inline-flex items-center justify-center p-3 bg-blue-50 text-blue-500 rounded-2xl mb-2 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                    <UserCheck className="h-7 w-7" strokeWidth={2.5} />
-                                </div>
-                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Usuales</p>
+                            <div className="relative z-10">
+                                <motion.div
+                                    whileHover={{ rotate: [0, -10, 10, 0] }}
+                                    transition={{ duration: 0.5 }}
+                                    className="inline-flex items-center justify-center p-2 bg-blue-50 text-blue-500 rounded-xl mb-1 shadow-sm"
+                                >
+                                    <UserCheck className="h-5 w-5" strokeWidth={2.5} />
+                                </motion.div>
+                                <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">Usuales</p>
                             </div>
-                            <p className="relative z-10 text-5xl font-black text-slate-800 tracking-tighter mb-3"><AnimatedCounter value={userActivity.usuales} /></p>
-                            <button className="relative z-10 flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-blue-600 transition-colors shadow-lg">
-                                <Eye size={14} />
+                            <motion.p
+                                className="relative z-10 text-4xl lg:text-5xl font-black text-slate-800 tracking-tighter my-2"
+                                animate={{ scale: [1, 1.02, 1] }}
+                                transition={{ duration: 2, repeat: Infinity, delay: 0.2 }}
+                            >
+                                <AnimatedCounter value={userActivity.usuales} />
+                            </motion.p>
+                            <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="relative z-10 flex items-center gap-1 px-4 py-1.5 bg-blue-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-blue-600 transition-colors shadow-lg"
+                            >
+                                <Eye size={12} />
                                 <span>Ver</span>
-                            </button>
+                            </motion.button>
                         </motion.div>
 
-                        {/* Total (Derecha Centro) */}
+                        {/* Total */}
                         <motion.div
-                            whileHover={{ scale: 1.02 }}
+                            whileHover={{ scale: 1.05, y: -3 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15 }}
                             onClick={() => {
                                 setActivityReportFilter("todos");
                                 setIsActivityReportModalOpen(true);
                             }}
-                            className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer"
+                            className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl border border-slate-100 hover:border-indigo-200 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer transition-all duration-300"
                         >
-                            <div className="relative z-10 mb-2">
-                                <div className="inline-flex items-center justify-center p-3 bg-indigo-50 text-indigo-500 rounded-2xl mb-2 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                    <Users className="h-7 w-7" strokeWidth={2.5} />
-                                </div>
-                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Total</p>
+                            <div className="relative z-10">
+                                <motion.div
+                                    whileHover={{ rotate: [0, -10, 10, 0] }}
+                                    transition={{ duration: 0.5 }}
+                                    className="inline-flex items-center justify-center p-2 bg-indigo-50 text-indigo-500 rounded-xl mb-1 shadow-sm"
+                                >
+                                    <Users className="h-5 w-5" strokeWidth={2.5} />
+                                </motion.div>
+                                <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">Total</p>
                             </div>
-                            <p className="relative z-10 text-5xl font-black text-slate-800 tracking-tighter mb-3"><AnimatedCounter value={userActivity.total} /></p>
-                            <button className="relative z-10 flex items-center gap-1.5 px-4 py-2 bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-indigo-600 transition-colors shadow-lg">
-                                <Eye size={14} />
+                            <motion.p
+                                className="relative z-10 text-4xl lg:text-5xl font-black text-slate-800 tracking-tighter my-2"
+                                animate={{ scale: [1, 1.02, 1] }}
+                                transition={{ duration: 2, repeat: Infinity, delay: 0.4 }}
+                            >
+                                <AnimatedCounter value={userActivity.total} />
+                            </motion.p>
+                            <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="relative z-10 flex items-center gap-1 px-4 py-1.5 bg-indigo-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-indigo-600 transition-colors shadow-lg"
+                            >
+                                <Eye size={12} />
                                 <span>Ver</span>
-                            </button>
+                            </motion.button>
                         </motion.div>
 
-                        {/* Cero Registros (Derecha Abajo - Solo si hay datos o como extra) */}
+                        {/* 0 Registros */}
                         <motion.div
-                            whileHover={{ scale: 1.02 }}
+                            whileHover={{ scale: 1.05, y: -3 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
                             onClick={() => {
                                 setActivityReportFilter("sin-registros");
                                 setIsActivityReportModalOpen(true);
                             }}
-                            className="col-span-1 bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer hover:border-amber-200"
+                            className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl border border-slate-100 hover:border-amber-200 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer transition-all duration-300"
                         >
-                            <div className="relative z-10 mb-2">
-                                <div className="inline-flex items-center justify-center p-3 bg-amber-50 text-amber-600 rounded-2xl mb-2 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                    <AlertTriangle className="h-7 w-7" strokeWidth={2.5} />
-                                </div>
-                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">0 Registros</p>
+                            <div className="relative z-10">
+                                <motion.div
+                                    whileHover={{ rotate: [0, -10, 10, 0] }}
+                                    animate={{ y: [0, -2, 0] }}
+                                    transition={{ duration: 1, repeat: Infinity }}
+                                    className="inline-flex items-center justify-center p-2 bg-amber-50 text-amber-600 rounded-xl mb-1 shadow-sm"
+                                >
+                                    <AlertTriangle className="h-5 w-5" strokeWidth={2.5} />
+                                </motion.div>
+                                <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">0 Registros</p>
                             </div>
-                            <p className="relative z-10 text-5xl font-black text-slate-800 tracking-tighter mb-3"><AnimatedCounter value={userActivity.sinRegistros || 0} /></p>
-                            <button className="relative z-10 flex items-center gap-1.5 px-4 py-2 bg-amber-500 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-amber-600 transition-colors shadow-lg">
-                                <Eye size={14} />
+                            <motion.p
+                                className="relative z-10 text-4xl lg:text-5xl font-black text-slate-800 tracking-tighter my-2"
+                                animate={{ scale: [1, 1.02, 1] }}
+                                transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
+                            >
+                                <AnimatedCounter value={userActivity.sinRegistros || 0} />
+                            </motion.p>
+                            <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="relative z-10 flex items-center gap-1 px-4 py-1.5 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-amber-600 transition-colors shadow-lg"
+                            >
+                                <Eye size={12} />
                                 <span>Ver</span>
-                            </button>
+                            </motion.button>
                         </motion.div>
 
-                        {/* Widget de Asignaciones Diarias - NUEVO */}
-                        <div className="col-span-1 lg:col-span-1 row-span-2">
+                        {/* Widget de Asignaciones Diarias */}
+                        <div className="row-span-2">
                             <DailyAssignmentsWidget onOpenModal={() => setIsDailyAssignmentsModalOpen(true)} />
                         </div>
                     </div>

@@ -101,60 +101,40 @@ export function DeadlineNotification() {
         return () => clearInterval(interval);
     }, [DEADLINE]);
 
-    if (!isVisible) return null;
-
     return (
-        <div className={`fixed ${positionClass} z-[60] animate-in slide-in-from-bottom-5 fade-in duration-500 max-w-sm w-full md:w-auto`}>
-            {/* Audio oculto para notificación */}
-            {/* Audio oculto para notificación - Desactivado por falta de archivo
-            <audio ref={audioRef} src="/sounds/notification_simple.mp3" />
-            */}
+        <div className={`fixed z-[100] transition-all duration-500 w-full bottom-0 left-0 px-2 pb-2 md:w-auto md:max-w-sm md:bottom-6 md:right-6 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
+            <div className="bg-slate-900/95 backdrop-blur-xl rounded-2xl p-3 md:p-4 shadow-2xl border border-white/10 relative overflow-hidden group">
+                <button
+                    onClick={() => setIsVisible(false)}
+                    className="absolute top-2 right-2 text-white/40 hover:text-white bg-white/5 rounded-full p-1 transition-all z-20"
+                >
+                    <X size={14} />
+                </button>
 
-            <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-0.5 shadow-2xl overflow-hidden hover:scale-105 transition-transform duration-300">
-                <div className="bg-white/10 backdrop-blur-md rounded-[14px] p-4 relative overflow-hidden">
+                <div className="flex items-center gap-3">
+                    <div className="hidden xs:flex bg-amber-500 p-2 rounded-xl flex-shrink-0">
+                        <CalendarClock className="text-white h-5 w-5" />
+                    </div>
 
-                    {/* Efecto de brillo de fondo */}
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/20 rounded-full blur-xl"></div>
-                    <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-16 h-16 bg-purple-500/30 rounded-full blur-xl"></div>
+                    <div className="flex-1 min-w-0 pr-6">
+                        <h4 className="font-black text-white text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                            CIERRE DE CARGAS
+                        </h4>
+                        <p className="text-indigo-100/90 text-[11px] md:text-xs font-medium truncate">
+                            Finaliza el 05/01. ¡Carga ya!
+                        </p>
+                    </div>
 
-                    <button
-                        onClick={() => setIsVisible(false)}
-                        className="absolute top-2 right-2 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full p-1 transition-colors z-20"
-                    >
-                        <X size={14} />
-                    </button>
-
-                    <div className="flex gap-4 items-start relative z-10">
-                        <div className="bg-white/20 p-2.5 rounded-xl flex-shrink-0 animate-bounce">
-                            <CalendarClock className="text-white h-6 w-6" />
-                        </div>
-
-                        <div className="flex-1 mr-4">
-                            <h4 className="font-black text-white text-sm mb-1 flex items-center gap-2">
-                                <AlertTriangle size={14} className="text-yellow-300" />
-                                CIERRE DE CARGAS
-                            </h4>
-
-                            <p className="text-white/90 text-xs font-medium leading-relaxed mb-3">
-                                {message}
-                            </p>
-
-                            <div className="bg-black/30 rounded-lg p-2.5 flex items-center justify-between border border-white/10">
-                                <span className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">Tiempo Restante</span>
-                                <div className="flex items-center gap-2">
-                                    <Clock size={12} className="text-yellow-400 animate-pulse" />
-                                    <span className="text-sm font-black text-white font-mono tracking-wide tabular-nums">
-                                        {timeLeft}
-                                    </span>
-                                </div>
-                            </div>
+                    <div className="flex flex-col items-end gap-0.5 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
+                        <span className="text-[8px] text-indigo-300 font-bold uppercase tracking-tighter">RESTAN</span>
+                        <div className="flex items-center gap-1.5">
+                            <Clock size={10} className="text-amber-400" />
+                            <span className="text-xs font-black text-white font-mono tabular-nums">
+                                {timeLeft}
+                            </span>
                         </div>
                     </div>
-                </div>
-
-                {/* Barra de progreso decorativa */}
-                <div className="h-1 w-full bg-black/20 mt-[-1px]">
-                    <div className="h-full bg-yellow-400 w-[85%] animate-pulse"></div>
                 </div>
             </div>
         </div>

@@ -92,6 +92,68 @@ public class ConfiguracionController {
         }
     }
 
+    // ========== ENDPOINTS PARA FECHA LÍMITE DE ASIGNACIÓN ==========
+
+    @GetMapping("/fecha-limite")
+    public ResponseEntity<Map<String, Object>> obtenerFechaLimite() {
+        return ResponseEntity.ok(configuracionService.obtenerInfoFechaLimite());
+    }
+
+    @GetMapping("/fecha-limite/verificar-bloqueo")
+    public ResponseEntity<Map<String, Object>> verificarBloqueoAsignaciones() {
+        return ResponseEntity.ok(configuracionService.verificarBloqueoAsignaciones());
+    }
+
+    @PostMapping("/fecha-limite/activar-prueba")
+    public ResponseEntity<Map<String, Object>> activarPruebaFechaLimite(
+            Authentication auth, HttpServletRequest request) {
+
+        if (!isSuperAdmin(auth)) {
+            return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "error", "Solo el Super Administrador puede activar el modo prueba"));
+        }
+
+        configuracionService.activarModoPruebaFechaLimite();
+
+        auditService.registrar(
+                "CONFIGURACION",
+                "ACTIVAR_PRUEBA_FECHA_LIMITE",
+                "Activó modo prueba de fecha límite (simula bloqueo de asignaciones)",
+                auth.getName(),
+                request.getRemoteAddr());
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Modo prueba activado. Las asignaciones ahora están bloqueadas para todos los usuarios.",
+                "info", configuracionService.obtenerInfoFechaLimite()));
+    }
+
+    @PostMapping("/fecha-limite/desactivar-prueba")
+    public ResponseEntity<Map<String, Object>> desactivarPruebaFechaLimite(
+            Authentication auth, HttpServletRequest request) {
+
+        if (!isSuperAdmin(auth)) {
+            return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "error", "Solo el Super Administrador puede desactivar el modo prueba"));
+        }
+
+        configuracionService.desactivarModoPruebaFechaLimite();
+
+        auditService.registrar(
+                "CONFIGURACION",
+                "DESACTIVAR_PRUEBA_FECHA_LIMITE",
+                "Desactivó modo prueba de fecha límite",
+                auth.getName(),
+                request.getRemoteAddr());
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Modo prueba desactivado. Las asignaciones vuelven a su estado normal.",
+                "info", configuracionService.obtenerInfoFechaLimite()));
+    }
+
     private boolean isSuperAdmin(Authentication auth) {
         if (auth == null)
             return false;

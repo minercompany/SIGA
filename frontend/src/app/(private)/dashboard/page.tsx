@@ -39,6 +39,7 @@ interface ListaResumen {
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 import { SocioDashboard } from "@/components/dashboard/SocioDashboard";
 import { CountdownTimer } from "@/components/dashboard/CountdownTimer";
+import { DeadlineOverlay } from "@/components/dashboard/DeadlineOverlay";
 
 export default function DashboardPage() {
     const [stats, setStats] = useState<Estadisticas | null>(null);
@@ -149,11 +150,12 @@ export default function DashboardPage() {
 
     return (
         <div className="animate-in fade-in duration-500">
+            <DeadlineOverlay />
             <CountdownTimer />
 
             {isSocioView ? (
                 <SocioDashboard misListas={misListas} />
-            ):(
+            ) : (
                 <AdminDashboard
                     stats={stats}
                     desempeno={desempeno}

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Search, Users, Loader2, Plus, Shield, CheckCircle2, AlertTriangle, Trash2, Clock, Zap } from "lucide-react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
+import Swal from 'sweetalert2';
 
 interface Socio {
     id: number;
@@ -77,7 +78,7 @@ export default function AsignacionRapidaPage() {
 
                     // Recargar
                     const newResponse = await axios.get("/api/asignaciones/mis-listas", { headers });
-                    if (newResponse.data.length> 0) {
+                    if (newResponse.data.length > 0) {
                         setMiLista(newResponse.data[0]);
                         await loadSocios(newResponse.data[0].id);
                     }
@@ -115,7 +116,7 @@ export default function AsignacionRapidaPage() {
 
     // Búsqueda automática con debounce
     useEffect(() => {
-        if (searchTerm.length>= 1) {
+        if (searchTerm.length >= 1) {
             const timer = setTimeout(() => {
                 handleSearch();
             }, 500);
@@ -137,7 +138,7 @@ export default function AsignacionRapidaPage() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            if (response.data && response.data.length> 0) {
+            if (response.data && response.data.length > 0) {
                 setSearchedSocio(response.data[0]);
             } else {
                 setErrorMessage("No se encontró ningún socio con ese dato");
@@ -184,6 +185,40 @@ export default function AsignacionRapidaPage() {
                 setSearchTerm("");
             } else if (error.response?.status === 400) {
                 setErrorMessage("Este socio ya está en tu lista");
+            } else if (error.response?.status === 403 && error.response?.data?.bloqueado) {
+                // MENSAJE AMABLE DE TIEMPO EXPIRADO - REDISEÑO PREMIUM
+                Swal.fire({
+                    title: '<span class="text-3xl font-black italic uppercase">¡Tiempo Finalizado!</span>',
+                    html: `
+                        <div class="p-4 space-y-4">
+                            <div class="relative w-24 h-24 mx-auto bg-orange-100 rounded-3xl flex items-center justify-center border-4 border-orange-50 mb-6 group">
+                                <span class="text-5xl group-hover:scale-110 transition-transform">🔒</span>
+                                <div class="absolute -bottom-2 -right-2 bg-white p-2 rounded-xl shadow-lg border border-orange-100">
+                                    <svg class="h-5 w-5 text-orange-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <p class="text-slate-600 font-medium text-lg leading-relaxed">
+                                ${error.response.data.mensaje || 'El periodo de asignación ha concluido oficialmente.'}
+                            </p>
+                            <div class="pt-4 border-t border-slate-100">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">
+                                    Las asignaciones están selladas para esta asamblea. <br/> ¡Muchas gracias por tu valiosa colaboración!
+                                </p>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'ENTENDIDO',
+                    confirmButtonColor: '#f59e0b',
+                    padding: '2rem',
+                    customClass: {
+                        popup: 'rounded-[3rem] shadow-[0_30px_100px_rgba(249,115,22,0.2)] border-2 border-orange-100',
+                        confirmButton: 'rounded-2xl px-12 py-4 font-black uppercase tracking-widest text-xs hover:scale-105 transition-transform'
+                    }
+                });
+                setSearchedSocio(null);
+                setSearchTerm("");
             } else {
                 setErrorMessage(error.response?.data?.error || error.response?.data?.message || "Error al agregar");
             }
@@ -352,8 +387,8 @@ export default function AsignacionRapidaPage() {
                                             <div className="flex flex-wrap gap-2 sm:gap-4 mt-1">
                                                 <span className="text-xs sm:text-sm text-slate-600">CI: <span className="font-bold">{searchedSocio.cedula}</span></span>
                                                 <span className="text-xs sm:text-sm text-slate-600">Nro: <span className="font-bold">{searchedSocio.numeroSocio}</span></span>
-                                                <span className={`text-xs sm:text-sm font-bold ${tieneVozYVoto(searchedSocio) ? 'text-emerald-500':'text-amber-600'}`}>
-                                                    {tieneVozYVoto(searchedSocio) ? '✓ V&V':'⚠ SV'}
+                                                <span className={`text-xs sm:text-sm font-bold ${tieneVozYVoto(searchedSocio) ? 'text-emerald-500' : 'text-amber-600'}`}>
+                                                    {tieneVozYVoto(searchedSocio) ? '✓ V&V' : '⚠ SV'}
                                                 </span>
                                             </div>
                                         </div>
@@ -393,7 +428,7 @@ export default function AsignacionRapidaPage() {
                             <Loader2 className="w-8 h-8 text-violet-500 animate-spin mx-auto mb-2" />
                             <p className="text-slate-500 text-sm">Cargando...</p>
                         </div>
-                    ):socios.length> 0 ? (
+                    ) : socios.length > 0 ? (
                         <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
                             {socios.map((socio, index) => {
                                 const esVyV = tieneVozYVoto(socio);
@@ -406,7 +441,7 @@ export default function AsignacionRapidaPage() {
                                         className="p-3 sm:p-4 hover:bg-slate-50 transition-colors group flex items-center justify-between gap-2"
                                     >
                                         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-                                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex-shrink-0 flex items-center justify-center font-bold text-white text-xs sm:text-sm ${esVyV ? 'bg-emerald-500':'bg-amber-500'
+                                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex-shrink-0 flex items-center justify-center font-bold text-white text-xs sm:text-sm ${esVyV ? 'bg-emerald-500' : 'bg-amber-500'
                                                 }`}>
                                                 {index + 1}
                                             </div>
@@ -418,9 +453,9 @@ export default function AsignacionRapidaPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
-                                            <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold ${esVyV ? 'bg-emerald-100 text-teal-500':'bg-amber-100 text-amber-700'
+                                            <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold ${esVyV ? 'bg-emerald-100 text-teal-500' : 'bg-amber-100 text-amber-700'
                                                 }`}>
-                                                {esVyV ? 'V&V':'SV'}
+                                                {esVyV ? 'V&V' : 'SV'}
                                             </span>
                                             <button
                                                 onClick={() => handleRemoveSocio(socio.id)}
@@ -433,7 +468,7 @@ export default function AsignacionRapidaPage() {
                                 );
                             })}
                         </div>
-                    ):(
+                    ) : (
                         <div className="p-12 text-center">
                             <Users className="w-16 h-16 text-slate-200 mx-auto mb-4" />
                             <p className="text-slate-500 font-medium">Aún no tienes socios asignados</p>
@@ -492,7 +527,7 @@ export default function AsignacionRapidaPage() {
                                                 hour: '2-digit',
                                                 minute: '2-digit'
                                             })
-                                           :'Fecha no disponible'}
+                                            : 'Fecha no disponible'}
                                     </p>
                                 </div>
                             </div>
