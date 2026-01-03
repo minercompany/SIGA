@@ -350,8 +350,9 @@ public class ImportacionService {
 
                         ps.setString(1, nroSocio);
                         ps.setString(2, cedula);
-                        ps.setString(3, nombre.trim().toUpperCase()); // trim() already called in validation, safe to
-                                                                      // use
+                        // nombre ya fue validado como no-null en línea 247-251, pero usamos
+                        // Objects.requireNonNull para satisfacer el análisis estático
+                        ps.setString(3, Objects.requireNonNull(nombre).trim().toUpperCase());
 
                         ps.setString(4, tel);
                         if (sucId != null)

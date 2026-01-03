@@ -196,7 +196,7 @@ export function Sidebar() {
             case "importar-funcionarios":
                 return user.rol === "SUPER_ADMIN";
             case "socios":
-                return true;
+                return user.rol === "SUPER_ADMIN"; // Solo SUPER_ADMIN puede ver el padrón de socios
 
             // Operativa
             case "asignacion-rapida":

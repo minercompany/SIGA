@@ -149,74 +149,60 @@ export default function LoginPage() {
     return (
         <>
             {/* ============================================================ */}
-            {/* VERSIÓN MÓVIL - DISEÑO PREMIUM DARK (Solo visible en móvil) */}
+            {/* VERSIÓN MÓVIL - DISEÑO COMPACTO PREMIUM (Solo visible en móvil) */}
             {/* ============================================================ */}
-            <div className="md:hidden relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-slate-950">
+            <div className="md:hidden relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-slate-950 p-4">
                 {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-emerald-950/50 to-slate-950" />
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-emerald-950/40 to-slate-950" />
 
-                {/* Glowing Orbs */}
-                <div className="absolute top-0 left-1/4 w-[300px] h-[300px] bg-emerald-500/20 rounded-full blur-[80px] animate-pulse-slow" />
-                <div className="absolute bottom-0 right-1/4 w-[250px] h-[250px] bg-teal-500/15 rounded-full blur-[80px] animate-pulse-slow animation-delay-2000" />
+                {/* Glowing Orbs - Más pequeños */}
+                <div className="absolute top-0 left-0 w-[200px] h-[200px] bg-emerald-500/15 rounded-full blur-[60px]" />
+                <div className="absolute bottom-0 right-0 w-[180px] h-[180px] bg-teal-500/10 rounded-full blur-[60px]" />
 
                 {/* Main Container */}
-                <main className="relative z-10 w-full px-4 py-6 animate-fade-in">
+                <main className="relative z-10 w-full max-w-sm animate-fade-in">
 
-                    {/* Premium Glass Card */}
-                    <div className="overflow-hidden rounded-[2rem] bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] shadow-2xl shadow-black/50">
+                    {/* Compact Glass Card */}
+                    <div className="overflow-hidden rounded-3xl bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-2xl">
 
-                        {/* Header - Brand */}
-                        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-6 py-8">
-                            <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
-                            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-teal-400/20 rounded-full blur-2xl" />
+                        {/* Header Compacto */}
+                        <div className="relative bg-gradient-to-br from-emerald-500 via-emerald-500 to-teal-500 px-5 py-5">
+                            <div className="absolute -top-10 -right-10 w-24 h-24 bg-white/10 rounded-full blur-xl" />
 
-                            <div className="relative z-10 flex flex-col items-center text-center">
-                                {/* Logo */}
-                                <div className="relative mb-4">
-                                    <div className="absolute inset-0 bg-white/30 rounded-full blur-xl scale-150" />
-                                    <div className="relative h-20 w-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shadow-2xl border-2 border-white/30 overflow-hidden">
-                                        <Image
-                                            src="/logo-cooperativa.webp"
-                                            alt="Logo Cooperativa Reducto"
-                                            width={70}
-                                            height={70}
-                                            priority
-                                            className="object-contain"
-                                        />
+                            <div className="relative z-10 flex items-center gap-4">
+                                {/* Logo pequeño */}
+                                <div className="h-14 w-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/30 shrink-0">
+                                    <Image
+                                        src="/logo-cooperativa.webp"
+                                        alt="Logo"
+                                        width={48}
+                                        height={48}
+                                        priority
+                                        className="object-contain"
+                                    />
+                                </div>
+
+                                <div className="min-w-0">
+                                    <h1 className="text-base font-black text-white leading-tight">
+                                        Cooperativa Reducto
+                                    </h1>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        <span className="text-xs font-black text-white/90 tracking-widest">SIGA</span>
+                                        <span className="text-[10px] text-emerald-100 bg-white/10 px-1.5 py-0.5 rounded">2026</span>
                                     </div>
-                                </div>
-
-                                <h1 className="text-xl font-black text-white tracking-tight leading-tight mb-1">
-                                    Cooperativa Reducto
-                                </h1>
-
-                                <div className="flex items-center gap-2 my-2">
-                                    <div className="h-px w-8 bg-white/40" />
-                                    <Sparkles className="h-3 w-3 text-white/80" />
-                                    <div className="h-px w-8 bg-white/40" />
-                                </div>
-
-                                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20">
-                                    <span className="text-sm font-black text-white tracking-[0.2em]">SIGA</span>
-                                    <span className="text-xs text-emerald-100">2026</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Form Section */}
-                        <div className="p-6">
-                            <div className="text-center mb-5">
-                                <h2 className="text-lg font-bold text-white mb-1">Bienvenido</h2>
-                                <p className="text-sm text-slate-400">Ingresa tus credenciales</p>
-                            </div>
-
-                            <form onSubmit={handleLogin} className="space-y-4">
+                        {/* Form Section Compacto */}
+                        <div className="p-5">
+                            <form onSubmit={handleLogin} className="space-y-3">
                                 {/* Username */}
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Usuario</label>
-                                    <div className={`relative rounded-xl transition-all duration-300 ${focusedField === 'username' ? 'ring-2 ring-emerald-500/50' : ''}`}>
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                                            <Fingerprint className={`h-5 w-5 transition-colors ${focusedField === 'username' ? 'text-emerald-400' : 'text-slate-500'}`} />
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Usuario</label>
+                                    <div className={`relative rounded-lg transition-all ${focusedField === 'username' ? 'ring-2 ring-emerald-500/40' : ''}`}>
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                                            <User className={`h-4 w-4 ${focusedField === 'username' ? 'text-emerald-400' : 'text-slate-500'}`} />
                                         </div>
                                         <input
                                             type="text"
@@ -226,18 +212,18 @@ export default function LoginPage() {
                                             onChange={(e) => setUsername(e.target.value)}
                                             onFocus={() => setFocusedField('username')}
                                             onBlur={() => setFocusedField(null)}
-                                            className="w-full rounded-xl border border-white/10 bg-white/5 py-4 pl-12 pr-4 text-white outline-none focus:border-emerald-500/50 focus:bg-white/[0.08] transition-all font-medium placeholder:text-slate-600"
-                                            placeholder="Tu usuario o cédula"
+                                            className="w-full rounded-lg border border-white/10 bg-white/5 py-3 pl-10 pr-3 text-white text-sm outline-none focus:border-emerald-500/50 focus:bg-white/[0.08] transition-all placeholder:text-slate-600"
+                                            placeholder="Cédula o usuario"
                                         />
                                     </div>
                                 </div>
 
                                 {/* Password */}
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Contraseña</label>
-                                    <div className={`relative rounded-xl transition-all duration-300 ${focusedField === 'password' ? 'ring-2 ring-emerald-500/50' : ''}`}>
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                                            <Lock className={`h-5 w-5 transition-colors ${focusedField === 'password' ? 'text-emerald-400' : 'text-slate-500'}`} />
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Contraseña</label>
+                                    <div className={`relative rounded-lg transition-all ${focusedField === 'password' ? 'ring-2 ring-emerald-500/40' : ''}`}>
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                                            <Lock className={`h-4 w-4 ${focusedField === 'password' ? 'text-emerald-400' : 'text-slate-500'}`} />
                                         </div>
                                         <input
                                             type={showPassword ? "text" : "password"}
@@ -247,23 +233,23 @@ export default function LoginPage() {
                                             onChange={(e) => setPassword(e.target.value)}
                                             onFocus={() => setFocusedField('password')}
                                             onBlur={() => setFocusedField(null)}
-                                            className="w-full rounded-xl border border-white/10 bg-white/5 py-4 pl-12 pr-12 text-white outline-none focus:border-emerald-500/50 focus:bg-white/[0.08] transition-all font-medium placeholder:text-slate-600"
+                                            className="w-full rounded-lg border border-white/10 bg-white/5 py-3 pl-10 pr-10 text-white text-sm outline-none focus:border-emerald-500/50 focus:bg-white/[0.08] transition-all placeholder:text-slate-600"
                                             placeholder="Tu contraseña"
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-emerald-400 transition-colors p-1"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 active:text-emerald-400"
                                         >
-                                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Error */}
                                 {error && (
-                                    <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm font-bold text-red-400 animate-shake flex items-center gap-2">
-                                        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                                    <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-2.5 text-xs font-bold text-red-400 flex items-center gap-2">
+                                        <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
                                         {error}
                                     </div>
                                 )}
@@ -272,38 +258,28 @@ export default function LoginPage() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-4 font-black text-white shadow-xl shadow-emerald-500/20 active:scale-[0.98] transition-all disabled:opacity-50 mt-2"
+                                    className="w-full rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 py-3.5 font-bold text-white shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
                                 >
-                                    <span className="relative flex items-center justify-center gap-2">
+                                    <span className="flex items-center justify-center gap-2">
                                         {loading ? (
                                             <>
-                                                <RefreshCcw className="h-5 w-5 animate-spin" />
+                                                <RefreshCcw className="h-4 w-4 animate-spin" />
                                                 <span>INGRESANDO...</span>
                                             </>
                                         ) : (
                                             <>
-                                                <span className="tracking-wide">INGRESAR</span>
-                                                <ChevronRight className="h-5 w-5" />
+                                                <span>INGRESAR</span>
+                                                <ChevronRight className="h-4 w-4" />
                                             </>
                                         )}
                                     </span>
                                 </button>
                             </form>
 
-                            {/* Footer */}
-                            <footer className="mt-6 pt-4 border-t border-white/5 text-center">
-                                <p className="text-[9px] text-slate-500 font-medium uppercase tracking-widest">
-                                    © 2026 Avanzantec Group SRL
-                                </p>
-                            </footer>
-                        </div>
-                    </div>
-
-                    {/* Security Badge */}
-                    <div className="mt-4 flex justify-center">
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-slate-400">
-                            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span>Conexión segura</span>
+                            {/* Footer Minimalista */}
+                            <p className="mt-4 text-center text-[9px] text-slate-600">
+                                © 2026 Avanzantec Group SRL
+                            </p>
                         </div>
                     </div>
                 </main>
