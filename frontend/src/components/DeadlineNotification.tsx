@@ -102,8 +102,8 @@ export function DeadlineNotification() {
     }, [DEADLINE]);
 
     return (
-        <div className={`fixed z-[100] transition-all duration-500 w-full bottom-0 left-0 px-2 pb-2 md:w-auto md:max-w-sm md:bottom-6 md:right-6 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
-            <div className="bg-slate-900/95 backdrop-blur-xl rounded-2xl p-3 md:p-4 shadow-2xl border border-white/10 relative overflow-hidden group">
+        <div className={`fixed z-[100] transition-all duration-500 bottom-0 left-0 right-0 px-2 pb-2 md:left-auto md:right-4 md:w-auto md:max-w-sm ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
+            <div className="bg-slate-900/95 backdrop-blur-xl rounded-2xl p-3 md:p-4 shadow-2xl border border-white/10 relative overflow-hidden">
                 <button
                     onClick={() => setIsVisible(false)}
                     className="absolute top-2 right-2 text-white/40 hover:text-white bg-white/5 rounded-full p-1 transition-all z-20"
@@ -111,26 +111,30 @@ export function DeadlineNotification() {
                     <X size={14} />
                 </button>
 
-                <div className="flex items-center gap-3">
-                    <div className="hidden xs:flex bg-amber-500 p-2 rounded-xl flex-shrink-0">
-                        <CalendarClock className="text-white h-5 w-5" />
+                {/* Layout responsive: columna en móvil, fila en desktop */}
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 pr-6">
+                    {/* Header con icono y texto */}
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="bg-amber-500 p-1.5 md:p-2 rounded-lg flex-shrink-0">
+                            <CalendarClock className="text-white h-4 w-4 md:h-5 md:w-5" />
+                        </div>
+                        <div className="min-w-0">
+                            <h4 className="font-black text-white text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                                CIERRE DE CARGAS
+                            </h4>
+                            <p className="text-indigo-100/90 text-[10px] md:text-xs font-medium">
+                                Finaliza el 05/01. ¡Carga ya!
+                            </p>
+                        </div>
                     </div>
 
-                    <div className="flex-1 min-w-0 pr-6">
-                        <h4 className="font-black text-white text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                            CIERRE DE CARGAS
-                        </h4>
-                        <p className="text-indigo-100/90 text-[11px] md:text-xs font-medium truncate">
-                            Finaliza el 05/01. ¡Carga ya!
-                        </p>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-0.5 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
-                        <span className="text-[8px] text-indigo-300 font-bold uppercase tracking-tighter">RESTAN</span>
+                    {/* Countdown */}
+                    <div className="flex items-center justify-between md:justify-end gap-2 bg-black/40 px-3 py-2 rounded-xl border border-white/5">
+                        <span className="text-[8px] text-indigo-300 font-bold uppercase tracking-tighter md:hidden">RESTAN</span>
                         <div className="flex items-center gap-1.5">
-                            <Clock size={10} className="text-amber-400" />
-                            <span className="text-xs font-black text-white font-mono tabular-nums">
+                            <Clock size={12} className="text-amber-400" />
+                            <span className="text-xs md:text-sm font-black text-white font-mono tabular-nums">
                                 {timeLeft}
                             </span>
                         </div>

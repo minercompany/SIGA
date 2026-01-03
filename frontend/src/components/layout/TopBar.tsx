@@ -324,37 +324,36 @@ export function TopBar() {
 
                         {/* Tooltip de Ayuda del Buscador - Primera vez */}
                         {showSearchTooltip && (
-                            <div className="absolute top-12 left-0 right-0 z-[70] animate-in fade-in slide-in-from-top-2 duration-500">
+                            <div className="fixed md:absolute top-16 md:top-12 left-3 right-3 md:left-0 md:right-0 z-[70] animate-in fade-in slide-in-from-top-2 duration-500">
                                 {/* Flecha */}
-                                <div className="absolute -top-2 left-8 w-4 h-4 bg-emerald-500 rotate-45 rounded-sm" />
+                                <div className="absolute -top-2 left-6 md:left-8 w-4 h-4 bg-white rotate-45 shadow-sm border-l border-t border-emerald-200" />
 
                                 {/* Contenido del Tooltip */}
-                                <div className="relative bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl p-4 shadow-xl border border-emerald-400">
+                                <div className="relative bg-white rounded-2xl p-4 shadow-xl border border-emerald-200">
                                     <button
                                         onClick={dismissSearchTooltip}
-                                        className="absolute top-2 right-2 text-white/70 hover:text-white p-1"
+                                        className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 p-1"
                                     >
                                         <X className="h-4 w-4" />
                                     </button>
 
-                                    <div className="flex items-start gap-3">
-                                        <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                                    <div className="flex items-start gap-3 pr-4">
+                                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-200">
                                             <Search className="h-5 w-5 text-white" />
                                         </div>
-                                        <div className="text-white">
-                                            <p className="font-bold text-sm mb-1">
+                                        <div>
+                                            <p className="font-bold text-slate-800 text-sm mb-0.5">
                                                 ¡Hola{user?.nombreCompleto ? `, ${user.nombreCompleto.split(' ')[0]}` : ''}! 👋
                                             </p>
-                                            <p className="text-xs text-emerald-100 leading-relaxed">
-                                                Aquí puedes buscar rápidamente a los socios<br />
-                                                para verificar si están al día con sus obligaciones.
+                                            <p className="text-xs text-slate-500 leading-relaxed">
+                                                Aquí puedes buscar rápidamente a los socios para verificar si están al día.
                                             </p>
                                         </div>
                                     </div>
 
                                     <button
                                         onClick={dismissSearchTooltip}
-                                        className="mt-3 w-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold py-2 rounded-lg transition-colors"
+                                        className="mt-3 w-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-2.5 rounded-xl transition-colors shadow-md"
                                     >
                                         ¡Entendido!
                                     </button>

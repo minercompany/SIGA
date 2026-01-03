@@ -149,24 +149,23 @@ export default function LoginPage() {
     return (
         <>
             {/* ============================================================ */}
-            {/* VERSIÓN MÓVIL - DISEÑO COMPACTO PREMIUM (Solo visible en móvil) */}
+            {/* VERSIÓN MÓVIL - DISEÑO COMPACTO CON FONDO CLARO (Solo visible en móvil) */}
             {/* ============================================================ */}
-            <div className="md:hidden relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-slate-950 p-4">
-                {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-emerald-950/40 to-slate-950" />
-
-                {/* Glowing Orbs - Más pequeños */}
-                <div className="absolute top-0 left-0 w-[200px] h-[200px] bg-emerald-500/15 rounded-full blur-[60px]" />
-                <div className="absolute bottom-0 right-0 w-[180px] h-[180px] bg-teal-500/10 rounded-full blur-[60px]" />
+            <div className="md:hidden relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-100 via-emerald-50 to-amber-50 p-4">
+                {/* Formas decorativas de fondo */}
+                <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+                    <div className="absolute -left-10 -top-10 h-[200px] w-[180px] rounded-[40%_60%_70%_30%/60%_30%_70%_40%] bg-gradient-to-br from-emerald-400/25 via-emerald-300/20 to-emerald-200/25 blur-2xl" />
+                    <div className="absolute -right-10 -bottom-10 h-[180px] w-[180px] rounded-[60%_40%_30%_70%/40%_70%_30%_60%] bg-gradient-to-tr from-emerald-400/25 via-emerald-300/20 to-green-400/25 blur-2xl" />
+                </div>
 
                 {/* Main Container */}
                 <main className="relative z-10 w-full max-w-sm animate-fade-in">
 
-                    {/* Compact Glass Card */}
-                    <div className="overflow-hidden rounded-3xl bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-2xl">
+                    {/* Card con sombras elegantes */}
+                    <div className="overflow-hidden rounded-3xl bg-white shadow-[0_20px_60px_-15px_rgba(16,185,129,0.3)] border border-emerald-100">
 
-                        {/* Header Compacto */}
-                        <div className="relative bg-gradient-to-br from-emerald-500 via-emerald-500 to-teal-500 px-5 py-5">
+                        {/* Header Verde */}
+                        <div className="relative bg-gradient-to-br from-emerald-500 via-emerald-500 to-emerald-600 px-5 py-5">
                             <div className="absolute -top-10 -right-10 w-24 h-24 bg-white/10 rounded-full blur-xl" />
 
                             <div className="relative z-10 flex items-center gap-4">
@@ -188,21 +187,21 @@ export default function LoginPage() {
                                     </h1>
                                     <div className="flex items-center gap-2 mt-0.5">
                                         <span className="text-xs font-black text-white/90 tracking-widest">SIGA</span>
-                                        <span className="text-[10px] text-emerald-100 bg-white/10 px-1.5 py-0.5 rounded">2026</span>
+                                        <span className="text-[10px] text-emerald-100 bg-white/20 px-1.5 py-0.5 rounded">2026</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Form Section Compacto */}
-                        <div className="p-5">
+                        {/* Form Section Compacto con fondo claro */}
+                        <div className="p-5 bg-white">
                             <form onSubmit={handleLogin} className="space-y-3">
                                 {/* Username */}
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Usuario</label>
-                                    <div className={`relative rounded-lg transition-all ${focusedField === 'username' ? 'ring-2 ring-emerald-500/40' : ''}`}>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Usuario</label>
+                                    <div className={`relative rounded-xl transition-all ${focusedField === 'username' ? 'ring-2 ring-emerald-400' : ''}`}>
                                         <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                                            <User className={`h-4 w-4 ${focusedField === 'username' ? 'text-emerald-400' : 'text-slate-500'}`} />
+                                            <User className={`h-4 w-4 ${focusedField === 'username' ? 'text-emerald-500' : 'text-slate-400'}`} />
                                         </div>
                                         <input
                                             type="text"
@@ -212,7 +211,7 @@ export default function LoginPage() {
                                             onChange={(e) => setUsername(e.target.value)}
                                             onFocus={() => setFocusedField('username')}
                                             onBlur={() => setFocusedField(null)}
-                                            className="w-full rounded-lg border border-white/10 bg-white/5 py-3 pl-10 pr-3 text-white text-sm outline-none focus:border-emerald-500/50 focus:bg-white/[0.08] transition-all placeholder:text-slate-600"
+                                            className="w-full rounded-xl border-2 border-slate-100 bg-slate-50 py-3 pl-10 pr-3 text-slate-700 text-sm outline-none focus:border-emerald-400 focus:bg-white transition-all font-medium placeholder:text-slate-400"
                                             placeholder="Cédula o usuario"
                                         />
                                     </div>
@@ -220,10 +219,10 @@ export default function LoginPage() {
 
                                 {/* Password */}
                                 <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Contraseña</label>
-                                    <div className={`relative rounded-lg transition-all ${focusedField === 'password' ? 'ring-2 ring-emerald-500/40' : ''}`}>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Contraseña</label>
+                                    <div className={`relative rounded-xl transition-all ${focusedField === 'password' ? 'ring-2 ring-emerald-400' : ''}`}>
                                         <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                                            <Lock className={`h-4 w-4 ${focusedField === 'password' ? 'text-emerald-400' : 'text-slate-500'}`} />
+                                            <Lock className={`h-4 w-4 ${focusedField === 'password' ? 'text-emerald-500' : 'text-slate-400'}`} />
                                         </div>
                                         <input
                                             type={showPassword ? "text" : "password"}
@@ -233,13 +232,13 @@ export default function LoginPage() {
                                             onChange={(e) => setPassword(e.target.value)}
                                             onFocus={() => setFocusedField('password')}
                                             onBlur={() => setFocusedField(null)}
-                                            className="w-full rounded-lg border border-white/10 bg-white/5 py-3 pl-10 pr-10 text-white text-sm outline-none focus:border-emerald-500/50 focus:bg-white/[0.08] transition-all placeholder:text-slate-600"
+                                            className="w-full rounded-xl border-2 border-slate-100 bg-slate-50 py-3 pl-10 pr-10 text-slate-700 text-sm outline-none focus:border-emerald-400 focus:bg-white transition-all font-medium placeholder:text-slate-400"
                                             placeholder="Tu contraseña"
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 active:text-emerald-400"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 active:text-emerald-500"
                                         >
                                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </button>
@@ -248,7 +247,7 @@ export default function LoginPage() {
 
                                 {/* Error */}
                                 {error && (
-                                    <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-2.5 text-xs font-bold text-red-400 flex items-center gap-2">
+                                    <div className="rounded-xl bg-red-50 border-2 border-red-100 p-2.5 text-xs font-bold text-red-600 flex items-center gap-2">
                                         <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
                                         {error}
                                     </div>
@@ -258,7 +257,7 @@ export default function LoginPage() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 py-3.5 font-bold text-white shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
+                                    className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 py-3.5 font-bold text-white shadow-lg shadow-emerald-200 active:scale-[0.98] transition-all disabled:opacity-50"
                                 >
                                     <span className="flex items-center justify-center gap-2">
                                         {loading ? (
@@ -277,7 +276,7 @@ export default function LoginPage() {
                             </form>
 
                             {/* Footer Minimalista */}
-                            <p className="mt-4 text-center text-[9px] text-slate-600">
+                            <p className="mt-4 text-center text-[9px] text-slate-400 font-medium">
                                 © 2026 Avanzantec Group SRL
                             </p>
                         </div>
