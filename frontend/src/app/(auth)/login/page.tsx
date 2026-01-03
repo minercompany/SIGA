@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Lock, User, RefreshCcw, Eye, EyeOff, ChevronRight, Users } from "lucide-react";
+import { Lock, User, RefreshCcw, Eye, EyeOff, ChevronRight, Sparkles, Shield, Fingerprint } from "lucide-react";
 import axios from "axios";
 
 export default function LoginPage() {
@@ -12,6 +12,7 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [focusedField, setFocusedField] = useState<string | null>(null);
     const router = useRouter();
 
     // New state for password change
@@ -69,7 +70,6 @@ export default function LoginPage() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            // Update user in local storage to remove flag
             const userStr = localStorage.getItem("user");
             if (userStr) {
                 const user = JSON.parse(userStr);
@@ -87,44 +87,49 @@ export default function LoginPage() {
 
     if (showChangePassword) {
         return (
-            <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-100 via-emerald-50 to-amber-50 px-3 py-4 sm:p-4 md:p-6">
-                <main className="relative z-10 w-full max-w-md animate-fade-in shadow-2xl">
-                    <div className="overflow-hidden rounded-3xl bg-white/95 backdrop-blur-xl border border-white/50 p-8">
+            <div className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-slate-950 p-4">
+                {/* Gradient Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-slate-950 to-teal-950" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-emerald-500/20 rounded-full blur-[120px] -mt-60" />
+
+                <main className="relative z-10 w-full max-w-md animate-fade-in">
+                    <div className="overflow-hidden rounded-3xl bg-white/[0.03] backdrop-blur-2xl border border-white/10 p-8">
                         <div className="text-center mb-8">
-                            <h1 className="text-2xl font-black text-slate-800 mb-2">Cambio Requerido</h1>
-                            <p className="text-slate-500 font-medium text-sm">Por seguridad, debes cambiar tu contraseña inicial</p>
+                            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/30">
+                                <Shield className="h-8 w-8 text-white" />
+                            </div>
+                            <h1 className="text-2xl font-black text-white mb-2">Cambio Requerido</h1>
+                            <p className="text-slate-400 font-medium text-sm">Por seguridad, debes cambiar tu contraseña inicial</p>
                         </div>
 
-                        <form onSubmit={handleChangePassword} className="space-y-6">
+                        <form onSubmit={handleChangePassword} className="space-y-5">
                             <div className="space-y-2">
-                                <label htmlFor="new-password" className="text-xs font-black text-slate-400 uppercase tracking-widest">Nueva Contraseña</label>
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Nueva Contraseña</label>
                                 <input
-                                    id="new-password"
                                     type="password"
                                     autoComplete="new-password"
                                     required
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    className="w-full rounded-xl border-2 border-slate-100 bg-slate-50 py-3 px-4 font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all"
+                                    className="w-full rounded-xl border border-white/10 bg-white/5 py-3.5 px-4 font-medium text-white outline-none focus:border-emerald-500 focus:bg-white/10 transition-all placeholder:text-slate-600"
                                     placeholder="Nueva contraseña"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="confirm-password" className="text-xs font-black text-slate-400 uppercase tracking-widest">Confirmar Contraseña</label>
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Confirmar Contraseña</label>
                                 <input
-                                    id="confirm-password"
                                     type="password"
                                     autoComplete="new-password"
                                     required
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="w-full rounded-xl border-2 border-slate-100 bg-slate-50 py-3 px-4 font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all"
+                                    className="w-full rounded-xl border border-white/10 bg-white/5 py-3.5 px-4 font-medium text-white outline-none focus:border-emerald-500 focus:bg-white/10 transition-all placeholder:text-slate-600"
                                     placeholder="Confirmar contraseña"
                                 />
                             </div>
 
                             {error && (
-                                <div role="alert" className="rounded-xl bg-red-50 p-4 text-xs font-bold text-red-600 border-2 border-red-100 animate-shake">
+                                <div className="rounded-xl bg-red-500/10 border border-red-500/30 p-4 text-sm font-bold text-red-400 animate-shake">
                                     {error}
                                 </div>
                             )}
@@ -132,7 +137,7 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-500 py-4 font-black text-white shadow-xl hover:shadow-2xl active:scale-[0.98] transition-all disabled:opacity-50"
+                                className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-4 font-black text-white shadow-xl shadow-emerald-500/25 hover:shadow-2xl active:scale-[0.98] transition-all disabled:opacity-50"
                             >
                                 {loading ? "ACTUALIZANDO..." : "CAMBIAR Y CONTINUAR"}
                             </button>
@@ -144,183 +149,192 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-100 via-emerald-50 to-amber-50 px-3 py-4 sm:p-4 md:p-6">
-            {/* Formas orgánicas decorativas de fondo */}
-            <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-                <div className="absolute -left-20 -top-20 h-[250px] w-[200px] sm:h-[350px] sm:w-[280px] md:h-[500px] md:w-[400px] rounded-[40%_60%_70%_30%/60%_30%_70%_40%] bg-gradient-to-br from-emerald-400/30 via-emerald-400/20 to-emerald-300/30 blur-3xl animate-blob"></div>
-                <div className="absolute -right-20 -bottom-20 h-[225px] w-[225px] sm:h-[320px] sm:w-[320px] md:h-[450px] md:w-[450px] rounded-[60%_40%_30%_70%/40%_70%_30%_60%] bg-gradient-to-tr from-emerald-400/30 via-emerald-300/20 to-green-400/30 blur-3xl animate-blob animation-delay-2000"></div>
-                <div className="absolute left-1/2 top-1/2 h-[175px] w-[175px] sm:h-[250px] sm:w-[250px] md:h-[350px] md:w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-[70%_30%_50%_50%/30%_60%_40%_70%] bg-gradient-to-bl from-amber-300/20 via-emerald-300/20 to-emerald-400/20 blur-3xl animate-blob animation-delay-4000"></div>
-            </div>
+        <div className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-slate-950">
+            {/* Animated Gradient Background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-emerald-950/50 to-slate-950" />
 
-            {/* Card principal */}
-            <main className="relative z-10 w-full max-w-5xl animate-fade-in shadow-2xl">
-                <div className="overflow-hidden rounded-2xl sm:rounded-3xl md:rounded-[3rem] bg-white/95 backdrop-blur-xl border border-white/50">
-                    <div className="grid md:grid-cols-2">
-                        {/* Panel izquierdo - Branding (Oculto en móvil, Visible en PC) */}
-                        <div className="hidden md:flex relative overflow-hidden bg-gradient-to-br from-emerald-500 via-emerald-500 to-emerald-500 p-12 flex-col justify-center items-center min-h-[600px]">
-                            <div className="absolute -left-10 -top-10 h-[300px] w-[300px] rounded-[60%_40%_70%_30%/50%_60%_40%_50%] bg-emerald-500/30 blur-2xl" aria-hidden="true"></div>
-                            <div className="absolute -right-10 bottom-0 h-[250px] w-[250px] rounded-[40%_60%_30%_70%/60%_40%_70%_30%] bg-emerald-400/30 blur-2xl" aria-hidden="true"></div>
+            {/* Glowing Orbs */}
+            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-500/15 rounded-full blur-[100px] animate-pulse-slow" />
+            <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-teal-500/10 rounded-full blur-[100px] animate-pulse-slow animation-delay-2000" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-600/5 rounded-full blur-[120px]" />
 
-                            <div className="relative z-10 text-center space-y-8">
-                                <div className="flex justify-center">
-                                    <div className="h-40 w-40 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center shadow-2xl border-4 border-white/30 overflow-hidden relative">
-                                        <Image
-                                            src="/logo-cooperativa.webp"
-                                            alt="Logo oficial de Cooperativa Reducto Ltda"
-                                            width={144}
-                                            height={144}
-                                            priority
-                                            className="object-contain"
-                                        />
-                                    </div>
-                                </div>
+            {/* Grid Pattern Overlay */}
+            <div
+                className="absolute inset-0 opacity-[0.03]"
+                style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                }}
+            />
 
-                                <div className="space-y-2">
-                                    <h2 className="text-5xl font-black text-white tracking-tight leading-tight">
-                                        Cooperativa<br />Reducto Ltda.
-                                    </h2>
-                                    <div className="h-1 w-24 mx-auto bg-white/40 rounded-full"></div>
-                                </div>
+            {/* Main Container */}
+            <main className="relative z-10 w-full max-w-md px-4 py-6 sm:px-6 animate-fade-in">
 
-                                <div className="space-y-2">
-                                    <p className="text-emerald-50 text-3xl font-black tracking-widest">
-                                        SIGA
-                                    </p>
-                                    <p className="text-emerald-100 text-lg font-bold">
-                                        San Lorenzo Reducto-2026
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                {/* Premium Glass Card */}
+                <div className="overflow-hidden rounded-[2rem] bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] shadow-2xl shadow-black/50">
 
-                        {/* Panel derecho - Formulario */}
-                        <div className="flex flex-col min-h-auto">
-                            {/* Header Mobile Premium - Optimized for space */}
-                            <div className="md:hidden relative overflow-hidden bg-gradient-to-br from-emerald-500 via-emerald-500 to-emerald-500 px-5 py-5 animation-fade-in shadow-lg">
-                                <div className="relative z-10 flex flex-col items-center text-center">
-                                    <div className="h-14 w-14 sm:h-20 sm:w-20 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center shadow-2xl border-4 border-white/30 overflow-hidden mb-2">
-                                        <Image
-                                            src="/logo-cooperativa.webp"
-                                            alt="Logo oficial de Cooperativa Reducto Ltda"
-                                            width={56}
-                                            height={56}
-                                            priority
-                                            className="object-contain"
-                                        />
-                                    </div>
-                                    <h1 className="text-lg sm:text-xl font-black text-white tracking-tight leading-tight">
-                                        Cooperativa Reducto Ltda.
-                                    </h1>
-                                    <div className="h-0.5 w-12 mx-auto bg-white/40 rounded-full my-1.5"></div>
-                                    <p className="text-emerald-50 text-base sm:text-lg font-black tracking-widest uppercase">SIGA</p>
+                    {/* Header Section - Premium Brand */}
+                    <div className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-6 py-8 sm:py-10">
+                        {/* Decorative Elements */}
+                        <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+                        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-teal-400/20 rounded-full blur-2xl" />
+
+                        {/* Shimmer Effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer" />
+
+                        <div className="relative z-10 flex flex-col items-center text-center">
+                            {/* Logo Container with Glow */}
+                            <div className="relative mb-4">
+                                <div className="absolute inset-0 bg-white/30 rounded-full blur-xl scale-150" />
+                                <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shadow-2xl border-2 border-white/30 overflow-hidden">
+                                    <Image
+                                        src="/logo-cooperativa.webp"
+                                        alt="Logo Cooperativa Reducto"
+                                        width={80}
+                                        height={80}
+                                        priority
+                                        className="object-contain scale-90"
+                                    />
                                 </div>
                             </div>
 
-                            {/* Formulario */}
-                            <div className="p-6 sm:p-10 md:p-12 flex-1 flex flex-col justify-center">
-                                <section className="space-y-6 md:space-y-8">
-                                    <div className="text-center md:text-left">
-                                        <h3 className="hidden md:block text-2xl md:text-3xl font-black text-slate-800 mb-1">Iniciar Sesión</h3>
-                                        <h2 className="md:hidden text-lg font-black text-slate-800 mb-0.5 text-center">ACCESO AL SISTEMA</h2>
-                                        <p className="text-slate-500 font-medium text-xs md:text-base">Ingresa tus credenciales para continuar</p>
-                                    </div>
+                            {/* Title */}
+                            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight mb-1">
+                                Cooperativa Reducto
+                            </h1>
 
-                                    <form onSubmit={handleLogin} className="space-y-4 md:space-y-6">
-                                        <div className="space-y-1.5">
-                                            <label htmlFor="username" className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest">Usuario</label>
-                                            <div className="relative group">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                                                    <User className="h-4 w-4 md:h-5 md:w-5" />
-                                                </div>
-                                                <input
-                                                    id="username"
-                                                    type="text"
-                                                    autoComplete="username"
-                                                    required
-                                                    value={username}
-                                                    onChange={(e) => setUsername(e.target.value)}
-                                                    className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 py-3 md:py-4 pl-12 pr-4 text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all font-bold text-sm md:text-base"
-                                                    placeholder="Usuario del sistema"
-                                                />
-                                            </div>
-                                        </div>
+                            {/* Separator */}
+                            <div className="flex items-center gap-2 my-2">
+                                <div className="h-px w-8 bg-white/40" />
+                                <Sparkles className="h-3 w-3 text-white/80" />
+                                <div className="h-px w-8 bg-white/40" />
+                            </div>
 
-                                        <div className="space-y-1.5">
-                                            <label htmlFor="password" className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest">Contraseña</label>
-                                            <div className="relative group">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                                                    <Lock className="h-4 w-4 md:h-5 md:w-5" />
-                                                </div>
-                                                <input
-                                                    id="password"
-                                                    type={showPassword ? "text" : "password"}
-                                                    autoComplete="current-password"
-                                                    required
-                                                    value={password}
-                                                    onChange={(e) => setPassword(e.target.value)}
-                                                    className="w-full rounded-2xl border-2 border-slate-100 bg-slate-50 py-3 md:py-4 pl-12 pr-12 text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all font-bold text-sm md:text-base"
-                                                    placeholder="Tu contraseña"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowPassword(!showPassword)}
-                                                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-500 transition-colors"
-                                                >
-                                                    {showPassword ? <EyeOff className="h-4 w-4 md:h-5 md:w-5" /> : <Eye className="h-4 w-4 md:h-5 md:w-5" />}
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {error && (
-                                            <div role="alert" className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-600 border-2 border-red-100 animate-shake">
-                                                {error}
-                                            </div>
-                                        )}
-
-                                        <button
-                                            type="submit"
-                                            disabled={loading}
-                                            className="group w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-500 py-3.5 sm:py-5 font-black text-white shadow-xl shadow-emerald-200 hover:shadow-2xl hover:shadow-emerald-300 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 relative overflow-hidden"
-                                        >
-                                            <span className="relative flex items-center gap-3">
-                                                {loading ? (
-                                                    <>
-                                                        <RefreshCcw className="h-5 w-5 animate-spin" />
-                                                        <span>INGRESANDO...</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span>INGRESAR AL SISTEMA</span>
-                                                        <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                                                    </>
-                                                )}
-                                            </span>
-                                        </button>
-                                    </form>
-
-                                    <footer className="pt-4 border-t border-slate-100 flex flex-col items-center gap-0.5">
-                                        <p className="text-center text-[9px] md:text-xs text-slate-600 font-bold uppercase tracking-widest">
-                                            SIGA - Gestión Integral de Asambleas
-                                        </p>
-                                        <p className="text-center text-[7px] md:text-[10px] text-slate-400 font-semibold tracking-wide">
-                                            &copy; 2026 Avanzantec Group SRL
-                                        </p>
-                                    </footer>
-                                </section>
+                            {/* SIGA Badge */}
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm">
+                                <span className="text-sm font-black text-white tracking-[0.2em]">SIGA</span>
+                                <span className="text-xs text-emerald-100">2026</span>
                             </div>
                         </div>
                     </div>
+
+                    {/* Form Section */}
+                    <div className="p-6 sm:p-8">
+                        <div className="text-center mb-6">
+                            <h2 className="text-lg sm:text-xl font-bold text-white mb-1">Bienvenido</h2>
+                            <p className="text-sm text-slate-400">Ingresa tus credenciales para continuar</p>
+                        </div>
+
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            {/* Username Field */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                                    <User className="h-3 w-3" />
+                                    Usuario
+                                </label>
+                                <div className={`relative rounded-xl transition-all duration-300 ${focusedField === 'username' ? 'ring-2 ring-emerald-500/50' : ''}`}>
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                                        <Fingerprint className={`h-5 w-5 transition-colors ${focusedField === 'username' ? 'text-emerald-400' : ''}`} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        autoComplete="username"
+                                        required
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        onFocus={() => setFocusedField('username')}
+                                        onBlur={() => setFocusedField(null)}
+                                        className="w-full rounded-xl border border-white/10 bg-white/5 py-4 pl-12 pr-4 text-white outline-none focus:border-emerald-500/50 focus:bg-white/[0.08] transition-all font-medium placeholder:text-slate-600"
+                                        placeholder="Tu usuario o cédula"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Password Field */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                                    <Lock className="h-3 w-3" />
+                                    Contraseña
+                                </label>
+                                <div className={`relative rounded-xl transition-all duration-300 ${focusedField === 'password' ? 'ring-2 ring-emerald-500/50' : ''}`}>
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                                        <Lock className={`h-5 w-5 transition-colors ${focusedField === 'password' ? 'text-emerald-400' : ''}`} />
+                                    </div>
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        autoComplete="current-password"
+                                        required
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        onFocus={() => setFocusedField('password')}
+                                        onBlur={() => setFocusedField(null)}
+                                        className="w-full rounded-xl border border-white/10 bg-white/5 py-4 pl-12 pr-12 text-white outline-none focus:border-emerald-500/50 focus:bg-white/[0.08] transition-all font-medium placeholder:text-slate-600"
+                                        placeholder="Tu contraseña"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-emerald-400 transition-colors p-1"
+                                    >
+                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Error Message */}
+                            {error && (
+                                <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-sm font-bold text-red-400 animate-shake flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                                    {error}
+                                </div>
+                            )}
+
+                            {/* Submit Button */}
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-emerald-500 via-emerald-500 to-teal-500 py-4 font-black text-white shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40 active:scale-[0.98] transition-all disabled:opacity-50 mt-6"
+                            >
+                                {/* Button Shimmer */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+
+                                <span className="relative flex items-center justify-center gap-2">
+                                    {loading ? (
+                                        <>
+                                            <RefreshCcw className="h-5 w-5 animate-spin" />
+                                            <span>INGRESANDO...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="tracking-wide">INGRESAR</span>
+                                            <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                        </>
+                                    )}
+                                </span>
+                            </button>
+                        </form>
+
+                        {/* Footer */}
+                        <footer className="mt-8 pt-6 border-t border-white/5 text-center">
+                            <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest mb-1">
+                                Sistema de Gestión de Asambleas
+                            </p>
+                            <p className="text-[9px] text-slate-600">
+                                © 2026 Avanzantec Group SRL
+                            </p>
+                        </footer>
+                    </div>
+                </div>
+
+                {/* Floating Badge */}
+                <div className="mt-4 flex justify-center">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-slate-400">
+                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>Conexión segura</span>
+                    </div>
                 </div>
             </main>
+
             <style jsx global>{`
-                @keyframes blob {
-                    0%, 100% { transform: translate(0, 0) scale(1); }
-                    25% { transform: translate(20px, -20px) scale(1.1); }
-                    50% { transform: translate(-20px, 20px) scale(0.9); }
-                    75% { transform: translate(-10px, -10px) scale(1.05); }
-                }
-                
                 @keyframes fade-in {
                     from { opacity: 0; transform: translateY(20px); }
                     to { opacity: 1; transform: translateY(0); }
@@ -328,20 +342,17 @@ export default function LoginPage() {
                 
                 @keyframes shake {
                     0%, 100% { transform: translateX(0); }
-                    25% { transform: translateX(-10px); }
-                    75% { transform: translateX(10px); }
+                    25% { transform: translateX(-8px); }
+                    75% { transform: translateX(8px); }
                 }
                 
-                .animate-blob {
-                    animation: blob 15s ease-in-out infinite;
+                @keyframes shimmer {
+                    100% { transform: translateX(200%); }
                 }
                 
-                .animation-delay-2000 {
-                    animation-delay: 2s;
-                }
-                
-                .animation-delay-4000 {
-                    animation-delay: 4s;
+                @keyframes pulse-slow {
+                    0%, 100% { opacity: 0.5; transform: scale(1); }
+                    50% { opacity: 0.8; transform: scale(1.05); }
                 }
                 
                 .animate-fade-in {
@@ -350,6 +361,18 @@ export default function LoginPage() {
                 
                 .animate-shake {
                     animation: shake 0.3s ease-in-out;
+                }
+                
+                .animate-shimmer {
+                    animation: shimmer 3s ease-in-out infinite;
+                }
+                
+                .animate-pulse-slow {
+                    animation: pulse-slow 4s ease-in-out infinite;
+                }
+                
+                .animation-delay-2000 {
+                    animation-delay: 2s;
                 }
             `}</style>
         </div>
