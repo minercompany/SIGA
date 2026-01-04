@@ -120,7 +120,7 @@ export default function ChatFAB() {
     // Búsqueda de usuarios con debounce
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (searchTerm.length>= 1 && view === 'newChat') {
+            if (searchTerm.length >= 1 && view === 'newChat') {
                 searchUsers(searchTerm);
             } else {
                 setUserSearchResults([]);
@@ -138,7 +138,7 @@ export default function ChatFAB() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const newCount = res.data.unreadCount || 0;
-            if (newCount> unreadCount && soundEnabled && audioRef.current) {
+            if (newCount > unreadCount && soundEnabled && audioRef.current) {
                 audioRef.current.play().catch(() => { });
             }
             setUnreadCount(newCount);
@@ -170,7 +170,7 @@ export default function ChatFAB() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const newMensajes = res.data.mensajes || [];
-            if (newMensajes.length> mensajes.length && soundEnabled && audioRef.current) {
+            if (newMensajes.length > mensajes.length && soundEnabled && audioRef.current) {
                 audioRef.current.play().catch(() => { });
             }
             setMensajes(newMensajes);
@@ -271,7 +271,7 @@ export default function ChatFAB() {
         if (!dateStr) return '';
         const date = new Date(dateStr);
         const now = new Date();
-        const diffDays = Math.floor((now.getTime() - date.getTime()) /(1000 * 60 * 60 * 24));
+        const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 
         if (diffDays === 0) {
             return date.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' });
@@ -290,23 +290,23 @@ export default function ChatFAB() {
 
     return (
         <>
-            {/* FAB Button */}
+            {/* FAB Button - Positioned higher on mobile to avoid overlap with action buttons */}
             <motion.button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-500 rounded-full shadow-2xl shadow-emerald-500/40 flex items-center justify-center hover:scale-110 transition-transform"
+                className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-emerald-500 to-emerald-500 rounded-full shadow-2xl shadow-emerald-500/40 flex items-center justify-center hover:scale-110 transition-transform touch-manipulation select-none"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
             >
-                <MessageCircle className="h-7 w-7 text-white" />
-                {unreadCount> 0 && (
+                <MessageCircle className="h-6 w-6 md:h-7 md:w-7 text-white" />
+                {unreadCount > 0 && (
                     <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full text-white text-xs font-bold flex items-center justify-center shadow-lg"
+                        className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 bg-red-500 rounded-full text-white text-[10px] md:text-xs font-bold flex items-center justify-center shadow-lg"
                     >
-                        {unreadCount> 9 ? '9+':unreadCount}
+                        {unreadCount > 9 ? '9+' : unreadCount}
                     </motion.span>
                 )}
             </motion.button>
@@ -364,7 +364,7 @@ export default function ChatFAB() {
                                                 <p className="font-medium text-center">No tenés conversaciones</p>
                                                 <p className="text-sm text-center mt-1">Tocá + para iniciar una nueva</p>
                                             </div>
-                                        ):(
+                                        ) : (
                                             conversaciones.map((conv) => (
                                                 <motion.button
                                                     key={conv.id}
@@ -391,7 +391,7 @@ export default function ChatFAB() {
                                                             <span className="text-sm text-slate-500 truncate">
                                                                 {conv.lastMessage || 'Sin mensajes'}
                                                             </span>
-                                                            {conv.unreadCount> 0 && (
+                                                            {conv.unreadCount > 0 && (
                                                                 <span className="w-5 h-5 bg-emerald-500 rounded-full text-white text-xs flex items-center justify-center flex-shrink-0 ml-2">
                                                                     {conv.unreadCount}
                                                                 </span>
@@ -440,7 +440,7 @@ export default function ChatFAB() {
                                             <div className="flex items-center justify-center py-8">
                                                 <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                                             </div>
-                                        ):userSearchResults.length> 0 ? (
+                                        ) : userSearchResults.length > 0 ? (
                                             userSearchResults.map((user) => (
                                                 <motion.button
                                                     key={user.id}
@@ -459,12 +459,12 @@ export default function ChatFAB() {
                                                     </div>
                                                 </motion.button>
                                             ))
-                                        ):searchTerm.length> 0 ? (
+                                        ) : searchTerm.length > 0 ? (
                                             <div className="text-center py-8 text-slate-400">
                                                 <User className="h-12 w-12 mx-auto mb-2 opacity-30" />
                                                 <p>No se encontraron usuarios</p>
                                             </div>
-                                        ):(
+                                        ) : (
                                             <div className="text-center py-8 text-slate-400">
                                                 <Search className="h-12 w-12 mx-auto mb-2 opacity-30" />
                                                 <p>Buscá un usuario para chatear</p>
@@ -503,13 +503,13 @@ export default function ChatFAB() {
                                             <div className="flex items-center justify-center h-full">
                                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
                                             </div>
-                                        ):mensajes.length === 0 ? (
+                                        ) : mensajes.length === 0 ? (
                                             <div className="text-center text-slate-400 py-10">
                                                 <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-30" />
                                                 <p className="font-medium">Iniciá la conversación</p>
                                                 <p className="text-sm mt-1">Enviá un mensaje para comenzar</p>
                                             </div>
-                                        ):(
+                                        ) : (
                                             mensajes.map((msg) => {
                                                 // Mensaje mío = a la derecha, mensaje del otro = a la izquierda
                                                 const isMyMessage = msg.senderId === currentUserId;
@@ -518,16 +518,16 @@ export default function ChatFAB() {
                                                         key={msg.id}
                                                         initial={{ opacity: 0, y: 10 }}
                                                         animate={{ opacity: 1, y: 0 }}
-                                                        className={`flex ${isMyMessage ? 'justify-end':'justify-start'}`}
+                                                        className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
                                                     >
                                                         <div
                                                             className={`max-w-[80%] px-4 py-2.5 rounded-2xl shadow-sm ${isMyMessage
                                                                 ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-br-md'
-                                                               :'bg-white text-slate-800 rounded-bl-md'
+                                                                : 'bg-white text-slate-800 rounded-bl-md'
                                                                 }`}
                                                         >
                                                             <p className="text-sm whitespace-pre-wrap">{msg.contenido}</p>
-                                                            <div className={`flex items-center justify-end gap-1 mt-1 ${isMyMessage ? 'text-white/70':'text-slate-400'
+                                                            <div className={`flex items-center justify-end gap-1 mt-1 ${isMyMessage ? 'text-white/70' : 'text-slate-400'
                                                                 }`}>
                                                                 <span className="text-xs">
                                                                     {new Date(msg.createdAt).toLocaleTimeString('es-PY', {
@@ -537,7 +537,7 @@ export default function ChatFAB() {
                                                                 {isMyMessage && (
                                                                     msg.readAt ? (
                                                                         <CheckCheck className="h-3.5 w-3.5" />
-                                                                    ):(
+                                                                    ) : (
                                                                         <Check className="h-3.5 w-3.5" />
                                                                     )
                                                                 )}
@@ -567,7 +567,7 @@ export default function ChatFAB() {
                                                             onClick={() => setEmojiCategory(cat)}
                                                             className={`flex-1 py-2 text-xs font-medium transition-colors ${emojiCategory === cat
                                                                 ? 'text-emerald-500 border-b-2 border-emerald-500 bg-emerald-50'
-                                                               :'text-slate-500 hover:bg-slate-50'
+                                                                : 'text-slate-500 hover:bg-slate-50'
                                                                 }`}
                                                         >
                                                             {cat}
@@ -597,7 +597,7 @@ export default function ChatFAB() {
                                                 whileHover={{ scale: 1.1 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => setShowEmojis(!showEmojis)}
-                                                className={`p-2.5 rounded-full transition-colors ${showEmojis ? 'bg-emerald-100 text-emerald-500':'text-slate-400 hover:bg-slate-100'}`}
+                                                className={`p-2.5 rounded-full transition-colors ${showEmojis ? 'bg-emerald-100 text-emerald-500' : 'text-slate-400 hover:bg-slate-100'}`}
                                             >
                                                 <Smile className="h-5 w-5" />
                                             </motion.button>

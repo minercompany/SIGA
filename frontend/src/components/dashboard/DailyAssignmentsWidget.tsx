@@ -36,16 +36,19 @@ export function DailyAssignmentsWidget({ onOpenModal }: DailyAssignmentsWidgetPr
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             whileHover={{ y: -5, scale: 1.02 }}
-            onClick={onOpenModal}
-            className="relative group cursor-pointer h-full"
+            whileTap={{ scale: 0.98 }}
+            onTap={onOpenModal}
+            role="button"
+            tabIndex={0}
+            className="relative group cursor-pointer h-full select-none touch-manipulation"
         >
             {/* Glow Effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500 opacity-20 group-hover:opacity-40 transition-opacity duration-500 blur-xl rounded-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500 opacity-20 group-hover:opacity-40 transition-opacity duration-500 blur-xl rounded-3xl pointer-events-none" />
 
             {/* Card Content */}
             <div className="relative bg-white/90 backdrop-blur-2xl p-6 rounded-3xl border border-white/60 shadow-xl overflow-hidden h-full flex flex-col">
                 {/* Decorative Background Icon */}
-                <Calendar className="absolute -right-4 -bottom-4 h-32 w-32 opacity-[0.03] transform group-hover:scale-110 transition-transform duration-500 text-blue-600" />
+                <Calendar className="absolute -right-4 -bottom-4 h-32 w-32 opacity-[0.03] transform group-hover:scale-110 transition-transform duration-500 text-blue-600 pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col h-full">
                     {/* Header */}
@@ -61,17 +64,17 @@ export function DailyAssignmentsWidget({ onOpenModal }: DailyAssignmentsWidgetPr
                     {/* Main Number */}
                     <div className="flex-1 flex flex-col justify-center">
                         <h2 className="text-6xl font-black text-slate-800 tracking-tight leading-none mb-2">
-                            {loading ? "...":totalHoy}
+                            {loading ? "..." : totalHoy}
                         </h2>
                         <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-4">
                             Nuevos Socios Asignados
                         </p>
                     </div>
 
-                    {/* Action Button */}
+                    {/* Action Button - Touch optimized */}
                     <button
-                        onClick={onOpenModal}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-bold text-sm hover:from-blue-600 hover:to-indigo-600 transition-all shadow-lg shadow-blue-500/30 group-hover:shadow-xl group-hover:shadow-blue-500/40"
+                        onClick={(e) => { e.stopPropagation(); onOpenModal(); }}
+                        className="w-full min-h-[44px] flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-bold text-sm hover:from-blue-600 hover:to-indigo-600 active:from-blue-700 active:to-indigo-700 active:scale-95 transition-all shadow-lg shadow-blue-500/30 group-hover:shadow-xl group-hover:shadow-blue-500/40 touch-manipulation select-none"
                     >
                         <Eye className="h-4 w-4" />
                         Ver Historial

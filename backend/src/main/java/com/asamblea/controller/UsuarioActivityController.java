@@ -113,7 +113,7 @@ public class UsuarioActivityController {
             return ResponseEntity.status(403).body(Map.of("error", "No tienes permisos"));
         }
 
-        List<Usuario> usuarios = usuarioRepository.findAll();
+        List<Usuario> usuarios = usuarioRepository.findAllWithRelations();
         LocalDateTime now = LocalDateTime.now();
 
         // Obtener conteos de registros y asignaciones por usuario vía JDBC para
@@ -140,12 +140,19 @@ public class UsuarioActivityController {
             long reg = registrosMap.getOrDefault(u.getId(), 0L);
             long asig = asignacionesMap.getOrDefault(u.getId(), 0L);
 
+            String sucursalNombre = "N/A";
+            if (u.getSucursal() != null) {
+                sucursalNombre = u.getSucursal().getNombre();
+            } else if (u.getSocio() != null && u.getSocio().getSucursal() != null) {
+                sucursalNombre = u.getSocio().getSucursal().getNombre();
+            }
+
             return UsuarioActivityDto.builder()
                     .id(u.getId())
                     .username(u.getUsername())
                     .nombreCompleto(u.getNombreCompleto())
                     .rol(u.getRol().name())
-                    .sucursal(u.getSucursal() != null ? u.getSucursal().getNombre() : "N/A")
+                    .sucursal(sucursalNombre)
                     .lastLogin(u.getLastLogin())
                     .loginCount(u.getLoginCount() != null ? u.getLoginCount() : 0)
                     .totalOnlineSeconds(u.getTotalOnlineSeconds() != null ? u.getTotalOnlineSeconds() : 0L)

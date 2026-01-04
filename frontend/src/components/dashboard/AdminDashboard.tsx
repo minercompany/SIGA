@@ -377,14 +377,16 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ type: "spring", stiffness: 200, damping: 20 }}
                             onClick={() => setIsActiveUsersModalOpen(true)}
-                            className="row-span-2 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-2xl shadow-emerald-500/30 cursor-pointer relative overflow-hidden group flex flex-col items-center justify-center text-center border border-white/20"
+                            role="button"
+                            tabIndex={0}
+                            className="row-span-2 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-2xl shadow-emerald-500/30 cursor-pointer relative overflow-hidden group flex flex-col items-center justify-center text-center border border-white/20 select-none touch-manipulation"
                         >
                             {/* Decorative glow */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                             <motion.div
                                 animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
                                 transition={{ duration: 3, repeat: Infinity }}
-                                className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-3xl -mr-10 -mt-10"
+                                className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"
                             />
 
                             <div className="relative z-10 mb-1">
@@ -417,14 +419,18 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                         {/* Usuales */}
                         <motion.div
                             whileHover={{ scale: 1.05, y: -3 }}
+                            whileTap={{ scale: 0.97 }}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
                             transition={{ delay: 0.1 }}
                             onClick={() => {
                                 setActivityReportFilter("habituales");
                                 setIsActivityReportModalOpen(true);
                             }}
-                            className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl border border-slate-100 hover:border-blue-200 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer transition-all duration-300"
+                            role="button"
+                            tabIndex={0}
+                            className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl border border-slate-100 hover:border-blue-200 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer transition-all duration-300 select-none touch-manipulation active:scale-95"
                         >
                             <div className="relative z-10">
                                 <motion.div
@@ -443,27 +449,31 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                             >
                                 <AnimatedCounter value={userActivity.usuales} />
                             </motion.p>
-                            <motion.button
+                            <motion.div
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.95 }}
                                 className="relative z-10 flex items-center gap-1 px-4 py-1.5 bg-blue-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-blue-600 transition-colors shadow-lg"
                             >
                                 <Eye size={12} />
                                 <span>Ver</span>
-                            </motion.button>
+                            </motion.div>
                         </motion.div>
 
                         {/* Total */}
                         <motion.div
                             whileHover={{ scale: 1.05, y: -3 }}
+                            whileTap={{ scale: 0.97 }}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15 }}
                             transition={{ delay: 0.15 }}
                             onClick={() => {
                                 setActivityReportFilter("todos");
                                 setIsActivityReportModalOpen(true);
                             }}
-                            className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl border border-slate-100 hover:border-indigo-200 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer transition-all duration-300"
+                            role="button"
+                            tabIndex={0}
+                            className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl border border-slate-100 hover:border-indigo-200 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer transition-all duration-300 select-none touch-manipulation active:scale-95"
                         >
                             <div className="relative z-10">
                                 <motion.div
@@ -482,27 +492,31 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                             >
                                 <AnimatedCounter value={userActivity.total} />
                             </motion.p>
-                            <motion.button
+                            <motion.div
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.95 }}
                                 className="relative z-10 flex items-center gap-1 px-4 py-1.5 bg-indigo-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-indigo-600 transition-colors shadow-lg"
                             >
                                 <Eye size={12} />
                                 <span>Ver</span>
-                            </motion.button>
+                            </motion.div>
                         </motion.div>
 
                         {/* 0 Registros */}
                         <motion.div
                             whileHover={{ scale: 1.05, y: -3 }}
+                            whileTap={{ scale: 0.97 }}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
                             transition={{ delay: 0.2 }}
                             onClick={() => {
                                 setActivityReportFilter("sin-registros");
                                 setIsActivityReportModalOpen(true);
                             }}
-                            className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl border border-slate-100 hover:border-amber-200 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer transition-all duration-300"
+                            role="button"
+                            tabIndex={0}
+                            className="bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl border border-slate-100 hover:border-amber-200 relative overflow-hidden flex flex-col items-center justify-center text-center group cursor-pointer transition-all duration-300 select-none touch-manipulation active:scale-95"
                         >
                             <div className="relative z-10">
                                 <motion.div
@@ -522,14 +536,14 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                             >
                                 <AnimatedCounter value={userActivity.sinRegistros || 0} />
                             </motion.p>
-                            <motion.button
+                            <motion.div
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.95 }}
                                 className="relative z-10 flex items-center gap-1 px-4 py-1.5 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-amber-600 transition-colors shadow-lg"
                             >
                                 <Eye size={12} />
                                 <span>Ver</span>
-                            </motion.button>
+                            </motion.div>
                         </motion.div>
 
                         {/* Widget de Asignaciones Diarias */}
@@ -572,8 +586,8 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                             className={`relative overflow-hidden rounded-[2rem] p-6 lg:p-8 text-white shadow-2xl bg-gradient-to-br ${stat.shadow} ${stat.gradient} group`}
                         >
                             {/* Glossy Overlay/Reflection */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10 pointer-events-none" />
-                            <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none group-hover:bg-white/20 transition-colors" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none" />
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none" />
 
                             {/* Inner Highlight Ring */}
                             <div className={`absolute inset-0 rounded-[2rem] border border-white/20 ${stat.ring} pointer-events-none`} />

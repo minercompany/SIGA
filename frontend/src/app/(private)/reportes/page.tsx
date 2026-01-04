@@ -684,20 +684,21 @@ export default function IntelligenceHubPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                     {/* --- GRAFICO PRINCIPAL (OVERVIEW) --- */}
                     <div id="chart-overview" className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 lg:col-span-2 relative overflow-hidden">
-                        <div className="flex justify-between items-center mb-6">
+                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-3 mb-6">
                             <div>
-                                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <h3 className="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
                                     <BarChart3 className="h-5 w-5 text-emerald-500" />
                                     Panorama General
                                 </h3>
-                                <p className="text-sm text-slate-400">Comparativa de Metas vs Realizado</p>
+                                <p className="text-xs md:text-sm text-slate-400">Comparativa de Metas vs Realizado</p>
                             </div>
-                            <div className="flex gap-2">
-                                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg">
+                            {/* Leyenda más compacta en móvil */}
+                            <div className="flex flex-wrap gap-2">
+                                <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2 md:px-3 py-1 md:py-1.5 rounded-lg">
                                     <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                                     {reporteTipo === 'ASISTENCIA' ? 'Presentes' : 'Registrados'}
                                 </div>
-                                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg">
+                                <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2 md:px-3 py-1 md:py-1.5 rounded-lg">
                                     <div className="w-2 h-2 rounded-full bg-slate-300"></div>
                                     Habilitados
                                 </div>
@@ -718,12 +719,13 @@ export default function IntelligenceHubPage() {
                                         dataKey="name"
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                                        tick={{ fill: '#64748b', fontSize: 9, fontWeight: 600 }}
                                         interval={0}
-                                        dy={10}
-                                        angle={-15}
+                                        dy={5}
+                                        angle={-35}
                                         textAnchor="end"
-                                        height={60}
+                                        height={80}
+                                        tickFormatter={(value) => value.length > 12 ? value.substring(0, 10) + '...' : value}
                                     />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
                                     <RechartsTooltip
@@ -804,41 +806,42 @@ export default function IntelligenceHubPage() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* --- TABLA DE DETALLE --- */}
-                    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 lg:col-span-2 flex flex-col h-[400px]">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-slate-800">Desglose Detallado</h3>
-                            <button onClick={handleExportExcel} className="text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors">
+                    {/* --- TABLA DE DETALLE - Mobile optimized with horizontal scroll --- */}
+                    <div className="bg-white p-4 md:p-6 rounded-[2rem] shadow-sm border border-slate-100 lg:col-span-2 flex flex-col h-[400px]">
+                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-3 mb-4 md:mb-6">
+                            <h3 className="text-base md:text-lg font-bold text-slate-800">Desglose Detallado</h3>
+                            <button onClick={handleExportExcel} className="text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg transition-colors touch-manipulation active:scale-95 w-full md:w-auto text-center">
                                 Exportar Datos
                             </button>
                         </div>
-                        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                            <table className="w-full text-left text-sm">
-                                <thead className="text-xs text-slate-400 font-bold uppercase sticky top-0 bg-white shadow-sm z-10">
+                        {/* Scroll horizontal para móvil */}
+                        <div className="flex-1 overflow-auto custom-scrollbar">
+                            <table className="w-full text-left text-sm min-w-[400px]">
+                                <thead className="text-[10px] md:text-xs text-slate-400 font-bold uppercase sticky top-0 bg-white shadow-sm z-10">
                                     <tr>
-                                        <th className="pb-3 pl-2">Entidad</th>
-                                        <th className="pb-3 text-right">Real.</th>
-                                        <th className="pb-3 text-right">Meta</th>
-                                        <th className="pb-3 text-right pr-2">Avance</th>
+                                        <th className="pb-3 pl-2 whitespace-nowrap">Entidad</th>
+                                        <th className="pb-3 text-right whitespace-nowrap">Real.</th>
+                                        <th className="pb-3 text-right whitespace-nowrap">Meta</th>
+                                        <th className="pb-3 text-right pr-2 whitespace-nowrap">Avance</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
                                     {processedData.chartData.map((d: any, i) => (
                                         <tr key={i} className="group hover:bg-slate-50 transition-colors">
-                                            <td className="py-3 pl-2 font-medium text-slate-600 truncate max-w-[150px]">
+                                            <td className="py-3 pl-2 font-medium text-slate-600">
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-slate-300 text-[10px] font-mono group-hover:text-emerald-400">#{i + 1}</span>
-                                                    {d.name}
+                                                    <span className="truncate max-w-[120px] md:max-w-[180px]" title={d.name}>{d.name}</span>
                                                 </div>
                                             </td>
-                                            <td className="py-3 text-right font-bold text-slate-800">{d.value.toLocaleString()}</td>
-                                            <td className="py-3 text-right text-slate-400 text-xs">{d.meta.toLocaleString()}</td>
+                                            <td className="py-3 text-right font-bold text-slate-800 whitespace-nowrap">{d.value.toLocaleString()}</td>
+                                            <td className="py-3 text-right text-slate-400 text-xs whitespace-nowrap">{d.meta.toLocaleString()}</td>
                                             <td className="py-3 text-right pr-2">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <span className={`text-xs font-bold ${(d.meta > 0 && d.value >= d.meta) ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                                    <span className={`text-xs font-bold whitespace-nowrap ${(d.meta > 0 && d.value >= d.meta) ? 'text-emerald-600' : 'text-slate-500'}`}>
                                                         {d.meta > 0 ? Math.round((d.value / d.meta) * 100) : 0}%
                                                     </span>
-                                                    <div className="w-12 h-1 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div className="w-10 md:w-12 h-1 bg-slate-100 rounded-full overflow-hidden hidden md:block">
                                                         <div
                                                             className={`h-full rounded-full ${(d.meta > 0 && d.value >= d.meta) ? 'bg-emerald-500' : 'bg-slate-300'}`}
                                                             style={{ width: `${Math.min(100, (d.meta > 0 ? (d.value / d.meta) * 100 : 0))}%` }}

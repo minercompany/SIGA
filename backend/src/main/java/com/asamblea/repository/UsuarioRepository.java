@@ -48,4 +48,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     List<Object[]> findRankingByAsignaciones();
 
     List<Usuario> findByActivoTrue();
+
+    @Query("SELECT u FROM Usuario u LEFT JOIN FETCH u.sucursal LEFT JOIN FETCH u.socio s LEFT JOIN FETCH s.sucursal")
+    List<Usuario> findAllWithRelations();
 }
