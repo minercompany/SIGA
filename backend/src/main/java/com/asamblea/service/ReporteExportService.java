@@ -453,12 +453,103 @@ public class ReporteExportService {
         table.addCell(cell);
     }
 
+    public byte[] generarExcelRankings(List<Map<String, Object>> asesores, List<Map<String, Object>> usuarios,
+            List<Map<String, Object>> sucursales) {
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            // Estilos
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.SEA_GREEN.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            XSSFFont font = workbook.createFont();
+            font.setColor(IndexedColors.WHITE.getIndex());
+            font.setBold(true);
+            headerStyle.setFont(font);
+
+            // 1. Pestaña Asesores
+            Sheet sheet1 = workbook.createSheet("Top Asesores VyV");
+            Row row1 = sheet1.createRow(0);
+            String[] headers1 = { "Puesto", "Asesor", "Sucursal", "Total VyV" };
+            for (int i = 0; i < headers1.length; i++) {
+                Cell cell = row1.createCell(i);
+                cell.setCellValue(headers1[i]);
+                cell.setCellStyle(headerStyle);
+            }
+            int rowIdx1 = 1;
+            for (Map<String, Object> item : asesores) {
+                Row row = sheet1.createRow(rowIdx1++);
+                row.createCell(0).setCellValue(rowIdx1 - 1);
+                row.createCell(1).setCellValue(String.valueOf(item.get("nombre")));
+                row.createCell(2).setCellValue(String.valueOf(item.get("sucursal")));
+                row.createCell(3).setCellValue(((Number) item.get("total_vyv")).intValue());
+            }
+            for (int i = 0; i < headers1.length; i++)
+                sheet1.autoSizeColumn(i);
+
+            // 2. Pestaña Usuarios Generales
+            Sheet sheet2 = workbook.createSheet("Top General Usuarios VyV");
+            Row row2 = sheet2.createRow(0);
+            String[] headers2 = { "Puesto", "Usuario", "Rol", "Sucursal", "Total VyV" };
+            for (int i = 0; i < headers2.length; i++) {
+                Cell cell = row2.createCell(i);
+                cell.setCellValue(headers2[i]);
+                cell.setCellStyle(headerStyle);
+            }
+            int rowIdx2 = 1;
+            for (Map<String, Object> item : usuarios) {
+                Row row = sheet2.createRow(rowIdx2++);
+                row.createCell(0).setCellValue(rowIdx2 - 1);
+                row.createCell(1).setCellValue(String.valueOf(item.get("nombre")));
+                row.createCell(2).setCellValue(String.valueOf(item.get("rol")).replace("_", " "));
+                row.createCell(3).setCellValue(String.valueOf(item.get("sucursal")));
+                row.createCell(4).setCellValue(((Number) item.get("total_vyv")).intValue());
+            }
+            for (int i = 0; i < headers2.length; i++)
+                sheet2.autoSizeColumn(i);
+
+            // 3. Pestaña Sucursales
+            Sheet sheet3 = workbook.createSheet("Top Sucursales VyV");
+            Row row3 = sheet3.createRow(0);
+            String[] headers3 = { "Puesto", "Sucursal", "Total VyV" };
+            for (int i = 0; i < headers3.length; i++) {
+                Cell cell = row3.createCell(i);
+                cell.setCellValue(headers3[i]);
+                cell.setCellStyle(headerStyle);
+            }
+            int rowIdx3 = 1;
+            for (Map<String, Object> item : sucursales) {
+                Row row = sheet3.createRow(rowIdx3++);
+                row.createCell(0).setCellValue(rowIdx3 - 1);
+                row.createCell(1).setCellValue(String.valueOf(item.get("sucursal")));
+                row.createCell(2).setCellValue(((Number) item.get("total_vyv")).intValue());
+            }
+            for (int i = 0; i < headers3.length; i++)
+                sheet3.autoSizeColumn(i);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            workbook.write(out);
+            return out.toByteArray();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+    }
+
     public byte[] generarExcelActividad(List<UsuarioActivityDto> data, String titulo) {
-        // ... (Mantener implementación previa de Excel o simplificar)
-        // Para brevedad y foco en PDF, dejamos implementación básica de Excel
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Datos");
-            // ... simplificado ...
+            Row header = sheet.createRow(0);
+            header.createCell(0).setCellValue("Usuario");
+            header.createCell(1).setCellValue("Eventos");
+            header.createCell(2).setCellValue("Última Conexión");
+
+            int rowIdx = 1;
+            for (UsuarioActivityDto item : data) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(item.getNombreCompleto());
+                row.createCell(1).setCellValue(item.getLoginCount());
+                row.createCell(2).setCellValue(item.getLastLogin() != null ? item.getLastLogin().toString() : "-");
+            }
+
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             workbook.write(out);
             return out.toByteArray();
@@ -586,5 +677,143 @@ public class ReporteExportService {
             return new byte[0];
         }
         return out.toByteArray();
+    }
+
+    public byte[] generarPdfRankings(String type, List<Map<String, Object>> asesores,
+            List<Map<String, Object>> usuarios, List<Map<String, Object>> sucursales) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4, 30, 30, 30, 35);
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            addFooter(writer, document);
+            document.open();
+
+            if ("all".equals(type) || "asesores".equals(type)) {
+                addStandardHeader(document, "RANKING TOP 10 - ASESORES (VyV)",
+                        "Asesores de crédito con mayor vinculación de socios habilitados.");
+                renderRankingSection(document, asesores, "Asesor", "sucursal", COLOR_PRIMARY);
+                if ("all".equals(type))
+                    document.newPage();
+            }
+
+            if ("all".equals(type) || "usuarios".equals(type)) {
+                addStandardHeader(document, "RANKING TOP 10 - USUARIOS GENERAL (VyV)",
+                        "Ranking general de vinculación por usuario (todos los roles).");
+                renderRankingSection(document, usuarios, "Usuario", "rol", COLOR_BLUE);
+                if ("all".equals(type))
+                    document.newPage();
+            }
+
+            if ("all".equals(type) || "sucursales".equals(type)) {
+                addStandardHeader(document, "RANKING TOP 10 - SUCURSALES (VyV)",
+                        "Productividad total de socios habilitados acumulada por sucursal.");
+                renderRankingSection(document, sucursales, "Sucursal", null, COLOR_AMBER);
+            }
+
+            document.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return out.toByteArray();
+    }
+
+    private void renderRankingSection(Document document, List<Map<String, Object>> data, String labelName,
+            String subLabelKey, Color color) throws DocumentException {
+        if (data == null || data.isEmpty()) {
+            document.add(new Paragraph("No hay datos disponibles para este ranking.", FONT_BODY));
+            return;
+        }
+
+        // 1. Chart
+        Paragraph chartTitle = new Paragraph("VISUALIZACIÓN DE RENDIMIENTO",
+                new Font(Font.HELVETICA, 12, Font.BOLD, COLOR_SECONDARY));
+        chartTitle.setSpacingAfter(10);
+        chartTitle.setSpacingBefore(10);
+        document.add(chartTitle);
+
+        int maxVal = data.stream().mapToInt(m -> ((Number) m.get("total_vyv")).intValue()).max().orElse(1);
+
+        PdfPTable chartTable = new PdfPTable(2);
+        chartTable.setWidthPercentage(100);
+        chartTable.setWidths(new float[] { 3f, 7f });
+
+        for (int i = 0; i < Math.min(data.size(), 10); i++) {
+            Map<String, Object> item = data.get(i);
+            String name = String.valueOf(item.get(labelName != null ? labelName.toLowerCase() : "sucursal"));
+            int val = ((Number) item.get("total_vyv")).intValue();
+            float pct = (float) val / maxVal;
+
+            // Label
+            PdfPCell labelCell = new PdfPCell(
+                    new Phrase(name, new Font(Font.HELVETICA, 8, Font.NORMAL, COLOR_GRAY_TEXT)));
+            labelCell.setBorder(0);
+            labelCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            labelCell.setPaddingBottom(5);
+            chartTable.addCell(labelCell);
+
+            // Bar
+            PdfPCell barCell = new PdfPCell();
+            barCell.setBorder(0);
+            barCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            barCell.setPaddingBottom(5);
+
+            PdfPTable barContainer = new PdfPTable(2);
+            barContainer.setWidthPercentage(100);
+            barContainer.setWidths(new float[] { pct, 1 - pct });
+
+            PdfPCell activeBar = new PdfPCell(
+                    new Phrase(String.valueOf(val), new Font(Font.HELVETICA, 7, Font.BOLD, Color.WHITE)));
+            activeBar.setBackgroundColor(color);
+            activeBar.setBorder(0);
+            activeBar.setPaddingLeft(5);
+            activeBar.setFixedHeight(14f);
+            activeBar.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            barContainer.addCell(activeBar);
+
+            PdfPCell emptyBar = new PdfPCell();
+            emptyBar.setBorder(0);
+            barContainer.addCell(emptyBar);
+
+            barCell.addElement(barContainer);
+            chartTable.addCell(barCell);
+        }
+        document.add(chartTable);
+
+        // 2. Table
+        Paragraph tableTitle = new Paragraph("TABLA DETALLADA",
+                new Font(Font.HELVETICA, 12, Font.BOLD, COLOR_SECONDARY));
+        tableTitle.setSpacingBefore(15);
+        tableTitle.setSpacingAfter(10);
+        document.add(tableTitle);
+
+        boolean hasSub = subLabelKey != null;
+        PdfPTable table = new PdfPTable(hasSub ? 4 : 3);
+        table.setWidthPercentage(100);
+        if (hasSub)
+            table.setWidths(new float[] { 0.5f, 4f, 2f, 1f });
+        else
+            table.setWidths(new float[] { 0.5f, 6f, 1f });
+
+        addCell(table, "#", FONT_HEADER_TABLE, COLOR_SECONDARY, Element.ALIGN_CENTER);
+        addCell(table, labelName, FONT_HEADER_TABLE, COLOR_SECONDARY, Element.ALIGN_CENTER);
+        if (hasSub)
+            addCell(table, subLabelKey.toUpperCase(), FONT_HEADER_TABLE, COLOR_SECONDARY, Element.ALIGN_CENTER);
+        addCell(table, "TOTAL VyV", FONT_HEADER_TABLE, COLOR_SECONDARY, Element.ALIGN_CENTER);
+
+        int rank = 1;
+        for (Map<String, Object> item : data) {
+            Color rowBg = (rank % 2 == 0) ? new Color(248, 250, 252) : Color.WHITE;
+            addCell(table, String.valueOf(rank++), FONT_BODY, rowBg, Element.ALIGN_CENTER);
+            addCell(table, String.valueOf(item.get(labelName.toLowerCase())), FONT_BODY_BOLD, rowBg,
+                    Element.ALIGN_LEFT);
+            if (hasSub) {
+                String subVal = String.valueOf(item.get(subLabelKey));
+                if ("rol".equals(subLabelKey))
+                    subVal = subVal.replace("_", " ");
+                addCell(table, subVal, FONT_BODY, rowBg, Element.ALIGN_CENTER);
+            }
+            addCell(table, String.valueOf(item.get("total_vyv")), FONT_BODY_BOLD, rowBg, Element.ALIGN_CENTER);
+        }
+        document.add(table);
     }
 }

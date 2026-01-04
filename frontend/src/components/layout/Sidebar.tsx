@@ -31,7 +31,8 @@ import {
     FileText,
     Bell,
     Clock,
-    Award
+    Award,
+    TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -85,7 +86,8 @@ const menuItems = [
         icon: FileText,
         submenu: [
             { id: "reportes-general", name: "Reportes Generales", href: "/reportes", icon: ClipboardList },
-            { id: "ranking-gestion", name: "Ranking de Gestión", href: "/reportes/ranking", icon: Award },
+            { id: "reportes-rankings-vyv", name: "Rankings VyV", href: "/reportes/rankings", icon: Award },
+            { id: "ranking-gestion", name: "Ranking de Gestión", href: "/reportes/ranking", icon: TrendingUp },
             { id: "reportes-asesores", name: "Reporte Asesores", href: "/reportes/asesores", icon: UserCheck },
             { id: "reportes-sucursal", name: "Reportes Específicos", href: "/reportes/por-sucursal", icon: Building2 },
             { id: "reportes-funcionarios", name: "Funcionarios", href: "/reportes/funcionarios", icon: Briefcase },
@@ -213,6 +215,8 @@ export function Sidebar() {
                 return user.rol === "OPERADOR" || user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
 
             // Reportes
+            case "reportes-rankings-vyv":
+                return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
             case "reportes-general":
                 return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
             case "ranking-gestion":
