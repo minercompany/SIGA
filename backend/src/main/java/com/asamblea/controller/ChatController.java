@@ -24,6 +24,7 @@ public class ChatController {
     private final ChatMensajeRepository chatMensajeRepository;
     private final UsuarioRepository usuarioRepository;
     private final com.asamblea.service.LogAuditoriaService auditService;
+    private final com.asamblea.service.PushNotificationService pushNotificationService;
 
     // ========================================================================
     // CONVERSACIONES
@@ -69,7 +70,14 @@ public class ChatController {
                     Conversacion nueva = new Conversacion();
                     nueva.setUsuario(current);
                     nueva.setCreatedAt(LocalDateTime.now());
-                    return conversacionRepository.save(nueva);
+                    Conversacion guardada = conversacionRepository.save(nueva);
+
+                    // Notificar a admins que un usuario entró al chat por primera vez
+                    pushNotificationService.sendToAdmins(
+                            "Nueva consulta iniciada",
+                            current.getNombreCompleto() + " ha abierto el chat de soporte.");
+
+                    return guardada;
                 });
 
         // Obtener mensajes
@@ -232,6 +240,13 @@ public class ChatController {
             conv.setUnreadCountAdmin(conv.getUnreadCountAdmin() + 1);
         }
         conversacionRepository.save(conv);
+
+        // Notificar a Super Admins si el mensaje lo envía un usuario regular
+        if (!isAdmin(current)) {
+            String tituloPush = "Mensaje de Chat: " + current.getNombreCompleto();
+            String resumen = contenido.length() > 60 ? contenido.substring(0, 57) + "..." : contenido;
+            pushNotificationService.sendToAdmins(tituloPush, resumen);
+        }
 
         auditService.registrar("CHAT", "ENVIAR_MENSAJE",
                 String.format("Mensaje enviado en conversación #%d", conv.getId()),

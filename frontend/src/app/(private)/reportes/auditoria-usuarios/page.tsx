@@ -43,9 +43,9 @@ export default function AuditoriaUsuariosPage() {
         let result = [...usuarios];
 
         if (filtro === "habituales") {
-            result = result.filter((u) => u.lastLogin !== null);
+            result = result.filter((u) => u.lastLogin !== null || u.totalOnlineSeconds > 0 || u.totalRegistros > 0 || u.totalAsignaciones > 0);
         } else if (filtro === "no-entraron") {
-            result = result.filter((u) => u.lastLogin === null);
+            result = result.filter((u) => u.lastLogin === null && u.totalOnlineSeconds === 0 && u.totalRegistros === 0 && u.totalAsignaciones === 0);
         }
 
         if (searchTerm.trim()) {
@@ -96,11 +96,11 @@ export default function AuditoriaUsuariosPage() {
         const totalRegistros = activeUsers.reduce((sum, u) => sum + u.totalRegistros, 0);
 
         return {
-            avgLoginsPerUser: activeUsers.length> 0 ? (totalLogins /activeUsers.length).toFixed(1):0,
-            avgSessionTime: activeUsers.length> 0 ? Math.floor(totalOnlineTime /activeUsers.length /60):0,
-            avgRegistrosPerUser: activeUsers.length> 0 ? (totalRegistros /activeUsers.length).toFixed(1):0,
-            mostActiveUser: activeUsers.sort((a, b) => b.loginCount-a.loginCount)[0],
-            mostProductiveUser: activeUsers.sort((a, b) => b.totalRegistros-a.totalRegistros)[0],
+            avgLoginsPerUser: activeUsers.length > 0 ? (totalLogins / activeUsers.length).toFixed(1) : 0,
+            avgSessionTime: activeUsers.length > 0 ? Math.floor(totalOnlineTime / activeUsers.length / 60) : 0,
+            avgRegistrosPerUser: activeUsers.length > 0 ? (totalRegistros / activeUsers.length).toFixed(1) : 0,
+            mostActiveUser: activeUsers.sort((a, b) => b.loginCount - a.loginCount)[0],
+            mostProductiveUser: activeUsers.sort((a, b) => b.totalRegistros - a.totalRegistros)[0],
         };
     }, [usuarios]);
 
@@ -108,7 +108,7 @@ export default function AuditoriaUsuariosPage() {
     const topUsers = useMemo(() => {
         return [...usuarios]
             .filter(u => u.lastLogin !== null)
-            .sort((a, b) => b.totalRegistros-a.totalRegistros)
+            .sort((a, b) => b.totalRegistros - a.totalRegistros)
             .slice(0, 10);
     }, [usuarios]);
 
@@ -128,15 +128,15 @@ export default function AuditoriaUsuariosPage() {
         return Object.entries(grouped).map(([nombre, stats]) => ({
             nombre,
             ...stats,
-        })).sort((a, b) => b.registros-a.registros);
+        })).sort((a, b) => b.registros - a.registros);
     }, [usuarios]);
 
     // Usuarios inactivos (más de 7 días sin ingresar)
     const inactiveUsers = useMemo(() => {
         return usuarios.filter(u => {
             if (!u.lastLogin) return false;
-            const daysSince = Math.floor((Date.now() - new Date(u.lastLogin).getTime()) /(1000 * 60 * 60 * 24));
-            return daysSince> 7;
+            const daysSince = Math.floor((Date.now() - new Date(u.lastLogin).getTime()) / (1000 * 60 * 60 * 24));
+            return daysSince > 7;
         });
     }, [usuarios]);
 
@@ -171,8 +171,8 @@ export default function AuditoriaUsuariosPage() {
     const stats = {
         total: usuarios.length,
         online: usuarios.filter((u) => u.isOnline).length,
-        habituales: usuarios.filter((u) => u.lastLogin !== null).length,
-        noEntraron: usuarios.filter((u) => u.lastLogin === null).length,
+        habituales: usuarios.filter((u) => u.lastLogin !== null || u.totalOnlineSeconds > 0 || u.totalRegistros > 0 || u.totalAsignaciones > 0).length,
+        noEntraron: usuarios.filter((u) => u.lastLogin === null && u.totalOnlineSeconds === 0 && u.totalRegistros === 0 && u.totalAsignaciones === 0).length,
     };
 
     if (loading) {
@@ -271,11 +271,11 @@ export default function AuditoriaUsuariosPage() {
                                                 <div className="flex justify-between text-sm mb-1">
                                                     <span className="font-medium text-slate-600">Promedio registros/ingreso</span>
                                                     <span className="font-bold text-slate-800">
-                                                        {selectedUser.loginCount> 0 ? (selectedUser.totalRegistros /selectedUser.loginCount).toFixed(1):0}
+                                                        {selectedUser.loginCount > 0 ? (selectedUser.totalRegistros / selectedUser.loginCount).toFixed(1) : 0}
                                                     </span>
                                                 </div>
                                                 <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-600" style={{ width: `${Math.min(100, (selectedUser.totalRegistros /selectedUser.loginCount) * 10)}%` }} />
+                                                    <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-600" style={{ width: `${Math.min(100, (selectedUser.totalRegistros / selectedUser.loginCount) * 10)}%` }} />
                                                 </div>
                                             </div>
                                         </div>
@@ -311,10 +311,42 @@ export default function AuditoriaUsuariosPage() {
             {/* Stats Cards Premium */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
                 {[
-                    { label: "Total Usuarios", value: stats.total, icon: Users, color: "from-blue-500 to-blue-600", shadow: "shadow-blue-200", detail: "En el sistema" },
-                    { label: "Conectados Ahora", value: stats.online, icon: Activity, color: "from-emerald-500 to-teal-500", shadow: "shadow-emerald-200", detail: "En línea" },
-                    { label: "Han Ingresado", value: stats.habituales, icon: CheckCircle, color: "from-violet-500 to-purple-600", shadow: "shadow-purple-200", detail: "Al menos 1 vez" },
-                    { label: "Nunca Ingresaron", value: stats.noEntraron, icon: AlertCircle, color: "from-amber-500 to-orange-500", shadow: "shadow-orange-200", detail: "Sin actividad" },
+                    {
+                        label: "Total Usuarios",
+                        value: stats.total,
+                        icon: Users,
+                        color: "from-blue-500 to-blue-600",
+                        shadow: "shadow-blue-200",
+                        detail: "En el sistema",
+                        filterKey: "todos",
+                    },
+                    {
+                        label: "Conectados Ahora",
+                        value: stats.online,
+                        icon: Activity,
+                        color: "from-emerald-500 to-teal-500",
+                        shadow: "shadow-emerald-200",
+                        detail: "En línea",
+                        filterKey: "todos", // Por ahora lleva a todos, el filtro online visual es interno
+                    },
+                    {
+                        label: "Han Ingresado",
+                        value: stats.habituales,
+                        icon: CheckCircle,
+                        color: "from-violet-500 to-purple-600",
+                        shadow: "shadow-purple-200",
+                        detail: "Al menos 1 vez",
+                        filterKey: "habituales",
+                    },
+                    {
+                        label: "Nunca Ingresaron",
+                        value: stats.noEntraron,
+                        icon: AlertCircle,
+                        color: "from-amber-500 to-orange-500",
+                        shadow: "shadow-orange-200",
+                        detail: "Sin actividad",
+                        filterKey: "no-entraron",
+                    },
                 ].map((stat, i) => (
                     <motion.div
                         key={i}
@@ -322,7 +354,8 @@ export default function AuditoriaUsuariosPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05 }}
                         whileHover={{ y: -5, scale: 1.02 }}
-                        className={`bg-gradient-to-br ${stat.color} rounded-2xl p-4 lg:p-6 shadow-xl ${stat.shadow} text-white relative overflow-hidden group cursor-pointer`}
+                        onClick={() => setFiltro(stat.filterKey as any)}
+                        className={`bg-gradient-to-br ${stat.color} rounded-2xl p-4 lg:p-6 shadow-xl ${stat.shadow} text-white relative overflow-hidden group cursor-pointer ring-offset-2 ring-offset-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${filtro === stat.filterKey ? 'ring-2 ring-indigo-500 scale-105' : ''}`}
                     >
                         <div className="absolute -right-6 -bottom-6 opacity-10 transition-all group-hover:opacity-20 group-hover:scale-110">
                             <stat.icon className="h-28 w-28 lg:h-32 lg:w-32" />
@@ -464,8 +497,8 @@ export default function AuditoriaUsuariosPage() {
                                     {Array.from({ length: 24 }).map((_, hIndex) => {
                                         // Simulación de datos (en prod usar datos reales)
                                         // Calculamos intensidad basada en hora (más actividad laboral)
-                                        const isWorkHour = hIndex>= 8 && hIndex <= 18;
-                                        const intensity = isWorkHour ? Math.random() * 0.8 + 0.2:Math.random() * 0.3;
+                                        const isWorkHour = hIndex >= 8 && hIndex <= 18;
+                                        const intensity = isWorkHour ? Math.random() * 0.8 + 0.2 : Math.random() * 0.3;
                                         const hasActivity = Math.random() > 0.3;
 
                                         return (
@@ -475,7 +508,7 @@ export default function AuditoriaUsuariosPage() {
                                                 style={{
                                                     backgroundColor: hasActivity
                                                         ? `rgba(244, 63, 94, ${intensity})` // Rose 500 con opacidad
-                                                       :'#f1f5f9', // Slate 100
+                                                        : '#f1f5f9', // Slate 100
                                                 }}
                                                 title={`${day} ${hIndex}:00 - ${Math.floor(intensity * 10)} accesos`}
                                             />
@@ -499,7 +532,7 @@ export default function AuditoriaUsuariosPage() {
             </div>
 
             {/* Alertas de Usuarios Inactivos */}
-            {inactiveUsers.length> 0 && (
+            {inactiveUsers.length > 0 && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -518,9 +551,9 @@ export default function AuditoriaUsuariosPage() {
                                         {user.nombreCompleto}
                                     </span>
                                 ))}
-                                {inactiveUsers.length> 5 && (
+                                {inactiveUsers.length > 5 && (
                                     <span className="px-3 py-1 bg-amber-200 rounded-lg text-sm font-bold text-amber-900">
-                                        +{inactiveUsers.length-5} más
+                                        +{inactiveUsers.length - 5} más
                                     </span>
                                 )}
                             </div>
@@ -557,10 +590,10 @@ export default function AuditoriaUsuariosPage() {
                                 onClick={() => setFiltro(f as any)}
                                 className={`px-3 lg:px-4 py-2 rounded-xl font-bold text-xs lg:text-sm uppercase tracking-wider transition-all ${filtro === f
                                     ? "bg-indigo-500 text-white shadow-lg shadow-indigo-200"
-                                   :"bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                     }`}
                             >
-                                {f === "todos" ? "Todos":f === "habituales" ? "Activos":"Sin Actividad"}
+                                {f === "todos" ? "Todos" : f === "habituales" ? "Activos" : "Sin Actividad"}
                             </button>
                         ))}
                     </div>
@@ -620,7 +653,7 @@ export default function AuditoriaUsuariosPage() {
                                 >
                                     <td className="px-4 lg:px-6 py-4">
                                         <div className="flex items-center gap-2 lg:gap-3">
-                                            <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center font-bold text-white text-sm ${user.isOnline ? "bg-gradient-to-br from-emerald-500 to-teal-500":"bg-gradient-to-br from-slate-400 to-slate-500"
+                                            <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center font-bold text-white text-sm ${user.isOnline ? "bg-gradient-to-br from-emerald-500 to-teal-500" : "bg-gradient-to-br from-slate-400 to-slate-500"
                                                 }`}>
                                                 {user.nombreCompleto.charAt(0).toUpperCase()}
                                             </div>
@@ -665,7 +698,7 @@ export default function AuditoriaUsuariosPage() {
                                                 <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                                                 <span className="hidden lg:inline">Online</span>
                                             </span>
-                                        ):(
+                                        ) : (
                                             <span className="inline-flex items-center gap-1 lg:gap-2 px-2 lg:px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold">
                                                 <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-slate-400 rounded-full"></span>
                                                 <span className="hidden lg:inline">Offline</span>

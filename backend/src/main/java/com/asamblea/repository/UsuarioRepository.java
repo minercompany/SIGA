@@ -51,4 +51,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     @Query("SELECT u FROM Usuario u LEFT JOIN FETCH u.sucursal LEFT JOIN FETCH u.socio s LEFT JOIN FETCH s.sucursal")
     List<Usuario> findAllWithRelations();
+
+    @Query("SELECT u FROM Usuario u LEFT JOIN FETCH u.sucursal LEFT JOIN FETCH u.socio s LEFT JOIN FETCH s.sucursal WHERE u.activo = true")
+    List<Usuario> findAllActiveWithRelations();
 }

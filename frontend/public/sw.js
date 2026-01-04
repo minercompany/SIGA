@@ -70,27 +70,38 @@ self.addEventListener('fetch', (event) => {
 // Push Notifications
 self.addEventListener('push', function (event) {
     if (event.data) {
-        const data = event.data.json();
-        const options = {
-            body: data.body,
-            icon: data.icon || '/logo.png',
-            badge: '/logo.png',
-            image: data.image || '/logo-cooperativa.png',
-            vibrate: [100, 50, 100],
-            tag: 'siga-notification',
-            renotify: true,
-            data: {
-                dateOfArrival: Date.now(),
-                url: data.url || '/dashboard'
-            },
-            actions: [
-                { action: 'open', title: 'Abrir' },
-                { action: 'close', title: 'Cerrar' }
-            ]
-        };
-        event.waitUntil(
-            self.registration.showNotification(data.title, options)
-        );
+        try {
+            const data = event.data.json();
+            const options = {
+                body: data.body,
+                icon: data.icon || '/logo.png',
+                badge: '/logo.png',
+                image: data.image || '/images/notification-banner.jpg',
+                vibrate: [200, 100, 200],
+                tag: 'siga-notification-' + (data.tag || Date.now()),
+                renotify: true,
+                data: {
+                    dateOfArrival: Date.now(),
+                    url: data.data?.url || data.url || '/dashboard'
+                },
+                actions: [
+                    { action: 'open', title: 'Ver ahora' }
+                ]
+            };
+            event.waitUntil(
+                self.registration.showNotification(data.title, options)
+            );
+        } catch (e) {
+            console.error('[SW] Error parseando data de push:', e);
+            // Fallback para texto plano
+            const text = event.data.text();
+            event.waitUntil(
+                self.registration.showNotification('SIGA - Notificación', {
+                    body: text,
+                    icon: '/logo.png'
+                })
+            );
+        }
     }
 });
 
@@ -100,19 +111,17 @@ self.addEventListener('notificationclick', function (event) {
 
     const urlToOpen = event.notification.data?.url || '/dashboard';
 
-    if (event.action === 'close') return;
-
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
             .then((clientList) => {
-                // Buscar si ya hay una ventana abierta
+                // 1. Si hay alguna ventana abierta en nuestro dominio, enfocarla y navegar
                 for (const client of clientList) {
-                    if (client.url.includes('asamblea.cloud') && 'focus' in client) {
+                    if (client.url.includes(self.location.origin) && 'focus' in client) {
                         client.navigate(urlToOpen);
                         return client.focus();
                     }
                 }
-                // Si no hay ventana, abrir una nueva
+                // 2. Si no hay ventana, abrir una nueva
                 return clients.openWindow(urlToOpen);
             })
     );

@@ -86,6 +86,7 @@ const menuItems = [
         submenu: [
             { id: "reportes-general", name: "Reportes Generales", href: "/reportes", icon: ClipboardList },
             { id: "ranking-gestion", name: "Ranking de Gestión", href: "/reportes/ranking", icon: Award },
+            { id: "reportes-asesores", name: "Reporte Asesores", href: "/reportes/asesores", icon: UserCheck },
             { id: "reportes-sucursal", name: "Reportes Específicos", href: "/reportes/por-sucursal", icon: Building2 },
             { id: "reportes-funcionarios", name: "Funcionarios", href: "/reportes/funcionarios", icon: Briefcase },
             { id: "reportes-asistencia", name: "Asistencia por Operador", href: "/reportes/asistencia-funcionarios", icon: Clock },
@@ -174,7 +175,7 @@ export function Sidebar() {
             return hasPermission("asistencia") || hasPermission("checkin");
         }
         if (itemId === "reportes") {
-            return hasPermission("reportes-general") || hasPermission("ranking-gestion") || hasPermission("reportes-sucursal") || hasPermission("reportes-funcionarios") || hasPermission("reportes-asistencia") || hasPermission("auditoria-usuarios");
+            return hasPermission("reportes-general") || hasPermission("ranking-gestion") || hasPermission("reportes-asesores") || hasPermission("reportes-sucursal") || hasPermission("reportes-funcionarios") || hasPermission("reportes-asistencia") || hasPermission("auditoria-usuarios");
         }
         if (itemId === "comunicacion") {
             return hasPermission("mensajes-chat") || hasPermission("mensajes-avisos");
@@ -215,6 +216,8 @@ export function Sidebar() {
             case "reportes-general":
                 return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
             case "ranking-gestion":
+                return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
+            case "reportes-asesores":
                 return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
             case "reportes-sucursal":
                 return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";

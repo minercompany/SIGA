@@ -71,23 +71,41 @@ public class ReporteExportService {
         // --- A. LOGO ---
         PdfPCell logoCell;
         try {
-            // Priority: Oficial (PNG) -> Flat (JPG) -> General (PNG)
-            java.io.InputStream logoStream = getClass().getResourceAsStream("/images/logo_reducto_oficial.png");
-            if (logoStream == null) {
-                logoStream = getClass().getResourceAsStream("/images/logo_reducto_flat.jpg");
-            }
-            if (logoStream == null) {
-                logoStream = getClass().getResourceAsStream("/images/logo_cooperativa.png");
+            // Usar Spring ClassPathResource que funciona mejor en Docker/JAR
+            // Prioridad: JPG (sin transparencia) funciona mejor con OpenPDF
+            String[] paths = {
+                    "images/logo_reducto_flat.jpg",
+                    "images/logo_reducto_oficial.png",
+                    "images/logo_cooperativa.png"
+            };
+
+            byte[] logoBytes = null;
+
+            for (String path : paths) {
+                try {
+                    org.springframework.core.io.Resource resource = new org.springframework.core.io.ClassPathResource(
+                            path);
+                    if (resource.exists()) {
+                        logoBytes = resource.getInputStream().readAllBytes();
+                        System.out.println("✅ Logo cargado desde: " + path);
+                        break;
+                    }
+                } catch (Exception e) {
+                    System.out.println("⚠️ No se pudo cargar: " + path + " - " + e.getMessage());
+                }
             }
 
-            if (logoStream != null) {
-                byte[] logoBytes = logoStream.readAllBytes();
+            if (logoBytes != null && logoBytes.length > 0) {
                 com.lowagie.text.Image logo = com.lowagie.text.Image.getInstance(logoBytes);
-                logo.scaleToFit(85, 85);
-                logoCell = new PdfPCell(logo);
-                logoStream.close();
+                logo.scaleToFit(80, 80);
+                logo.setAlignment(Element.ALIGN_CENTER);
+
+                logoCell = new PdfPCell();
+                logoCell.addElement(logo);
+                logoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
             } else {
-                // Fallback si no existe ninguna imagen
+                System.out.println("❌ No se encontró ningún logo, usando fallback");
                 logoCell = new PdfPCell(new Phrase("CR", new Font(Font.HELVETICA, 28, Font.BOLD, Color.WHITE)));
                 logoCell.setBackgroundColor(COLOR_PRIMARY);
             }
@@ -456,5 +474,117 @@ public class ReporteExportService {
             csv.append(row.get("fecha")).append(",").append(row.get("total")).append("\n");
         }
         return csv.toString().getBytes();
+    }
+
+    // ==========================================
+    // MÉTODO 3: REPORTE DE ASESORES
+    // ==========================================
+    public byte[] generarPdfAsesores(List<Map<String, Object>> asesores, Map<String, Object> resumen) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4.rotate(), 30, 30, 30, 35);
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            addFooter(writer, document);
+
+            document.open();
+
+            // HEADER ESTÁNDAR
+            addStandardHeader(document,
+                    "REPORTE DE CUMPLIMIENTO DE ASESORES",
+                    "Estado de avance de asesores hacia meta mínima (20) y meta general (50).");
+
+            // TARJETAS DE RESUMEN
+            int total = ((Number) resumen.get("total")).intValue();
+            int cumplieronMeta = ((Number) resumen.get("cumplieronMeta")).intValue();
+            int cumplieronMinimo = ((Number) resumen.get("cumplieronMinimo")).intValue();
+            int sinMinimo = ((Number) resumen.get("sinMinimo")).intValue();
+
+            PdfPTable statsTable = new PdfPTable(4);
+            statsTable.setWidthPercentage(100);
+            statsTable.setSpacingAfter(20);
+
+            statsTable.addCell(createStatCard("📊 TOTAL ASESORES", String.valueOf(total), "Activos", COLOR_BLUE));
+            statsTable.addCell(createStatCard("✅ CUMPLIERON META", String.valueOf(cumplieronMeta), "≥50 registros",
+                    COLOR_PRIMARY));
+            statsTable.addCell(createStatCard("⚠️ CUMPLIERON MÍNIMO", String.valueOf(cumplieronMinimo),
+                    "20-49 registros", COLOR_AMBER));
+            statsTable.addCell(
+                    createStatCard("❌ SIN MÍNIMO", String.valueOf(sinMinimo), "<20 registros", new Color(239, 68, 68)));
+
+            document.add(statsTable);
+
+            // TABLA DE DATOS
+            PdfPTable table = new PdfPTable(7);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[] { 0.5f, 2.5f, 1.5f, 1f, 1f, 1f, 1.5f });
+            table.setHeaderRows(1);
+
+            String[] headers = { "#", "Nombre Completo", "Sucursal", "Registrados", "Falta Mín.", "Falta Meta",
+                    "Estado" };
+            for (String header : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(header, FONT_HEADER_TABLE));
+                cell.setBackgroundColor(COLOR_PRIMARY);
+                cell.setBorderColor(Color.WHITE);
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                cell.setPadding(8);
+                table.addCell(cell);
+            }
+
+            int i = 1;
+            boolean alternate = false;
+            Color colorAlt = new Color(241, 245, 249);
+
+            for (Map<String, Object> asesor : asesores) {
+                Color bgColor = alternate ? colorAlt : Color.WHITE;
+
+                addCell(table, String.valueOf(i++), FONT_BODY, bgColor, Element.ALIGN_CENTER);
+                addCell(table, (String) asesor.get("nombreCompleto"), FONT_BODY_BOLD, bgColor, Element.ALIGN_LEFT);
+                addCell(table, (String) asesor.get("sucursal"), FONT_BODY, bgColor, Element.ALIGN_CENTER);
+
+                long registrados = ((Number) asesor.get("registrados")).longValue();
+                int faltaMinimo = ((Number) asesor.get("faltaMinimo")).intValue();
+                int faltaMeta = ((Number) asesor.get("faltaMeta")).intValue();
+                String estado = (String) asesor.get("estado");
+
+                // Color de registrados según nivel
+                Font fontReg = new Font(Font.HELVETICA, 9, Font.BOLD);
+                if (registrados >= 50) {
+                    fontReg.setColor(COLOR_PRIMARY);
+                } else if (registrados >= 20) {
+                    fontReg.setColor(COLOR_AMBER);
+                } else {
+                    fontReg.setColor(new Color(239, 68, 68));
+                }
+                addCell(table, String.valueOf(registrados), fontReg, bgColor, Element.ALIGN_CENTER);
+
+                // Falta mínimo (solo si > 0)
+                String faltaMinStr = faltaMinimo > 0 ? String.valueOf(faltaMinimo) : "-";
+                addCell(table, faltaMinStr, FONT_BODY, bgColor, Element.ALIGN_CENTER);
+
+                // Falta meta (solo si > 0)
+                String faltaMetaStr = faltaMeta > 0 ? String.valueOf(faltaMeta) : "-";
+                addCell(table, faltaMetaStr, FONT_BODY, bgColor, Element.ALIGN_CENTER);
+
+                // Estado con color
+                Font fontEstado = new Font(Font.HELVETICA, 9, Font.BOLD);
+                if (estado.contains("✅")) {
+                    fontEstado.setColor(COLOR_PRIMARY);
+                } else if (estado.contains("⚠️")) {
+                    fontEstado.setColor(COLOR_AMBER);
+                } else {
+                    fontEstado.setColor(new Color(239, 68, 68));
+                }
+                addCell(table, estado, fontEstado, bgColor, Element.ALIGN_CENTER);
+
+                alternate = !alternate;
+            }
+
+            document.add(table);
+            document.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+        return out.toByteArray();
     }
 }

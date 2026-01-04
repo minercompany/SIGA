@@ -53,15 +53,17 @@ public class PushNotificationService {
         return this.publicKeyEncoded;
     }
 
-    public void sendToSuperAdmins(String title, String message) {
+    public void sendToAdmins(String title, String message) {
         if (pushService == null)
             return;
 
         List<PushSubscription> admins = subscriptionRepository.findByUsuario_Rol(Usuario.Rol.SUPER_ADMIN);
-        System.out.println("DEBUG: Enviando push a " + admins.size() + " suscripciones de SUPER_ADMIN.");
+        admins.addAll(subscriptionRepository.findByUsuario_Rol(Usuario.Rol.DIRECTIVO));
+
+        System.out.println("DEBUG: Enviando push a " + admins.size() + " suscripciones administrativas.");
 
         String payload = String.format(
-                "{\"title\": \"%s\", \"body\": \"%s\", \"icon\": \"/images/notification-banner.jpg\", \"image\": \"/images/notification-banner.jpg\"}",
+                "{\"title\": \"%s\", \"body\": \"%s\", \"icon\": \"/logo.png\", \"badge\": \"/logo.png\", \"image\": \"/images/notification-banner.jpg\", \"data\": {\"url\": \"/dashboard\"}}",
                 title.replace("\"", "\\\""),
                 message.replace("\"", "\\\""));
 

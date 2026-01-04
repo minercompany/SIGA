@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, ChevronLeft, User, Search, Plus, Smile, Paperclip, Check, CheckCheck } from 'lucide-react';
 import axios from 'axios';
+import { parse as parseEmoji } from 'twemoji-parser';
 
 interface Mensaje {
     id: number;
@@ -32,12 +33,104 @@ interface Usuario {
     rol?: string;
 }
 
-// Emojis organizados por categorías
-const EMOJI_CATEGORIES = {
-    'Caritas': ['😀', '😃', '�', '😁', '�😊', '🥰', '�', '🤩', '😘', '😜', '🤔', '😴', '😅', '😂', '🥹', '😢', '😭', '😤', '🤬', '😱'],
-    'Gestos': ['�👍', '👎', '👏', '🙌', '🤝', '🙏', '💪', '✌️', '🤞', '👋', '👊', '✋', '🤙', '👆', '👇'],
-    'Corazones': ['❤️', '🧡', '💛', '�', '�', '💜', '🖤', '🤍', '💔', '❤️‍🔥', '�', '💖', '💗', '💘'],
-    'Símbolos': ['✅', '❌', '⭐', '🔥', '💡', '📌', '⚠️', '❓', '❗', '🎉', '🎊', '🏆', '📎', '📍', '🔔', '�']
+// Emojis organizados por categorías - Estilo iPhone (Twemoji)
+const EMOJI_CATEGORIES: Record<string, string[]> = {
+    'Caritas': [
+        '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+        '🙂', '�', '😉', '😌', '�😍', '🥰', '😘', '😗', '😙', '😚',
+        '😋', '😛', '�', '�😜', '🤪', '🤨', '🧐', '🤓', '�', '🥸',
+        '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️',
+        '�', '😖', '😫', '😩', '🥺', '�😢', '😭', '😤', '😠', '😡',
+        '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓',
+        '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '�',
+        '😯', '😦', '😧', '😮', '😲', '�', '😴', '�', '😪', '😵',
+        '🤐', '�', '🤢', '🤮', '🤧', '🤨', '🤫', '🫠', '🫣', '🫡'
+    ],
+    'Gestos': [
+        '👋', '🤚', '�', '✋', '�', '�', '🤌', '🤏', '✌️', '🤞',
+        '🤟', '🤘', '🤙', '�', '�', '�', '�', '�', '☝️', '👍',
+        '👎', '✊', '👊', '🤛', '🤜', '�', '🙌', '👐', '�', '�',
+        '�', '✍️', '💅', '🤳', '💪', '🦾', '🦿', '�', '🦶', '👂',
+        '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁', '👅',
+        '👄', '👶', '🧒', '👦', '👧', '�', '👱', '�', '👩', '👴'
+    ],
+    'Corazones': [
+        '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+        '❤️‍🔥', '❤️‍🩹', '�', '�💞', '💓', '💗', '💖', '💘', '💝', '💟',
+        '❣️', '💌', '❤️‍👨', '❤️‍👩', '💑', '💏', '🫦', '🫂', '💐', '🌹',
+        '🥀', '�', '🌸', '🌼', '🌻', '�', '🌝', '�', '�', '✨'
+    ],
+    'Simbolos': [
+        '✅', '❌', '➕', '➖', '➗', '❓', '❔', '❕', '❗️', '⚠️',
+        '�', '�', '💥', '💢', '💦', '💨', '💫', '💬', '💭', '�',
+        '�', '�', '�', '�', '📣', '🔕', '🎵', '🎶', '🎶', '💡',
+        '💻', '�', '⌚️', '📷', '�', '📞', '📠', '📟', '📌', '📍',
+        '📎', '🔗', '🔒', '🔓', '🔏', '🔐', '🔑', '🗝', '🔨', '🛠'
+    ],
+    'Animales': [
+        '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '�‍❄️', '�',
+        '🐯', '🦁', '🐮', '🐷', '�', '�🐸', '🐵', '🙈', '🙉', '🙊',
+        '�', '�🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉',
+        '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🪱', '🐛', '🦋', '🐌',
+        '🐞', '🐜', '🦟', '🦗', '🕷', '🕸', '🦂', '🐢', '🐍', '🦎'
+    ],
+    'Comida': [
+        '�', '�', '�', '�', '�', '🍌', '🍉', '�', '🍓', '🫐',
+        '�', '�', '🍑', '�', '�', '🥥', '🥝', '�', '�', '🥑',
+        '🥦', '🥬', '🥒', '�', '🥕', '🫑', '🥔', '�', '�', '🥯',
+        '�', '🥖', '🥨', '🧀', '🥚', '�', '🧈', '🥓', '🥩', '🍗',
+        '🍖', '🦴', '🌭', '🍔', '🍟', '�', '🌮', '🌯', '🥙', '🧆'
+    ]
+};
+
+// Componente para renderizar un emoji estilo Apple (Twemoji)
+const Twemoji = ({ emoji, className = "h-5 w-5 inline-block align-text-bottom" }: { emoji: string, className?: string }) => {
+    const entities = parseEmoji(emoji);
+    if (entities.length === 0) return <span>{emoji}</span>;
+    return (
+        <img
+            src={entities[0].url}
+            alt={emoji}
+            draggable={false}
+            className={className}
+        />
+    );
+};
+
+// Función para parsear texto y convertir emojis a imágenes
+const renderContentWithEmojis = (text: string) => {
+    const entities = parseEmoji(text);
+    if (entities.length === 0) return text;
+
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+
+    entities.forEach((entity, index) => {
+        // Texto antes del emoji
+        if (entity.indices[0] > lastIndex) {
+            parts.push(text.substring(lastIndex, entity.indices[0]));
+        }
+
+        // El emoji como imagen
+        parts.push(
+            <img
+                key={`emoji-${index}`}
+                src={entity.url}
+                alt={entity.text}
+                draggable={false}
+                className="h-[1.2em] w-[1.2em] inline-block align-text-bottom mx-[0.05em]"
+            />
+        );
+
+        lastIndex = entity.indices[1];
+    });
+
+    // Texto restante después del último emoji
+    if (lastIndex < text.length) {
+        parts.push(text.substring(lastIndex));
+    }
+
+    return parts;
 };
 
 
@@ -66,6 +159,7 @@ export default function ChatFAB() {
     const [loading, setLoading] = useState(false);
     const [soundEnabled] = useState(true);
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+    const [currentUserRol, setCurrentUserRol] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -76,12 +170,13 @@ export default function ChatFAB() {
         audioRef.current.volume = 0.5;
         loadUnreadCount();
 
-        // Obtener ID del usuario actual desde localStorage
+        // Obtener ID y rol del usuario actual desde localStorage
         try {
             const userStr = localStorage.getItem('user');
             if (userStr) {
                 const user = JSON.parse(userStr);
                 setCurrentUserId(user.id);
+                setCurrentUserRol(user.rol);
             }
         } catch (e) {
             console.error('Error parsing user from localStorage:', e);
@@ -234,6 +329,35 @@ export default function ChatFAB() {
         }
     };
 
+    // Para usuarios no-admin: ir directo a soporte
+    const goToSupportChat = async () => {
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get('/api/chat/mi-conversacion', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (res.data.conversacion) {
+                // Forzar nombre "Soporte" para la conversación
+                const convWithSupport = {
+                    ...res.data.conversacion,
+                    usuarioNombre: 'Soporte'
+                };
+                setSelectedConv(convWithSupport);
+                setMensajes(res.data.mensajes || []);
+                setView('chat');
+                loadConversaciones();
+            }
+        } catch (error) {
+            console.error('Error opening support chat:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const isAdmin = currentUserRol === 'SUPER_ADMIN' || currentUserRol === 'DIRECTIVO';
+
     const enviarMensaje = async () => {
         if (!nuevoMensaje.trim()) return;
         try {
@@ -335,17 +459,77 @@ export default function ChatFAB() {
                             {/* ===== VISTA: LISTA DE CONVERSACIONES ===== */}
                             {view === 'list' && (
                                 <>
-                                    {/* Header */}
-                                    <div className="bg-gradient-to-r from-emerald-500 to-emerald-500 p-4 flex items-center justify-between">
+                                    {/* Header con spotlight premium para primera vez */}
+                                    <div className="bg-gradient-to-r from-emerald-500 to-emerald-500 p-4 flex items-center justify-between relative">
                                         <h2 className="text-white font-bold text-lg">Mensajes</h2>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 relative">
+                                            {/* Spotlight highlight para el botón + */}
+                                            {!isAdmin && conversaciones.length === 0 && (
+                                                <>
+                                                    {/* Glow animado detrás del botón */}
+                                                    <motion.div
+                                                        className="absolute -inset-3 rounded-full z-0"
+                                                        animate={{
+                                                            boxShadow: [
+                                                                '0 0 0 0 rgba(255,255,255,0.4)',
+                                                                '0 0 20px 10px rgba(255,255,255,0.6)',
+                                                                '0 0 0 0 rgba(255,255,255,0.4)'
+                                                            ]
+                                                        }}
+                                                        transition={{ duration: 2, repeat: Infinity }}
+                                                    />
+
+                                                    {/* Tooltip premium flotante */}
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                        transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
+                                                        className="absolute top-full right-0 mt-4 z-50"
+                                                    >
+                                                        {/* Flecha del tooltip */}
+                                                        <div className="absolute -top-2 right-6 w-4 h-4 bg-slate-900 rotate-45 rounded-sm" />
+
+                                                        {/* Contenido del tooltip */}
+                                                        <motion.div
+                                                            animate={{ y: [0, -3, 0] }}
+                                                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                                            className="relative bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-2xl min-w-[220px]"
+                                                        >
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center">
+                                                                    <MessageCircle className="h-5 w-5 text-white" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-bold text-sm">¿Necesitás ayuda?</p>
+                                                                    <p className="text-xs text-slate-400">Nuestro equipo está listo</p>
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-xs text-slate-300 mb-3">
+                                                                Tocá el botón <span className="bg-white/20 px-1.5 py-0.5 rounded font-bold">+</span> para iniciar una consulta
+                                                            </p>
+                                                            <motion.button
+                                                                onClick={goToSupportChat}
+                                                                whileHover={{ scale: 1.02 }}
+                                                                whileTap={{ scale: 0.98 }}
+                                                                className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/30"
+                                                            >
+                                                                Contactar Soporte
+                                                            </motion.button>
+                                                        </motion.div>
+                                                    </motion.div>
+                                                </>
+                                            )}
+
                                             <motion.button
                                                 whileHover={{ scale: 1.1 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                onClick={() => setView('newChat')}
-                                                className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                                                onClick={() => isAdmin ? setView('newChat') : goToSupportChat()}
+                                                className={`p-2 rounded-full transition-colors relative z-10 ${!isAdmin && conversaciones.length === 0
+                                                    ? 'bg-white text-emerald-500 shadow-lg'
+                                                    : 'bg-white/20 hover:bg-white/30'
+                                                    }`}
                                             >
-                                                <Plus className="h-5 w-5 text-white" />
+                                                <Plus className={`h-5 w-5 ${!isAdmin && conversaciones.length === 0 ? 'text-emerald-500' : 'text-white'}`} />
                                             </motion.button>
                                             <button
                                                 onClick={() => setIsOpen(false)}
@@ -361,8 +545,12 @@ export default function ChatFAB() {
                                         {conversaciones.length === 0 ? (
                                             <div className="flex flex-col items-center justify-center h-full text-slate-400 p-6">
                                                 <MessageCircle className="h-16 w-16 mb-4 opacity-30" />
-                                                <p className="font-medium text-center">No tenés conversaciones</p>
-                                                <p className="text-sm text-center mt-1">Tocá + para iniciar una nueva</p>
+                                                <p className="font-medium text-center">
+                                                    {isAdmin ? 'No tenés conversaciones' : '¿Necesitás ayuda?'}
+                                                </p>
+                                                <p className="text-sm text-center mt-1 text-slate-400">
+                                                    {isAdmin ? 'Tocá + para iniciar una nueva' : 'Contactá a nuestro equipo de soporte'}
+                                                </p>
                                             </div>
                                         ) : (
                                             conversaciones.map((conv) => (
@@ -381,7 +569,7 @@ export default function ChatFAB() {
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center justify-between">
                                                             <span className="font-semibold text-slate-800 truncate">
-                                                                {conv.usuarioNombre || 'Usuario'}
+                                                                {isAdmin ? (conv.usuarioNombre || 'Usuario') : 'Soporte'}
                                                             </span>
                                                             <span className="text-xs text-slate-400 flex-shrink-0 ml-2">
                                                                 {formatTime(conv.lastMessageAt)}
@@ -489,7 +677,7 @@ export default function ChatFAB() {
                                             <User className="h-5 w-5 text-white" />
                                         </div>
                                         <div className="flex-1">
-                                            <h2 className="text-white font-bold">{selectedConv?.usuarioNombre || 'Chat'}</h2>
+                                            <h2 className="text-white font-bold">{isAdmin ? (selectedConv?.usuarioNombre || 'Chat') : 'Soporte'}</h2>
                                             <p className="text-white/70 text-xs flex items-center gap-1">
                                                 <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse" />
                                                 En línea
@@ -526,7 +714,7 @@ export default function ChatFAB() {
                                                                 : 'bg-white text-slate-800 rounded-bl-md'
                                                                 }`}
                                                         >
-                                                            <p className="text-sm whitespace-pre-wrap">{msg.contenido}</p>
+                                                            <p className="text-sm whitespace-pre-wrap">{renderContentWithEmojis(msg.contenido)}</p>
                                                             <div className={`flex items-center justify-end gap-1 mt-1 ${isMyMessage ? 'text-white/70' : 'text-slate-400'
                                                                 }`}>
                                                                 <span className="text-xs">
@@ -580,9 +768,9 @@ export default function ChatFAB() {
                                                         <button
                                                             key={emoji}
                                                             onClick={() => insertEmoji(emoji)}
-                                                            className="text-xl hover:bg-white rounded-lg p-1.5 transition-colors hover:scale-110"
+                                                            className="flex items-center justify-center hover:bg-white rounded-lg p-1.5 transition-colors hover:scale-110"
                                                         >
-                                                            {emoji}
+                                                            <Twemoji emoji={emoji} className="w-6 h-6" />
                                                         </button>
                                                     ))}
                                                 </div>

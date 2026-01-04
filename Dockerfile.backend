@@ -23,6 +23,10 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
+# Install tzdata for timezone support
+RUN apk add --no-cache tzdata
+ENV TZ=America/Asuncion
+
 # Create non-root user
 RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup
@@ -51,4 +55,5 @@ ENTRYPOINT ["java", \
     "-XX:MaxGCPauseMillis=100", \
     "-XX:+OptimizeStringConcat", \
     "-Dspring.profiles.active=docker", \
+    "-Duser.timezone=America/Asuncion", \
     "-jar", "app.jar"]

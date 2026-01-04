@@ -11,33 +11,27 @@ services:
       MYSQL_DATABASE: asamblea_db
       MYSQL_USER: asamblea_user
       MYSQL_PASSWORD: asamblea_pass_2024
+      TZ: America/Asuncion
     volumes:
       - asamblea_mysql_data:/var/lib/mysql
+      - /etc/localtime:/etc/localtime:ro
     networks:
       - asamblea-network
     command: >
-      --innodb-buffer-pool-size=512M
-      --innodb-flush-log-at-trx-commit=2
-      --innodb-flush-method=O_DIRECT
-      --max-connections=150
-      --thread-cache-size=16
-      --table-open-cache=2000
-      --sort-buffer-size=4M
-      --read-buffer-size=2M
-      --performance-schema=OFF
+      --innodb-buffer-pool-size=512M --innodb-flush-log-at-trx-commit=2 --innodb-flush-method=O_DIRECT --max-connections=150 --thread-cache-size=16 --table-open-cache=2000 --sort-buffer-size=4M --read-buffer-size=2M --performance-schema=OFF --default-time-zone=-03:00
     deploy:
       resources:
         limits:
           memory: 1G
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pasamblea_root_2024"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pasamblea_root_2024" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
     # NO ports exposed to host - only accessible within Docker network
 
-  # Spring Boot Backend
+    # Spring Boot Backend
   backend:
     build:
       context: .
@@ -45,11 +39,11 @@ services:
     container_name: asamblea-backend
     restart: unless-stopped
     ports:
-      - "8081:8081"  # Port 8081 on host -> 8081 in container
+      - "8081:8081" # Port 8081 on host -> 8081 in container
 
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/asamblea_db?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/asamblea_db?createDatabaseIfNotExist=true&serverTimezone=America/Asuncion&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: asamblea_user
       SPRING_DATASOURCE_PASSWORD: asamblea_pass_2024
       JAVA_OPTS: "-Xms384m -Xmx768m -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC"
@@ -58,14 +52,14 @@ services:
         limits:
           memory: 1200M
     volumes:
-       - ./uploads:/app/uploads
+      - ./uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
     networks:
       - asamblea-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/api/configuracion"]
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/api/configuracion" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -90,7 +84,7 @@ services:
     volumes:
       - ./uploads:/app/uploads
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6001"]
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6001" ]
       interval: 30s
       timeout: 10s
       retries: 5

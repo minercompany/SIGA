@@ -71,20 +71,19 @@ public class UsuarioActivityController {
         // Inicializar array de 24 horas
         int[] actividadPorHora = new int[24];
 
-        // Usar zona horaria -03:00 (latam)
-        java.time.ZoneId zone = java.time.ZoneId.of("-03:00");
-        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(zone);
-        java.time.LocalDate hoy = now.toLocalDate();
+        // Obtener fecha de hoy (ya en zona horaria local America/Asuncion)
+        java.time.LocalDate hoy = java.time.LocalDate.now();
 
-        List<Usuario> users = usuarioRepository.findAll();
+        List<Usuario> users = usuarioRepository.findAll().stream()
+                .filter(Usuario::isActivo) // Solo usuarios activos
+                .collect(Collectors.toList());
 
         for (Usuario u : users) {
             if (u.getLastLogin() != null) {
-                java.time.ZonedDateTime zdt = u.getLastLogin().atZone(java.time.ZoneOffset.UTC)
-                        .withZoneSameInstant(zone);
-
-                if (zdt.toLocalDate().equals(hoy)) {
-                    int hora = zdt.getHour();
+                // Las fechas ya están en zona horaria local (America/Asuncion)
+                // No se necesita conversión
+                if (u.getLastLogin().toLocalDate().equals(hoy)) {
+                    int hora = u.getLastLogin().getHour();
                     if (hora >= 0 && hora < 24) {
                         actividadPorHora[hora]++;
                     }
@@ -97,6 +96,53 @@ public class UsuarioActivityController {
                 List.of("00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15",
                         "16", "17", "18", "19", "20", "21", "22", "23"),
                 "data", actividadPorHora));
+    }
+
+    /**
+     * Endpoint para obtener usuarios que entraron en una hora específica del día
+     * actual.
+     */
+    @GetMapping("/stats-actividad/{hora}")
+    public ResponseEntity<?> getUsuariosPorHora(@PathVariable int hora, Authentication auth) {
+        if (auth == null)
+            return ResponseEntity.status(401).build();
+
+        if (hora < 0 || hora > 23) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Hora inválida"));
+        }
+
+        java.time.LocalDate hoy = java.time.LocalDate.now();
+        List<Usuario> users = usuarioRepository.findAll().stream()
+                .filter(Usuario::isActivo) // Solo usuarios activos
+                .collect(Collectors.toList());
+
+        List<Map<String, Object>> usuariosEnHora = users.stream()
+                .filter(u -> u.getLastLogin() != null)
+                .filter(u -> u.getLastLogin().toLocalDate().equals(hoy))
+                .filter(u -> u.getLastLogin().getHour() == hora)
+                .map(u -> {
+                    Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("id", u.getId());
+                    map.put("username", u.getUsername());
+                    map.put("nombreCompleto", u.getNombreCompleto());
+                    map.put("rol", u.getRol().name());
+                    map.put("sucursal",
+                            u.getSucursal() != null ? u.getSucursal().getNombre()
+                                    : (u.getSocio() != null && u.getSocio().getSucursal() != null
+                                            ? u.getSocio().getSucursal().getNombre()
+                                            : "N/A"));
+                    map.put("horaExacta", u.getLastLogin().toLocalTime().toString());
+                    map.put("lastLogin", u.getLastLogin());
+                    return map;
+                })
+                .sorted((a, b) -> ((String) b.get("horaExacta")).compareTo((String) a.get("horaExacta")))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(Map.of(
+                "hora", hora,
+                "horaFormateada", String.format("%02d:00 hs", hora),
+                "total", usuariosEnHora.size(),
+                "usuarios", usuariosEnHora));
     }
 
     /**
@@ -113,7 +159,7 @@ public class UsuarioActivityController {
             return ResponseEntity.status(403).body(Map.of("error", "No tienes permisos"));
         }
 
-        List<Usuario> usuarios = usuarioRepository.findAllWithRelations();
+        List<Usuario> usuarios = usuarioRepository.findAllActiveWithRelations();
         LocalDateTime now = LocalDateTime.now();
 
         // Obtener conteos de registros y asignaciones por usuario vía JDBC para
@@ -159,7 +205,8 @@ public class UsuarioActivityController {
                     .isOnline(isOnline)
                     .totalRegistros(reg)
                     .totalAsignaciones(asig)
-                    .timeOnlineFormatted(formatTime(u.getTotalOnlineSeconds()))
+                    .timeOnlineFormatted(formatTime(u.getTotalOnlineSeconds(), reg, asig,
+                            u.getLoginCount() != null ? u.getLoginCount() : 0))
                     .lastSeenRelative(formatLastSeen(u.getLastLogin(), isOnline))
                     .build();
 
@@ -197,12 +244,19 @@ public class UsuarioActivityController {
             data = new java.util.ArrayList<>();
 
         if (filtro.equals("habituales")) {
-            data = data.stream().filter(u -> u.getLastLogin() != null).collect(Collectors.toList());
+            data = data.stream().filter(u -> u.getLastLogin() != null || u.getTotalOnlineSeconds() > 0
+                    || u.getTotalRegistros() > 0 || u.getTotalAsignaciones() > 0).collect(Collectors.toList());
         } else if (filtro.equals("no-entraron")) {
-            data = data.stream().filter(u -> u.getLastLogin() == null).collect(Collectors.toList());
+            data = data.stream().filter(u -> u.getLastLogin() == null && u.getTotalOnlineSeconds() == 0
+                    && u.getTotalRegistros() == 0 && u.getTotalAsignaciones() == 0).collect(Collectors.toList());
         }
 
-        String titulo = filtro.equals("habituales") ? "Usuarios Habituales" : "Reporte General de Usuarios";
+        String titulo = "REPORTE GENERAL DE USUARIOS";
+        if (filtro.equals("habituales")) {
+            titulo = "REPORTE DE USUARIOS ACTIVOS & HABITUALES";
+        } else if (filtro.equals("no-entraron")) {
+            titulo = "REPORTE DE USUARIOS SIN ACTIVIDAD REGISTRADA";
+        }
         byte[] pdf = exportService.generarPdfActividad(data, titulo);
 
         return ResponseEntity.ok()
@@ -227,9 +281,11 @@ public class UsuarioActivityController {
             data = new java.util.ArrayList<>();
 
         if (filtro.equals("habituales")) {
-            data = data.stream().filter(u -> u.getLastLogin() != null).collect(Collectors.toList());
+            data = data.stream().filter(u -> u.getLastLogin() != null || u.getTotalOnlineSeconds() > 0
+                    || u.getTotalRegistros() > 0 || u.getTotalAsignaciones() > 0).collect(Collectors.toList());
         } else if (filtro.equals("no-entraron")) {
-            data = data.stream().filter(u -> u.getLastLogin() == null).collect(Collectors.toList());
+            data = data.stream().filter(u -> u.getLastLogin() == null && u.getTotalOnlineSeconds() == 0
+                    && u.getTotalRegistros() == 0 && u.getTotalAsignaciones() == 0).collect(Collectors.toList());
         }
 
         String titulo = filtro.equals("habituales") ? "Usuarios Habituales" : "Reporte General de Usuarios";
@@ -241,9 +297,28 @@ public class UsuarioActivityController {
                 .body(excel);
     }
 
-    private String formatTime(Long seconds) {
-        if (seconds == null || seconds == 0)
+    private String formatTime(Long seconds, long registros, long asignaciones, long loginCount) {
+        long effectiveSeconds = (seconds != null) ? seconds : 0L;
+
+        // Si el tiempo real es 0 pero hay actividad, estimamos el tiempo
+        if (effectiveSeconds == 0 && (registros > 0 || asignaciones > 0)) {
+            // Estimación: ~30 seg por registro, ~20 seg por asignación
+            long estimatedSeconds = (registros * 30) + (asignaciones * 20);
+            return "~" + formatSeconds(estimatedSeconds); // Prefijo ~ indica estimado
+        }
+
+        // Si no hay tiempo ni actividad
+        if (effectiveSeconds == 0) {
+            if (loginCount > 0) {
+                return "< 1m";
+            }
             return "0s";
+        }
+
+        return formatSeconds(effectiveSeconds);
+    }
+
+    private String formatSeconds(long seconds) {
         long h = seconds / 3600;
         long m = (seconds % 3600) / 60;
         long s = seconds % 60;

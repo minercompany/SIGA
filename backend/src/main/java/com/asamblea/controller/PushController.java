@@ -58,7 +58,7 @@ public class PushController {
     @PostMapping("/send-test")
     public ResponseEntity<?> sendTest(Authentication auth) {
         // Solo para admin
-        pushService.sendToSuperAdmins("Prueba de Notificación", "Esto es una prueba del sistema de asamblea.");
+        pushService.sendToAdmins("Prueba de Notificación", "Esto es una prueba del sistema de asamblea.");
         return ResponseEntity.ok(Map.of("message", "Sent"));
     }
 }

@@ -247,7 +247,7 @@ public class AsignacionController {
                 request.getRemoteAddr());
 
         // Notificar a Admins
-        pushService.sendToSuperAdmins(
+        pushService.sendToAdmins(
                 "🚀 ¡Nueva Lista Creada!",
                 user.getNombreCompleto() + " ha creado la lista: " + lista.getNombre());
 
@@ -493,7 +493,7 @@ public class AsignacionController {
                 admin.getUsername(),
                 "API_ADMIN");
 
-        pushService.sendToSuperAdmins(
+        pushService.sendToAdmins(
                 "✅ ¡Socio Vinculado!",
                 admin.getNombreCompleto() + " asignó al socio " + socioOpt.get().getNombreCompleto() + " a "
                         + destino.getNombreCompleto());
@@ -586,7 +586,7 @@ public class AsignacionController {
         // El requisito dice "cuando una persona hace una asignacion"
         if (avisoService.isNotificacionesAsignacionActivas()) {
             System.out.println("DEBUG: Notificaciones de asignación activas. Enviando push a admins...");
-            pushService.sendToSuperAdmins(
+            pushService.sendToAdmins(
                     "📝 Nueva Asignación",
                     currentUser.getNombreCompleto() + " asignó a " + socio.getNombreCompleto() + " en la lista: "
                             + lista.getNombre());
