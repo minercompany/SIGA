@@ -23,6 +23,7 @@ import { ActiveUsersModal } from "./ActiveUsersModal";
 import { ActivityWidget } from "./ActivityWidget";
 import { DailyAssignmentsWidget } from "./DailyAssignmentsWidget";
 import { DailyAssignmentsModal } from "./DailyAssignmentsModal";
+import { SucursalAvanceWidget } from "./SucursalAvanceWidget";
 
 interface AdminDashboardProps {
     stats: {
@@ -423,7 +424,6 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            transition={{ delay: 0.1 }}
                             onClick={() => {
                                 setActivityReportFilter("habituales");
                                 setIsActivityReportModalOpen(true);
@@ -466,7 +466,6 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.15 }}
-                            transition={{ delay: 0.15 }}
                             onClick={() => {
                                 setActivityReportFilter("todos");
                                 setIsActivityReportModalOpen(true);
@@ -508,7 +507,6 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                             whileTap={{ scale: 0.97 }}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
                             transition={{ delay: 0.2 }}
                             onClick={() => {
                                 setActivityReportFilter("sin-registros");
@@ -889,67 +887,10 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                     </div>
                 </motion.div>
 
-                {/* Tabla de Ranking Regional */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100"
-                >
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl shadow-lg">
-                                <Building2 className="h-5 w-5 text-white" />
-                            </div>
-                            <h3 className="font-black text-slate-800 uppercase tracking-wider text-sm">Ranking Regional</h3>
-                        </div>
-                        <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-full uppercase">Top 8</span>
-                    </div>
-
-                    <div className="overflow-hidden rounded-xl border border-slate-100">
-                        <table className="w-full">
-                            <thead className="bg-slate-50">
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-black text-slate-500 uppercase tracking-wider">Sucursal</th>
-                                    <th className="px-4 py-3 text-right text-xs font-black text-slate-500 uppercase tracking-wider">Padrón</th>
-                                    <th className="px-4 py-3 text-right text-xs font-black text-slate-500 uppercase tracking-wider">V&V</th>
-                                    <th className="px-4 py-3 text-center text-xs font-black text-slate-500 uppercase tracking-wider">%</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {desempeno.slice(0, 8).map((row, i) => (
-                                    <motion.tr
-                                        key={i}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: i * 0.05 }}
-                                        className="hover:bg-slate-50/50 transition-colors"
-                                    >
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className={`h-2 w-2 rounded-full ${i < 3 ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-                                                <span className="font-bold text-slate-700 text-sm">{row.sucursal}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3 text-right font-bold text-slate-800 text-sm">{row.padron?.toLocaleString()}</td>
-                                        <td className="px-4 py-3 text-right font-bold text-indigo-600 text-sm">{row.vozVoto?.toLocaleString()}</td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <div className="h-2 w-16 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
-                                                        style={{ width: `${Math.min(row.ratio, 100)}%` }}
-                                                    />
-                                                </div>
-                                                <span className="text-xs font-black text-slate-500 w-10">{row.ratio}%</span>
-                                            </div>
-                                        </td>
-                                    </motion.tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </motion.div>
+                {/* Tabla de Ranking Regional (Reemplazado por Avance Sucursal) */}
+                <div className="h-[400px]">
+                    <SucursalAvanceWidget />
+                </div>
             </div>
 
             {/* Mini Stats Footer */}

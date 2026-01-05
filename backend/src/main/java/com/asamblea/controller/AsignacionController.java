@@ -9,7 +9,10 @@ import com.asamblea.repository.ListaAsignacionRepository;
 import com.asamblea.repository.SocioRepository;
 import com.asamblea.repository.UsuarioRepository;
 import com.asamblea.repository.AsistenciaRepository;
+import com.asamblea.service.ReporteExportService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -1024,5 +1027,133 @@ public class AsignacionController {
         }
         Long count = asignacionRepository.countAsignacionesHoy();
         return ResponseEntity.ok(Map.of("totalHoy", count != null ? count : 0));
+    }
+
+    @Autowired
+    private ReporteExportService reporteExportService;
+
+    /**
+     * Exportar PDF General de Gestión de Listas
+     */
+    @GetMapping("/export-pdf-general")
+    public ResponseEntity<byte[]> exportarPdfGeneral(Authentication auth) {
+        if (auth == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Usuario admin = usuarioRepository.findByUsername(auth.getName()).orElse(null);
+        if (admin == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // Verificar permisos
+        boolean hasGranularPermission = admin.getPermisosEspeciales() != null
+                && admin.getPermisosEspeciales().contains("gestion-listas");
+        if (admin.getRol() != Usuario.Rol.SUPER_ADMIN && !hasGranularPermission) {
+            return ResponseEntity.status(403).build();
+        }
+
+        try {
+            // Obtener ranking completo
+            String sql = """
+                SELECT
+                    u.id,
+                    u.nombre_completo as nombre,
+                    u.username,
+                    u.rol,
+                    COALESCE(suc.nombre, 'Sin Sucursal') as sucursal,
+                    COUNT(a.id) as totalAsignados,
+                    SUM(CASE WHEN (s.aporte_al_dia = 1 AND s.solidaridad_al_dia = 1 AND s.fondo_al_dia = 1 AND s.incoop_al_dia = 1 AND s.credito_al_dia = 1) THEN 1 ELSE 0 END) as vyv,
+                    SUM(CASE WHEN NOT (s.aporte_al_dia = 1 AND s.solidaridad_al_dia = 1 AND s.fondo_al_dia = 1 AND s.incoop_al_dia = 1 AND s.credito_al_dia = 1) THEN 1 ELSE 0 END) as soloVoz
+                FROM usuarios u
+                LEFT JOIN sucursales suc ON u.id_sucursal = suc.id
+                INNER JOIN listas_asignacion la ON la.user_id = u.id
+                INNER JOIN asignaciones_socios a ON a.lista_id = la.id
+                INNER JOIN socios s ON a.socio_id = s.id
+                GROUP BY u.id, u.nombre_completo, u.username, u.rol, suc.nombre
+                HAVING totalAsignados > 0
+                ORDER BY totalAsignados DESC
+            """;
+
+            List<Map<String, Object>> ranking = jdbcTemplate.queryForList(sql);
+
+            byte[] pdfContent = reporteExportService.generarPdfGestionListasGeneral(ranking);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=gestion_listas_general.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfContent);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Exportar PDF de Lista de un Usuario específico
+     */
+    @GetMapping("/export-pdf-usuario/{userId}")
+    public ResponseEntity<byte[]> exportarPdfUsuario(@PathVariable Long userId, Authentication auth) {
+        if (auth == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Usuario admin = usuarioRepository.findByUsername(auth.getName()).orElse(null);
+        if (admin == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // Verificar permisos
+        boolean hasGranularPermission = admin.getPermisosEspeciales() != null
+                && admin.getPermisosEspeciales().contains("gestion-listas");
+        if (admin.getRol() != Usuario.Rol.SUPER_ADMIN && !hasGranularPermission) {
+            return ResponseEntity.status(403).build();
+        }
+
+        try {
+            Usuario targetUser = usuarioRepository.findById(userId).orElse(null);
+            if (targetUser == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Obtener todos los socios asignados a este usuario
+            String sql = """
+                SELECT
+                    s.numero_socio,
+                    s.cedula,
+                    s.nombre_completo,
+                    COALESCE(suc.nombre, 'Sin Sucursal') as sucursal,
+                    CASE WHEN (s.aporte_al_dia = 1 AND s.solidaridad_al_dia = 1 AND s.fondo_al_dia = 1 AND s.incoop_al_dia = 1 AND s.credito_al_dia = 1) THEN 1 ELSE 0 END as es_vyv,
+                    a.fecha_asignacion,
+                    s.aporte_al_dia, s.solidaridad_al_dia, s.fondo_al_dia, s.incoop_al_dia, s.credito_al_dia
+                FROM asignaciones_socios a
+                INNER JOIN socios s ON a.socio_id = s.id
+                LEFT JOIN sucursales suc ON s.id_sucursal = suc.id
+                INNER JOIN listas_asignacion la ON a.lista_id = la.id
+                WHERE la.user_id = ?
+                ORDER BY CAST(s.numero_socio AS UNSIGNED), s.nombre_completo
+            """;
+
+            List<Map<String, Object>> socios = jdbcTemplate.queryForList(sql, userId);
+
+            byte[] pdfContent = reporteExportService.generarPdfListaUsuario(
+                socios,
+                targetUser.getNombreCompleto(),
+                targetUser.getUsername(),
+                targetUser.getRol().name()
+            );
+
+            String filename = "lista_" + targetUser.getUsername().toLowerCase().replace(" ", "_") + ".pdf";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfContent);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

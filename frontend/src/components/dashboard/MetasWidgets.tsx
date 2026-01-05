@@ -10,7 +10,8 @@ import {
     BarChart3,
     CheckCircle2,
     AlertCircle,
-    Info
+    Info,
+    Download
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
@@ -46,6 +47,7 @@ interface MetasWidgetsProps {
 export function MetasWidgets({ userId }: MetasWidgetsProps) {
     const [data, setData] = useState<MetasData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [downloading, setDownloading] = useState<"vyv" | "voz" | null>(null);
 
     useEffect(() => {
         const fetchMetas = async () => {
@@ -54,7 +56,7 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                 const headers = { Authorization: `Bearer ${token}` };
                 const url = userId
                     ? `/api/dashboard/metas?userId=${userId}`
-                   :"/api/dashboard/metas";
+                    : "/api/dashboard/metas";
 
                 const response = await axios.get(url, { headers });
                 setData(response.data);
@@ -67,6 +69,32 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
 
         fetchMetas();
     }, [userId]);
+
+    const handleExportPdf = async (tipo: "vyv" | "voz") => {
+        if (downloading) return;
+        setDownloading(tipo);
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.get(`/api/dashboard/export-socios-pdf?tipo=${tipo}`, {
+                headers: { Authorization: `Bearer ${token}` },
+                responseType: 'blob'
+            });
+
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = tipo === "vyv" ? "socios_voz_y_voto.pdf" : "socios_solo_voz.pdf";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Error exporting PDF:", error);
+        } finally {
+            setDownloading(null);
+        }
+    };
 
     if (loading) return <div className="animate-pulse h-32 bg-slate-100 rounded-3xl w-full mb-6"></div>;
     if (!data) return null;
@@ -127,7 +155,7 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                             initial={{ width: 0 }}
                             animate={{ width: `${progressWidth}%` }}
                             transition={{ duration: 1.5, ease: "easeOut" }}
-                            className={`h-full rounded-full relative ${data.cumplida ? 'bg-gradient-to-r from-emerald-400 to-teal-500':'bg-gradient-to-r from-blue-500 to-indigo-500'}`}
+                            className={`h-full rounded-full relative ${data.cumplida ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-blue-500 to-indigo-500'}`}
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_infinite]" />
                         </motion.div>
@@ -141,11 +169,11 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                             <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                             <span className="text-emerald-100 font-medium text-sm">¡Excelente! Has cumplido tu meta como {data.cargo}.</span>
                         </>
-                    ):(
+                    ) : (
                         <>
                             <TrendingUp className="h-5 w-5 text-amber-400" />
                             <span className="text-slate-300 font-medium text-sm">
-                                {data.porcentajeMeta < 50 ? "Necesitas aumentar registros de Voz y Voto.":"¡Vas bien! Sigue registrando socios habilitados."}
+                                {data.porcentajeMeta < 50 ? "Necesitas aumentar registros de Voz y Voto." : "¡Vas bien! Sigue registrando socios habilitados."}
                             </span>
                         </>
                     )}
@@ -167,7 +195,7 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                 </div>
 
                 <div className="flex flex-col items-center justify-center flex-1 py-2">
-                    {data.faltanMeta> 0 ? (
+                    {data.faltanMeta > 0 ? (
                         <>
                             <span className="text-3xl xs:text-5xl md:text-5xl font-black text-slate-800 tracking-tighter group-hover:scale-110 transition-transform duration-300">
                                 {data.faltanMeta}
@@ -176,7 +204,7 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                                 Socios Voz y Voto
                             </span>
                         </>
-                    ):(
+                    ) : (
                         <div className="text-center">
                             <span className="inline-flex items-center justify-center h-16 w-16 bg-emerald-100 text-emerald-500 rounded-full mb-2">
                                 <Award className="h-8 w-8" />
@@ -239,14 +267,34 @@ export function MetasWidgets({ userId }: MetasWidgetsProps) {
                 </div>
 
                 <div className="flex justify-between items-center mt-2 text-xs font-bold">
-                    <div className="flex items-center gap-1.5">
+                    <button
+                        onClick={() => handleExportPdf("vyv")}
+                        disabled={downloading === "vyv"}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors cursor-pointer group"
+                        title="Descargar PDF de socios con Voz y Voto"
+                    >
                         <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                        <span className="text-slate-600">V&V</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
+                        <span className="text-slate-600 group-hover:text-emerald-600">V&V</span>
+                        {downloading === "vyv" ? (
+                            <Download className="h-3 w-3 text-emerald-500 animate-bounce" />
+                        ) : (
+                            <Download className="h-3 w-3 text-slate-400 group-hover:text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
+                    </button>
+                    <button
+                        onClick={() => handleExportPdf("voz")}
+                        disabled={downloading === "voz"}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-amber-50 transition-colors cursor-pointer group"
+                        title="Descargar PDF de socios Solo Voz"
+                    >
                         <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                        <span className="text-slate-600">Voz</span>
-                    </div>
+                        <span className="text-slate-600 group-hover:text-amber-600">Voz</span>
+                        {downloading === "voz" ? (
+                            <Download className="h-3 w-3 text-amber-500 animate-bounce" />
+                        ) : (
+                            <Download className="h-3 w-3 text-slate-400 group-hover:text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
+                    </button>
                 </div>
             </motion.div>
 

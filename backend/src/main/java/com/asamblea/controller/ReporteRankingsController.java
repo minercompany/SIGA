@@ -18,6 +18,7 @@ import java.util.Map;
 @RequestMapping("/api/reportes/rankings")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@SuppressWarnings("null")
 public class ReporteRankingsController {
 
     private final JdbcTemplate jdbcTemplate;

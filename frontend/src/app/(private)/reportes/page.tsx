@@ -6,7 +6,7 @@ import axios from "axios";
 import {
     Users, Building2, UserCircle2, BarChart3,
     TrendingUp, FileText, CheckCircle2, AlertCircle,
-    Download, ChevronDown, Map, Printer
+    Download, ChevronDown, Map, Printer, UserX
 } from "lucide-react";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -18,7 +18,7 @@ import * as XLSX from 'xlsx';
 
 // --- TIPOS ---
 type Alcance = "GLOBAL" | "SUCURSAL" | "ASESOR";
-type ReporteTipo = "GESTION" | "PADRON" | "ASISTENCIA" | "TOP";
+type ReporteTipo = "GESTION" | "PADRON" | "ASISTENCIA" | "TOP" | "SIN_CARGA";
 
 export default function IntelligenceHubPage() {
     // --- ESTADOS DE FILTRO ---
@@ -31,6 +31,11 @@ export default function IntelligenceHubPage() {
 
     // Configuración de Reporte
     const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
+
+    // Estado para reporte SIN_CARGA
+    const [soloAsesores, setSoloAsesores] = useState(false);
+    const [usuariosSinCarga, setUsuariosSinCarga] = useState<any[]>([]);
+    const [loadingSinCarga, setLoadingSinCarga] = useState(false);
 
     // --- DATOS MAESTROS ---
     const [sucursales, setSucursales] = useState<any[]>([]);
@@ -92,6 +97,35 @@ export default function IntelligenceHubPage() {
 
         loadMasterData();
     }, []);
+
+    // --- CARGAR USUARIOS SIN CARGA ---
+    useEffect(() => {
+        if (reporteTipo !== 'SIN_CARGA') return;
+
+        const fetchUsuariosSinCarga = async () => {
+            setLoadingSinCarga(true);
+            try {
+                const token = localStorage.getItem("token");
+                const params = new URLSearchParams();
+                params.append('soloAsesores', String(soloAsesores));
+                if (selectedSucursalId) {
+                    params.append('sucursalId', String(selectedSucursalId));
+                }
+
+                const res = await axios.get(`/api/reportes/usuarios-sin-carga?${params.toString()}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setUsuariosSinCarga(res.data);
+            } catch (error) {
+                console.error("Error cargando usuarios sin carga:", error);
+                setUsuariosSinCarga([]);
+            } finally {
+                setLoadingSinCarga(false);
+            }
+        };
+
+        fetchUsuariosSinCarga();
+    }, [reporteTipo, soloAsesores, selectedSucursalId]);
 
     // --- MOTOR DE PROCESAMIENTO ---
     const processedData = useMemo(() => {
@@ -605,6 +639,7 @@ export default function IntelligenceHubPage() {
                         { id: "PADRON", label: "Padrón", icon: FileText },
                         { id: "ASISTENCIA", label: "En Vivo", icon: CheckCircle2 },
                         { id: "TOP", label: "Rankings", icon: AlertCircle },
+                        { id: "SIN_CARGA", label: "Sin Carga", icon: UserX },
                     ].map((tab) => (
                         <button
                             key={tab.id}
@@ -626,293 +661,445 @@ export default function IntelligenceHubPage() {
                 </div>
             </header>
 
-            {/* --- CONTENIDO DINÁMICO INTERACTIVO (Oculto al imprimir) --- */}
-            <main className="max-w-7xl mx-auto print:hidden">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-gradient-to-br from-white to-slate-50/50 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group overflow-hidden hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300">
-                        <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <Users size={80} />
-                        </div>
-                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total Registrados</p>
-                        <h3 className="text-4xl font-black bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-transparent">{processedData.totalRegistrados.toLocaleString()}</h3>
-                        <div className="mt-2 text-xs text-emerald-600 font-bold bg-emerald-50 inline-block px-2 py-1 rounded">
-                            {alcance === 'GLOBAL' ? 'Total Cooperativa' : 'Sede/Funcionario'}
-                        </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-white to-slate-50/50 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group overflow-hidden hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300">
-                        <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <TrendingUp size={80} />
-                        </div>
-                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total Habilitados</p>
-                        <h3 className="text-4xl font-black bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-transparent">{processedData.totalHabilitados.toLocaleString()}</h3>
-                        <div className="mt-4 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(processedData.cumplimiento, 100)}%` }} />
-                        </div>
-                    </div>
-
-                    {/* Nuevas Tarjetas Visuales */}
-                    <div className="bg-gradient-to-br from-white to-slate-50/50 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group overflow-hidden hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300">
-                        <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <FileText size={80} />
-                        </div>
-                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Habilitados Voz/Voto</p>
-                        <div className="flex gap-4 items-end">
-                            <div>
-                                <h3 className="text-2xl font-black bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-transparent">{processedData.totalVoto.toLocaleString()}</h3>
-                                <div className="text-[10px] text-slate-400 font-bold uppercase">Voz y Voto</div>
-                            </div>
-                            <div className="h-full border-l border-slate-200 pl-4">
-                                <h3 className="text-2xl font-black text-slate-500">{processedData.totalVoz.toLocaleString()}</h3>
-                                <div className="text-[10px] text-slate-400 font-bold uppercase">Solo Voz</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-white to-slate-50/50 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group overflow-hidden hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300">
-                        <div className="flex h-full items-center justify-between">
-                            <div>
-                                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Avance General</p>
-                                <h3 className={`text-5xl font-black ${processedData.cumplimiento >= 100 ? 'text-emerald-500' : 'bg-gradient-to-br from-blue-600 to-blue-400 bg-clip-text text-transparent'}`}>
-                                    {processedData.cumplimiento.toFixed(1)}%
-                                </h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    {/* --- GRAFICO PRINCIPAL (OVERVIEW) --- */}
-                    <div id="chart-overview" className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 lg:col-span-2 relative overflow-hidden">
-                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-3 mb-6">
-                            <div>
-                                <h3 className="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
-                                    <BarChart3 className="h-5 w-5 text-emerald-500" />
-                                    Panorama General
-                                </h3>
-                                <p className="text-xs md:text-sm text-slate-400">Comparativa de Metas vs Realizado</p>
-                            </div>
-                            {/* Leyenda más compacta en móvil */}
-                            <div className="flex flex-wrap gap-2">
-                                <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2 md:px-3 py-1 md:py-1.5 rounded-lg">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                    {reporteTipo === 'ASISTENCIA' ? 'Presentes' : 'Registrados'}
-                                </div>
-                                <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2 md:px-3 py-1 md:py-1.5 rounded-lg">
-                                    <div className="w-2 h-2 rounded-full bg-slate-300"></div>
-                                    Habilitados
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="h-[320px] w-full">
-                            <ResponsiveContainer width="100%" height="100%" minHeight={280}>
-                                <BarChart data={processedData.chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }} barGap={8}>
-                                    <defs>
-                                        <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
-                                            <stop offset="100%" stopColor="#059669" stopOpacity={1} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.15} stroke="#cbd5e1" />
-                                    <XAxis
-                                        dataKey="name"
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tick={{ fill: '#64748b', fontSize: 9, fontWeight: 600 }}
-                                        interval={0}
-                                        dy={5}
-                                        angle={-35}
-                                        textAnchor="end"
-                                        height={80}
-                                        tickFormatter={(value) => value.length > 12 ? value.substring(0, 10) + '...' : value}
+            {/* --- CONTENIDO ESPECÍFICO PARA SIN_CARGA --- */}
+            {reporteTipo === 'SIN_CARGA' && (
+                <main className="max-w-7xl mx-auto print:hidden">
+                    {/* Filtros específicos */}
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
+                        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <UserX className="h-5 w-5 text-red-500" />
+                                Usuarios Sin Carga
+                            </h3>
+                            <div className="flex flex-wrap gap-4 ml-auto">
+                                {/* Toggle Solo Asesores */}
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={soloAsesores}
+                                        onChange={(e) => setSoloAsesores(e.target.checked)}
+                                        className="w-4 h-4 text-emerald-500 rounded focus:ring-emerald-500"
                                     />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                                    <RechartsTooltip
-                                        cursor={{ fill: '#f1f5f9', radius: 12 }}
-                                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px -5px rgb(0 0 0/0.1)' }}
-                                        itemStyle={{ color: '#1e293b', fontWeight: 600 }}
-                                        formatter={(value: any) => value?.toLocaleString()}
-                                    />
-                                    <Legend iconType="circle" verticalAlign="top" height={36} wrapperStyle={{ right: 0, top: -20, fontSize: '12px', fontWeight: 600 }} />
-
-                                    <Bar
-                                        dataKey="value"
-                                        name={reporteTipo === 'ASISTENCIA' ? 'Presentes' : 'Registrados'}
-                                        fill="url(#barGradient)"
-                                        radius={[6, 6, 6, 6]}
-                                        barSize={20}
-                                        className="drop-shadow-sm"
-                                    />
-                                    <Bar
-                                        dataKey="meta"
-                                        name="Habilitados"
-                                        fill="#e2e8f0"
-                                        radius={[6, 6, 6, 6]}
-                                        barSize={20}
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-
-                    {/* --- DONUT CHART (DISTRIBUTION) --- */}
-                    <div id="chart-distribution" className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col justify-center relative">
-                        <h3 className="text-lg font-bold text-slate-800 mb-2">Distribución</h3>
-                        <p className="text-sm text-slate-400 mb-4">{reporteTipo === 'ASISTENCIA' ? 'Presentes vs Ausentes' : 'Voz y Voto vs Solo Voz'}</p>
-
-                        <div className="h-[250px] w-full relative">
-                            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
-                                <RechartsPieChart>
-                                    <Pie
-                                        data={
-                                            reporteTipo === 'ASISTENCIA'
-                                                ? [{ name: 'Presentes', value: processedData.totalPresentes }, { name: 'Ausentes', value: processedData.totalAusentes }]
-                                                : [{ name: 'Voz y Voto', value: processedData.totalVoto }, { name: 'Solo Voz', value: processedData.totalVoz }]
-                                        }
-                                        cx="50%" cy="50%"
-                                        innerRadius={70} outerRadius={90}
-                                        paddingAngle={5}
-                                        dataKey="value"
-                                        cornerRadius={8}
-                                    >
-                                        <Cell fill={COLORS.primary} />
-                                        <Cell fill={COLORS.warning} />
-                                    </Pie>
-                                    <RechartsTooltip />
-                                </RechartsPieChart>
-                            </ResponsiveContainer>
-                            {/* Center Text */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span className="text-3xl font-black text-slate-800">
-                                    {reporteTipo === 'ASISTENCIA' ? processedData.quorum.toFixed(0) : processedData.cumplimiento.toFixed(0)}%
-                                </span>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                    {reporteTipo === 'ASISTENCIA' ? 'Quorum' : 'Avance'}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="flex justify-center gap-6 mt-2">
-                            <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                                {reporteTipo === 'ASISTENCIA' ? 'Presentes' : 'Voz y Voto'}
-                            </div>
-                            <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                                <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                                {reporteTipo === 'ASISTENCIA' ? 'Ausentes' : 'Solo Voz'}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* --- TABLA DE DETALLE - Mobile optimized with horizontal scroll --- */}
-                    <div className="bg-white p-4 md:p-6 rounded-[2rem] shadow-sm border border-slate-100 lg:col-span-2 flex flex-col h-[400px]">
-                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-3 mb-4 md:mb-6">
-                            <h3 className="text-base md:text-lg font-bold text-slate-800">Desglose Detallado</h3>
-                            <button onClick={handleExportExcel} className="text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg transition-colors touch-manipulation active:scale-95 w-full md:w-auto text-center">
-                                Exportar Datos
-                            </button>
-                        </div>
-                        {/* Scroll horizontal para móvil */}
-                        <div className="flex-1 overflow-auto custom-scrollbar">
-                            <table className="w-full text-left text-sm min-w-[400px]">
-                                <thead className="text-[10px] md:text-xs text-slate-400 font-bold uppercase sticky top-0 bg-white shadow-sm z-10">
-                                    <tr>
-                                        <th className="pb-3 pl-2 whitespace-nowrap">Entidad</th>
-                                        <th className="pb-3 text-right whitespace-nowrap">Real.</th>
-                                        <th className="pb-3 text-right whitespace-nowrap">Meta</th>
-                                        <th className="pb-3 text-right pr-2 whitespace-nowrap">Avance</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50">
-                                    {processedData.chartData.map((d: any, i) => (
-                                        <tr key={i} className="group hover:bg-slate-50 transition-colors">
-                                            <td className="py-3 pl-2 font-medium text-slate-600">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-slate-300 text-[10px] font-mono group-hover:text-emerald-400">#{i + 1}</span>
-                                                    <span className="truncate max-w-[120px] md:max-w-[180px]" title={d.name}>{d.name}</span>
-                                                </div>
-                                            </td>
-                                            <td className="py-3 text-right font-bold text-slate-800 whitespace-nowrap">{d.value.toLocaleString()}</td>
-                                            <td className="py-3 text-right text-slate-400 text-xs whitespace-nowrap">{d.meta.toLocaleString()}</td>
-                                            <td className="py-3 text-right pr-2">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <span className={`text-xs font-bold whitespace-nowrap ${(d.meta > 0 && d.value >= d.meta) ? 'text-emerald-600' : 'text-slate-500'}`}>
-                                                        {d.meta > 0 ? Math.round((d.value / d.meta) * 100) : 0}%
-                                                    </span>
-                                                    <div className="w-10 md:w-12 h-1 bg-slate-100 rounded-full overflow-hidden hidden md:block">
-                                                        <div
-                                                            className={`h-full rounded-full ${(d.meta > 0 && d.value >= d.meta) ? 'bg-emerald-500' : 'bg-slate-300'}`}
-                                                            style={{ width: `${Math.min(100, (d.meta > 0 ? (d.value / d.meta) * 100 : 0))}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                    <span className="text-sm font-medium text-slate-600">Solo Asesores</span>
+                                </label>
+                                {/* Selector Sucursal */}
+                                <select
+                                    value={selectedSucursalId || ""}
+                                    onChange={(e) => setSelectedSucursalId(e.target.value ? Number(e.target.value) : null)}
+                                    className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500"
+                                >
+                                    <option value="">Todas las Sucursales</option>
+                                    {sucursales.map(s => (
+                                        <option key={s.id} value={s.id}>{s.nombre}</option>
                                     ))}
-                                </tbody>
-                            </table>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    {/* --- SECONDARY AREA CHART (TREND/WAVE) & ACTIONS --- */}
-                    <div className="flex flex-col gap-6">
-                        <div className="bg-indigo-600 p-6 rounded-[2rem] shadow-lg shadow-indigo-500/20 text-white relative overflow-hidden flex-1">
-                            <div className="relative z-10">
-                                <h3 className="text-lg font-bold mb-1">Tendencia de Datos</h3>
-                                <p className="text-indigo-200 text-sm mb-4">Comportamiento del registro en tiempo real.</p>
+                    {/* Tarjeta Resumen */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div className="bg-gradient-to-br from-red-50 to-white p-6 rounded-3xl shadow-sm border border-red-100 relative group overflow-hidden">
+                            <div className="absolute right-0 top-0 p-4 opacity-10">
+                                <UserX size={60} />
                             </div>
-                            <div className="absolute bottom-0 left-0 right-0 h-32">
-                                <ResponsiveContainer width="100%" height="100%" minHeight={100}>
-                                    <AreaChart data={processedData.chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                            <p className="text-red-400 text-xs font-bold uppercase tracking-wider mb-2">Usuarios Sin Carga</p>
+                            <h3 className="text-4xl font-black text-red-600">{usuariosSinCarga.length}</h3>
+                            <div className="mt-2 text-xs text-red-500 font-medium">
+                                {soloAsesores ? 'Solo Asesores' : 'Todos los Usuarios'}
+                                {selectedSucursalId ? ` | ${sucursales.find(s => s.id === selectedSucursalId)?.nombre}` : ' | Todas las Sucursales'}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Tabla de Usuarios */}
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+                            <h3 className="text-lg font-bold text-slate-800">Listado de Usuarios</h3>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={async () => {
+                                        const token = localStorage.getItem("token");
+                                        const params = new URLSearchParams();
+                                        params.append('soloAsesores', String(soloAsesores));
+                                        if (selectedSucursalId) params.append('sucursalId', String(selectedSucursalId));
+                                        try {
+                                            const res = await axios.get(`/api/reportes/usuarios-sin-carga/export-pdf?${params.toString()}`, {
+                                                headers: { Authorization: `Bearer ${token}` },
+                                                responseType: 'blob'
+                                            });
+                                            const url = window.URL.createObjectURL(new Blob([res.data]));
+                                            const link = document.createElement('a');
+                                            link.href = url;
+                                            link.setAttribute('download', 'usuarios_sin_carga.pdf');
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            link.remove();
+                                        } catch (err) { console.error('Error descargando PDF:', err); }
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-black transition-all text-sm"
+                                >
+                                    <Printer className="h-4 w-4" />
+                                    PDF
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        const token = localStorage.getItem("token");
+                                        const params = new URLSearchParams();
+                                        params.append('soloAsesores', String(soloAsesores));
+                                        if (selectedSucursalId) params.append('sucursalId', String(selectedSucursalId));
+                                        try {
+                                            const res = await axios.get(`/api/reportes/usuarios-sin-carga/export-excel?${params.toString()}`, {
+                                                headers: { Authorization: `Bearer ${token}` },
+                                                responseType: 'blob'
+                                            });
+                                            const url = window.URL.createObjectURL(new Blob([res.data]));
+                                            const link = document.createElement('a');
+                                            link.href = url;
+                                            link.setAttribute('download', 'usuarios_sin_carga.xlsx');
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            link.remove();
+                                        } catch (err) { console.error('Error descargando Excel:', err); }
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 transition-all text-sm"
+                                >
+                                    <Download className="h-4 w-4" />
+                                    Excel
+                                </button>
+                            </div>
+                        </div>
+
+                        {loadingSinCarga ? (
+                            <div className="text-center py-12 text-slate-400">Cargando...</div>
+                        ) : usuariosSinCarga.length === 0 ? (
+                            <div className="text-center py-12">
+                                <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto mb-3" />
+                                <p className="text-slate-500 font-medium">¡Excelente! Todos los usuarios tienen asignaciones.</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-auto max-h-[500px]">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="text-xs text-slate-400 font-bold uppercase sticky top-0 bg-white shadow-sm z-10">
+                                        <tr>
+                                            <th className="pb-3 pl-2">#</th>
+                                            <th className="pb-3">Nombre Completo</th>
+                                            <th className="pb-3">Usuario</th>
+                                            <th className="pb-3">Rol</th>
+                                            <th className="pb-3 pr-2">Sucursal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                        {usuariosSinCarga.map((u, i) => (
+                                            <tr key={u.id} className="group hover:bg-red-50 transition-colors">
+                                                <td className="py-3 pl-2 text-slate-400">{i + 1}</td>
+                                                <td className="py-3 font-medium text-slate-700">{u.nombreCompleto}</td>
+                                                <td className="py-3 text-slate-500">{u.username}</td>
+                                                <td className="py-3">
+                                                    <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold">
+                                                        {u.rol}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 pr-2 text-slate-500">{u.sucursal}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </main>
+            )}
+
+            {/* --- CONTENIDO DINÁMICO INTERACTIVO (Oculto al imprimir) --- */}
+            {reporteTipo !== 'SIN_CARGA' && (
+                <main className="max-w-7xl mx-auto print:hidden">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div className="bg-gradient-to-br from-white to-slate-50/50 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group overflow-hidden hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300">
+                            <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <Users size={80} />
+                            </div>
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total Registrados</p>
+                            <h3 className="text-4xl font-black bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-transparent">{processedData.totalRegistrados.toLocaleString()}</h3>
+                            <div className="mt-2 text-xs text-emerald-600 font-bold bg-emerald-50 inline-block px-2 py-1 rounded">
+                                {alcance === 'GLOBAL' ? 'Total Cooperativa' : 'Sede/Funcionario'}
+                            </div>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-white to-slate-50/50 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group overflow-hidden hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300">
+                            <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <TrendingUp size={80} />
+                            </div>
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total Habilitados</p>
+                            <h3 className="text-4xl font-black bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-transparent">{processedData.totalHabilitados.toLocaleString()}</h3>
+                            <div className="mt-4 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(processedData.cumplimiento, 100)}%` }} />
+                            </div>
+                        </div>
+
+                        {/* Nuevas Tarjetas Visuales */}
+                        <div className="bg-gradient-to-br from-white to-slate-50/50 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group overflow-hidden hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300">
+                            <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <FileText size={80} />
+                            </div>
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Habilitados Voz/Voto</p>
+                            <div className="flex gap-4 items-end">
+                                <div>
+                                    <h3 className="text-2xl font-black bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-transparent">{processedData.totalVoto.toLocaleString()}</h3>
+                                    <div className="text-[10px] text-slate-400 font-bold uppercase">Voz y Voto</div>
+                                </div>
+                                <div className="h-full border-l border-slate-200 pl-4">
+                                    <h3 className="text-2xl font-black text-slate-500">{processedData.totalVoz.toLocaleString()}</h3>
+                                    <div className="text-[10px] text-slate-400 font-bold uppercase">Solo Voz</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-white to-slate-50/50 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative group overflow-hidden hover:-translate-y-1 hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300">
+                            <div className="flex h-full items-center justify-between">
+                                <div>
+                                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Avance General</p>
+                                    <h3 className={`text-5xl font-black ${processedData.cumplimiento >= 100 ? 'text-emerald-500' : 'bg-gradient-to-br from-blue-600 to-blue-400 bg-clip-text text-transparent'}`}>
+                                        {processedData.cumplimiento.toFixed(1)}%
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        {/* --- GRAFICO PRINCIPAL (OVERVIEW) --- */}
+                        <div id="chart-overview" className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 lg:col-span-2 relative overflow-hidden">
+                            <div className="flex flex-col md:flex-row justify-between md:items-center gap-3 mb-6">
+                                <div>
+                                    <h3 className="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
+                                        <BarChart3 className="h-5 w-5 text-emerald-500" />
+                                        Panorama General
+                                    </h3>
+                                    <p className="text-xs md:text-sm text-slate-400">Comparativa de Metas vs Realizado</p>
+                                </div>
+                                {/* Leyenda más compacta en móvil */}
+                                <div className="flex flex-wrap gap-2">
+                                    <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2 md:px-3 py-1 md:py-1.5 rounded-lg">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                        {reporteTipo === 'ASISTENCIA' ? 'Presentes' : 'Registrados'}
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 bg-slate-50 px-2 md:px-3 py-1 md:py-1.5 rounded-lg">
+                                        <div className="w-2 h-2 rounded-full bg-slate-300"></div>
+                                        Habilitados
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="h-[320px] w-full">
+                                <ResponsiveContainer width="100%" height="100%" minHeight={280}>
+                                    <BarChart data={processedData.chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }} barGap={8}>
                                         <defs>
-                                            <linearGradient id="colorTrend" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#fff" stopOpacity={0.4} />
-                                                <stop offset="95%" stopColor="#fff" stopOpacity={0} />
+                                            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
+                                                <stop offset="100%" stopColor="#059669" stopOpacity={1} />
                                             </linearGradient>
                                         </defs>
-                                        <Area type="monotone" dataKey="value" stroke="#fff" strokeWidth={3} fillOpacity={1} fill="url(#colorTrend)" />
-                                    </AreaChart>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.15} stroke="#cbd5e1" />
+                                        <XAxis
+                                            dataKey="name"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#64748b', fontSize: 9, fontWeight: 600 }}
+                                            interval={0}
+                                            dy={5}
+                                            angle={-35}
+                                            textAnchor="end"
+                                            height={80}
+                                            tickFormatter={(value) => value.length > 12 ? value.substring(0, 10) + '...' : value}
+                                        />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                                        <RechartsTooltip
+                                            cursor={{ fill: '#f1f5f9', radius: 12 }}
+                                            contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px -5px rgb(0 0 0/0.1)' }}
+                                            itemStyle={{ color: '#1e293b', fontWeight: 600 }}
+                                            formatter={(value: any) => value?.toLocaleString()}
+                                        />
+                                        <Legend iconType="circle" verticalAlign="top" height={36} wrapperStyle={{ right: 0, top: -20, fontSize: '12px', fontWeight: 600 }} />
+
+                                        <Bar
+                                            dataKey="value"
+                                            name={reporteTipo === 'ASISTENCIA' ? 'Presentes' : 'Registrados'}
+                                            fill="url(#barGradient)"
+                                            radius={[6, 6, 6, 6]}
+                                            barSize={20}
+                                            className="drop-shadow-sm"
+                                        />
+                                        <Bar
+                                            dataKey="meta"
+                                            name="Habilitados"
+                                            fill="#e2e8f0"
+                                            radius={[6, 6, 6, 6]}
+                                            barSize={20}
+                                        />
+                                    </BarChart>
                                 </ResponsiveContainer>
                             </div>
                         </div>
 
-                        {/* --- BOTONES DE ACCIÓN FLOTANTES --- */}
-                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col gap-4">
-                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest text-center">Exportar Reporte</h3>
-                            <div className="flex gap-2 p-1 bg-slate-50 rounded-xl justify-center mb-2">
-                                <button
-                                    onClick={() => setOrientation('landscape')}
-                                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${orientation === 'landscape' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
-                                >
-                                    Horizontal
-                                </button>
-                                <button
-                                    onClick={() => setOrientation('portrait')}
-                                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${orientation === 'portrait' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
-                                >
-                                    Vertical
-                                </button>
+                        {/* --- DONUT CHART (DISTRIBUTION) --- */}
+                        <div id="chart-distribution" className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col justify-center relative">
+                            <h3 className="text-lg font-bold text-slate-800 mb-2">Distribución</h3>
+                            <p className="text-sm text-slate-400 mb-4">{reporteTipo === 'ASISTENCIA' ? 'Presentes vs Ausentes' : 'Voz y Voto vs Solo Voz'}</p>
+
+                            <div className="h-[250px] w-full relative">
+                                <ResponsiveContainer width="100%" height="100%" minHeight={200}>
+                                    <RechartsPieChart>
+                                        <Pie
+                                            data={
+                                                reporteTipo === 'ASISTENCIA'
+                                                    ? [{ name: 'Presentes', value: processedData.totalPresentes }, { name: 'Ausentes', value: processedData.totalAusentes }]
+                                                    : [{ name: 'Voz y Voto', value: processedData.totalVoto }, { name: 'Solo Voz', value: processedData.totalVoz }]
+                                            }
+                                            cx="50%" cy="50%"
+                                            innerRadius={70} outerRadius={90}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                            cornerRadius={8}
+                                        >
+                                            <Cell fill={COLORS.primary} />
+                                            <Cell fill={COLORS.warning} />
+                                        </Pie>
+                                        <RechartsTooltip />
+                                    </RechartsPieChart>
+                                </ResponsiveContainer>
+                                {/* Center Text */}
+                                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                    <span className="text-3xl font-black text-slate-800">
+                                        {reporteTipo === 'ASISTENCIA' ? processedData.quorum.toFixed(0) : processedData.cumplimiento.toFixed(0)}%
+                                    </span>
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                        {reporteTipo === 'ASISTENCIA' ? 'Quorum' : 'Avance'}
+                                    </span>
+                                </div>
                             </div>
-                            <button
-                                onClick={handleDownloadDirectPDF}
-                                className="w-full py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-black transition-all flex items-center justify-center gap-3 shadow-lg shadow-slate-900/10 active:scale-95"
-                            >
-                                <Printer className="h-4 w-4" />
-                                Vista PDF
-                            </button>
-                            <button
-                                onClick={handleExportExcel}
-                                className="w-full py-3 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 active:scale-95"
-                            >
-                                <Download className="h-4 w-4" />
-                                Excel
-                            </button>
+                            <div className="flex justify-center gap-6 mt-2">
+                                <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                                    <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                    {reporteTipo === 'ASISTENCIA' ? 'Presentes' : 'Voz y Voto'}
+                                </div>
+                                <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                                    {reporteTipo === 'ASISTENCIA' ? 'Ausentes' : 'Solo Voz'}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </main>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* --- TABLA DE DETALLE - Mobile optimized with horizontal scroll --- */}
+                        <div className="bg-white p-4 md:p-6 rounded-[2rem] shadow-sm border border-slate-100 lg:col-span-2 flex flex-col h-[400px]">
+                            <div className="flex flex-col md:flex-row justify-between md:items-center gap-3 mb-4 md:mb-6">
+                                <h3 className="text-base md:text-lg font-bold text-slate-800">Desglose Detallado</h3>
+                                <button onClick={handleExportExcel} className="text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg transition-colors touch-manipulation active:scale-95 w-full md:w-auto text-center">
+                                    Exportar Datos
+                                </button>
+                            </div>
+                            {/* Scroll horizontal para móvil */}
+                            <div className="flex-1 overflow-auto custom-scrollbar">
+                                <table className="w-full text-left text-sm min-w-[400px]">
+                                    <thead className="text-[10px] md:text-xs text-slate-400 font-bold uppercase sticky top-0 bg-white shadow-sm z-10">
+                                        <tr>
+                                            <th className="pb-3 pl-2 whitespace-nowrap">Entidad</th>
+                                            <th className="pb-3 text-right whitespace-nowrap">Real.</th>
+                                            <th className="pb-3 text-right whitespace-nowrap">Meta</th>
+                                            <th className="pb-3 text-right pr-2 whitespace-nowrap">Avance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                        {processedData.chartData.map((d: any, i) => (
+                                            <tr key={i} className="group hover:bg-slate-50 transition-colors">
+                                                <td className="py-3 pl-2 font-medium text-slate-600">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-slate-300 text-[10px] font-mono group-hover:text-emerald-400">#{i + 1}</span>
+                                                        <span className="truncate max-w-[120px] md:max-w-[180px]" title={d.name}>{d.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 text-right font-bold text-slate-800 whitespace-nowrap">{d.value.toLocaleString()}</td>
+                                                <td className="py-3 text-right text-slate-400 text-xs whitespace-nowrap">{d.meta.toLocaleString()}</td>
+                                                <td className="py-3 text-right pr-2">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <span className={`text-xs font-bold whitespace-nowrap ${(d.meta > 0 && d.value >= d.meta) ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                                            {d.meta > 0 ? Math.round((d.value / d.meta) * 100) : 0}%
+                                                        </span>
+                                                        <div className="w-10 md:w-12 h-1 bg-slate-100 rounded-full overflow-hidden hidden md:block">
+                                                            <div
+                                                                className={`h-full rounded-full ${(d.meta > 0 && d.value >= d.meta) ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                                                                style={{ width: `${Math.min(100, (d.meta > 0 ? (d.value / d.meta) * 100 : 0))}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* --- SECONDARY AREA CHART (TREND/WAVE) & ACTIONS --- */}
+                        <div className="flex flex-col gap-6">
+                            <div className="bg-indigo-600 p-6 rounded-[2rem] shadow-lg shadow-indigo-500/20 text-white relative overflow-hidden flex-1">
+                                <div className="relative z-10">
+                                    <h3 className="text-lg font-bold mb-1">Tendencia de Datos</h3>
+                                    <p className="text-indigo-200 text-sm mb-4">Comportamiento del registro en tiempo real.</p>
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 h-32">
+                                    <ResponsiveContainer width="100%" height="100%" minHeight={100}>
+                                        <AreaChart data={processedData.chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                                            <defs>
+                                                <linearGradient id="colorTrend" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#fff" stopOpacity={0.4} />
+                                                    <stop offset="95%" stopColor="#fff" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <Area type="monotone" dataKey="value" stroke="#fff" strokeWidth={3} fillOpacity={1} fill="url(#colorTrend)" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
+                            {/* --- BOTONES DE ACCIÓN FLOTANTES --- */}
+                            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col gap-4">
+                                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest text-center">Exportar Reporte</h3>
+                                <div className="flex gap-2 p-1 bg-slate-50 rounded-xl justify-center mb-2">
+                                    <button
+                                        onClick={() => setOrientation('landscape')}
+                                        className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${orientation === 'landscape' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                    >
+                                        Horizontal
+                                    </button>
+                                    <button
+                                        onClick={() => setOrientation('portrait')}
+                                        className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${orientation === 'portrait' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                    >
+                                        Vertical
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={handleDownloadDirectPDF}
+                                    className="w-full py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-black transition-all flex items-center justify-center gap-3 shadow-lg shadow-slate-900/10 active:scale-95"
+                                >
+                                    <Printer className="h-4 w-4" />
+                                    Vista PDF
+                                </button>
+                                <button
+                                    onClick={handleExportExcel}
+                                    className="w-full py-3 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 active:scale-95"
+                                >
+                                    <Download className="h-4 w-4" />
+                                    Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            )}
 
             {/* --- REPORTE IMPRIMIBLE OCULTO (Solo visible al imprimir) --- */}
             <div className="hidden print:block bg-white p-8" id="reporte-for-pdf">

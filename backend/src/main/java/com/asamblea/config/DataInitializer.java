@@ -66,9 +66,9 @@ public class DataInitializer {
                 updateOrCreateSucursal("1", "Casa Central", "Asunción");
                 updateOrCreateSucursal("2", "Ciudad del Este", "Ciudad del Este");
                 updateOrCreateSucursal("3", "Villarrica", "Villarrica");
-                updateOrCreateSucursal("5", "Sucursal 5", "Encarnación"); // Asumiendo ciudad
+                updateOrCreateSucursal("5", "San Lorenzo", "San Lorenzo");
                 updateOrCreateSucursal("6", "Hernandarias", "Hernandarias");
-                updateOrCreateSucursal("7", "San Lorenzo", "San Lorenzo");
+                updateOrCreateSucursal("7", "Sucursal 5", "Sucursal 5");
 
                 System.out.println("✅ Sucursales inicializadas y normalizadas");
             } catch (Exception e) {

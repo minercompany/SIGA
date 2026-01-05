@@ -17,9 +17,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.IndexedColors;
-import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -33,12 +31,12 @@ import java.awt.Color;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class ReporteExportService {
 
     // COLORES CORPORATIVOS & PREMIUM
     private static final Color COLOR_PRIMARY = new Color(16, 185, 129); // Emerald 500
     private static final Color COLOR_SECONDARY = new Color(6, 78, 59); // Emerald 900
-    private static final Color COLOR_LIGHT = new Color(236, 253, 245); // Emerald 50
     private static final Color COLOR_BLUE = new Color(59, 130, 246);
     private static final Color COLOR_AMBER = new Color(245, 158, 11);
     private static final Color COLOR_INDIGO = new Color(99, 102, 241);
@@ -568,7 +566,7 @@ public class ReporteExportService {
     }
 
     // ==========================================
-    // MÉTODO 3: REPORTE DE ASESORES
+    // MÉTODO 3: REPORTE GENERAL DE USUARIOS
     // ==========================================
     public byte[] generarPdfAsesores(List<Map<String, Object>> asesores, Map<String, Object> resumen) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -581,8 +579,8 @@ public class ReporteExportService {
 
             // HEADER ESTÁNDAR
             addStandardHeader(document,
-                    "REPORTE DE CUMPLIMIENTO DE ASESORES",
-                    "Estado de avance de asesores hacia meta mínima (20) y meta general (50).");
+                    "REPORTE GENERAL DE CUMPLIMIENTO DE USUARIOS",
+                    "Estado de avance de todos los usuarios hacia meta mínima (20) y meta general (50). Excluye administradores del sistema.");
 
             // TARJETAS DE RESUMEN
             int total = ((Number) resumen.get("total")).intValue();
@@ -594,7 +592,7 @@ public class ReporteExportService {
             statsTable.setWidthPercentage(100);
             statsTable.setSpacingAfter(20);
 
-            statsTable.addCell(createStatCard("📊 TOTAL ASESORES", String.valueOf(total), "Activos", COLOR_BLUE));
+            statsTable.addCell(createStatCard("📊 TOTAL USUARIOS", String.valueOf(total), "Activos", COLOR_BLUE));
             statsTable.addCell(createStatCard("✅ CUMPLIERON META", String.valueOf(cumplieronMeta), "≥50 registros",
                     COLOR_PRIMARY));
             statsTable.addCell(createStatCard("⚠️ CUMPLIERON MÍNIMO", String.valueOf(cumplieronMinimo),
@@ -604,13 +602,13 @@ public class ReporteExportService {
 
             document.add(statsTable);
 
-            // TABLA DE DATOS
-            PdfPTable table = new PdfPTable(7);
+            // TABLA DE DATOS (8 columnas ahora con Rol)
+            PdfPTable table = new PdfPTable(8);
             table.setWidthPercentage(100);
-            table.setWidths(new float[] { 0.5f, 2.5f, 1.5f, 1f, 1f, 1f, 1.5f });
+            table.setWidths(new float[] { 0.4f, 2.2f, 1.3f, 1.3f, 0.8f, 0.8f, 0.8f, 1.2f });
             table.setHeaderRows(1);
 
-            String[] headers = { "#", "Nombre Completo", "Sucursal", "Registrados", "Falta Mín.", "Falta Meta",
+            String[] headers = { "#", "Nombre Completo", "Rol", "Sucursal", "Reg.", "Falta M.", "Falta G.",
                     "Estado" };
             for (String header : headers) {
                 PdfPCell cell = new PdfPCell(new Phrase(header, FONT_HEADER_TABLE));
@@ -630,6 +628,11 @@ public class ReporteExportService {
 
                 addCell(table, String.valueOf(i++), FONT_BODY, bgColor, Element.ALIGN_CENTER);
                 addCell(table, (String) asesor.get("nombreCompleto"), FONT_BODY_BOLD, bgColor, Element.ALIGN_LEFT);
+
+                // Rol del usuario
+                String rol = asesor.get("rol") != null ? (String) asesor.get("rol") : "N/A";
+                addCell(table, rol, FONT_BODY, bgColor, Element.ALIGN_CENTER);
+
                 addCell(table, (String) asesor.get("sucursal"), FONT_BODY, bgColor, Element.ALIGN_CENTER);
 
                 long registrados = ((Number) asesor.get("registrados")).longValue();
@@ -671,6 +674,164 @@ public class ReporteExportService {
             }
 
             document.add(table);
+            document.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+        return out.toByteArray();
+    }
+
+    // ==========================================
+    // MÉTODO 4: REPORTE POR USUARIO (VyV y Solo Voz)
+    // ==========================================
+    public byte[] generarPdfPorUsuario(String nombreUsuario, String rolUsuario, String sucursalUsuario,
+            List<Map<String, Object>> sociosVyV, List<Map<String, Object>> sociosSoloVoz) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4, 30, 30, 30, 35);
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            addFooter(writer, document);
+            document.open();
+
+            // HEADER ESTÁNDAR
+            addStandardHeader(document,
+                    "REPORTE DE SOCIOS ASIGNADOS",
+                    "Detalle de socios registrados por: " + nombreUsuario + " (" + rolUsuario + ")");
+
+            // INFO DEL USUARIO
+            PdfPTable infoTable = new PdfPTable(3);
+            infoTable.setWidthPercentage(100);
+            infoTable.setSpacingAfter(15);
+
+            infoTable.addCell(createStatCard("👤 USUARIO", nombreUsuario, rolUsuario, COLOR_BLUE));
+            infoTable.addCell(createStatCard("✅ CON VOZ Y VOTO", String.valueOf(sociosVyV.size()), "Socios habilitados",
+                    COLOR_PRIMARY));
+            infoTable.addCell(
+                    createStatCard("⚠️ SOLO VOZ", String.valueOf(sociosSoloVoz.size()), "Pendientes de regularizar",
+                            COLOR_AMBER));
+
+            document.add(infoTable);
+
+            // SECCIÓN 1: SOCIOS CON VOZ Y VOTO
+            Paragraph titleVyV = new Paragraph("✅ SOCIOS CON VOZ Y VOTO (" + sociosVyV.size() + ")",
+                    new Font(Font.HELVETICA, 14, Font.BOLD, COLOR_PRIMARY));
+            titleVyV.setSpacingBefore(10);
+            titleVyV.setSpacingAfter(10);
+            document.add(titleVyV);
+
+            if (!sociosVyV.isEmpty()) {
+                PdfPTable tableVyV = new PdfPTable(5);
+                tableVyV.setWidthPercentage(100);
+                tableVyV.setWidths(new float[] { 0.5f, 1f, 1.2f, 2.5f, 1.5f });
+                tableVyV.setHeaderRows(1);
+
+                String[] headersVyV = { "#", "N° Socio", "Cédula", "Nombre Completo", "Sucursal" };
+                for (String header : headersVyV) {
+                    PdfPCell cell = new PdfPCell(new Phrase(header, FONT_HEADER_TABLE));
+                    cell.setBackgroundColor(COLOR_PRIMARY);
+                    cell.setBorderColor(Color.WHITE);
+                    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    cell.setPadding(6);
+                    tableVyV.addCell(cell);
+                }
+
+                int idx = 1;
+                boolean alternate = false;
+                Color colorAlt = new Color(240, 253, 244);
+
+                for (Map<String, Object> socio : sociosVyV) {
+                    Color bg = alternate ? colorAlt : Color.WHITE;
+                    addCell(tableVyV, String.valueOf(idx++), FONT_BODY, bg, Element.ALIGN_CENTER);
+                    addCell(tableVyV, String.valueOf(socio.get("numero_socio")), FONT_BODY, bg, Element.ALIGN_CENTER);
+                    addCell(tableVyV, String.valueOf(socio.get("cedula")), FONT_BODY, bg, Element.ALIGN_CENTER);
+                    addCell(tableVyV, String.valueOf(socio.get("nombre_completo")), FONT_BODY_BOLD, bg,
+                            Element.ALIGN_LEFT);
+                    addCell(tableVyV, String.valueOf(socio.get("sucursal")), FONT_BODY, bg, Element.ALIGN_CENTER);
+                    alternate = !alternate;
+                }
+                document.add(tableVyV);
+            } else {
+                Paragraph noData = new Paragraph("No hay socios con Voz y Voto registrados.",
+                        new Font(Font.HELVETICA, 10, Font.ITALIC, Color.GRAY));
+                noData.setSpacingAfter(15);
+                document.add(noData);
+            }
+
+            // SECCIÓN 2: SOCIOS SOLO VOZ
+            Paragraph titleSoloVoz = new Paragraph("⚠️ SOCIOS SOLO VOZ - PENDIENTES (" + sociosSoloVoz.size() + ")",
+                    new Font(Font.HELVETICA, 14, Font.BOLD, COLOR_AMBER));
+            titleSoloVoz.setSpacingBefore(20);
+            titleSoloVoz.setSpacingAfter(10);
+            document.add(titleSoloVoz);
+
+            if (!sociosSoloVoz.isEmpty()) {
+                PdfPTable tableSV = new PdfPTable(6);
+                tableSV.setWidthPercentage(100);
+                tableSV.setWidths(new float[] { 0.4f, 0.9f, 1.1f, 2.2f, 1.3f, 1.5f });
+                tableSV.setHeaderRows(1);
+
+                String[] headersSV = { "#", "N° Socio", "Cédula", "Nombre Completo", "Sucursal", "Estado Mora" };
+                for (String header : headersSV) {
+                    PdfPCell cell = new PdfPCell(new Phrase(header, FONT_HEADER_TABLE));
+                    cell.setBackgroundColor(COLOR_AMBER);
+                    cell.setBorderColor(Color.WHITE);
+                    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    cell.setPadding(6);
+                    tableSV.addCell(cell);
+                }
+
+                int idx = 1;
+                boolean alternate = false;
+                Color colorAlt = new Color(254, 252, 232);
+
+                for (Map<String, Object> socio : sociosSoloVoz) {
+                    Color bg = alternate ? colorAlt : Color.WHITE;
+                    addCell(tableSV, String.valueOf(idx++), FONT_BODY, bg, Element.ALIGN_CENTER);
+                    addCell(tableSV, String.valueOf(socio.get("numero_socio")), FONT_BODY, bg, Element.ALIGN_CENTER);
+                    addCell(tableSV, String.valueOf(socio.get("cedula")), FONT_BODY, bg, Element.ALIGN_CENTER);
+                    addCell(tableSV, String.valueOf(socio.get("nombre_completo")), FONT_BODY_BOLD, bg,
+                            Element.ALIGN_LEFT);
+                    addCell(tableSV, String.valueOf(socio.get("sucursal")), FONT_BODY, bg, Element.ALIGN_CENTER);
+
+                    // Mostrar qué está en mora
+                    StringBuilder mora = new StringBuilder();
+                    Boolean aporte = (Boolean) socio.get("aporte_al_dia");
+                    Boolean solid = (Boolean) socio.get("solidaridad_al_dia");
+                    Boolean fondo = (Boolean) socio.get("fondo_al_dia");
+                    Boolean incoop = (Boolean) socio.get("incoop_al_dia");
+                    Boolean credito = (Boolean) socio.get("credito_al_dia");
+
+                    if (aporte != null && !aporte)
+                        mora.append("AP ");
+                    if (solid != null && !solid)
+                        mora.append("SO ");
+                    if (fondo != null && !fondo)
+                        mora.append("FO ");
+                    if (incoop != null && !incoop)
+                        mora.append("IN ");
+                    if (credito != null && !credito)
+                        mora.append("CR ");
+
+                    Font fontMora = new Font(Font.HELVETICA, 8, Font.BOLD, new Color(239, 68, 68));
+                    addCell(tableSV, mora.toString().trim(), fontMora, bg, Element.ALIGN_CENTER);
+                    alternate = !alternate;
+                }
+                document.add(tableSV);
+
+                // Leyenda
+                Paragraph leyenda = new Paragraph(
+                        "Leyenda: AP=Aporte, SO=Solidaridad, FO=Fondo, IN=INCOOP, CR=Crédito",
+                        new Font(Font.HELVETICA, 8, Font.ITALIC, Color.GRAY));
+                leyenda.setSpacingBefore(5);
+                document.add(leyenda);
+            } else {
+                Paragraph noData = new Paragraph("No hay socios pendientes de regularizar.",
+                        new Font(Font.HELVETICA, 10, Font.ITALIC, Color.GRAY));
+                noData.setSpacingAfter(15);
+                document.add(noData);
+            }
+
             document.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -795,8 +956,9 @@ public class ReporteExportService {
             table.setWidths(new float[] { 0.5f, 6f, 1f });
 
         addCell(table, "#", FONT_HEADER_TABLE, COLOR_SECONDARY, Element.ALIGN_CENTER);
-        addCell(table, labelName, FONT_HEADER_TABLE, COLOR_SECONDARY, Element.ALIGN_CENTER);
-        if (hasSub)
+        addCell(table, labelName != null ? labelName : "Nombre", FONT_HEADER_TABLE, COLOR_SECONDARY,
+                Element.ALIGN_CENTER);
+        if (hasSub && subLabelKey != null)
             addCell(table, subLabelKey.toUpperCase(), FONT_HEADER_TABLE, COLOR_SECONDARY, Element.ALIGN_CENTER);
         addCell(table, "TOTAL VyV", FONT_HEADER_TABLE, COLOR_SECONDARY, Element.ALIGN_CENTER);
 
@@ -804,7 +966,8 @@ public class ReporteExportService {
         for (Map<String, Object> item : data) {
             Color rowBg = (rank % 2 == 0) ? new Color(248, 250, 252) : Color.WHITE;
             addCell(table, String.valueOf(rank++), FONT_BODY, rowBg, Element.ALIGN_CENTER);
-            addCell(table, String.valueOf(item.get(labelName.toLowerCase())), FONT_BODY_BOLD, rowBg,
+            String labelKey = labelName != null ? labelName.toLowerCase() : "nombre";
+            addCell(table, String.valueOf(item.get(labelKey)), FONT_BODY_BOLD, rowBg,
                     Element.ALIGN_LEFT);
             if (hasSub) {
                 String subVal = String.valueOf(item.get(subLabelKey));
@@ -815,5 +978,555 @@ public class ReporteExportService {
             addCell(table, String.valueOf(item.get("total_vyv")), FONT_BODY_BOLD, rowBg, Element.ALIGN_CENTER);
         }
         document.add(table);
+    }
+
+    // ==========================================
+    // MÉTODO: REPORTE DE USUARIOS SIN CARGA (0 ASIGNACIONES)
+    // ==========================================
+    public byte[] generarPdfUsuariosSinCarga(List<com.asamblea.model.Usuario> usuarios, String filtroInfo) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4, 30, 30, 30, 35);
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            addFooter(writer, document);
+
+            document.open();
+
+            // HEADER ESTÁNDAR
+            addStandardHeader(document,
+                    "REPORTE DE USUARIOS SIN CARGA",
+                    "Listado de usuarios activos que aún no tienen personas asignadas en sus listas. " + filtroInfo);
+
+            // TARJETA RESUMEN
+            PdfPTable statsTable = new PdfPTable(1);
+            statsTable.setWidthPercentage(40);
+            statsTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+            statsTable.setSpacingAfter(20);
+
+            statsTable.addCell(createStatCard("📋 USUARIOS SIN CARGA", String.valueOf(usuarios.size()),
+                    "Requieren atención", new Color(239, 68, 68)));
+
+            document.add(statsTable);
+
+            // TABLA DE DATOS
+            PdfPTable table = new PdfPTable(5);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[] { 0.5f, 2.5f, 1.5f, 1.5f, 1.5f });
+            table.setHeaderRows(1);
+
+            String[] headers = { "#", "Nombre Completo", "Usuario", "Rol", "Sucursal" };
+            for (String header : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(header, FONT_HEADER_TABLE));
+                cell.setBackgroundColor(new Color(239, 68, 68)); // Red for warning
+                cell.setBorderColor(Color.WHITE);
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                cell.setPadding(8);
+                table.addCell(cell);
+            }
+
+            int i = 1;
+            boolean alternate = false;
+            Color colorAlt = new Color(254, 242, 242); // Red-50
+
+            for (com.asamblea.model.Usuario u : usuarios) {
+                Color bgColor = alternate ? colorAlt : Color.WHITE;
+
+                addCell(table, String.valueOf(i++), FONT_BODY, bgColor, Element.ALIGN_CENTER);
+                addCell(table, u.getNombreCompleto(), FONT_BODY_BOLD, bgColor, Element.ALIGN_LEFT);
+                addCell(table, u.getUsername(), FONT_BODY, bgColor, Element.ALIGN_CENTER);
+                addCell(table, u.getRol().getNombre(), FONT_BODY, bgColor, Element.ALIGN_CENTER);
+                addCell(table, getSucursalNombre(u), FONT_BODY, bgColor, Element.ALIGN_CENTER);
+
+                alternate = !alternate;
+            }
+
+            document.add(table);
+            document.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+        return out.toByteArray();
+    }
+
+    public byte[] generarExcelUsuariosSinCarga(List<com.asamblea.model.Usuario> usuarios) {
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            // Estilos
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            XSSFFont font = workbook.createFont();
+            font.setColor(IndexedColors.WHITE.getIndex());
+            font.setBold(true);
+            headerStyle.setFont(font);
+
+            Sheet sheet = workbook.createSheet("Usuarios Sin Carga");
+
+            // Header Row
+            Row headerRow = sheet.createRow(0);
+            String[] headers = { "#", "Nombre Completo", "Usuario", "Rol", "Sucursal", "Cargo" };
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Data Rows
+            int rowIdx = 1;
+            for (com.asamblea.model.Usuario u : usuarios) {
+                Row row = sheet.createRow(rowIdx);
+                row.createCell(0).setCellValue(rowIdx);
+                row.createCell(1).setCellValue(u.getNombreCompleto());
+                row.createCell(2).setCellValue(u.getUsername());
+                row.createCell(3).setCellValue(u.getRol().getNombre());
+                row.createCell(4).setCellValue(getSucursalNombre(u));
+                row.createCell(5).setCellValue(u.getCargo() != null ? u.getCargo() : "-");
+                rowIdx++;
+            }
+
+            // Auto-size columns
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            workbook.write(out);
+            return out.toByteArray();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+    }
+
+    // ==========================================
+    // MÉTODO 6: REPORTE AVANCE POR SUCURSAL
+    // ==========================================
+    public byte[] generarPdfAvanceSucursales(List<Map<String, Object>> data) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4, 30, 30, 30, 35);
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            addFooter(writer, document);
+
+            document.open();
+
+            // HEADER ESTÁNDAR
+            addStandardHeader(document,
+                    "REPORTE DE AVANCE POR SUCURSALES",
+                    "Detalle de socios registrados por sucursal, clasificados en Voz y Voto (VyV) y Solo Voz.");
+
+            // TABLA DE DATOS
+            PdfPTable table = new PdfPTable(5);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[] { 0.5f, 3f, 1.2f, 1.2f, 1.2f });
+            table.setHeaderRows(1);
+            table.setSpacingBefore(10);
+
+            String[] headers = { "#", "Sucursal", "VyV", "Solo Voz", "Total" };
+            for (String header : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(header, FONT_HEADER_TABLE));
+                cell.setBackgroundColor(COLOR_PRIMARY);
+                cell.setBorderColor(Color.WHITE);
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                cell.setPadding(8);
+                table.addCell(cell);
+            }
+
+            int i = 1;
+            boolean alternate = false;
+            Color colorAlt = new Color(241, 245, 249);
+
+            long totalVyV = 0;
+            long totalSoloVoz = 0;
+            long totalGeneral = 0;
+
+            for (Map<String, Object> row : data) {
+                Color bgColor = alternate ? colorAlt : Color.WHITE;
+
+                addCell(table, String.valueOf(i++), FONT_BODY, bgColor, Element.ALIGN_CENTER);
+                addCell(table, (String) row.get("sucursal"), FONT_BODY_BOLD, bgColor, Element.ALIGN_LEFT);
+
+                // VyV
+                long vyv = ((Number) row.get("vyv")).longValue();
+                totalVyV += vyv;
+                Font fontVyV = new Font(Font.HELVETICA, 9, Font.BOLD);
+                fontVyV.setColor(new Color(22, 163, 74)); // Green 600
+                addCell(table, String.valueOf(vyv), fontVyV, bgColor, Element.ALIGN_CENTER);
+
+                // Solo Voz
+                long soloVoz = ((Number) row.get("solo_voz")).longValue();
+                totalSoloVoz += soloVoz;
+                Font fontSolo = new Font(Font.HELVETICA, 9, Font.BOLD);
+                fontSolo.setColor(new Color(234, 182, 8)); // Amber 500 equivalent adjusted
+                addCell(table, String.valueOf(soloVoz), fontSolo, bgColor, Element.ALIGN_CENTER);
+
+                // Total
+                long total = ((Number) row.get("total")).longValue();
+                totalGeneral += total;
+                Font fontTotal = new Font(Font.HELVETICA, 9, Font.BOLD);
+                fontTotal.setColor(new Color(30, 41, 59)); // Slate 800
+                addCell(table, String.valueOf(total), fontTotal, bgColor, Element.ALIGN_CENTER);
+
+                alternate = !alternate;
+            }
+
+            // Fila de TOTALES
+            PdfPCell cellTotalLabel = new PdfPCell(new Phrase("TOTALES", FONT_HEADER_TABLE));
+            cellTotalLabel.setColspan(2);
+            cellTotalLabel.setBackgroundColor(COLOR_SECONDARY);
+            cellTotalLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            cellTotalLabel.setPadding(8);
+            table.addCell(cellTotalLabel);
+
+            addCell(table, String.valueOf(totalVyV), FONT_HEADER_TABLE, COLOR_SECONDARY, Element.ALIGN_CENTER);
+            addCell(table, String.valueOf(totalSoloVoz), FONT_HEADER_TABLE, COLOR_SECONDARY, Element.ALIGN_CENTER);
+            addCell(table, String.valueOf(totalGeneral), FONT_HEADER_TABLE, COLOR_SECONDARY, Element.ALIGN_CENTER);
+
+            document.add(table);
+            document.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+        return out.toByteArray();
+    }
+
+    // Helper to get sucursal name from Usuario or fallback to Socio's sucursal
+    private String getSucursalNombre(com.asamblea.model.Usuario u) {
+        if (u.getSucursal() != null) {
+            return u.getSucursal().getNombre();
+        }
+        if (u.getSocio() != null && u.getSocio().getSucursal() != null) {
+            return u.getSocio().getSucursal().getNombre();
+        }
+        return "Sin Sucursal";
+    }
+
+    // ==========================================
+    // MÉTODO: LISTA DE SOCIOS ASIGNADOS (VyV o Solo Voz)
+    // ==========================================
+    public byte[] generarPdfListaSocios(List<Map<String, Object>> socios, String title, String description,
+            boolean isVyV) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4, 30, 30, 30, 35);
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            addFooter(writer, document);
+            document.open();
+
+            // Header estándar
+            addStandardHeader(document, title, description);
+
+            // Stat Card with count
+            PdfPTable statsTable = new PdfPTable(1);
+            statsTable.setWidthPercentage(40);
+            statsTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+            statsTable.setSpacingAfter(20);
+
+            Color cardColor = isVyV ? COLOR_PRIMARY : COLOR_AMBER;
+            String emoji = isVyV ? "✅" : "⚠️";
+            String label = isVyV ? "Socios con Voz y Voto" : "Socios Solo Voz";
+
+            statsTable.addCell(createStatCard(emoji + " " + label.toUpperCase(),
+                    String.valueOf(socios.size()),
+                    "Total de socios en lista",
+                    cardColor));
+
+            document.add(statsTable);
+
+            // Tabla de datos
+            PdfPTable table;
+
+            if (isVyV) {
+                table = new PdfPTable(5);
+                table.setWidthPercentage(100);
+                table.setWidths(new float[] { 0.5f, 1f, 1.2f, 2.5f, 1.5f });
+                table.setHeaderRows(1);
+
+                String[] headers = { "#", "N° Socio", "Cédula", "Nombre Completo", "Sucursal" };
+                for (String header : headers) {
+                    PdfPCell cell = new PdfPCell(new Phrase(header, FONT_HEADER_TABLE));
+                    cell.setBackgroundColor(COLOR_PRIMARY);
+                    cell.setBorderColor(Color.WHITE);
+                    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    cell.setPadding(8);
+                    table.addCell(cell);
+                }
+            } else {
+                table = new PdfPTable(6);
+                table.setWidthPercentage(100);
+                table.setWidths(new float[] { 0.4f, 0.9f, 1.1f, 2.2f, 1.3f, 1.5f });
+                table.setHeaderRows(1);
+
+                String[] headers = { "#", "N° Socio", "Cédula", "Nombre Completo", "Sucursal", "Mora" };
+                for (String header : headers) {
+                    PdfPCell cell = new PdfPCell(new Phrase(header, FONT_HEADER_TABLE));
+                    cell.setBackgroundColor(COLOR_AMBER);
+                    cell.setBorderColor(Color.WHITE);
+                    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    cell.setPadding(8);
+                    table.addCell(cell);
+                }
+            }
+
+            int idx = 1;
+            boolean alternate = false;
+            Color colorAlt = isVyV ? new Color(240, 253, 244) : new Color(254, 252, 232);
+
+            for (Map<String, Object> socio : socios) {
+                Color bg = alternate ? colorAlt : Color.WHITE;
+
+                addCell(table, String.valueOf(idx++), FONT_BODY, bg, Element.ALIGN_CENTER);
+                addCell(table, String.valueOf(socio.get("numero_socio")), FONT_BODY, bg, Element.ALIGN_CENTER);
+                addCell(table, String.valueOf(socio.get("cedula")), FONT_BODY, bg, Element.ALIGN_CENTER);
+                addCell(table, String.valueOf(socio.get("nombre_completo")), FONT_BODY_BOLD, bg, Element.ALIGN_LEFT);
+                addCell(table, String.valueOf(socio.get("sucursal")), FONT_BODY, bg, Element.ALIGN_CENTER);
+
+                if (!isVyV) {
+                    // Mostrar qué está en mora
+                    StringBuilder mora = new StringBuilder();
+                    Object aporte = socio.get("aporte_al_dia");
+                    Object solid = socio.get("solidaridad_al_dia");
+                    Object fondo = socio.get("fondo_al_dia");
+                    Object incoop = socio.get("incoop_al_dia");
+                    Object credito = socio.get("credito_al_dia");
+
+                    if (aporte != null && !Boolean.TRUE.equals(aporte) && !Integer.valueOf(1).equals(aporte))
+                        mora.append("AP ");
+                    if (solid != null && !Boolean.TRUE.equals(solid) && !Integer.valueOf(1).equals(solid))
+                        mora.append("SO ");
+                    if (fondo != null && !Boolean.TRUE.equals(fondo) && !Integer.valueOf(1).equals(fondo))
+                        mora.append("FO ");
+                    if (incoop != null && !Boolean.TRUE.equals(incoop) && !Integer.valueOf(1).equals(incoop))
+                        mora.append("IN ");
+                    if (credito != null && !Boolean.TRUE.equals(credito) && !Integer.valueOf(1).equals(credito))
+                        mora.append("CR ");
+
+                    Font fontMora = new Font(Font.HELVETICA, 8, Font.BOLD, new Color(239, 68, 68));
+                    addCell(table, mora.toString().trim(), fontMora, bg, Element.ALIGN_CENTER);
+                }
+
+                alternate = !alternate;
+            }
+
+            document.add(table);
+
+            // Leyenda para Solo Voz
+            if (!isVyV) {
+                Paragraph leyenda = new Paragraph(
+                        "Leyenda: AP=Aporte, SO=Solidaridad, FO=Fondo, IN=INCOOP, CR=Crédito",
+                        new Font(Font.HELVETICA, 8, Font.ITALIC, Color.GRAY));
+                leyenda.setSpacingBefore(10);
+                document.add(leyenda);
+            }
+
+            document.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+        return out.toByteArray();
+    }
+
+    // ==========================================
+    // MÉTODO: PDF GESTIÓN DE LISTAS GENERAL
+    // ==========================================
+    public byte[] generarPdfGestionListasGeneral(List<Map<String, Object>> ranking) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4.rotate(), 30, 30, 30, 35);
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            addFooter(writer, document);
+            document.open();
+
+            // Header estándar
+            addStandardHeader(document, "GESTIÓN DE LISTAS - RESUMEN GENERAL",
+                    "Ranking de operadores con socios asignados, ordenados por cantidad total.");
+
+            // Stat Cards
+            long totalOperadores = ranking.size();
+            long totalSocios = ranking.stream().mapToLong(r -> ((Number) r.get("totalAsignados")).longValue()).sum();
+            long totalVyV = ranking.stream().mapToLong(r -> ((Number) r.get("vyv")).longValue()).sum();
+            long totalSoloVoz = ranking.stream().mapToLong(r -> ((Number) r.get("soloVoz")).longValue()).sum();
+
+            PdfPTable statsTable = new PdfPTable(4);
+            statsTable.setWidthPercentage(100);
+            statsTable.setSpacingAfter(20);
+
+            statsTable.addCell(createStatCard("👥 OPERADORES", String.valueOf(totalOperadores), "Con asignaciones",
+                    COLOR_PRIMARY));
+            statsTable.addCell(createStatCard("📋 TOTAL SOCIOS", String.valueOf(totalSocios), "Asignados en listas",
+                    new Color(59, 130, 246)));
+            statsTable.addCell(
+                    createStatCard("✅ VOZ Y VOTO", String.valueOf(totalVyV), "Habilitados", new Color(16, 185, 129)));
+            statsTable.addCell(createStatCard("⚠️ SOLO VOZ", String.valueOf(totalSoloVoz), "Pendientes", COLOR_AMBER));
+
+            document.add(statsTable);
+
+            // Tabla de ranking
+            PdfPTable table = new PdfPTable(7);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[] { 0.4f, 2f, 1f, 1.2f, 0.8f, 0.8f, 0.8f });
+            table.setHeaderRows(1);
+
+            String[] headers = { "#", "Operador", "Usuario", "Sucursal", "Total", "V&V", "S.Voz" };
+            for (String header : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(header, FONT_HEADER_TABLE));
+                cell.setBackgroundColor(COLOR_PRIMARY);
+                cell.setBorderColor(Color.WHITE);
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                cell.setPadding(8);
+                table.addCell(cell);
+            }
+
+            int idx = 1;
+            boolean alternate = false;
+            Color colorAlt = new Color(240, 253, 244);
+
+            for (Map<String, Object> row : ranking) {
+                Color bg = alternate ? colorAlt : Color.WHITE;
+
+                addCell(table, String.valueOf(idx++), FONT_BODY, bg, Element.ALIGN_CENTER);
+                addCell(table, String.valueOf(row.get("nombre")), FONT_BODY_BOLD, bg, Element.ALIGN_LEFT);
+                addCell(table, "@" + String.valueOf(row.get("username")),
+                        new Font(Font.HELVETICA, 9, Font.NORMAL, Color.GRAY), bg, Element.ALIGN_CENTER);
+                addCell(table, String.valueOf(row.get("sucursal")), FONT_BODY, bg, Element.ALIGN_CENTER);
+
+                // Stat cells with colors
+                addCell(table, String.valueOf(row.get("totalAsignados")), FONT_BODY_BOLD, bg, Element.ALIGN_CENTER);
+
+                Font fontVyV = new Font(Font.HELVETICA, 10, Font.BOLD, new Color(16, 185, 129));
+                addCell(table, String.valueOf(row.get("vyv")), fontVyV, bg, Element.ALIGN_CENTER);
+
+                Font fontSV = new Font(Font.HELVETICA, 10, Font.BOLD, new Color(245, 158, 11));
+                addCell(table, String.valueOf(row.get("soloVoz")), fontSV, bg, Element.ALIGN_CENTER);
+
+                alternate = !alternate;
+            }
+
+            document.add(table);
+            document.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+        return out.toByteArray();
+    }
+
+    // ==========================================
+    // MÉTODO: PDF LISTA DE USUARIO ESPECÍFICO
+    // ==========================================
+    public byte[] generarPdfListaUsuario(List<Map<String, Object>> socios, String nombreUsuario, String username,
+            String rol) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4, 30, 30, 30, 35);
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            addFooter(writer, document);
+            document.open();
+
+            // Header estándar
+            addStandardHeader(document, "LISTA DE ASIGNACIONES",
+                    "Socios asignados a " + nombreUsuario + " (@" + username + ") - " + rol);
+
+            // Stat Cards
+            long totalSocios = socios.size();
+            long totalVyV = socios.stream().filter(s -> {
+                Object esVyV = s.get("es_vyv");
+                return esVyV != null && (Boolean.TRUE.equals(esVyV) || Integer.valueOf(1).equals(esVyV));
+            }).count();
+            long totalSoloVoz = totalSocios - totalVyV;
+
+            PdfPTable statsTable = new PdfPTable(3);
+            statsTable.setWidthPercentage(80);
+            statsTable.setHorizontalAlignment(Element.ALIGN_LEFT);
+            statsTable.setSpacingAfter(20);
+
+            statsTable.addCell(createStatCard("📋 TOTAL", String.valueOf(totalSocios), "Socios asignados",
+                    new Color(59, 130, 246)));
+            statsTable.addCell(
+                    createStatCard("✅ VOZ Y VOTO", String.valueOf(totalVyV), "Habilitados", new Color(16, 185, 129)));
+            statsTable.addCell(createStatCard("⚠️ SOLO VOZ", String.valueOf(totalSoloVoz), "Pendientes", COLOR_AMBER));
+
+            document.add(statsTable);
+
+            // Tabla de socios
+            PdfPTable table = new PdfPTable(6);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[] { 0.4f, 0.9f, 1.1f, 2.2f, 1.3f, 1.5f });
+            table.setHeaderRows(1);
+
+            String[] headers = { "#", "N° Socio", "Cédula", "Nombre Completo", "Sucursal", "Estado" };
+            for (String header : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(header, FONT_HEADER_TABLE));
+                cell.setBackgroundColor(COLOR_PRIMARY);
+                cell.setBorderColor(Color.WHITE);
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                cell.setPadding(8);
+                table.addCell(cell);
+            }
+
+            int idx = 1;
+            boolean alternate = false;
+            Color colorAlt = new Color(240, 253, 244);
+
+            for (Map<String, Object> socio : socios) {
+                Color bg = alternate ? colorAlt : Color.WHITE;
+
+                addCell(table, String.valueOf(idx++), FONT_BODY, bg, Element.ALIGN_CENTER);
+                addCell(table, String.valueOf(socio.get("numero_socio")), FONT_BODY, bg, Element.ALIGN_CENTER);
+                addCell(table, String.valueOf(socio.get("cedula")), FONT_BODY, bg, Element.ALIGN_CENTER);
+                addCell(table, String.valueOf(socio.get("nombre_completo")), FONT_BODY_BOLD, bg, Element.ALIGN_LEFT);
+                addCell(table, String.valueOf(socio.get("sucursal")), FONT_BODY, bg, Element.ALIGN_CENTER);
+
+                Object esVyV = socio.get("es_vyv");
+                boolean isVyV = esVyV != null && (Boolean.TRUE.equals(esVyV) || Integer.valueOf(1).equals(esVyV));
+
+                if (isVyV) {
+                    Font fontVyV = new Font(Font.HELVETICA, 9, Font.BOLD, new Color(16, 185, 129));
+                    addCell(table, "VOZ Y VOTO", fontVyV, bg, Element.ALIGN_CENTER);
+                } else {
+                    // Mostrar qué está en mora
+                    StringBuilder mora = new StringBuilder("SOLO VOZ: ");
+                    Object aporte = socio.get("aporte_al_dia");
+                    Object solid = socio.get("solidaridad_al_dia");
+                    Object fondo = socio.get("fondo_al_dia");
+                    Object incoop = socio.get("incoop_al_dia");
+                    Object credito = socio.get("credito_al_dia");
+
+                    if (aporte != null && !Boolean.TRUE.equals(aporte) && !Integer.valueOf(1).equals(aporte))
+                        mora.append("AP ");
+                    if (solid != null && !Boolean.TRUE.equals(solid) && !Integer.valueOf(1).equals(solid))
+                        mora.append("SO ");
+                    if (fondo != null && !Boolean.TRUE.equals(fondo) && !Integer.valueOf(1).equals(fondo))
+                        mora.append("FO ");
+                    if (incoop != null && !Boolean.TRUE.equals(incoop) && !Integer.valueOf(1).equals(incoop))
+                        mora.append("IN ");
+                    if (credito != null && !Boolean.TRUE.equals(credito) && !Integer.valueOf(1).equals(credito))
+                        mora.append("CR ");
+
+                    Font fontMora = new Font(Font.HELVETICA, 8, Font.BOLD, new Color(245, 158, 11));
+                    addCell(table, mora.toString().trim(), fontMora, bg, Element.ALIGN_CENTER);
+                }
+
+                alternate = !alternate;
+            }
+
+            document.add(table);
+
+            // Leyenda
+            Paragraph leyenda = new Paragraph(
+                    "Leyenda: AP=Aporte, SO=Solidaridad, FO=Fondo, IN=INCOOP, CR=Crédito",
+                    new Font(Font.HELVETICA, 8, Font.ITALIC, Color.GRAY));
+            leyenda.setSpacingBefore(10);
+            document.add(leyenda);
+
+            document.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+        return out.toByteArray();
     }
 }

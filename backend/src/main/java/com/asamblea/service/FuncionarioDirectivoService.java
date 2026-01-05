@@ -191,9 +191,10 @@ public class FuncionarioDirectivoService {
                     Usuario usuario;
                     if (existente.isPresent()) {
                         usuario = existente.get();
-                        // Actualizar datos si el usuario ya existe
+                        // Actualizar nombre si el usuario ya existe
                         usuario.setNombreCompleto(nombre);
-                        usuario.setActivo(true);
+                        // NO reactivar usuarios dados de baja manualmente
+                        // El estado activo se preserva como estaba
                     } else {
                         // Crear nuevo usuario
                         usuario = new Usuario();
@@ -201,7 +202,7 @@ public class FuncionarioDirectivoService {
                         usuario.setPassword(passwordEncoder.encode(cedulaSanitized));
                         usuario.setNombreCompleto(nombre);
                         usuario.setRol(Usuario.Rol.USUARIO_SOCIO); // Rol base por seguridad
-                        usuario.setActivo(true);
+                        usuario.setActivo(true); // Solo usuarios NUEVOS se activan
                         usuariosCreados++;
                     }
 
@@ -309,9 +310,12 @@ public class FuncionarioDirectivoService {
             }
         }
 
+        // Guardar si el usuario es nuevo para no reactivar usuarios dados de baja
+        boolean esUsuarioNuevo = (usuario == null);
+
         if (usuario == null) {
             usuario = new Usuario();
-            usuario.setActivo(true);
+            usuario.setActivo(true); // Solo usuarios NUEVOS se activan
         }
 
         // 3. ACTUALIZAR CREDENCIALES
@@ -358,7 +362,12 @@ public class FuncionarioDirectivoService {
             // Si ya tiene rol, lo dejamos como está (no bajamos de nivel)
         }
 
-        usuario.setActivo(true);
+        // NO reactivar usuarios existentes que fueron dados de baja manualmente
+        // Solo activamos si es usuario nuevo
+        if (esUsuarioNuevo) {
+            usuario.setActivo(true);
+        }
+        // Si el usuario ya existe, preservamos su estado de activo/inactivo
 
         usuarioRepository.save(usuario);
 

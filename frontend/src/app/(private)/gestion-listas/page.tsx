@@ -22,7 +22,9 @@ import {
     Trophy,
     Trash,
     UserSearch,
-    ShieldAlert
+    ShieldAlert,
+    Download,
+    FileText
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
@@ -62,6 +64,7 @@ export default function GestionListasPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [socioSearchTerm, setSocioSearchTerm] = useState("");
     const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+    const [downloadingPdf, setDownloadingPdf] = useState<"general" | number | null>(null);
 
     useEffect(() => {
         // Verificar permisos del usuario
@@ -213,6 +216,62 @@ export default function GestionListasPage() {
         }
     };
 
+    // Exportar PDF General (toda la gestión de listas)
+    const handleExportPdfGeneral = async () => {
+        if (downloadingPdf) return;
+        setDownloadingPdf("general");
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.get("/api/asignaciones/export-pdf-general", {
+                headers: { Authorization: `Bearer ${token}` },
+                responseType: 'blob'
+            });
+
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = "gestion_listas_general.pdf";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Error exporting PDF:", error);
+            Swal.fire("Error", "No se pudo descargar el PDF", "error");
+        } finally {
+            setDownloadingPdf(null);
+        }
+    };
+
+    // Exportar PDF por Usuario
+    const handleExportPdfUsuario = async (userId: number, userName: string) => {
+        if (downloadingPdf) return;
+        setDownloadingPdf(userId);
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.get(`/api/asignaciones/export-pdf-usuario/${userId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+                responseType: 'blob'
+            });
+
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `lista_${userName.replace(/\s+/g, '_').toLowerCase()}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Error exporting PDF:", error);
+            Swal.fire("Error", "No se pudo descargar el PDF", "error");
+        } finally {
+            setDownloadingPdf(null);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[#f8fafc] pb-20">
             {/* Header Responsivo */}
@@ -229,16 +288,34 @@ export default function GestionListasPage() {
                         </div>
                     </div>
 
-                    {/* Buscador - Full width en móvil */}
-                    <div className="w-full sm:flex-1 sm:max-w-md relative group">
-                        <input
-                            type="text"
-                            placeholder="Buscar operador..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2.5 sm:py-3 pl-10 sm:pl-12 pr-4 text-sm focus:bg-white focus:border-teal-500 transition-all outline-none"
-                        />
-                        <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
+                    {/* Acciones - Buscador y botones */}
+                    <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                        {/* Buscador */}
+                        <div className="flex-1 sm:flex-initial sm:w-64 relative group">
+                            <input
+                                type="text"
+                                placeholder="Buscar operador..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2.5 sm:py-3 pl-10 sm:pl-12 pr-4 text-sm focus:bg-white focus:border-teal-500 transition-all outline-none"
+                            />
+                            <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
+                        </div>
+
+                        {/* Botón PDF General */}
+                        <button
+                            onClick={handleExportPdfGeneral}
+                            disabled={downloadingPdf === "general" || loading || ranking.length === 0}
+                            className="flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-teal-500 hover:bg-teal-600 disabled:bg-slate-300 text-white font-bold text-xs sm:text-sm rounded-xl sm:rounded-2xl transition-all shadow-md hover:shadow-lg flex-shrink-0"
+                            title="Descargar PDF con todas las listas"
+                        >
+                            {downloadingPdf === "general" ? (
+                                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                            ) : (
+                                <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+                            )}
+                            <span className="hidden sm:inline">PDF</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -252,12 +329,12 @@ export default function GestionListasPage() {
                         </div>
                         <p className="text-slate-500 font-bold animate-pulse text-sm">Analizando todas las listas activas...</p>
                     </div>
-                ):filteredRanking.length === 0 ? (
+                ) : filteredRanking.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-[2.5rem] border border-dashed border-slate-300">
                         <Users className="h-16 w-16 text-slate-200 mx-auto mb-4" />
                         <h3 className="text-xl font-bold text-slate-400 italic">No se encontraron operadores con socios asignados</h3>
                     </div>
-                ):(
+                ) : (
                     <div className="grid gap-3 sm:gap-6">
                         {filteredRanking.map((user, index) => (
                             <motion.div
@@ -270,7 +347,7 @@ export default function GestionListasPage() {
                                     "bg-white rounded-2xl sm:rounded-[2.5rem] border transition-all duration-300 overflow-hidden",
                                     expandedUser === user.id
                                         ? "ring-2 ring-teal-500/20 border-teal-200 shadow-2xl"
-                                       :"border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200"
+                                        : "border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200"
                                 )}
                             >
                                 {/* User Card Header - Responsivo */}
@@ -287,7 +364,7 @@ export default function GestionListasPage() {
                                                     index === 2 ? "bg-orange-50 text-orange-600" :
                                                         "bg-teal-50 text-teal-600"
                                         )}>
-                                            {index < 3 ? <Trophy className="h-6 w-6 sm:h-8 sm:w-8" />:<User className="h-6 w-6 sm:h-8 sm:w-8" />}
+                                            {index < 3 ? <Trophy className="h-6 w-6 sm:h-8 sm:w-8" /> : <User className="h-6 w-6 sm:h-8 sm:w-8" />}
                                             <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-white border-2 border-current rounded-full h-6 w-6 sm:h-8 sm:w-8 flex items-center justify-center font-black text-[10px] sm:text-xs">
                                                 #{index + 1}
                                             </span>
@@ -302,7 +379,7 @@ export default function GestionListasPage() {
                                             </div>
                                         </div>
                                         <div className="transition-transform duration-300 flex-shrink-0">
-                                            {expandedUser === user.id ? <ChevronUp className="h-5 w-5 sm:h-6 sm:w-6 text-teal-500" />:<ChevronDown className="h-5 w-5 sm:h-6 sm:w-6 text-slate-300" />}
+                                            {expandedUser === user.id ? <ChevronUp className="h-5 w-5 sm:h-6 sm:w-6 text-teal-500" /> : <ChevronDown className="h-5 w-5 sm:h-6 sm:w-6 text-slate-300" />}
                                         </div>
                                     </div>
 
@@ -358,10 +435,22 @@ export default function GestionListasPage() {
                                                         <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-teal-500" />
                                                         <span className="text-slate-400 font-bold text-xs sm:text-sm">Cargando...</span>
                                                     </div>
-                                                ):userDetails ? (
+                                                ) : userDetails ? (
                                                     <div className="space-y-3 sm:space-y-4">
-                                                        {/* Buscador Interno - Full width en móvil */}
-                                                        <div className="w-full sm:flex sm:justify-end">
+                                                        {/* Buscador Interno + Botón PDF - Full width en móvil */}
+                                                        <div className="w-full flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                                                            <button
+                                                                onClick={() => handleExportPdfUsuario(user.id, user.nombre)}
+                                                                disabled={downloadingPdf === user.id}
+                                                                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 text-white font-bold text-xs rounded-xl transition-all shadow-md hover:shadow-lg"
+                                                            >
+                                                                {downloadingPdf === user.id ? (
+                                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                                ) : (
+                                                                    <Download className="h-4 w-4" />
+                                                                )}
+                                                                <span>Descargar PDF</span>
+                                                            </button>
                                                             <div className="relative group w-full sm:max-w-xs">
                                                                 <input
                                                                     type="text"
@@ -380,7 +469,7 @@ export default function GestionListasPage() {
                                                                 <div className="text-center py-8">
                                                                     <p className="text-sm font-bold text-slate-300 italic">Sin resultados</p>
                                                                 </div>
-                                                            ):filteredSocios.map((socio: any) => (
+                                                            ) : filteredSocios.map((socio: any) => (
                                                                 <div key={socio.id} className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
                                                                     <div className="flex items-start justify-between gap-2">
                                                                         <div className="flex-1 min-w-0">
@@ -392,9 +481,9 @@ export default function GestionListasPage() {
                                                                                     "px-1.5 py-0.5 rounded text-[8px] font-black uppercase",
                                                                                     socio.esVyV
                                                                                         ? "bg-emerald-50 text-emerald-600"
-                                                                                       :"bg-red-50 text-red-600"
+                                                                                        : "bg-red-50 text-red-600"
                                                                                 )}>
-                                                                                    {socio.esVyV ? "VyV":"Solo Voz"}
+                                                                                    {socio.esVyV ? "VyV" : "Solo Voz"}
                                                                                 </span>
                                                                                 {socio.fechaHoraIngreso && (
                                                                                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
@@ -434,7 +523,7 @@ export default function GestionListasPage() {
                                                                                 <p className="text-sm font-bold text-slate-300 italic">No se encontraron socios</p>
                                                                             </td>
                                                                         </tr>
-                                                                    ):filteredSocios.map((socio: any) => (
+                                                                    ) : filteredSocios.map((socio: any) => (
                                                                         <tr key={socio.id} className="hover:bg-slate-50 transition-colors group">
                                                                             <td className="px-6 py-4">
                                                                                 <span className="text-xs font-mono font-black text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
@@ -452,9 +541,9 @@ export default function GestionListasPage() {
                                                                                     "px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border",
                                                                                     socio.esVyV
                                                                                         ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                                                                       :"bg-red-50 text-red-600 border-red-100"
+                                                                                        : "bg-red-50 text-red-600 border-red-100"
                                                                                 )}>
-                                                                                    {socio.esVyV ? "Voz y Voto":"Solo Voz"}
+                                                                                    {socio.esVyV ? "Voz y Voto" : "Solo Voz"}
                                                                                 </span>
                                                                             </td>
                                                                             <td className="px-6 py-4">
@@ -468,7 +557,7 @@ export default function GestionListasPage() {
                                                                                         <CheckCircle2 className="h-3 w-3" />
                                                                                         <span className="text-[9px] font-black">SÍ</span>
                                                                                     </div>
-                                                                                ):(
+                                                                                ) : (
                                                                                     <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-slate-100 text-slate-400 rounded-lg border border-slate-200">
                                                                                         <XCircle className="h-3 w-3" />
                                                                                         <span className="text-[9px] font-black">NO</span>
@@ -490,7 +579,7 @@ export default function GestionListasPage() {
                                                             </table>
                                                         </div>
                                                     </div>
-                                                ):(
+                                                ) : (
                                                     <div className="flex flex-col items-center py-8 sm:py-10 text-slate-400 gap-2">
                                                         <AlertCircle className="h-8 w-8 sm:h-10 sm:w-10" />
                                                         <p className="text-xs sm:text-sm font-bold">No se pudieron cargar los socios.</p>

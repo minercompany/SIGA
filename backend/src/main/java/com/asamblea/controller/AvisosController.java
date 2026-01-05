@@ -116,16 +116,18 @@ public class AvisosController {
                     .toList();
         }
 
-        // Crear registros de destinatario
+        // Crear registros de destinatario (Optimizado Batch)
         LocalDateTime now = LocalDateTime.now();
+        List<AvisoDestinatario> destinatariosEntities = new ArrayList<>();
         for (Usuario dest : destinatarios) {
             AvisoDestinatario ad = new AvisoDestinatario();
             ad.setAviso(aviso);
             ad.setUsuario(dest);
             ad.setEnviadoAt(now);
             ad.setEstado(AvisoDestinatario.EstadoDestinatario.PENDIENTE);
-            destinatarioRepository.save(ad);
+            destinatariosEntities.add(ad);
         }
+        destinatarioRepository.saveAll(destinatariosEntities);
 
         aviso.setEstadoGeneral(Aviso.EstadoAviso.ENVIADO);
         avisoRepository.save(aviso);

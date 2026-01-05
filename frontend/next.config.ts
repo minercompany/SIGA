@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
         source: '/api/:path*',
         destination: `${process.env.API_URL || 'http://asamblea-backend:8081'}/api/:path*`,
       },
+      {
+        source: '/uploads/:path*',
+        destination: `${process.env.API_URL || 'http://asamblea-backend:8081'}/uploads/:path*`,
+      },
     ]
   },
 };

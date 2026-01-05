@@ -3,17 +3,23 @@ package com.asamblea.controller;
 import com.asamblea.model.Usuario;
 import com.asamblea.repository.AsignacionRepository;
 import com.asamblea.repository.UsuarioRepository;
+import com.asamblea.service.ReporteExportService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/dashboard")
+@SuppressWarnings("null")
 public class DashboardController {
 
     @Autowired
@@ -21,6 +27,12 @@ public class DashboardController {
 
     @Autowired
     private AsignacionRepository asignacionRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private ReporteExportService exportService;
 
     @GetMapping("/metas")
     public ResponseEntity<?> getMetas(Authentication authentication, @RequestParam(required = false) Long userId) {
@@ -140,6 +152,140 @@ public class DashboardController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Error calculando metas: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Exportar PDF de socios asignados con Voz y Voto o Solo Voz
+     * 
+     * @param tipo "vyv" para Voz y Voto, "voz" para Solo Voz
+     */
+    @GetMapping("/export-socios-pdf")
+    public ResponseEntity<byte[]> exportSociosPdf(
+            Authentication authentication,
+            @RequestParam(defaultValue = "vyv") String tipo) {
+
+        try {
+            String username = authentication.getName();
+            Usuario currentUser = usuarioRepository.findByUsername(username).orElse(null);
+
+            if (currentUser == null) {
+                return ResponseEntity.status(401).build();
+            }
+
+            // Solo SUPER_ADMIN puede ver datos globales
+            boolean isGlobal = currentUser.getRol() == Usuario.Rol.SUPER_ADMIN;
+
+            String sql;
+            String title;
+            String description;
+
+            if ("vyv".equalsIgnoreCase(tipo)) {
+                title = "LISTA DE SOCIOS ASIGNADOS - VOZ Y VOTO";
+                description = "Socios habilitados para votar, ordenados por número de socio.";
+
+                if (isGlobal) {
+                    sql = """
+                                SELECT s.numero_socio, s.cedula, s.nombre_completo,
+                                       COALESCE(suc.nombre, 'Sin Sucursal') as sucursal,
+                                       u.nombre_completo as asignado_por
+                                FROM asignaciones_socios a
+                                INNER JOIN socios s ON a.socio_id = s.id
+                                LEFT JOIN sucursales suc ON s.id_sucursal = suc.id
+                                INNER JOIN listas_asignacion la ON a.lista_id = la.id
+                                INNER JOIN usuarios u ON la.user_id = u.id
+                                WHERE s.aporte_al_dia = 1
+                                  AND s.solidaridad_al_dia = 1
+                                  AND s.fondo_al_dia = 1
+                                  AND s.incoop_al_dia = 1
+                                  AND s.credito_al_dia = 1
+                                ORDER BY CAST(s.numero_socio AS UNSIGNED), s.nombre_completo
+                            """;
+                } else {
+                    sql = """
+                                SELECT s.numero_socio, s.cedula, s.nombre_completo,
+                                       COALESCE(suc.nombre, 'Sin Sucursal') as sucursal,
+                                       u.nombre_completo as asignado_por
+                                FROM asignaciones_socios a
+                                INNER JOIN socios s ON a.socio_id = s.id
+                                LEFT JOIN sucursales suc ON s.id_sucursal = suc.id
+                                INNER JOIN listas_asignacion la ON a.lista_id = la.id
+                                INNER JOIN usuarios u ON la.user_id = u.id
+                                WHERE la.user_id = %d
+                                  AND s.aporte_al_dia = 1
+                                  AND s.solidaridad_al_dia = 1
+                                  AND s.fondo_al_dia = 1
+                                  AND s.incoop_al_dia = 1
+                                  AND s.credito_al_dia = 1
+                                ORDER BY CAST(s.numero_socio AS UNSIGNED), s.nombre_completo
+                            """.formatted(currentUser.getId());
+                }
+            } else {
+                title = "LISTA DE SOCIOS ASIGNADOS - SOLO VOZ";
+                description = "Socios sin derecho a voto (pendientes de regularizar), ordenados por número de socio.";
+
+                if (isGlobal) {
+                    sql = """
+                                SELECT s.numero_socio, s.cedula, s.nombre_completo,
+                                       COALESCE(suc.nombre, 'Sin Sucursal') as sucursal,
+                                       u.nombre_completo as asignado_por,
+                                       s.aporte_al_dia, s.solidaridad_al_dia, s.fondo_al_dia,
+                                       s.incoop_al_dia, s.credito_al_dia
+                                FROM asignaciones_socios a
+                                INNER JOIN socios s ON a.socio_id = s.id
+                                LEFT JOIN sucursales suc ON s.id_sucursal = suc.id
+                                INNER JOIN listas_asignacion la ON a.lista_id = la.id
+                                INNER JOIN usuarios u ON la.user_id = u.id
+                                WHERE NOT (s.aporte_al_dia = 1
+                                  AND s.solidaridad_al_dia = 1
+                                  AND s.fondo_al_dia = 1
+                                  AND s.incoop_al_dia = 1
+                                  AND s.credito_al_dia = 1)
+                                ORDER BY CAST(s.numero_socio AS UNSIGNED), s.nombre_completo
+                            """;
+                } else {
+                    sql = """
+                                SELECT s.numero_socio, s.cedula, s.nombre_completo,
+                                       COALESCE(suc.nombre, 'Sin Sucursal') as sucursal,
+                                       u.nombre_completo as asignado_por,
+                                       s.aporte_al_dia, s.solidaridad_al_dia, s.fondo_al_dia,
+                                       s.incoop_al_dia, s.credito_al_dia
+                                FROM asignaciones_socios a
+                                INNER JOIN socios s ON a.socio_id = s.id
+                                LEFT JOIN sucursales suc ON s.id_sucursal = suc.id
+                                INNER JOIN listas_asignacion la ON a.lista_id = la.id
+                                INNER JOIN usuarios u ON la.user_id = u.id
+                                WHERE la.user_id = %d
+                                  AND NOT (s.aporte_al_dia = 1
+                                  AND s.solidaridad_al_dia = 1
+                                  AND s.fondo_al_dia = 1
+                                  AND s.incoop_al_dia = 1
+                                  AND s.credito_al_dia = 1)
+                                ORDER BY CAST(s.numero_socio AS UNSIGNED), s.nombre_completo
+                            """.formatted(currentUser.getId());
+                }
+            }
+
+            List<Map<String, Object>> socios = jdbcTemplate.queryForList(sql);
+
+            byte[] pdfContent = exportService.generarPdfListaSocios(
+                    socios,
+                    title,
+                    description,
+                    "vyv".equalsIgnoreCase(tipo));
+
+            String filename = "vyv".equalsIgnoreCase(tipo)
+                    ? "socios_voz_y_voto.pdf"
+                    : "socios_solo_voz.pdf";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfContent);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

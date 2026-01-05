@@ -54,4 +54,76 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     @Query("SELECT u FROM Usuario u LEFT JOIN FETCH u.sucursal LEFT JOIN FETCH u.socio s LEFT JOIN FETCH s.sucursal WHERE u.activo = true")
     List<Usuario> findAllActiveWithRelations();
+
+    // ====== Queries para Reporte de Usuarios Sin Asignaciones ======
+
+    // Usuarios activos con 0 asignaciones totales (cuenta asignaciones en todas sus
+    // listas)
+    @Query("""
+            SELECT u FROM Usuario u
+            LEFT JOIN FETCH u.sucursal
+            LEFT JOIN FETCH u.socio socio
+            LEFT JOIN FETCH socio.sucursal
+            WHERE u.activo = true
+            AND NOT EXISTS (
+                SELECT 1 FROM Asignacion a
+                JOIN a.listaAsignacion la
+                WHERE la.usuario.id = u.id
+            )
+            ORDER BY u.nombreCompleto
+            """)
+    List<Usuario> findUsuariosSinAsignaciones();
+
+    // Solo Asesores con 0 asignaciones
+    @Query("""
+            SELECT u FROM Usuario u
+            LEFT JOIN FETCH u.sucursal
+            LEFT JOIN FETCH u.socio socio
+            LEFT JOIN FETCH socio.sucursal
+            WHERE u.activo = true
+            AND u.rol = com.asamblea.model.Usuario.Rol.ASESOR_DE_CREDITO
+            AND NOT EXISTS (
+                SELECT 1 FROM Asignacion a
+                JOIN a.listaAsignacion la
+                WHERE la.usuario.id = u.id
+            )
+            ORDER BY u.nombreCompleto
+            """)
+    List<Usuario> findAsesoresSinAsignaciones();
+
+    // Por sucursal específica - todos los usuarios (checks both usuario.sucursal
+    // and socio.sucursal)
+    @Query("""
+            SELECT u FROM Usuario u
+            LEFT JOIN FETCH u.sucursal s
+            LEFT JOIN FETCH u.socio socio
+            LEFT JOIN FETCH socio.sucursal socioSuc
+            WHERE u.activo = true
+            AND (s.id = :sucursalId OR socioSuc.id = :sucursalId)
+            AND NOT EXISTS (
+                SELECT 1 FROM Asignacion a
+                JOIN a.listaAsignacion la
+                WHERE la.usuario.id = u.id
+            )
+            ORDER BY u.nombreCompleto
+            """)
+    List<Usuario> findUsuariosSinAsignacionesBySucursal(@Param("sucursalId") Long sucursalId);
+
+    // Por sucursal específica - solo asesores
+    @Query("""
+            SELECT u FROM Usuario u
+            LEFT JOIN FETCH u.sucursal s
+            LEFT JOIN FETCH u.socio socio
+            LEFT JOIN FETCH socio.sucursal socioSuc
+            WHERE u.activo = true
+            AND u.rol = com.asamblea.model.Usuario.Rol.ASESOR_DE_CREDITO
+            AND (s.id = :sucursalId OR socioSuc.id = :sucursalId)
+            AND NOT EXISTS (
+                SELECT 1 FROM Asignacion a
+                JOIN a.listaAsignacion la
+                WHERE la.usuario.id = u.id
+            )
+            ORDER BY u.nombreCompleto
+            """)
+    List<Usuario> findAsesoresSinAsignacionesBySucursal(@Param("sucursalId") Long sucursalId);
 }
