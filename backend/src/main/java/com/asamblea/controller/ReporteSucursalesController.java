@@ -87,11 +87,10 @@ public class ReporteSucursalesController {
                              AND socio.incoop_al_dia=1
                              AND socio.credito_al_dia=1
                             THEN 1 END) * 100.0 / COUNT(a.id), 1) as porcentaje_vyv
-                    FROM usuarios u
-                    LEFT JOIN sucursales s ON u.id_sucursal = s.id
-                    INNER JOIN listas_asignacion la ON la.user_id = u.id
-                    INNER JOIN asignaciones_socios a ON a.lista_id = la.id
+                    FROM asignaciones_socios a
                     INNER JOIN socios socio ON a.socio_id = socio.id
+                    LEFT JOIN sucursales s ON socio.id_sucursal = s.id
+                    INNER JOIN listas_asignacion la ON a.lista_id = la.id
                     GROUP BY COALESCE(s.nombre, 'Sin Sucursal')
                     ORDER BY total DESC
                 """;

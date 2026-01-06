@@ -92,9 +92,19 @@ export default function AsignacionesPage() {
         listaUsuario: string;
     } | null>(null);
 
+
     // Modal para socio no encontrado
     const [showNotFoundModal, setShowNotFoundModal] = useState(false);
     const [notFoundTerm, setNotFoundTerm] = useState("");
+
+    // Modal para socio SOLO VOZ (sin derecho a voto)
+    const [showSoloVozModal, setShowSoloVozModal] = useState(false);
+    const [soloVozInfo, setSoloVozInfo] = useState<{
+        socioNombre: string;
+        socioNro: string;
+        cedula: string;
+        requisitosIncumplidos: string[];
+    } | null>(null);
 
     const { startTour, hasSeenTour } = useTour();
 
@@ -308,6 +318,18 @@ export default function AsignacionesPage() {
                     listaUsuario: 'TÚ MISMO'
                 });
                 setShowAlreadyAssignedModal(true);
+                setSearchedSocio(null);
+                setSocioSearchTerm("");
+            }
+            // Error de socio SOLO VOZ (sin derecho a voto) - código 422
+            else if (error.response?.status === 422 && error.response?.data?.error === 'SOCIO_SOLO_VOZ') {
+                setSoloVozInfo({
+                    socioNombre: error.response.data.socioNombre,
+                    socioNro: error.response.data.socioNro,
+                    cedula: error.response.data.cedula,
+                    requisitosIncumplidos: error.response.data.requisitosIncumplidos || []
+                });
+                setShowSoloVozModal(true);
                 setSearchedSocio(null);
                 setSocioSearchTerm("");
             }
@@ -724,6 +746,114 @@ export default function AsignacionesPage() {
                                 className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-2xl font-bold text-sm hover:from-blue-700 hover:to-cyan-700 transition-all shadow-lg shadow-blue-200 active:scale-95"
                             >
                                 Intentar de nuevo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: SOCIO SOLO VOZ (sin derecho a voto) - Premium Animated */}
+            {showSoloVozModal && soloVozInfo && (
+                <div
+                    className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+                    onClick={() => setShowSoloVozModal(false)}
+                >
+                    <div
+                        className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header con Gradiente Ámbar/Naranja */}
+                        <div className="relative bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 p-8 text-white overflow-hidden">
+                            {/* Decorative Circles */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
+                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl -ml-8 -mb-8" />
+
+                            <div className="relative z-10">
+                                {/* Icon */}
+                                <div className="inline-flex p-4 bg-white/20 backdrop-blur rounded-2xl mb-4 shadow-lg">
+                                    <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+
+                                {/* Title */}
+                                <h2 className="text-2xl md:text-3xl font-black leading-tight mb-2">
+                                    Solo Tiene Voz
+                                </h2>
+                                <p className="text-amber-100 text-sm font-medium">
+                                    Este socio no cumple con todos los requisitos para votar
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-6 md:p-8 space-y-5 md:space-y-6">
+                            {/* Socio Info Card */}
+                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-5 md:p-6 border-2 border-slate-200">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 md:mb-2">
+                                    Información del Socio
+                                </p>
+                                <p className="text-lg md:text-xl font-black text-slate-800 mb-1">
+                                    {soloVozInfo.socioNombre}
+                                </p>
+                                <div className="flex flex-wrap items-center gap-3 text-slate-500">
+                                    <div className="flex items-center gap-1.5">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                        </svg>
+                                        <span className="text-xs md:text-sm font-bold">N° {soloVozInfo.socioNro}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                        </svg>
+                                        <span className="text-xs md:text-sm font-bold">CI: {soloVozInfo.cedula}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Requisitos Incumplidos */}
+                            <div className="space-y-3">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Requisitos Pendientes para Votar
+                                </p>
+
+                                <div className="bg-red-50 rounded-xl border-2 border-red-200 p-4">
+                                    <div className="flex flex-wrap gap-2">
+                                        {soloVozInfo.requisitosIncumplidos.map((req, idx) => (
+                                            <span
+                                                key={idx}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-bold border border-red-200"
+                                            >
+                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                                {req}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Info Message */}
+                            <div className="flex gap-2 md:gap-3 p-3 md:p-4 bg-amber-50 rounded-xl border border-amber-200">
+                                <svg className="w-4 h-4 md:w-5 md:h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p className="text-[10px] md:text-xs text-amber-700 leading-relaxed font-medium">
+                                    <strong>Solo puedes agregar socios que tengan Voz y Voto.</strong><br />
+                                    Este socio tiene obligaciones pendientes que le impiden votar en la asamblea.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-5 md:p-6 bg-slate-50 border-t border-slate-100">
+                            <button
+                                onClick={() => setShowSoloVozModal(false)}
+                                className="w-full py-3.5 md:py-4 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-2xl font-bold text-xs md:text-sm hover:from-slate-800 hover:to-slate-900 transition-all shadow-lg shadow-slate-300 active:scale-95"
+                            >
+                                Entendido
                             </button>
                         </div>
                     </div>

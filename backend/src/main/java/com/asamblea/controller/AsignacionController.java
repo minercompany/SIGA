@@ -423,6 +423,29 @@ public class AsignacionController {
         if (socioOpt.isEmpty())
             return ResponseEntity.status(404).body(Map.of("error", "Socio no encontrado"));
 
+        Socio socio = socioOpt.get();
+        
+        // VALIDACIÓN: Solo permitir socios con Voz Y Voto (si está activo en configuración)
+        if (configuracionService.isSoloVozVotoActivo() && !socio.isEstadoVozVoto()) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "SOCIO_SOLO_VOZ");
+            errorResponse.put("message", "Este socio solo tiene VOZ pero no tiene derecho a VOTO");
+            errorResponse.put("socioNombre", socio.getNombreCompleto());
+            errorResponse.put("socioNro", socio.getNumeroSocio());
+            errorResponse.put("cedula", socio.getCedula());
+            
+            // Detalles de qué le falta al socio
+            List<String> pendientes = new ArrayList<>();
+            if (!socio.isAporteAlDia()) pendientes.add("Aporte");
+            if (!socio.isSolidaridadAlDia()) pendientes.add("Solidaridad");
+            if (!socio.isFondoAlDia()) pendientes.add("Fondo");
+            if (!socio.isIncoopAlDia()) pendientes.add("INCOOP");
+            if (!socio.isCreditoAlDia()) pendientes.add("Crédito");
+            errorResponse.put("requisitosIncumplidos", pendientes);
+            
+            return ResponseEntity.status(422).body(errorResponse);
+        }
+
         Usuario destino = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuario destino no encontrado"));
 
@@ -525,6 +548,28 @@ public class AsignacionController {
         }
 
         Socio socio = socioOpt.get();
+
+        // VALIDACIÓN: Solo permitir socios con Voz Y Voto (si está activo en configuración)
+        if (configuracionService.isSoloVozVotoActivo() && !socio.isEstadoVozVoto()) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "SOCIO_SOLO_VOZ");
+            errorResponse.put("message", "Este socio solo tiene VOZ pero no tiene derecho a VOTO");
+            errorResponse.put("socioNombre", socio.getNombreCompleto());
+            errorResponse.put("socioNro", socio.getNumeroSocio());
+            errorResponse.put("cedula", socio.getCedula());
+            
+            // Detalles de qué le falta al socio
+            List<String> pendientes = new ArrayList<>();
+            if (!socio.isAporteAlDia()) pendientes.add("Aporte");
+            if (!socio.isSolidaridadAlDia()) pendientes.add("Solidaridad");
+            if (!socio.isFondoAlDia()) pendientes.add("Fondo");
+            if (!socio.isIncoopAlDia()) pendientes.add("INCOOP");
+            if (!socio.isCreditoAlDia()) pendientes.add("Crédito");
+            errorResponse.put("requisitosIncumplidos", pendientes);
+            
+            return ResponseEntity.status(422).body(errorResponse);
+        }
+
         ListaAsignacion lista = listaRepository.findById(listaId).orElseThrow();
         Usuario currentUser = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
 

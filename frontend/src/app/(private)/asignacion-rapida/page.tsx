@@ -49,6 +49,15 @@ export default function AsignacionRapidaPage() {
         fechaAsignacion: string;
     } | null>(null);
 
+    // Modal para socio SOLO VOZ (sin derecho a voto)
+    const [showSoloVozModal, setShowSoloVozModal] = useState(false);
+    const [soloVozInfo, setSoloVozInfo] = useState<{
+        socioNombre: string;
+        socioNro: string;
+        cedula: string;
+        requisitosIncumplidos: string[];
+    } | null>(null);
+
     const tieneVozYVoto = (socio: Socio) => {
         return socio.aporteAlDia && socio.solidaridadAlDia && socio.fondoAlDia && socio.incoopAlDia && socio.creditoAlDia;
     };
@@ -185,6 +194,18 @@ export default function AsignacionRapidaPage() {
                 setSearchTerm("");
             } else if (error.response?.status === 400) {
                 setErrorMessage("Este socio ya está en tu lista");
+            }
+            // Error de socio SOLO VOZ (sin derecho a voto) - código 422
+            else if (error.response?.status === 422 && error.response?.data?.error === 'SOCIO_SOLO_VOZ') {
+                setSoloVozInfo({
+                    socioNombre: error.response.data.socioNombre,
+                    socioNro: error.response.data.socioNro,
+                    cedula: error.response.data.cedula,
+                    requisitosIncumplidos: error.response.data.requisitosIncumplidos || []
+                });
+                setShowSoloVozModal(true);
+                setSearchedSocio(null);
+                setSearchTerm("");
             } else if (error.response?.status === 403 && error.response?.data?.bloqueado) {
                 // MENSAJE AMABLE DE TIEMPO EXPIRADO - REDISEÑO PREMIUM
                 Swal.fire({
@@ -538,6 +559,80 @@ export default function AsignacionRapidaPage() {
                                     setAlreadyAssignedInfo(null);
                                 }}
                                 className="w-full mt-6 py-4 bg-slate-800 hover:bg-slate-900 text-white rounded-2xl font-bold transition-all"
+                            >
+                                Entendido
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal: Socio SOLO VOZ (sin derecho a voto) */}
+            <AnimatePresence>
+                {showSoloVozModal && soloVozInfo && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                        onClick={() => setShowSoloVozModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-md"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex justify-center mb-6">
+                                <div className="p-4 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full">
+                                    <AlertTriangle className="w-12 h-12 text-amber-500" />
+                                </div>
+                            </div>
+
+                            <h3 className="text-xl font-black text-center text-slate-800 mb-2">
+                                Solo Tiene Voz
+                            </h3>
+                            <p className="text-slate-500 text-center text-sm mb-6">
+                                Este socio no cumple los requisitos para votar
+                            </p>
+
+                            <div className="bg-slate-50 rounded-2xl p-4 mb-4">
+                                <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Socio</p>
+                                <p className="font-bold text-slate-800">{soloVozInfo.socioNombre}</p>
+                                <p className="text-sm text-slate-500">Nro: {soloVozInfo.socioNro} | CI: {soloVozInfo.cedula}</p>
+                            </div>
+
+                            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-4 border-2 border-red-200 mb-4">
+                                <p className="text-xs text-red-600 uppercase tracking-wide font-bold mb-3">
+                                    Requisitos pendientes:
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {soloVozInfo.requisitosIncumplidos.map((req, idx) => (
+                                        <span
+                                            key={idx}
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-bold border border-red-200"
+                                        >
+                                            ✗ {req}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2 p-3 bg-amber-50 rounded-xl border border-amber-200 mb-6">
+                                <Shield className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                                <p className="text-xs text-amber-700 leading-relaxed">
+                                    <strong>Solo puedes agregar socios con Voz y Voto.</strong><br />
+                                    Este socio tiene obligaciones pendientes.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    setShowSoloVozModal(false);
+                                    setSoloVozInfo(null);
+                                }}
+                                className="w-full py-4 bg-slate-800 hover:bg-slate-900 text-white rounded-2xl font-bold transition-all"
                             >
                                 Entendido
                             </button>

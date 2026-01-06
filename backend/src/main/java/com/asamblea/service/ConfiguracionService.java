@@ -24,6 +24,17 @@ public class ConfiguracionService {
     public static final String FECHA_LIMITE_ASIGNACION = "FECHA_LIMITE_ASIGNACION";
     public static final String FECHA_LIMITE_ACTIVA = "FECHA_LIMITE_ACTIVA";
     public static final String FECHA_LIMITE_PRUEBA_ACTIVA = "FECHA_LIMITE_PRUEBA_ACTIVA";
+    
+    // Clave para restricción de solo Voz y Voto
+    public static final String SOLO_VOZ_VOTO_ACTIVO = "SOLO_VOZ_VOTO_ACTIVO";
+
+    /**
+     * Verifica si la restricción de solo permitir socios con Voz y Voto está activa
+     * @return true si solo se permiten socios con voz y voto, false si se permiten todos
+     */
+    public boolean isSoloVozVotoActivo() {
+        return "true".equals(obtener(SOLO_VOZ_VOTO_ACTIVO, "false"));
+    }
 
     /**
      * Verifica si las asignaciones están bloqueadas.

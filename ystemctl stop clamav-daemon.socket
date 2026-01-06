@@ -1,0 +1,47 @@
+○ clamav-daemon.service - Clam AntiVirus userspace daemon
+     Loaded: loaded (]8;;file://srv1200901/usr/lib/systemd/system/clamav-daemon.service/usr/lib/systemd/system/clamav-daemon.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+    Drop-In: /etc/systemd/system/clamav-daemon.service.d
+             └─]8;;file://srv1200901/etc/systemd/system/clamav-daemon.service.d/extend.confextend.conf]8;;
+     Active: inactive (dead) since Tue 2026-01-06 12:39:52 -03; 19s ago
+   Duration: 18min 12.627s
+TriggeredBy: [0;1;32m●[0m clamav-daemon.socket
+       Docs: ]8;;man:clamd(8)man:clamd(8)]8;;
+             ]8;;man:clamd.conf(5)man:clamd.conf(5)]8;;
+             ]8;;https://docs.clamav.net/https://docs.clamav.net/]8;;
+    Process: 760 ExecStartPre=/bin/mkdir -p /run/clamav (code=exited, status=0/SUCCESS)
+    Process: 788 ExecStartPre=/bin/chown clamav /run/clamav (code=exited, status=0/SUCCESS)
+    Process: 813 ExecStart=/usr/sbin/clamd --foreground=true (code=exited, status=0/SUCCESS)
+   Main PID: 813 (code=exited, status=0/SUCCESS)
+        CPU: 4min 49.873s
+
+Jan 06 12:31:54 srv1200901 clamd[813]: Tue Jan  6 12:31:54 2026 -> HTML support enabled.
+Jan 06 12:31:54 srv1200901 clamd[813]: Tue Jan  6 12:31:54 2026 -> XMLDOCS support enabled.
+Jan 06 12:31:54 srv1200901 clamd[813]: Tue Jan  6 12:31:54 2026 -> HWP3 support enabled.
+Jan 06 12:31:54 srv1200901 clamd[813]: Tue Jan  6 12:31:54 2026 -> OneNote support enabled.
+Jan 06 12:31:54 srv1200901 clamd[813]: Tue Jan  6 12:31:54 2026 -> Self checking every 3600 seconds.
+Jan 06 12:39:32 srv1200901 systemd[1]: Stopping clamav-daemon.service - Clam AntiVirus userspace daemon...
+Jan 06 12:39:52 srv1200901 clamd[813]: Tue Jan  6 12:39:52 2026 -> --- Stopped at Tue Jan  6 12:39:52 2026
+Jan 06 12:39:52 srv1200901 systemd[1]: clamav-daemon.service: Deactivated successfully.
+Jan 06 12:39:52 srv1200901 systemd[1]: Stopped clamav-daemon.service - Clam AntiVirus userspace daemon.
+Jan 06 12:39:52 srv1200901 systemd[1]: clamav-daemon.service: Consumed 4min 49.873s CPU time.
+
+○ clamav-freshclam.service - ClamAV virus database updater
+     Loaded: loaded (]8;;file://srv1200901/usr/lib/systemd/system/clamav-freshclam.service/usr/lib/systemd/system/clamav-freshclam.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: inactive (dead) since Tue 2026-01-06 12:39:52 -03; 18s ago
+   Duration: 18min 43.031s
+       Docs: ]8;;man:freshclam(1)man:freshclam(1)]8;;
+             ]8;;man:freshclam.conf(5)man:freshclam.conf(5)]8;;
+             ]8;;https://docs.clamav.net/https://docs.clamav.net/]8;;
+    Process: 761 ExecStart=/usr/bin/freshclam -d --foreground=true (code=exited, status=0/SUCCESS)
+   Main PID: 761 (code=exited, status=0/SUCCESS)
+        CPU: 892ms
+
+Jan 06 12:21:09 srv1200901 systemd[1]: Started clamav-freshclam.service - ClamAV virus database updater.
+Jan 06 12:21:22 srv1200901 freshclam[761]: ClamAV update process started at Tue Jan  6 12:21:22 2026
+Jan 06 12:21:22 srv1200901 freshclam[761]: Tue Jan  6 12:21:22 2026 -> daily.cld database is up-to-date (version: 27872, sigs: 354714, f-level: 90, builder: svc.clamav-publisher)
+Jan 06 12:21:22 srv1200901 freshclam[761]: Tue Jan  6 12:21:22 2026 -> main.cvd database is up-to-date (version: 63, sigs: 3287027, f-level: 90, builder: tomjudge)
+Jan 06 12:21:22 srv1200901 freshclam[761]: Tue Jan  6 12:21:22 2026 -> bytecode.cvd database is up-to-date (version: 339, sigs: 80, f-level: 90, builder: nrandolp)
+Jan 06 12:39:52 srv1200901 systemd[1]: Stopping clamav-freshclam.service - ClamAV virus database updater...
+Jan 06 12:39:52 srv1200901 freshclam[761]: Update process terminated
+Jan 06 12:39:52 srv1200901 systemd[1]: clamav-freshclam.service: Deactivated successfully.
+Jan 06 12:39:52 srv1200901 systemd[1]: Stopped clamav-freshclam.service - ClamAV virus database updater.

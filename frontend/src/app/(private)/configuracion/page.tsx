@@ -456,6 +456,130 @@ const ConfiguracionGestionListas = () => {
     );
 };
 
+// Componente para Restricción Solo Voz y Voto
+const ConfiguracionSoloVozVoto = () => {
+    const { updateConfig } = useConfig();
+    const [enabled, setEnabled] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+
+    // Cargar estado actual de la configuración
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get("/api/configuracion", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                // Manejar diferentes formatos de respuesta
+                const data = res.data;
+                if (Array.isArray(data)) {
+                    const config = data.find((c: any) => c.clave === "SOLO_VOZ_VOTO_ACTIVO");
+                    if (config) {
+                        setEnabled(config.valor === "true");
+                    }
+                } else if (data && typeof data === 'object') {
+                    if (data.SOLO_VOZ_VOTO_ACTIVO !== undefined) {
+                        setEnabled(data.SOLO_VOZ_VOTO_ACTIVO === "true");
+                    }
+                }
+            } catch (error) {
+                console.error("Error cargando config de solo voz y voto:", error);
+            } finally {
+                setLoaded(true);
+            }
+        };
+        fetchConfig();
+    }, []);
+
+    const handleToggle = async () => {
+        const newValue = !enabled;
+        setSaving(true);
+        try {
+            await updateConfig("SOLO_VOZ_VOTO_ACTIVO", newValue ? "true" : "false");
+            setEnabled(newValue);
+
+            Swal.fire({
+                title: newValue ? '🗳️ Restricción ACTIVADA' : '✅ Restricción DESACTIVADA',
+                html: newValue
+                    ? '<p class="text-slate-600">Ahora <strong>solo se podrán asignar socios que tengan Voz y Voto</strong>.<br/>Los usuarios verán un mensaje profesional si intentan agregar un socio que solo tiene voz.</p>'
+                    : '<p class="text-slate-600">Se permite asignar <strong>cualquier socio</strong> independientemente de su condición de voto.</p>',
+                icon: newValue ? 'warning' : 'success',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: newValue ? '#f59e0b' : '#10b981',
+                padding: '2em',
+                customClass: {
+                    popup: 'rounded-[2rem] shadow-2xl'
+                }
+            });
+        } catch (error) {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo actualizar la configuración',
+                icon: 'error',
+                confirmButtonColor: '#ef4444'
+            });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (!loaded) return null;
+
+    return (
+        <>
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 italic uppercase border-t border-slate-100 pt-6 mt-6">
+                <ShieldAlert className="h-5 w-5 text-emerald-500" />
+                Restricción de Asignaciones
+            </h2>
+
+            <div className={`rounded-2xl p-6 border transition-all ${enabled ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-start gap-4">
+                        <div className={`p-3 rounded-xl transition-colors ${enabled ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                            <Check className="h-6 w-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                Solo Voz y Voto
+                                {enabled && <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black uppercase rounded-full">ACTIVO</span>}
+                            </h3>
+                            <p className="text-sm text-slate-500 max-w-md">
+                                Cuando está activo, los usuarios <strong>solo podrán agregar a sus listas socios que cumplan todos los requisitos</strong> (Aporte, Solidaridad, Fondo, INCOOP y Crédito al día).
+                                Los socios que "Solo tienen Voz" serán rechazados con un mensaje profesional indicando qué requisitos les faltan.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleToggle}
+                        disabled={saving}
+                        className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 ${enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                    >
+                        <span className="sr-only">Activar Restricción</span>
+                        <span
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-8' : 'translate-x-0'}`}
+                        >
+                            {saving && <Loader2 className="h-6 w-6 m-2.5 animate-spin text-emerald-500" />}
+                        </span>
+                    </button>
+                </div>
+
+                {/* Info adicional cuando está activo */}
+                {enabled && (
+                    <div className="mt-4 pt-4 border-t border-emerald-200 flex items-start gap-3">
+                        <Info className="h-5 w-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-emerald-700 leading-relaxed">
+                            Los socios que no cumplan los requisitos verán un modal profesional explicando qué obligaciones tienen pendientes. Esto aplica tanto para asignaciones normales como administrativas.
+                        </p>
+                    </div>
+                )}
+            </div>
+        </>
+    );
+};
+
 // Componente para Fecha Límite de Asignación - REDISEÑO PREMIUM
 const ConfiguracionFechaLimite = () => {
     const { updateConfig } = useConfig();
@@ -1408,6 +1532,7 @@ export default function ConfiguracionPage() {
                         <ConfiguracionNotificaciones />
                         <ConfiguracionFechaLimite />
                         <ConfiguracionGestionListas />
+                        <ConfiguracionSoloVozVoto />
                         <ConfiguracionModoPrueba />
                     </div>
 
