@@ -32,7 +32,8 @@ import {
     Bell,
     Clock,
     Award,
-    TrendingUp
+    TrendingUp,
+    Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -121,6 +122,7 @@ const menuItems = [
             { id: "gestion-listas", name: "Gestión de Listas", href: "/gestion-listas", icon: ClipboardList },
             { id: "auditoria", name: "Auditoría", href: "/auditoria", icon: History },
             { id: "configuracion", name: "Configuración", href: "/configuracion", icon: Settings },
+            { id: "backups", name: "Backups", href: "/admin/backups", icon: Database },
         ]
     }
 ];
@@ -245,6 +247,7 @@ export function Sidebar() {
             case "usuarios":
             case "gestion-listas":
             case "auditoria":
+            case "backups":
                 return user.rol === "SUPER_ADMIN";
             case "configuracion":
                 return true; // Todos los usuarios pueden ver su propia configuración
