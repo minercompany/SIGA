@@ -132,4 +132,43 @@ public class BackupController {
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
+
+    /**
+     * Obtiene información sobre el último backup de seguridad disponible para deshacer
+     */
+    @GetMapping("/undo-info")
+    public ResponseEntity<?> getUndoInfo() {
+        try {
+            BackupHistorialDTO backup = backupService.getUltimoBackupPreRestauracion();
+            if (backup == null) {
+                return ResponseEntity.ok(Map.of("disponible", false));
+            }
+            return ResponseEntity.ok(Map.of(
+                "disponible", true,
+                "backup", backup
+            ));
+        } catch (Exception e) {
+            logger.error("Error al obtener info de undo: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Deshace la última restauración (restaura el backup de seguridad)
+     */
+    @PostMapping("/undo")
+    public ResponseEntity<?> undoRestoration(Authentication auth) {
+        try {
+            String usuario = auth.getName();
+            backupService.restaurarUltimoUndo(usuario);
+            
+            return ResponseEntity.ok(Map.of(
+                "mensaje", "Restauración deshecha exitosamente. El sistema ha vuelto al estado anterior.",
+                "advertencia", "Se recomienda recargar la página."
+            ));
+        } catch (Exception e) {
+            logger.error("Error al deshacer restauración: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

@@ -21,6 +21,7 @@ import java.util.Optional;
 @Component
 @Slf4j
 @RequiredArgsConstructor
+@org.springframework.context.annotation.Profile("seed-asesores") // Solo ejecutar con --spring.profiles.active=seed-asesores
 public class AsesoresDataSeeder implements CommandLineRunner {
 
     private final UsuarioRepository usuarioRepository;

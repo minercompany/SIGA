@@ -41,4 +41,19 @@ public interface AsistenciaRepository extends JpaRepository<Asistencia, Long> {
             Boolean estadoVozVoto);
 
     java.util.List<Asistencia> findByFechaHoraBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
+
+    // Optimized Report Query
+    @Query("SELECT a FROM Asistencia a " +
+           "WHERE (:fechaInicio IS NULL OR a.fechaHora >= :fechaInicio) " +
+           "AND (:fechaFin IS NULL OR a.fechaHora <= :fechaFin) " +
+           "AND (:sucursalId IS NULL OR a.socio.sucursal.id = :sucursalId) " +
+           "AND (:operadorId IS NULL OR a.operador.id = :operadorId) " +
+           "AND (:filterByAssignment = false OR a.socio.id IN :socioIds)")
+    java.util.List<Asistencia> findAsistenciasReporte(
+            @org.springframework.data.repository.query.Param("fechaInicio") java.time.LocalDateTime fechaInicio,
+            @org.springframework.data.repository.query.Param("fechaFin") java.time.LocalDateTime fechaFin,
+            @org.springframework.data.repository.query.Param("sucursalId") Long sucursalId,
+            @org.springframework.data.repository.query.Param("operadorId") Long operadorId,
+            @org.springframework.data.repository.query.Param("filterByAssignment") boolean filterByAssignment,
+            @org.springframework.data.repository.query.Param("socioIds") java.util.Collection<Long> socioIds);
 }

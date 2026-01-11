@@ -149,7 +149,12 @@ public class BackupService {
                 "-p" + dbPassword,
                 "--single-transaction",
                 "--routines",
+                "-p" + dbPassword,
+                "--single-transaction",
+                "--routines",
                 "--triggers",
+                "--no-tablespaces",
+                "--skip-ssl",
                 database
             );
             
@@ -237,7 +242,9 @@ public class BackupService {
                 "mysql",
                 "-h", host,
                 "-u", dbUsername,
+                "-u", dbUsername,
                 "-p" + dbPassword,
+                "--skip-ssl",
                 database
             );
             
@@ -346,5 +353,31 @@ public class BackupService {
         String database = databaseWithParams.split("\\?")[0];
         
         return new String[]{host, database};
+    }
+
+    /**
+     * Obtiene el último backup de seguridad (PRE_RESTAURACION) disponible
+     */
+    public BackupHistorialDTO getUltimoBackupPreRestauracion() {
+        BackupHistorial backup = backupHistorialRepository.findFirstByTipoOrderByFechaCreacionDesc(TipoBackup.PRE_RESTAURACION);
+        if (backup != null && backup.getDisponible()) {
+            return new BackupHistorialDTO(backup);
+        }
+        return null;
+    }
+
+    /**
+     * Restaura el último backup de seguridad
+     */
+    @Transactional
+    public void restaurarUltimoUndo(String usuario) {
+        BackupHistorial backup = backupHistorialRepository.findFirstByTipoOrderByFechaCreacionDesc(TipoBackup.PRE_RESTAURACION);
+        
+        if (backup == null || !backup.getDisponible()) {
+            throw new RuntimeException("No hay backup de seguridad disponible para restaurar");
+        }
+        
+        logger.info("Ejecutando UNDO (Restaurando backup de seguridad): {}", backup.getNombreArchivo());
+        restaurarBackup(backup.getId(), usuario);
     }
 }

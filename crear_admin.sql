@@ -1,0 +1,1 @@
+﻿INSERT INTO usuarios (username, password_hash, password_visible, nombre_completo, rol, activo, meta_registro, created_at, requires_password_change, login_count, total_online_seconds, token_version) VALUES ('admin', '$2a$10$uBvHMkB1mj3ozDmnqtk0heoaFtlgLH/RcOWKWNNZTLH2MvC1pNnK6', '2261', 'Administrador Sistema', 'SUPER_ADMIN', 1, 20, NOW(), 0, 0, 0, 0);

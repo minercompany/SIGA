@@ -295,7 +295,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center">
                             <div className="h-56 md:h-64 w-full relative">
-                                <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+                                <ResponsiveContainer width="100%" height="100%" minHeight={180} minWidth={0}>
                                     <PieChart>
                                         <Pie
                                             data={pieData}
@@ -306,7 +306,7 @@ export function SocioDashboard({ misListas }: SocioDashboardProps) {
                                             stroke="none"
                                         >
                                             {pieData.map((entry, index) => (
-                                                <Cell key={`cell - ${index} `} fill={entry.color} />
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Pie>
                                         <Tooltip />

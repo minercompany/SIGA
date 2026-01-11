@@ -23,7 +23,7 @@ sleep 2
 # Build production version
 echo -e "${CYAN}Building production version (esto toma ~70s)...${NC}"
 cd /home/SIGA/frontend
-NEXT_PUBLIC_API_URL=https://asamblea.cloud npm run build 2>&1 | tail -5
+NEXT_PUBLIC_API_URL=https://asamblea.coopreducto.coop.py npm run build 2>&1 | tail -5
 
 # Update Nginx back to production port (6002)  
 echo -e "${CYAN}Updating Nginx to use production port (6002)...${NC}"

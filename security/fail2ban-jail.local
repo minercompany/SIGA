@@ -1,0 +1,59 @@
+# ===========================================
+# FAIL2BAN CONFIGURATION
+# ===========================================
+# Copiar a /etc/fail2ban/jail.local
+
+[DEFAULT]
+# Tiempo de baneo: 1 hora
+bantime = 3600
+# Ventana de tiempo para detectar intentos
+findtime = 600
+# Intentos máximos antes de banear
+maxretry = 5
+# Backend para monitorear logs
+backend = systemd
+
+# Ignorar direcciones locales
+ignoreip = 127.0.0.1/8 ::1
+
+# Acción por defecto: banear con firewall
+banaction = ufw
+
+# --- SSH PROTECTION ---
+[sshd]
+enabled = true
+port = 2222
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 86400
+
+# --- NGINX PROTECTION ---
+[nginx-http-auth]
+enabled = true
+filter = nginx-http-auth
+port = http,https
+logpath = /var/log/nginx/error.log
+maxretry = 3
+
+[nginx-botsearch]
+enabled = true
+filter = nginx-botsearch
+port = http,https
+logpath = /var/log/nginx/access.log
+maxretry = 2
+
+[nginx-badbots]
+enabled = true
+filter = nginx-badbots
+port = http,https
+logpath = /var/log/nginx/access.log
+maxretry = 2
+bantime = 86400
+
+[nginx-req-limit]
+enabled = true
+filter = nginx-limit-req
+port = http,https
+logpath = /var/log/nginx/error.log
+maxretry = 10

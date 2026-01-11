@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     follow: true
   },
   alternates: {
-    canonical: "https://asamblea.cloud"
+    canonical: "https://asamblea.coopreducto.coop.py"
   },
   icons: {
     icon: "/logo.png",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_PY",
     siteName: "SIGA Cooperativa Reducto",
-    url: "https://asamblea.cloud",
+    url: "https://asamblea.coopreducto.coop.py",
     images: [
       {
         url: "/logo-cooperativa.png",
@@ -81,6 +81,7 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="SIGA" />
         <link rel="apple-touch-icon" href="/logo.png" />
@@ -95,7 +96,7 @@ export default function RootLayout({
               "description": "Sistema web profesional para gestión de asambleas cooperativas",
               "applicationCategory": "BusinessApplication",
               "operatingSystem": "Any",
-              "url": "https://asamblea.cloud",
+              "url": "https://asamblea.coopreducto.coop.py",
               "offers": {
                 "@type": "Offer",
                 "price": "0",
@@ -104,7 +105,7 @@ export default function RootLayout({
               "provider": {
                 "@type": "Organization",
                 "name": "Cooperativa Reducto Ltda",
-                "url": "https://asamblea.cloud",
+                "url": "https://asamblea.coopreducto.coop.py",
                 "address": {
                   "@type": "PostalAddress",
                   "addressLocality": "San Lorenzo",

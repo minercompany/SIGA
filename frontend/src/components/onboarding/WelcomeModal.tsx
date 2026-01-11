@@ -19,7 +19,6 @@ export function WelcomeModal({ user, onUpdateUser }: WelcomeModalProps) {
     useEffect(() => {
         // Disparar solo si el usuario existe y NO tiene teléfono (o es muy corto)
         if (user) {
-            console.log("WelcomeModal check:", user);
             if (!user.telefono || user.telefono.length < 6) {
                 setIsOpen(true);
             }
@@ -29,8 +28,6 @@ export function WelcomeModal({ user, onUpdateUser }: WelcomeModalProps) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
-
-        console.log("Submitting phone for user:", user);
 
         if (!user || !user.id) {
             setError("Error: No se encontró el ID de usuario. Reloguearse puede solucionar esto.");
@@ -149,7 +146,7 @@ export function WelcomeModal({ user, onUpdateUser }: WelcomeModalProps) {
                                         <Loader2 className="w-5 h-5 animate-spin" />
                                         <span>Registrando...</span>
                                     </>
-                                ):(
+                                ) : (
                                     <span>Confirmar Acceso</span>
                                 )}
                             </button>

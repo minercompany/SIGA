@@ -41,11 +41,8 @@ public class ReporteController {
                         @RequestParam(required = false) Long sucursalId,
                         @RequestParam(required = false) Long operadorId,
                         Authentication auth) {
-                // Validación de Seguridad:
-                // SUPER_ADMIN: Ve todo.
-                // DIRECTIVO / OPERADOR: Solo ve SUS registros.
+                // Validación de Seguridad
                 Usuario currentUser = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
-
                 boolean isSuperAdmin = currentUser.getRol() == Usuario.Rol.SUPER_ADMIN;
 
                 boolean filterByAssignment = false;
@@ -53,13 +50,10 @@ public class ReporteController {
 
                 if (!isSuperAdmin) {
                         if (currentUser.getRol() == Usuario.Rol.USUARIO_SOCIO) {
-                                // USUARIO_SOCIO: Ve la asistencia de sus socios ASIGNADOS (sin importar
-                                // operador)
                                 filterByAssignment = true;
                                 if (currentUser.getIdSocio() != null) {
                                         socioIds.add(currentUser.getIdSocio());
                                 }
-
                                 var listas = listaAsignacionRepository.findByUsuarioId(currentUser.getId());
                                 for (var lista : listas) {
                                         var asignaciones = asignacionRepository.findByListaAsignacionId(lista.getId());
@@ -67,36 +61,26 @@ public class ReporteController {
                                                 socioIds.add(asignacion.getSocio().getId());
                                         }
                                 }
-                                // Anulamos operadorId para ver registros de CUALQUIER operador
-                                operadorId = null;
+                                operadorId = null; // Ver registros de CUALQUIER operador para MIS socios
                         } else {
-                                // OPERADOR / DIRECTIVO: Solo ve lo que él registró
-                                operadorId = currentUser.getId();
+                                operadorId = currentUser.getId(); // Solo MIS registros
                         }
                 }
 
-                // Obtener todas las asistencias (Optimización pendiente: hacer esto con JPQL
-                // dinámico)
-                // Por ahora filtro en memoria dado que no esperamos millones de asistencias en
-                // un solo día
-                List<Asistencia> todas = asistenciaRepository.findAll();
+                // Optimización: Si filterByAssignment es true y no hay socios, retornamos vacío directamente
+                if (filterByAssignment && socioIds.isEmpty()) {
+                     Map<String, Object> emptyStats = new HashMap<>();
+                     emptyStats.put("totalRegistros", 0);
+                     emptyStats.put("habilitados", 0L);
+                     emptyStats.put("observados", 0L);
+                     return ResponseEntity.ok(Map.of("data", java.util.Collections.emptyList(), "stats", emptyStats));
+                }
 
-                // Aplicar Filtros
-                Long finalOperadorId = operadorId;
-                boolean finalFilterByAssignment = filterByAssignment;
+                List<Asistencia> filtradas = asistenciaRepository.findAsistenciasReporte(
+                                fechaInicio, fechaFin, sucursalId, operadorId, filterByAssignment,
+                                socioIds.isEmpty() ? java.util.Collections.singletonList(-1L) : socioIds);
 
-                List<Asistencia> filtradas = todas.stream()
-                                .filter(a -> fechaInicio == null || !a.getFechaHora().isBefore(fechaInicio))
-                                .filter(a -> fechaFin == null || !a.getFechaHora().isAfter(fechaFin))
-                                .filter(a -> sucursalId == null || (a.getSocio().getSucursal() != null
-                                                && a.getSocio().getSucursal().getId().equals(sucursalId)))
-                                .filter(a -> finalOperadorId == null
-                                                || (a.getOperador() != null
-                                                                && a.getOperador().getId().equals(finalOperadorId)))
-                                .filter(a -> !finalFilterByAssignment || socioIds.contains(a.getSocio().getId()))
-                                .collect(Collectors.toList());
-
-                // Transformar a DTO para el frontend
+                // Transformar a DTO
                 List<Map<String, Object>> reporte = filtradas.stream().map(a -> {
                         Map<String, Object> fila = new HashMap<>();
                         fila.put("id", a.getId());
@@ -131,62 +115,70 @@ public class ReporteController {
         public ResponseEntity<?> reporteMisAsignados(Authentication auth) {
                 Usuario currentUser = usuarioRepository.findByUsername(auth.getName()).orElseThrow();
 
-                // SUPER_ADMIN puede ver todo, USUARIO_SOCIO ve sus propios asignados
                 boolean isSuperAdmin = currentUser.getRol() == Usuario.Rol.SUPER_ADMIN;
                 if (currentUser.getRol() != Usuario.Rol.USUARIO_SOCIO && !isSuperAdmin) {
                         return ResponseEntity.status(403).body(Map.of("error", "Acceso denegado."));
                 }
 
-                var listas = listaAsignacionRepository.findByUsuarioId(currentUser.getId());
+                // Optimización: Fetch assignments por usuario (u Operador)
+                var asignaciones = asignacionRepository.findAsignacionesReporte(currentUser.getId());
+                
+                // Collect socio IDs to fetch attendances efficiently
+                Set<Long> socioIds = asignaciones.stream()
+                    .map(a -> a.getSocio().getId())
+                    .collect(Collectors.toSet());
+                
+                // Fetch only relevant attendances
+                List<Asistencia> asistencias = socioIds.isEmpty() ? Collections.emptyList() :
+                    asistenciaRepository.findAsistenciasReporte(null, null, null, null, true, socioIds);
+                
+                Map<Long, Asistencia> asistenciaMap = asistencias.stream()
+                    .collect(Collectors.toMap(a -> a.getSocio().getId(), a -> a, (a1, a2) -> a1)); // Duplicate handler just in case
+
                 List<Map<String, Object>> result = new ArrayList<>();
 
-                for (var lista : listas) {
-                        var asignaciones = asignacionRepository.findByListaAsignacionId(lista.getId());
-                        for (var asignacion : asignaciones) {
-                                com.asamblea.model.Socio s = asignacion.getSocio();
-                                Optional<Asistencia> asistenciaOpt = asistenciaRepository.findFirstBySocioId(s.getId());
+                for (var asignacion : asignaciones) {
+                        com.asamblea.model.Socio s = asignacion.getSocio();
 
-                                Map<String, Object> fila = new HashMap<>();
-                                fila.put("id", s.getId());
-                                fila.put("socioNombre", s.getNombreCompleto());
-                                fila.put("socioNro", s.getNumeroSocio());
-                                fila.put("cedula", s.getCedula());
-                                fila.put("sucursal",
-                                                s.getSucursal() != null ? s.getSucursal().getNombre() : "Sin Sucursal");
-                                fila.put("vozVoto", s.isEstadoVozVoto() ? "HABILITADO" : "OBSERVADO"); // Estado socio
-                                fila.put("fechaAsignacion", asignacion.getFechaAsignacion());
+                        Map<String, Object> fila = new HashMap<>();
+                        fila.put("id", s.getId());
+                        fila.put("socioNombre", s.getNombreCompleto());
+                        fila.put("socioNro", s.getNumeroSocio());
+                        fila.put("cedula", s.getCedula());
+                        fila.put("sucursal",
+                                        s.getSucursal() != null ? s.getSucursal().getNombre() : "Sin Sucursal");
+                        fila.put("vozVoto", s.isEstadoVozVoto() ? "HABILITADO" : "OBSERVADO");
+                        fila.put("fechaAsignacion", asignacion.getFechaAsignacion());
 
-                                if (asignacion.getAsignadoPor() != null) {
-                                        fila.put("asignadoPor", asignacion.getAsignadoPor().getNombreCompleto());
-                                } else {
-                                        // Si es nulo, es probable que haya sido auto-asignado o migración anterior
-                                        fila.put("asignadoPor", "Sistema / Anterior");
-                                }
-
-                                if (asistenciaOpt.isPresent()) {
-                                        fila.put("estado", "PRESENTE"); // Estado asistencia
-                                        fila.put("fechaHora", asistenciaOpt.get().getFechaHora());
-                                        Usuario op = asistenciaOpt.get().getOperador();
-                                        fila.put("operador", op != null ? op.getNombreCompleto() : "Sistema");
-                                        fila.put("operadorId", op != null ? op.getId() : "SYS");
-                                } else {
-                                        fila.put("estado", "AUSENTE");
-                                        fila.put("fechaHora", null);
-                                        fila.put("operador", "-");
-                                        fila.put("operadorId", "-");
-                                }
-                                result.add(fila);
+                        if (asignacion.getAsignadoPor() != null) {
+                                fila.put("asignadoPor", asignacion.getAsignadoPor().getNombreCompleto());
+                        } else {
+                                fila.put("asignadoPor", "Sistema / Anterior");
                         }
+
+                        Asistencia asistenciaOpt = asistenciaMap.get(s.getId());
+                        if (asistenciaOpt != null) {
+                                fila.put("estado", "PRESENTE");
+                                fila.put("fechaHora", asistenciaOpt.getFechaHora());
+                                Usuario op = asistenciaOpt.getOperador();
+                                fila.put("operador", op != null ? op.getNombreCompleto() : "Sistema");
+                                fila.put("operadorId", op != null ? op.getId() : "SYS");
+                        } else {
+                                fila.put("estado", "AUSENTE");
+                                fila.put("fechaHora", null);
+                                fila.put("operador", "-");
+                                fila.put("operadorId", "-");
+                        }
+                        result.add(fila);
                 }
 
                 long total = result.size();
                 long presentes = result.stream().filter(r -> "PRESENTE".equals(r.get("estado"))).count();
 
-                // Mapeamos a las keys que usa el frontend o nuevas
                 Map<String, Object> stats = new HashMap<>();
                 stats.put("totalRegistros", total);
-                stats.put("habilitados", presentes); // Reusamos para mostrar count de Presentes
-                stats.put("observados", total - presentes); // Reusamos para mostrar count de Ausentes
+                stats.put("habilitados", presentes);
+                stats.put("observados", total - presentes);
 
                 Map<String, Object> response = new HashMap<>();
                 response.put("data", result);
@@ -346,41 +338,37 @@ public class ReporteController {
                         @PathVariable Long sucursalId,
                         @RequestParam(required = false) Long operadorId,
                         Authentication auth) {
-                var asignaciones = asignacionRepository.findAll();
-                var asistencias = asistenciaRepository.findAll();
-
+                
+                // Optimización: Cargar asignaciones filtradas desde DB con FETCH joins
+                var asignaciones = asignacionRepository.findAsignacionesPorSucursal(sucursalId, operadorId);
+                
+                // Cargar todas las asistencias de la sucursal (mucho menos data que findAll global)
+                // Usamos el mismo findAsistenciasReporte
+                List<Asistencia> asistenciasSucursal = asistenciaRepository.findAsistenciasReporte(
+                    null, null, sucursalId, null, false, java.util.Collections.singletonList(-1L)
+                );
+                
                 Map<Long, Asistencia> asistenciaPorSocio = new HashMap<>();
-                for (Asistencia a : asistencias) {
+                for (Asistencia a : asistenciasSucursal) {
                         asistenciaPorSocio.put(a.getSocio().getId(), a);
                 }
 
-                // Usar Set para evitar duplicados de socios
                 Set<Long> sociosProcesados = new HashSet<>();
-
                 List<Map<String, Object>> result = new ArrayList<>();
 
                 for (var asig : asignaciones) {
+                        // El filtrado por operador y sucursal ya lo hizo la DB
                         var socio = asig.getSocio();
 
-                        // Filtro de Operador (opcional)
-                        if (operadorId != null
-                                        && asig.getListaAsignacion().getUsuario().getId().equals(operadorId) == false) {
-                                continue;
-                        }
-
-                        // Solo procesar si es de esta sucursal y NO ha sido procesado antes
-                        if (socio.getSucursal() != null &&
-                                        socio.getSucursal().getId().equals(sucursalId) &&
-                                        !sociosProcesados.contains(socio.getId())) {
-
-                                sociosProcesados.add(socio.getId()); // Marcar como procesado
+                        if (!sociosProcesados.contains(socio.getId())) {
+                                sociosProcesados.add(socio.getId());
 
                                 Map<String, Object> fila = new HashMap<>();
                                 fila.put("id", socio.getId());
                                 fila.put("socioNombre", socio.getNombreCompleto());
                                 fila.put("socioNro", socio.getNumeroSocio());
                                 fila.put("cedula", socio.getCedula());
-                                fila.put("sucursal", socio.getSucursal().getNombre());
+                                fila.put("sucursal", socio.getSucursal() != null ? socio.getSucursal().getNombre() : "N/A"); // Should act non-null due to query
                                 fila.put("vozVoto", socio.isEstadoVozVoto() ? "HABILITADO" : "OBSERVADO");
                                 fila.put("fechaAsignacion", asig.getFechaAsignacion());
                                 fila.put("operador", asig.getListaAsignacion().getUsuario().getNombreCompleto());
@@ -406,9 +394,7 @@ public class ReporteController {
                 stats.put("ausentes", result.size() - presentes);
                 stats.put("habilitados", habilitados);
                 stats.put("observados", result.size() - habilitados);
-                stats.put("sucursalNombre",
-                                sucursalId != null ? sucursalRepository.findById(sucursalId).map(s -> s.getNombre())
-                                                .orElse("Desconocida") : "Todas");
+                stats.put("sucursalNombre", sucursalRepository.findById(sucursalId).map(s -> s.getNombre()).orElse("Desconocida"));
 
                 return ResponseEntity.ok(Map.of("data", result, "stats", stats));
         }
@@ -424,30 +410,27 @@ public class ReporteController {
                         return ResponseEntity.status(403).body(Map.of("error", "Acceso denegado."));
                 }
 
-                var asignaciones = asignacionRepository.findAll();
+                // Optimización: Fetch ya filtrado por operador si aplica
+                var asignaciones = asignacionRepository.findAsignacionesReporte(operadorId);
+                
+                // Mapear asistencias. Como es reporte general, traemos todas o podríamos intentar optimizar.
+                // Si son muchas asignaciones, es mejor traer todas las asistencias de una vez que N+1
                 var asistencias = asistenciaRepository.findAll();
 
                 Map<Long, Asistencia> asistenciaPorSocio = new HashMap<>();
-
                 for (Asistencia a : asistencias) {
                         asistenciaPorSocio.put(a.getSocio().getId(), a);
                 }
 
                 List<Map<String, Object>> result = new ArrayList<>();
                 for (var asig : asignaciones) {
-                        // Filtro por colaborador (operadorId) si fue solicitado
-                        if (operadorId != null && !asig.getListaAsignacion().getUsuario().getId().equals(operadorId)) {
-                                continue;
-                        }
-
                         var socio = asig.getSocio();
                         Map<String, Object> fila = new HashMap<>();
                         fila.put("id", socio.getId());
                         fila.put("socioNombre", socio.getNombreCompleto());
                         fila.put("socioNro", socio.getNumeroSocio());
                         fila.put("cedula", socio.getCedula());
-                        fila.put("sucursal",
-                                        socio.getSucursal() != null ? socio.getSucursal().getNombre() : "Sin Sucursal");
+                        fila.put("sucursal", socio.getSucursal() != null ? socio.getSucursal().getNombre() : "Sin Sucursal");
                         fila.put("vozVoto", socio.isEstadoVozVoto() ? "HABILITADO" : "OBSERVADO");
                         fila.put("operador", asig.getListaAsignacion().getUsuario().getNombreCompleto());
                         fila.put("fechaAsignacion", asig.getFechaAsignacion());

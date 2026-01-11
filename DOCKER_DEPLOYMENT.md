@@ -62,7 +62,7 @@ Para acceder mediante `asamblea.cloud`:
 ```nginx
 server {
     listen 80;
-    server_name asamblea.cloud;
+    server_name asamblea.coopreducto.coop.py;
 
     location / {
         proxy_pass http://localhost:6002;
@@ -74,10 +74,12 @@ server {
     }
 
     location /api {
-        proxy_pass http://localhost:8082;
+        proxy_pass http://localhost:8081;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
 ```

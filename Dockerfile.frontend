@@ -4,10 +4,10 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 
 # Copy only package files first for better caching
-COPY frontend/package.json frontend/package-lock.json ./
+COPY frontend/package.json ./
 
 # Install dependencies
-RUN npm ci --prefer-offline
+RUN npm install --prefer-offline
 
 # Build stage
 FROM node:20-alpine AS builder
@@ -18,7 +18,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy only necessary source files
-COPY frontend/package.json frontend/package-lock.json ./
+COPY frontend/package.json ./
 COPY frontend/tsconfig.json ./
 COPY frontend/tailwind.config.ts ./
 COPY frontend/postcss.config.mjs ./

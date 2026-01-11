@@ -2,28 +2,29 @@
 
 import { useEffect, useState, useRef } from "react";
 import { X, Bell, Clock, AlertTriangle, CalendarClock } from "lucide-react";
+import { useConfig } from "@/context/ConfigContext";
 
-const MESSAGES = [
-    "¡Hola {user}! 🚀 ¡Apresúrate! El tiempo vuela. La carga de listas finaliza el 05/01/2026. ¡No te quedes fuera!",
-    "¡Atención {user}! ⏳ El reloj no se detiene. Tienes hasta el 5 de enero para cargar tu lista. ¡Hazlo ahora!",
-    "¡Hola {user}! 🔔 Recordatorio urgente: El sistema de carga se cerrará el 06/01/2026. ¡Evita contratiempos!",
-    "¡Saludos {user}! 🌟 Queda muy poco tiempo. El 5 de enero es el ÚLTIMO día. ¡Carga tu lista ya!",
-    "¡Hey {user}! ⚡ ¡Actúa rápido! Solo tienes hasta el 05/01/2026. ¡Asegura tu participación!",
-    "¡Hola {user}! 📅 Marca tu calendario: 5 de enero, fecha límite. ¡No dejes para mañana lo que puedes cargar hoy!",
-    "¡Importante {user}! 🚨 El sistema se deshabilitará el 06/01/2026 a las 00:00. ¡Carga tu lista antes!",
-    "¡Hola {user}! 🏃‍♂️ ¡Corre! El tiempo se agota. El 5 de enero es el cierre definitivo. ¡Vamos!",
-    "¡Atento {user}! 🛑 No esperes al último minuto. La fecha límite es el 05/01/2026. ¡Carga ahora!",
-    "¡Hola {user}! ✨ Asegúrate de tener todo listo antes del 5 de enero. ¡El tiempo es oro!",
-    "¡Aviso {user}! 🕒 Tic-tac, tic-tac... El plazo vence el 05/01/2026. ¡No pierdas la oportunidad!",
-    "¡Hola {user}! 📝 Recuerda: El 6 de enero ya será tarde. ¡Carga tu lista hoy mismo!",
-    "¡Ojo {user}! 👀 El cierre es inminente. Tienes hasta el 05/01/2026. ¡Dile adiós al estrés cargando ahora!",
-    "¡Hola {user}! 🚀 Despegamos hacia el cierre. 5 de enero, último día. ¡Sube tu lista!",
-    "¡Urgente {user}! ⚠️ El sistema se bloqueará el 06/01/2026. ¡Que no te tome por sorpresa!",
-    "¡Hola {user}! 💡 Consejo del día: Carga tu lista antes del 5 de enero y relájate. ¡Tú puedes!",
-    "¡Vamos {user}! 💪 ¡Estás a tiempo! Pero no te confíes, el 05/01/2026 es el límite.",
-    "¡Hola {user}! 🗓️ Fecha crítica: 5 de enero de 2026. ¡Asegura tu carga antes del bloqueo!",
-    "¡Atención {user}! ⏳ La cuenta regresiva ha comenzado. Cierre definitivo el 05/01/2026. ¡Apúrate!",
-    "¡Hola {user}! 🌟 ¡Última llamada! El sistema de cargas cerrará el 6 de enero. ¡Hazlo ya!"
+const MESSAGES_TEMPLATES = [
+    "¡Hola {user}! 🚀 ¡Apresúrate! El tiempo vuela. La carga de listas finaliza el {date}. ¡No te quedes fuera!",
+    "¡Atención {user}! ⏳ El reloj no se detiene. Tienes hasta el {dateText} para cargar tu lista. ¡Hazlo ahora!",
+    "¡Hola {user}! 🔔 Recordatorio urgente: El sistema de carga se cerrará el {date}. ¡Evita contratiempos!",
+    "¡Saludos {user}! 🌟 Queda muy poco tiempo. El {dateText} es el ÚLTIMO día. ¡Carga tu lista ya!",
+    "¡Hey {user}! ⚡ ¡Actúa rápido! Solo tienes hasta el {date}. ¡Asegura tu participación!",
+    "¡Hola {user}! 📅 Marca tu calendario: {dateText}, fecha límite. ¡No dejes para mañana lo que puedes cargar hoy!",
+    "¡Importante {user}! 🚨 El sistema se deshabilitará el {date} a las 00:00. ¡Carga tu lista antes!",
+    "¡Hola {user}! 🏃‍♂️ ¡Corre! El tiempo se agota. El {dateText} es el cierre definitivo. ¡Vamos!",
+    "¡Atento {user}! 🛑 No esperes al último minuto. La fecha límite es el {date}. ¡Carga ahora!",
+    "¡Hola {user}! ✨ Asegúrate de tener todo listo antes del {dateText}. ¡El tiempo es oro!",
+    "¡Aviso {user}! 🕒 Tic-tac, tic-tac... El plazo vence el {date}. ¡No pierdas la oportunidad!",
+    "¡Hola {user}! 📝 Recuerda: El {dateText} ya será tarde. ¡Carga tu lista hoy mismo!",
+    "¡Ojo {user}! 👀 El cierre es inminente. Tienes hasta el {date}. ¡Dile adiós al estrés cargando ahora!",
+    "¡Hola {user}! 🚀 Despegamos hacia el cierre. {dateText}, último día. ¡Sube tu lista!",
+    "¡Urgente {user}! ⚠️ El sistema se bloqueará el {date}. ¡Que no te tome por sorpresa!",
+    "¡Hola {user}! 💡 Consejo del día: Carga tu lista antes del {dateText} y relájate. ¡Tú puedes!",
+    "¡Vamos {user}! 💪 ¡Estás a tiempo! Pero no te confíes, el {date} es el límite.",
+    "¡Hola {user}! 🗓️ Fecha crítica: {dateText}. ¡Asegura tu carga antes del bloqueo!",
+    "¡Atención {user}! ⏳ La cuenta regresiva ha comenzado. Cierre definitivo el {date}. ¡Apúrate!",
+    "¡Hola {user}! 🌟 ¡Última llamada! El sistema de cargas cerrará el {dateText}. ¡Hazlo ya!"
 ];
 
 const POSITIONS = [
@@ -36,6 +37,7 @@ const POSITIONS = [
 ];
 
 export function DeadlineNotification() {
+    const { fechaAsamblea } = useConfig();
     const [isVisible, setIsVisible] = useState(false);
     const [message, setMessage] = useState("");
     const [positionClass, setPositionClass] = useState("bottom-4 right-4");
@@ -43,9 +45,21 @@ export function DeadlineNotification() {
     const [user, setUser] = useState<any>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    // Configurar fecha límite: 6 de Enero 2026 a las 00:00:00 (Fin del 5)
-    // Meses en JS son 0-indexados (Enero = 0)
-    const DEADLINE = new Date(2026, 0, 6, 0, 0, 0).getTime();
+    // Calcular fecha límite basada en la configuración
+    // Por defecto asumimos las 00:00 del día SIGUIENTE a la fecha de asamblea (o el mismo día a las 23:59:59)
+    // Para simplificar, usamos fechaAsamblea + 1 día a las 00:00 como "Cierre"
+
+    const assembleDateObj = new Date(fechaAsamblea);
+    // Ajustar zona horaria si es necesario, pero new Date(string) suele usar UTC o local. 
+    // Vamos a asegurar que sea "fin del día" o "inicio del día" según lógica de negocio.
+    // Usualmente cierre de cargas es antes del evento. Asumiremos que es el mismo día del evento a las 00:00 (empieza el evento, termina carga).
+
+    // Si la fecha es "2026-01-15", el deadline es 2026-01-15T00:00:00
+    const DEADLINE = new Date(fechaAsamblea + "T00:00:00").getTime();
+
+    // Formatos de fecha para los mensajes
+    const dateFormatted = new Date(fechaAsamblea).toLocaleDateString("es-PY"); // 15/01/2026
+    const dateText = new Date(fechaAsamblea).toLocaleDateString("es-PY", { day: 'numeric', month: 'long' }); // 15 de enero
 
     useEffect(() => {
         const userData = localStorage.getItem("user");
@@ -54,13 +68,16 @@ export function DeadlineNotification() {
         }
 
         // Selección inicial aleatoria
-        const randomMsg = MESSAGES[Math.floor(Math.random() * MESSAGES.length)];
+        const randomMsgTemplate = MESSAGES_TEMPLATES[Math.floor(Math.random() * MESSAGES_TEMPLATES.length)];
         const randomPos = POSITIONS[Math.floor(Math.random() * POSITIONS.length)];
 
         // Personalizar mensaje
-        const personalizedMsg = userData
-            ? randomMsg.replace("{user}", JSON.parse(userData).nombreCompleto.split(' ')[0])
-            : randomMsg.replace("{user}", "Usuario");
+        const userName = userData ? JSON.parse(userData).nombreCompleto.split(' ')[0] : "Usuario";
+
+        const personalizedMsg = randomMsgTemplate
+            .replace("{user}", userName)
+            .replace("{date}", dateFormatted)
+            .replace("{dateText}", dateText);
 
         setMessage(personalizedMsg);
         setPositionClass(randomPos);
@@ -68,15 +85,10 @@ export function DeadlineNotification() {
         // Mostrar después de un breve delay
         const timer = setTimeout(() => {
             setIsVisible(true);
-            // Intentar reproducir sonido suave
-            // if (audioRef.current) {
-            //     audioRef.current.volume = 0.5;
-            //     audioRef.current.play().catch(() => { });
-            // }
         }, 3000);
 
         return () => clearTimeout(timer);
-    }, []);
+    }, [fechaAsamblea, dateFormatted, dateText]);
 
     // Countdown Timer
     useEffect(() => {
@@ -124,7 +136,7 @@ export function DeadlineNotification() {
                                 CIERRE DE CARGAS
                             </h4>
                             <p className="text-indigo-100/90 text-[10px] md:text-xs font-medium">
-                                Finaliza el 05/01. ¡Carga ya!
+                                Finaliza el {new Date(fechaAsamblea).toLocaleDateString("es-PY", { day: '2-digit', month: '2-digit' })}. ¡Carga ya!
                             </p>
                         </div>
                     </div>

@@ -23,8 +23,8 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# Install tzdata for timezone support
-RUN apk add --no-cache tzdata
+# Install tzdata for timezone support and fonts for PDF generation
+RUN apk add --no-cache tzdata fontconfig ttf-dejavu mysql-client
 ENV TZ=America/Asuncion
 
 # Create non-root user

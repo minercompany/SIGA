@@ -7,10 +7,10 @@ services:
     container_name: asamblea-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: asamblea_root_2024
-      MYSQL_DATABASE: asamblea_db
-      MYSQL_USER: asamblea_user
-      MYSQL_PASSWORD: asamblea_pass_2024
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       TZ: America/Asuncion
     volumes:
       - asamblea_mysql_data:/var/lib/mysql
@@ -18,13 +18,13 @@ services:
     networks:
       - asamblea-network
     command: >
-      --innodb-buffer-pool-size=512M --innodb-flush-log-at-trx-commit=2 --innodb-flush-method=O_DIRECT --max-connections=150 --thread-cache-size=16 --table-open-cache=2000 --sort-buffer-size=4M --read-buffer-size=2M --performance-schema=OFF --default-time-zone=-03:00
+      --innodb-buffer-pool-size=2G --innodb-flush-log-at-trx-commit=2 --innodb-flush-method=O_DIRECT --max-connections=300 --thread-cache-size=32 --table-open-cache=4000 --sort-buffer-size=8M --read-buffer-size=2M --performance-schema=OFF --default-time-zone=-03:00
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 3G
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pasamblea_root_2024" ]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,18 +39,19 @@ services:
     container_name: asamblea-backend
     restart: unless-stopped
     ports:
-      - "8081:8081" # Port 8081 on host -> 8081 in container
+      - "127.0.0.1:8081:8081" # Port 8081 on host (localhost only) -> 8081 in container
 
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/asamblea_db?createDatabaseIfNotExist=true&serverTimezone=America/Asuncion&useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: asamblea_user
-      SPRING_DATASOURCE_PASSWORD: asamblea_pass_2024
-      JAVA_OPTS: "-Xms384m -Xmx768m -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC"
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      BACKUP_DIRECTORY: /app/uploads/backups
+      JAVA_OPTS: "-Xms2048m -Xmx2048m -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC"
     deploy:
       resources:
         limits:
-          memory: 1200M
+          memory: 2500M
     volumes:
       - ./uploads:/app/uploads
     depends_on:
@@ -71,20 +72,20 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       args:
-        NEXT_PUBLIC_API_URL: https://asamblea.cloud
+        NEXT_PUBLIC_API_URL: https://asamblea.coopreducto.coop.py
     container_name: asamblea-frontend
     restart: unless-stopped
     ports:
-      - "6002:6001"
+      - "127.0.0.1:6002:6001"
     environment:
-      NEXT_PUBLIC_API_URL: https://asamblea.cloud
+      NEXT_PUBLIC_API_URL: https://asamblea.coopreducto.coop.py
       NODE_ENV: production
       PORT: 6001
       HOSTNAME: "0.0.0.0"
     volumes:
       - ./uploads:/app/uploads
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6001" ]
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:6001" ]
       interval: 30s
       timeout: 10s
       retries: 5

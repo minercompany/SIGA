@@ -117,4 +117,26 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long> {
         @Query("SELECT DATE(a.fechaAsignacion) as fecha, COUNT(a) as total FROM Asignacion a WHERE a.fechaAsignacion >= :fechaInicio GROUP BY DATE(a.fechaAsignacion) ORDER BY DATE(a.fechaAsignacion) DESC")
         java.util.List<Object[]> countAsignacionesPorDia(
                         @org.springframework.data.repository.query.Param("fechaInicio") java.time.LocalDateTime fechaInicio);
+
+    // Optimized Report Queries
+
+    @Query("SELECT a FROM Asignacion a " +
+           "JOIN FETCH a.socio s " +
+           "JOIN FETCH a.listaAsignacion l " +
+           "JOIN FETCH l.usuario u " +
+           "LEFT JOIN FETCH s.sucursal sec " +
+           "WHERE (:operadorId IS NULL OR u.id = :operadorId)")
+    java.util.List<Asignacion> findAsignacionesReporte(
+            @org.springframework.data.repository.query.Param("operadorId") Long operadorId);
+
+     @Query("SELECT a FROM Asignacion a " +
+           "JOIN FETCH a.socio s " +
+           "JOIN FETCH a.listaAsignacion l " +
+           "JOIN FETCH l.usuario u " +
+           "LEFT JOIN FETCH s.sucursal sec " +
+           "WHERE s.sucursal.id = :sucursalId " +
+           "AND (:operadorId IS NULL OR u.id = :operadorId)")
+    java.util.List<Asignacion> findAsignacionesPorSucursal(
+            @org.springframework.data.repository.query.Param("sucursalId") Long sucursalId,
+            @org.springframework.data.repository.query.Param("operadorId") Long operadorId);
 }
