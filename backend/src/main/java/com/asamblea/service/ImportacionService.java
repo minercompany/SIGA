@@ -47,23 +47,17 @@ public class ImportacionService {
     // Buffer optimizado para SSDs modernos y streaming
     private static final int BATCH_SIZE = 5000; // Lotes más grandes para UPSERTs
 
-    // Indices absolutos (0-based en POI)
-    // COL_SOCIO_NRO = 1 (B)
-    // COL_DOC_NUM = 2 (C)
-    // COL_NOMBRE = 4 (E)
-    // COL_TELEFONO = 5 (F)
-    // COL_SUCURSAL = 6 (G)
-    // COL_APORTE = 7 (H) ...
-    private static final int COL_SOCIO_NRO = 1;
-    private static final int COL_DOC_NUM = 2;
-    private static final int COL_NOMBRE = 4;
-    private static final int COL_TELEFONO = 5;
-    private static final int COL_SUCURSAL = 6;
-    private static final int COL_APORTE = 7;
-    private static final int COL_SOLIDARIDAD = 8;
-    private static final int COL_FONDO = 9;
-    private static final int COL_INCOOP = 10;
-    private static final int COL_CREDITO = 11;
+    // Índices dinámicos (se detectan en tiempo de ejecución)
+    private static final String HDR_SOCIO_NRO = "NRO SOCIO";
+    private static final String HDR_DOC_NUM = "DOC NUM";
+    private static final String HDR_NOMBRE = "SOCIO NOMBRE";
+    private static final String HDR_TELEFONO = "TELEFONO";
+    private static final String HDR_SUCURSAL = "SUCURSAL";
+    private static final String HDR_APORTE = "APORTE";
+    private static final String HDR_SOLIDARIDAD = "SOLIDARIDAD";
+    private static final String HDR_FONDO = "FONDO";
+    private static final String HDR_INCOOP = "INCOOP";
+    private static final String HDR_CREDITO = "CREDITO";
 
     private final Map<String, ImportStatus> progressMap = new ConcurrentHashMap<>();
 
@@ -146,6 +140,16 @@ public class ImportacionService {
 
             // MARCAR TODOS LOS SOCIOS COMO "NO EN PADRÓN ACTUAL" ANTES DE IMPORTAR
             // Luego el UPSERT los marcará como activos si están en el archivo
+            
+            // SEGURIDAD CRÍTICA: Respaldar asignaciones antes de cualquier cambio en el padrón
+            try {
+                String backupTableName = "z_respaldo_asignaciones_" + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+                jdbcTemplate.execute("CREATE TABLE " + backupTableName + " SELECT * FROM asignaciones_socios");
+                log.info("🛡️ BACKUP CRÍTICO: Se ha creado el respaldo '{}' de las asignaciones existentes.", backupTableName);
+            } catch (Exception e) {
+                log.warn("⚠️ No se pudo crear el respaldo de seguridad de asignaciones: {}", e.getMessage());
+            }
+
             int sociosMarcadosInactivos = jdbcTemplate.update("UPDATE socios SET en_padron_actual = false");
             log.info("Marcados {} socios como inactivos temporalmente", sociosMarcadosInactivos);
 
@@ -173,6 +177,12 @@ public class ImportacionService {
             int sinNombre = 0;
             int nuevosContador = 0; // Socios que NO existían antes
             int actualizadosContador = 0; // Socios que YA existían y se actualizaron
+            
+            // Lista para almacenar detalles de duplicados
+            List<DuplicateDetail> duplicadosDetalle = new ArrayList<>();
+            
+            // Contador de filas vacías
+            int filasVacias = 0;
 
             // OPTIMIZACIÓN: Estimar filas desde tamaño de archivo
             // Excel XLSX tiene mucho overhead por celda (~500-800 bytes por fila típica)
@@ -196,10 +206,53 @@ public class ImportacionService {
                 int rowIndex = 0;
                 Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
+                // MAPA DE COLUMNAS DETECTADAS
+                Map<String, Integer> colMap = new HashMap<>();
+                
                 for (Row row : sheet) {
                     rowIndex++;
-                    if (rowIndex == 1)
-                        continue; // Skip header
+                    
+                    // 1. PROCESAR ENCABEZADO (Fila 1)
+                    if (rowIndex == 1) {
+                        for (Cell cell : row) {
+                            String value = getRawValueFromCell(cell);
+                            if (value != null) {
+                                // Detección inteligente por palabras clave (Priorizando exactitud y evitando duplicados)
+                                String h = value.trim().toUpperCase();
+                                
+                                if (h.equals("DOC AGR")) continue; // IGNORAR EXPLÍCITAMENTE
+                                
+                                if (h.equals("DOC NUM") || h.equals("DOC. NUM.") || h.equals("CEDULA") || h.equals("CI")) {
+                                    colMap.put("DOC NUM", cell.getColumnIndex());
+                                } else if (h.equals("SOCIO NOMBRE") || h.equals("SOCIO NOM") || h.equals("NOMBRE") || h.equals("SOCIO NON")) {
+                                    colMap.put("SOCIO NOMBRE", cell.getColumnIndex());
+                                } else if (h.equals("SOCIO NRO") || h.equals("NRO SOCIO") || h.equals("NUMERO SOCIO")) {
+                                    colMap.put("NRO SOCIO", cell.getColumnIndex());
+                                } else if (h.equalsIgnoreCase("TELEFONO") || h.equalsIgnoreCase("TEL")) {
+                                    colMap.put("TELEFONO", cell.getColumnIndex());
+                                } else if (h.equalsIgnoreCase("SUCURSAL") || h.equals("SUC")) {
+                                    colMap.put("SUCURSAL", cell.getColumnIndex());
+                                } else if (h.contains("APOR")) {
+                                    colMap.putIfAbsent("APORTE", cell.getColumnIndex());
+                                } else if (h.contains("SOLID")) {
+                                    colMap.putIfAbsent("SOLIDARIDAD", cell.getColumnIndex());
+                                } else if (h.contains("FOND")) {
+                                    colMap.putIfAbsent("FONDO", cell.getColumnIndex());
+                                } else if (h.contains("INCO")) {
+                                    colMap.putIfAbsent("INCOOP", cell.getColumnIndex());
+                                } else if (h.contains("CRED")) {
+                                    colMap.putIfAbsent("CREDITO", cell.getColumnIndex());
+                                }
+                            }
+                        }
+                        log.info("Columnas detectadas: {}", colMap);
+                        
+                        // Validación mínima (Cédula y Nombre son obligatorios)
+                        if (!colMap.containsKey("DOC NUM") || !colMap.containsKey("SOCIO NOMBRE")) {
+                            throw new Exception("No se encontraron las columnas críticas 'DOC NUM' o 'SOCIO NOMBRE' en el archivo.");
+                        }
+                        continue; 
+                    }
 
                     // Verificar cancelación
                     if (status.isCancelled()) {
@@ -217,16 +270,24 @@ public class ImportacionService {
                     }
 
                     try {
-                        // Extracción DIRECTA por índice para velocidad (sin iterar celdas)
-                        // B: Nro Socio
-                        String nroSocio = getRawValue(row, COL_SOCIO_NRO);
-                        // C: Cedula
-                        String cedula = getRawValue(row, COL_DOC_NUM);
+                        // Extracción USANDO EL MAPA DINÁMICO
+                        Integer idxSocio = colMap.getOrDefault("NRO SOCIO", colMap.get("DOC NUM"));
+                        Integer idxCedula = colMap.get("DOC NUM");
+                        Integer idxNombre = colMap.get("SOCIO NOMBRE");
+                        Integer idxTel = colMap.get("TELEFONO");
+                        Integer idxSuc = colMap.get("SUCURSAL");
+                        Integer idxAporte = colMap.get("APORTE");
+                        Integer idxSolid = colMap.get("SOLIDARIDAD");
+                        Integer idxFondo = colMap.get("FONDO");
+                        Integer idxIncoop = colMap.get("INCOOP");
+                        Integer idxCred = colMap.get("CREDITO");
+
+                        String nroSocio = idxSocio != null ? getRawValue(row, idxSocio) : null;
+                        String cedula = idxCedula != null ? getRawValue(row, idxCedula) : null;
                         if (cedula != null)
                             cedula = cedula.replace(".", "").replace(",", "").trim();
 
-                        // E: Nombre
-                        String nombre = getRawValue(row, COL_NOMBRE);
+                        String nombre = idxNombre != null ? getRawValue(row, idxNombre) : null;
 
                         // Validación mínima crítica
                         // Si AMBOS están vacíos, es una fila fantasma de Excel - ignorar
@@ -235,7 +296,8 @@ public class ImportacionService {
                         boolean nombreVacio = (nombre == null || nombre.trim().isEmpty());
 
                         if (cedulaVacia && nombreVacio) {
-                            // Fila completamente vacía, ignorar sin reportar error
+                            // Fila completamente vacía, contar y continuar
+                            filasVacias++;
                             continue;
                         }
 
@@ -250,21 +312,16 @@ public class ImportacionService {
                             continue;
                         }
 
-                        // EVITAR PROCESAR FILAS DE ENCABEZADO (Si detectamos palabras clave de header
-                        // en campos de datos)
-                        if ((cedula != null && cedula.equalsIgnoreCase("Doc Num"))
-                                || (nombre != null && nombre.equalsIgnoreCase("SOCIO NOMBRE"))) {
-                            log.info("Ignorando fila de encabezado detectada en fila {}", rowIndex);
-                            continue;
-                        }
-
                         if (nroSocio == null || nroSocio.isEmpty())
                             nroSocio = cedula;
 
                         // Deduplicación en memoria (rápida para 100k registros)
                         if (cedulasProcesadas.contains(cedula)) {
-                            // Si ya existe en el archivo, lo saltamos
+                            // Si ya existe en el archivo, lo saltamos y guardamos el detalle
                             duplicados++;
+                            if (duplicadosDetalle.size() < 500) { // Limitar a 500 para no consumir mucha memoria
+                                duplicadosDetalle.add(new DuplicateDetail(rowIndex, cedula, nombre != null ? nombre.trim() : "Sin nombre"));
+                            }
                             continue;
                         }
                         cedulasProcesadas.add(cedula);
@@ -277,11 +334,11 @@ public class ImportacionService {
                         }
 
                         // F: Teléfono
-                        String rawTel = getRawValue(row, COL_TELEFONO);
-                        String tel = procesarTelefonoParaguayo(rawTel); // Nueva lógica avanzada
+                        String rawTel = idxTel != null ? getRawValue(row, idxTel) : null;
+                        String tel = procesarTelefonoParaguayo(rawTel);
 
                         // G: Sucursal
-                        String sucCod = getRawValue(row, COL_SUCURSAL);
+                        String sucCod = idxSuc != null ? getRawValue(row, idxSuc) : null;
                         Long sucId = null;
                         // Debug: Loguear primeros valores de sucursal encontrados
                         if (rowIndex <= 5) {
@@ -290,7 +347,7 @@ public class ImportacionService {
                         if (sucCod != null && !sucCod.trim().isEmpty()) {
                             String code = sucCod.trim().toUpperCase();
                             sucId = sucursalMap.get(code);
-                            if (sucId == null) {
+                            if (sucId == null && code.length() < 10 && !code.equals("SI") && !code.equals("NO")) {
                                 // AUTO-CREAR SUCURSAL SI NO EXISTE con nombre correcto
                                 try {
                                     Sucursal newSuc = new Sucursal();
@@ -341,12 +398,12 @@ public class ImportacionService {
                             }
                         }
 
-                        // Booleanos H-L
-                        boolean aporte = parseBoolean(getRawValue(row, COL_APORTE));
-                        boolean solidaridad = parseBoolean(getRawValue(row, COL_SOLIDARIDAD));
-                        boolean fondo = parseBoolean(getRawValue(row, COL_FONDO));
-                        boolean incoop = parseBoolean(getRawValue(row, COL_INCOOP));
-                        boolean credito = parseBoolean(getRawValue(row, COL_CREDITO));
+                        // Booleanos H-L con fallback (si no existe la columna en el Excel, se asume true o false según criterio histórico)
+                        boolean aporte = idxAporte != null ? parseBoolean(getRawValue(row, idxAporte)) : true;
+                        boolean solidaridad = idxSolid != null ? parseBoolean(getRawValue(row, idxSolid)) : true;
+                        boolean fondo = idxFondo != null ? parseBoolean(getRawValue(row, idxFondo)) : true;
+                        boolean incoop = idxIncoop != null ? parseBoolean(getRawValue(row, idxIncoop)) : true;
+                        boolean credito = idxCred != null ? parseBoolean(getRawValue(row, idxCred)) : true;
 
                         ps.setString(1, nroSocio);
                         ps.setString(2, cedula);
@@ -385,32 +442,71 @@ public class ImportacionService {
                 ps.executeBatch();
                 conn.commit();
 
-                // ===== ELIMINAR SOCIOS QUE YA NO ESTÁN EN EL PADRÓN =====
-                // El Excel es la fuente de verdad absoluta
+                // ===== MANEJO DE SOCIOS QUE YA NO ESTÁN EN EL PADRÓN =====
+                // IMPORTANTE: NUNCA eliminamos asignaciones - son datos críticos
+                // Los socios que salen del padrón pero tienen asignaciones se PRESERVAN como inactivos
+                int sociosInactivados = 0;
                 int sociosEliminados = 0;
                 try {
-                    // Primero contar cuántos serán eliminados
-                    Integer count = jdbcTemplate.queryForObject(
+                    // 1. Contar socios fuera del padrón actual
+                    Integer totalFueraPadron = jdbcTemplate.queryForObject(
                             "SELECT COUNT(*) FROM socios WHERE en_padron_actual = false", Integer.class);
-                    sociosEliminados = count != null ? count : 0;
-
-                    if (sociosEliminados > 0) {
-                        log.info("🗑️ Eliminando {} socios que ya no están en el padrón...", sociosEliminados);
-
-                        // Eliminar registros relacionados primero (para evitar errores de FK)
-                        jdbcTemplate.update(
-                                "DELETE FROM asignaciones_socios WHERE socio_id IN (SELECT id FROM socios WHERE en_padron_actual = false)");
-                        jdbcTemplate.update(
-                                "DELETE FROM asistencias WHERE id_socio IN (SELECT id FROM socios WHERE en_padron_actual = false)");
-
-                        // Ahora eliminar los socios
-                        int deleted = jdbcTemplate.update("DELETE FROM socios WHERE en_padron_actual = false");
-                        log.info("✓ {} socios eliminados del sistema", deleted);
+                    totalFueraPadron = totalFueraPadron != null ? totalFueraPadron : 0;
+                    
+                    if (totalFueraPadron > 0) {
+                        log.info("📊 {} socios no están en el nuevo padrón, procesando...", totalFueraPadron);
+                        
+                        // 2. Contar cuántos tienen asignaciones (estos NUNCA se eliminan)
+                        Integer conAsignaciones = jdbcTemplate.queryForObject(
+                                "SELECT COUNT(DISTINCT s.id) FROM socios s " +
+                                "INNER JOIN asignaciones_socios a ON s.id = a.socio_id " +
+                                "WHERE s.en_padron_actual = false", Integer.class);
+                        conAsignaciones = conAsignaciones != null ? conAsignaciones : 0;
+                        
+                        // 3. Contar cuántos tienen asistencias (estos tampoco se eliminan)
+                        Integer conAsistencias = jdbcTemplate.queryForObject(
+                                "SELECT COUNT(DISTINCT s.id) FROM socios s " +
+                                "INNER JOIN asistencias ast ON s.id = ast.id_socio " +
+                                "WHERE s.en_padron_actual = false " +
+                                "AND s.id NOT IN (SELECT DISTINCT socio_id FROM asignaciones_socios)", Integer.class);
+                        conAsistencias = conAsistencias != null ? conAsistencias : 0;
+                        
+                        sociosInactivados = conAsignaciones + conAsistencias;
+                        
+                        if (sociosInactivados > 0) {
+                            log.info("🔒 {} socios se mantienen INACTIVOS (tienen asignaciones/asistencias)", sociosInactivados);
+                        }
+                        
+                        // 4. Solo eliminar socios SIN asignaciones y SIN asistencias
+                        // Estos son socios "limpios" que pueden eliminarse sin perder datos
+                        int eliminables = totalFueraPadron - sociosInactivados;
+                        if (eliminables > 0) {
+                            log.info("🗑️ Eliminando {} socios sin asignaciones ni asistencias...", eliminables);
+                            
+                            // Eliminar solo los que no tienen ninguna relación
+                            sociosEliminados = jdbcTemplate.update(
+                                    "DELETE FROM socios WHERE en_padron_actual = false " +
+                                    "AND id NOT IN (SELECT DISTINCT socio_id FROM asignaciones_socios) " +
+                                    "AND id NOT IN (SELECT DISTINCT id_socio FROM asistencias)");
+                            
+                            log.info("✓ {} socios eliminados del sistema (sin datos relacionados)", sociosEliminados);
+                        }
                     }
                 } catch (Exception deleteEx) {
-                    log.error("Error eliminando socios fuera de padrón: {}", deleteEx.getMessage());
+                    log.error("Error procesando socios fuera de padrón: {}", deleteEx.getMessage());
                 }
-                // ===== FIN ELIMINACIÓN =====
+                // ===== FIN MANEJO SOCIOS =====
+                
+                // ===== BLINDAJE FINAL: RE-ACTIVAR SOCIOS CON ASIGNACIONES =====
+                try {
+                    int reactivados = jdbcTemplate.update(
+                        "UPDATE socios SET en_padron_actual = true " +
+                        "WHERE id IN (SELECT DISTINCT socio_id FROM asignaciones_socios)"
+                    );
+                    log.info("🛡️ BLINDAJE: Se han asegurado {} socios con asignaciones como activos.", reactivados);
+                } catch (Exception reEx) {
+                    log.error("Error en blindaje de asignaciones: {}", reEx.getMessage());
+                }
 
                 long ms = System.currentTimeMillis() - start;
                 double speed = (imported * 1000.0) / ms;
@@ -463,9 +559,12 @@ public class ImportacionService {
                 stats.put("mode", "UPSERT"); // Informative flag
                 stats.put("errors", errors);
                 stats.put("duplicados", duplicados);
+                stats.put("duplicadosDetalle", duplicadosDetalle); // Lista detallada de duplicados
                 stats.put("sinCedula", sinCedula);
                 stats.put("sinNombre", sinNombre);
-                stats.put("sociosEliminados", sociosEliminados); // Socios eliminados porque no estaban en el Excel
+                stats.put("filasVacias", filasVacias); // Filas completamente vacías
+                stats.put("sociosEliminados", sociosEliminados); // Socios eliminados (sin asignaciones)
+                stats.put("sociosInactivados", sociosInactivados); // Socios preservados como inactivos (tienen asignaciones)
                 stats.put("timeMs", ms);
                 stats.put("rowsPerSecond", (int) speed);
                 stats.put("usuariosCreados", usuariosCreados);
@@ -529,36 +628,46 @@ public class ImportacionService {
 
     // Extracción raw optimizada
     private String getRawValue(Row row, int index) {
+        if (index < 0) return null;
         Cell cell = row.getCell(index);
-        if (cell == null)
-            return null;
+        return getRawValueFromCell(cell);
+    }
 
-        // Switch rápido, sin DataFormatter
-        return switch (cell.getCellType()) {
-            case STRING -> cell.getStringCellValue();
-            case NUMERIC -> {
+    private String getRawValueFromCell(Cell cell) {
+        if (cell == null) return null;
+        
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue().trim();
+            case NUMERIC:
+                // Forzar formato sin decimales para cédulas y códigos
                 double val = cell.getNumericCellValue();
-                if (val == Math.floor(val) && !Double.isInfinite(val)) {
-                    yield String.valueOf((long) val);
+                if (val == (long) val) {
+                    return String.format("%d", (long) val);
+                } else {
+                    return String.valueOf(val);
                 }
-                yield String.valueOf(val);
-            }
-            case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
-            case FORMULA -> {
-                // Try cached value if formula
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
                 try {
-                    yield cell.getStringCellValue();
+                    return cell.getStringCellValue();
                 } catch (Exception e) {
                     try {
-                        double val = cell.getNumericCellValue();
-                        yield String.valueOf(val);
-                    } catch (Exception e2) {
-                        yield null;
+                        double valFormula = cell.getNumericCellValue();
+                        if (valFormula == (long) valFormula) {
+                            return String.format("%d", (long) valFormula);
+                        }
+                        return String.valueOf(valFormula);
+                    } catch (Exception ex) {
+                        return "";
                     }
                 }
-            }
-            default -> null;
-        };
+            case BLANK:
+                return "";
+            default:
+                return cell.toString().trim();
+        }
     }
 
     private boolean parseBoolean(String val) {
@@ -725,5 +834,8 @@ public class ImportacionService {
     }
 
     public static record ErrorDetail(int row, String cedula, String message) {
+    }
+    
+    public static record DuplicateDetail(int row, String cedula, String nombre) {
     }
 }

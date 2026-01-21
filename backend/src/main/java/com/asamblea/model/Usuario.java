@@ -89,12 +89,14 @@ public class Usuario implements UserDetails {
     /**
      * Roles del Sistema:
      * - SUPER_ADMIN: Acceso total, puede editar, cargar, eliminar todo
+     * - SUPER_ADMIN_VISUAL: Ve todo como admin, pero SOLO lectura (no puede editar/cargar/eliminar)
      * - DIRECTIVO: Puede ver todo, asignar, pero NO editar/cargar/eliminar
      * - OPERADOR: Puede hacer check-in y ver información básica
      * - USUARIO_SOCIO: Acceso limitado, ve sus propias asignaciones
      */
     public enum Rol {
         SUPER_ADMIN("Super Administrador", "Acceso total al sistema"),
+        SUPER_ADMIN_VISUAL("Super Admin (Solo Lectura)", "Ve todo, sin poder modificar"),
         DIRECTIVO("Directivo", "Ver todo, asignar, sin editar"),
         OPERADOR("Operador Check-in", "Registro de asistencia"),
         USUARIO_SOCIO("Usuario Socio", "Acceso limitado personal"),
@@ -154,23 +156,42 @@ public class Usuario implements UserDetails {
 
     // Helpers para verificar permisos
     public boolean puedeEditar() {
+        // SUPER_ADMIN_VISUAL NO puede editar
         return rol == Rol.SUPER_ADMIN;
     }
 
     public boolean puedeCargarPadron() {
+        // SUPER_ADMIN_VISUAL NO puede cargar padrón
         return rol == Rol.SUPER_ADMIN;
     }
 
     public boolean puedeAsignar() {
+        // SUPER_ADMIN_VISUAL NO puede asignar
         return rol == Rol.SUPER_ADMIN || rol == Rol.DIRECTIVO;
     }
 
     public boolean puedeVerReportes() {
-        return rol == Rol.SUPER_ADMIN || rol == Rol.DIRECTIVO;
+        // SUPER_ADMIN_VISUAL SÍ puede ver reportes
+        return rol == Rol.SUPER_ADMIN || rol == Rol.SUPER_ADMIN_VISUAL || rol == Rol.DIRECTIVO;
     }
 
     public boolean puedeHacerCheckin() {
         return rol == Rol.SUPER_ADMIN || rol == Rol.DIRECTIVO || rol == Rol.OPERADOR;
+    }
+
+    /**
+     * Verifica si es un Super Admin (full o visual)
+     * Útil para mostrar menús de admin sin distinción
+     */
+    public boolean esSuperAdmin() {
+        return rol == Rol.SUPER_ADMIN || rol == Rol.SUPER_ADMIN_VISUAL;
+    }
+
+    /**
+     * Verifica si tiene acceso completo (puede modificar)
+     */
+    public boolean tieneAccesoCompleto() {
+        return rol == Rol.SUPER_ADMIN;
     }
 
     /**

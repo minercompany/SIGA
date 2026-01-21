@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConfigProvider } from "@/context/ConfigContext";
+import { CooperativaProvider } from "@/context/CooperativaContext";
 
 import { MaintenanceGuard } from "@/components/MaintenanceGuard";
 
@@ -80,11 +81,16 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/logo.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/logo.png" />
+        <link rel="shortcut icon" href="/logo.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="SIGA" />
         <link rel="apple-touch-icon" href="/logo.png" />
+        <meta name="msapplication-TileImage" content="/logo.png" />
+        <meta name="msapplication-TileColor" content="#009900" />
         {/* Schema.org Structured Data */}
         <script
           type="application/ld+json"
@@ -121,11 +127,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <ConfigProvider>
-          <MaintenanceGuard>
-            {children}
-          </MaintenanceGuard>
-        </ConfigProvider>
+        <CooperativaProvider>
+          <ConfigProvider>
+            <MaintenanceGuard>
+              {children}
+            </MaintenanceGuard>
+          </ConfigProvider>
+        </CooperativaProvider>
       </body>
     </html>
   );

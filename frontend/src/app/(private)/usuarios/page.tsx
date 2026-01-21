@@ -146,10 +146,13 @@ export default function UsuariosPage() {
         { id: "mi-reporte", label: "Mi Reporte", icon: ClipboardList, color: "from-indigo-500 to-blue-600", bgColor: "bg-indigo-50", borderColor: "border-indigo-200", textColor: "text-indigo-700" },
         { id: "mensajes-chat", label: "Mensajería", icon: Zap, color: "from-emerald-500 to-blue-500", bgColor: "bg-cyan-50", borderColor: "border-cyan-200", textColor: "text-cyan-700" },
         { id: "mensajes-avisos", label: "Avisos/Notif.", icon: Zap, color: "from-orange-500 to-red-500", bgColor: "bg-orange-50", borderColor: "border-orange-200", textColor: "text-orange-700" },
+        { id: "candidatos", label: "Candidatos", icon: Award, color: "from-emerald-500 to-teal-600", bgColor: "bg-emerald-50", borderColor: "border-emerald-200", textColor: "text-emerald-700" },
+        { id: "configuracion-candidatos", label: "Gestión Candidatos", icon: Award, color: "from-amber-500 to-yellow-600", bgColor: "bg-amber-50", borderColor: "border-amber-200", textColor: "text-amber-700" },
         { id: "usuarios", label: "Usuarios y Roles", icon: Shield, color: "from-rose-500 to-pink-500", bgColor: "bg-rose-50", borderColor: "border-rose-200", textColor: "text-rose-700" },
         { id: "auditoria", label: "Auditoría", icon: History, color: "from-gray-500 to-slate-500", bgColor: "bg-gray-50", borderColor: "border-gray-200", textColor: "text-gray-700" },
         { id: "gestion-listas", label: "Gestión de Listas", icon: ClipboardList, color: "from-cyan-500 to-teal-500", bgColor: "bg-cyan-50", borderColor: "border-cyan-200", textColor: "text-cyan-700" },
         { id: "configuracion", label: "Configuración", icon: Settings, color: "from-zinc-500 to-gray-600", bgColor: "bg-zinc-50", borderColor: "border-zinc-200", textColor: "text-zinc-700" },
+        { id: "backups", label: "Backups", icon: Globe, color: "from-violet-500 to-purple-600", bgColor: "bg-violet-50", borderColor: "border-violet-200", textColor: "text-violet-700" },
     ];
 
     const fetchData = useCallback(async (query = "") => {

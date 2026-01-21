@@ -276,7 +276,7 @@ export function TopBar() {
                     </button>
 
                     {/* Búsqueda Responsive (Siempre visible) */}
-                    <div className="flex flex-col relative flex-1 max-w-xs md:max-w-sm lg:max-w-md" ref={searchContainerRef}>
+                    <div className="flex flex-col relative flex-1 w-full max-w-xs md:max-w-sm lg:max-w-md" ref={searchContainerRef}>
                         <div className="w-full flex items-center gap-2 rounded-lg md:rounded-xl bg-slate-100 px-3 py-2 md:py-2.5 border border-transparent focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 focus-within:bg-white transition-all">
                             <Search className={`h-4 w-4 text-slate-400 shrink-0 ${isSearching ? 'animate-spin text-emerald-500' : ''}`} />
                             <input
@@ -289,28 +289,40 @@ export function TopBar() {
                             {isSearching && <div className="h-4 w-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin shrink-0" />}
                         </div>
 
-                        {/* Resultados Dropdown - Fixed en móvil para mejor UX */}
+                        {/* Resultados Dropdown - Premium & Robust */}
                         {showResults && searchResults.length > 0 && (
-                            <div className="fixed md:absolute top-14 md:top-12 left-2 right-2 md:left-0 md:right-auto md:w-full bg-white rounded-xl shadow-2xl border border-slate-200 max-h-[70vh] md:max-h-96 overflow-y-auto z-[60] animate-in fade-in slide-in-from-top-2">
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-200 max-h-[70vh] md:max-h-[32rem] overflow-y-auto overflow-x-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
                                 <div className="p-2">
-                                    <p className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Resultados ({searchResults.length})</p>
-                                    {searchResults.map((item: any) => (
-                                        <button
-                                            key={item.idSocio || item.id || Math.random()}
-                                            onClick={() => handleSelectMember(item)}
-                                            className="w-full text-left px-3 py-3 hover:bg-emerald-50 active:bg-emerald-100 rounded-lg group transition-colors flex items-center gap-3"
-                                        >
-                                            <div className="h-10 w-10 md:h-8 md:w-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm md:text-xs shrink-0">
-                                                {item.nombreCompleto?.charAt(0) || "?"}
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-sm font-bold text-slate-800 truncate">{item.nombreCompleto}</p>
-                                                <p className="text-xs text-slate-500 truncate">
-                                                    CI: {item.cedula || item.username} {item.nroSocio && `• #${item.nroSocio}`}
-                                                </p>
-                                            </div>
-                                        </button>
-                                    ))}
+                                    <div className="px-3 py-3 border-b border-slate-50 mb-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Resultados Encontrados ({searchResults.length})</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        {searchResults.map((item: any) => (
+                                            <button
+                                                key={item.idSocio || item.id || Math.random()}
+                                                onClick={() => handleSelectMember(item)}
+                                                className="w-full text-left px-4 py-3.5 hover:bg-emerald-50 active:bg-emerald-100/50 rounded-xl group transition-all flex items-center gap-4"
+                                            >
+                                                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-lg shadow-emerald-100 group-hover:scale-110 transition-transform">
+                                                    {item.nombreCompleto?.charAt(0) || "?"}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-black text-slate-800 truncate group-hover:text-emerald-700 transition-colors uppercase tabular-nums">
+                                                        {item.nombreCompleto}
+                                                    </p>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CI: {item.cedula || item.username}</span>
+                                                        {item.nroSocio && (
+                                                            <>
+                                                                <span className="h-1 w-1 rounded-full bg-slate-300" />
+                                                                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Socio #{item.nroSocio}</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         )}

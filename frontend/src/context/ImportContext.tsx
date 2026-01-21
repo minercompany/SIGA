@@ -6,10 +6,22 @@ import axios from "axios";
 type ImportStats = {
     totalRows: number;
     imported: number;
-    updated: number;
+    nuevos: number;
+    actualizados: number;
     errors: number;
+    duplicados: number;
+    duplicadosDetalle: DuplicateDetail[];
+    sinCedula: number;
+    sinNombre: number;
+    filasVacias: number;
     timeMs: number;
     rowsPerSecond: number;
+};
+
+type DuplicateDetail = {
+    row: number;
+    cedula: string;
+    nombre: string;
 };
 
 type ErrorDetail = {
@@ -129,7 +141,7 @@ export function ImportProvider({ children }: { children: React.ReactNode }) {
                     } else {
                         setStats(status.result);
                     }
-                    if (status.errorDetails && status.errorDetails.length> 0) {
+                    if (status.errorDetails && status.errorDetails.length > 0) {
                         setErrorDetails(status.errorDetails);
                     }
                 }

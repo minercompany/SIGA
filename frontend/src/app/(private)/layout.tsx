@@ -18,6 +18,7 @@ import { SessionExpiredModal } from "@/components/auth/SessionExpiredModal";
 import { HeartbeatManager } from "@/components/layout/HeartbeatManager";
 import { DeadlineNotification } from "@/components/DeadlineNotification";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { CandidateSpotlight } from "@/components/dashboard/CandidateSpotlight";
 
 // Componente wrapper para el TourWelcome que necesita acceso al contexto
 function TourWelcomeWrapper({ userRole }: { userRole?: string }) {
@@ -130,6 +131,7 @@ export default function PrivateLayout({
                     <SessionExpiredModal isOpen={isSessionExpired} />
                     <DeadlineNotification />
                     <PWAInstallPrompt />
+                    <CandidateSpotlight />
                 </UserActivityProvider>
             </ImportProvider>
         </TourProvider>

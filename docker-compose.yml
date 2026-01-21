@@ -47,7 +47,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       BACKUP_DIRECTORY: /app/uploads/backups
-      JAVA_OPTS: "-Xms2048m -Xmx2048m -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC"
+      JAVA_OPTS: "-Xms2048m -Xmx2048m -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -Dbackup.directory=/app/uploads/backups"
     deploy:
       resources:
         limits:

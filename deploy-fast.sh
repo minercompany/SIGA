@@ -7,7 +7,11 @@ set -e
 TARGET=${1:-both}
 START_TIME=$(date +%s)
 
-echo "🚀 Fast Deploy - Target: $TARGET"
+# Force BuildKit for faster, cached builds
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+
+echo "🚀 SIGA Ultra-Fast Deploy - Target: $TARGET"
 echo "================================"
 
 # Function to deploy frontend

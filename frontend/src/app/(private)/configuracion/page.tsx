@@ -26,7 +26,8 @@ import {
     ClipboardList,
     Clock,
     Calendar,
-    Plus
+    Plus,
+    Star
 } from "lucide-react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -123,6 +124,7 @@ const ConfiguracionEvento = () => {
     );
 };
 
+// Componente de Mantenimiento (Compacto)
 const ConfiguracionMantenimiento = () => {
     const { isMaintenanceMode, updateConfig } = useConfig();
     const [enabled, setEnabled] = useState(isMaintenanceMode);
@@ -139,78 +141,56 @@ const ConfiguracionMantenimiento = () => {
             await updateConfig("MODO_MANTENIMIENTO", newValue ? "true" : "false");
             setEnabled(newValue);
 
-            Swal.fire({
-                title: newValue ? '¡Modo Mantenimiento ACTIVADO!' : '¡Modo Mantenimiento DESACTIVADO!',
-                text: newValue
-                    ? 'El sistema ha sido bloqueado para todos los usuarios excepto Super Administradores.'
-                    : 'El sistema ya está disponible nuevamente para todos los usuarios.',
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
+            Toast.fire({
                 icon: newValue ? 'warning' : 'success',
-                confirmButtonText: 'Entendido',
-                confirmButtonColor: newValue ? '#f59e0b' : '#10b981',
-                padding: '2em',
-                customClass: {
-                    popup: 'rounded-[2rem] shadow-2xl'
-                }
+                title: newValue ? 'Modo Mantenimiento Activo' : 'Sistema Disponible'
             });
         } catch (error) {
-            Swal.fire({
-                title: 'Error',
-                text: 'No se pudo actualizar el estado de mantenimiento',
-                icon: 'error',
-                confirmButtonColor: '#ef4444'
-            });
+            console.error(error);
         } finally {
             setSaving(false);
         }
     };
 
     return (
-        <>
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 italic uppercase border-t border-slate-100 pt-6 mt-6">
-                <ShieldAlert className="h-5 w-5 text-amber-500" />
-                Control de Acceso /Mantenimiento
-            </h2>
-
-            <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl transition-colors ${enabled ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
-                        <Hammer className="h-6 w-6" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-bold text-slate-800">Modo Mantenimiento</h3>
-                        <p className="text-sm text-slate-500 max-w-md">
-                            Si activas esto, <strong>nadie podrá acceder al sistema</strong> excepto los usuarios con rol de <strong>Super Admin</strong>.
-                            Los demás verán una pantalla de "En Mantenimiento".
-                        </p>
-                    </div>
+        <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white hover:border-slate-200 transition-colors">
+            <div className="flex items-center gap-4">
+                <div className={`p-2.5 rounded-lg transition-colors ${enabled ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                    <Hammer className="h-5 w-5" />
                 </div>
-
-                <button
-                    onClick={handleToggle}
-                    disabled={saving}
-                    className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 ${enabled ? 'bg-amber-500' : 'bg-slate-300'}`}
-                >
-                    <span className="sr-only">Activar Mantenimiento</span>
-                    <span
-                        aria-hidden="true"
-                        className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-8' : 'translate-x-0'}`}
-                    >
-                        {saving && <Loader2 className="h-6 w-6 m-2.5 animate-spin text-amber-500" />}
-                    </span>
-                </button>
+                <div>
+                    <h3 className="text-sm font-bold text-slate-800">Modo Mantenimiento</h3>
+                    <p className="text-xs text-slate-500">Bloquea el acceso a usuarios estándar.</p>
+                </div>
             </div>
-        </>
+
+            <button
+                onClick={handleToggle}
+                disabled={saving}
+                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${enabled ? 'bg-amber-500' : 'bg-slate-300'}`}
+            >
+                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-5' : 'translate-x-0'}`}>
+                    {saving && <Loader2 className="h-4 w-4 m-1 animate-spin text-amber-500" />}
+                </span>
+            </button>
+        </div>
     );
 };
 
-// Componente para Notificaciones de Asignación
+// Componente para Notificaciones de Asignación (Compacto)
 const ConfiguracionNotificaciones = () => {
     const { updateConfig } = useConfig();
     const [enabled, setEnabled] = useState(true);
     const [saving, setSaving] = useState(false);
     const [loaded, setLoaded] = useState(false);
 
-    // Cargar estado actual de la configuración
     useEffect(() => {
         const fetchConfig = async () => {
             try {
@@ -218,21 +198,17 @@ const ConfiguracionNotificaciones = () => {
                 const res = await axios.get("/api/configuracion", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                // Manejar diferentes formatos de respuesta
                 const data = res.data;
                 if (Array.isArray(data)) {
                     const config = data.find((c: any) => c.clave === "notificaciones_asignacion_activas");
-                    if (config) {
-                        setEnabled(config.valor !== "false");
-                    }
+                    if (config) setEnabled(config.valor !== "false");
                 } else if (data && typeof data === 'object') {
-                    // Si es un objeto, buscar directamente la clave
                     if (data.notificaciones_asignacion_activas !== undefined) {
                         setEnabled(data.notificaciones_asignacion_activas !== "false");
                     }
                 }
             } catch (error) {
-                console.error("Error cargando config de notificaciones:", error);
+                console.error("Error loading notification config:", error);
             } finally {
                 setLoaded(true);
             }
@@ -247,212 +223,152 @@ const ConfiguracionNotificaciones = () => {
             await updateConfig("notificaciones_asignacion_activas", newValue ? "true" : "false");
             setEnabled(newValue);
 
-            Swal.fire({
-                title: newValue ? '¡Notificaciones ACTIVADAS!' : '¡Notificaciones DESACTIVADAS!',
-                text: newValue
-                    ? 'Recibirás avisos cada vez que alguien asigne un socio a una lista.'
-                    : 'Ya no recibirás notificaciones de asignación de socios.',
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
+            Toast.fire({
                 icon: newValue ? 'success' : 'info',
-                confirmButtonText: 'Entendido',
-                confirmButtonColor: newValue ? '#10b981' : '#6b7280',
-                padding: '2em',
-                customClass: {
-                    popup: 'rounded-[2rem] shadow-2xl'
-                }
+                title: newValue ? 'Notificaciones Activadas' : 'Notificaciones Desactivadas'
             });
         } catch (error) {
-            Swal.fire({
-                title: 'Error',
-                text: 'No se pudo actualizar la configuración',
-                icon: 'error',
-                confirmButtonColor: '#ef4444'
-            });
+            console.error(error);
         } finally {
             setSaving(false);
         }
     };
 
     const handleTestNotification = async () => {
-        // Verificar si el navegador soporta notificaciones
-        if (!("Notification" in window)) {
-            Swal.fire({
-                title: 'No soportado',
-                text: 'Tu navegador no soporta notificaciones del sistema.',
-                icon: 'error',
-                confirmButtonColor: '#ef4444'
-            });
-            return;
-        }
+        if (!("Notification" in window)) return;
+        if (Notification.permission === "default") await Notification.requestPermission();
 
-        // Pedir permiso si no lo tenemos
-        if (Notification.permission === "default") {
-            const permission = await Notification.requestPermission();
-            if (permission !== "granted") {
-                Swal.fire({
-                    title: 'Permiso denegado',
-                    text: 'Debes permitir las notificaciones para recibir alertas del sistema.',
-                    icon: 'warning',
-                    confirmButtonColor: '#f59e0b'
-                });
-                return;
-            }
-        }
-
-        if (Notification.permission === "denied") {
-            Swal.fire({
-                title: 'Notificaciones bloqueadas',
-                html: 'Las notificaciones están bloqueadas. Para activarlas:<br><br>1. Haz clic en el candado 🔒 en la barra de direcciones<br>2. Busca "Notificaciones"<br>3. Cambia a "Permitir"',
-                icon: 'warning',
-                confirmButtonColor: '#f59e0b'
-            });
-            return;
-        }
-
-        // Mostrar toast pequeño primero
-        const Toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
+        const notification = new Notification("🔔 Nueva Asignación", {
+            body: "Prueba de notificación de sistema",
+            icon: "/logo.png",
+            tag: "test-" + Date.now()
         });
-
-        Toast.fire({
-            icon: 'info',
-            title: 'Enviando notificación de prueba...'
-        });
-
-        // Esperar un momento para que el toast no tape la notificación
-        setTimeout(() => {
-            // ¡Mostrar notificación nativa de Windows!
-            try {
-                const notification = new Notification("🔔 Nueva Asignación de Socio", {
-                    body: "Juan Operador asignó al socio #12345 (María García) a la lista 'Lista Principal'",
-                    icon: "/logo.png",
-                    tag: "test-notification-" + Date.now(),
-                    requireInteraction: false
-                });
-
-                notification.onclick = () => {
-                    window.focus();
-                    notification.close();
-                };
-
-                // Mostrar toast de éxito después
-                setTimeout(() => {
-                    Toast.fire({
-                        icon: 'success',
-                        title: '¡Notificación enviada! Mira la esquina de tu pantalla'
-                    });
-                }, 500);
-            } catch (error) {
-                console.error("Error creando notificación:", error);
-                Swal.fire({
-                    title: 'Error',
-                    text: 'No se pudo crear la notificación: ' + error,
-                    icon: 'error'
-                });
-            }
-        }, 300);
-
-        // También intentar enviar push real desde el backend
-        try {
-            const token = localStorage.getItem("token");
-            await axios.post("/api/push/send-test", {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-        } catch (error) {
-            // Silently fail
-        }
+        notification.onclick = () => window.focus();
     };
 
     if (!loaded) return null;
 
     return (
-        <>
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 italic uppercase border-t border-slate-100 pt-6 mt-6">
-                <Bell className="h-5 w-5 text-blue-500" />
-                Notificaciones de Asignación
-            </h2>
-
-            <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100 space-y-4">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-xl transition-colors ${enabled ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
-                            <Bell className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-800">Avisar Asignaciones</h3>
-                            <p className="text-sm text-slate-500 max-w-md">
-                                Cuando está activo, recibirás una <strong>notificación</strong> cada vez que un usuario asigne un socio a su lista.
-                                Aparecerá en el centro de avisos y como notificación push si está habilitada.
-                            </p>
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={handleToggle}
-                        disabled={saving}
-                        className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${enabled ? 'bg-blue-500' : 'bg-slate-300'}`}
-                    >
-                        <span className="sr-only">Activar Notificaciones</span>
-                        <span
-                            aria-hidden="true"
-                            className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-8' : 'translate-x-0'}`}
-                        >
-                            {saving && <Loader2 className="h-6 w-6 m-2.5 animate-spin text-blue-500" />}
-                        </span>
-                    </button>
+        <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white hover:border-slate-200 transition-colors">
+            <div className="flex items-center gap-4">
+                <div className={`p-2.5 rounded-lg transition-colors ${enabled ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'}`}>
+                    <Bell className="h-5 w-5" />
                 </div>
-
-                {/* Botón de prueba */}
-                <div className="flex justify-end pt-2 border-t border-blue-100">
-                    <button
-                        onClick={handleTestNotification}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-600 rounded-xl text-sm font-bold hover:bg-blue-50 hover:border-blue-300 transition-all"
-                    >
-                        <Bell className="h-4 w-4" />
-                        Probar Notificación
-                    </button>
+                <div>
+                    <h3 className="text-sm font-bold text-slate-800">Avisos de Asignación</h3>
+                    <p className="text-xs text-slate-500">Recibe alertas cuando se asignen socios.</p>
                 </div>
             </div>
-        </>
+
+            <div className="flex items-center gap-3">
+                <button
+                    onClick={handleTestNotification}
+                    className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Probar notificación"
+                >
+                    <Bell className="h-4 w-4" />
+                </button>
+
+                <button
+                    onClick={handleToggle}
+                    disabled={saving}
+                    className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${enabled ? 'bg-blue-500' : 'bg-slate-300'}`}
+                >
+                    <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-5' : 'translate-x-0'}`}>
+                        {saving && <Loader2 className="h-4 w-4 m-1 animate-spin text-blue-500" />}
+                    </span>
+                </button>
+            </div>
+        </div>
     );
 };
 
-// Componente para Acceso a Gestión de Listas
-const ConfiguracionGestionListas = () => {
-    const router = useRouter();
+// Componente para Configuración del Spotlight de Candidatos (Compacto)
+const ConfiguracionSpotlight = () => {
+    const [enabled, setEnabled] = useState(true);
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        const preference = localStorage.getItem("spotlight_enabled");
+        if (preference === "false") setEnabled(false);
+    }, []);
+
+    const handleToggle = async () => {
+        const newValue = !enabled;
+        setSaving(true);
+        localStorage.setItem("spotlight_enabled", newValue ? "true" : "false");
+        setEnabled(newValue);
+
+        // Simular delay breve para feedback visual
+        setTimeout(() => setSaving(false), 300);
+
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+        Toast.fire({
+            icon: newValue ? 'success' : 'info',
+            title: newValue ? 'Spotlight Activado' : 'Spotlight Desactivado'
+        });
+    };
 
     return (
-        <>
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 italic uppercase border-t border-slate-100 pt-6 mt-6">
-                <ClipboardList className="h-5 w-5 text-teal-500" />
-                Operativa de Listas
-            </h2>
-
-            <div className="bg-teal-50 rounded-2xl p-6 border border-teal-100 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-teal-500 text-white">
-                        <Settings2 className="h-6 w-6" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-bold text-slate-800">Módulo de Gestión Maestro</h3>
-                        <p className="text-sm text-slate-500 max-w-md">
-                            Accede a la herramienta global para supervisar el ranking de asesores y <strong>eliminar socios de sus listas</strong> si es necesario.
-                        </p>
-                    </div>
+        <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white hover:border-slate-200 transition-colors">
+            <div className="flex items-center gap-4">
+                <div className={`p-2.5 rounded-lg transition-colors ${enabled ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>
+                    <Star className="h-5 w-5" />
                 </div>
-
-                <button
-                    onClick={() => router.push("/gestion-listas")}
-                    className="rounded-xl bg-teal-600 px-6 py-3 font-bold text-white hover:bg-teal-700 shadow-lg shadow-teal-100 transition-all active:scale-95 flex items-center gap-2"
-                >
-                    Ir a Gestión Global
-                    <ClipboardList className="h-4 w-4" />
-                </button>
+                <div>
+                    <h3 className="text-sm font-bold text-slate-800">Spotlight de Candidatos</h3>
+                    <p className="text-xs text-slate-500">Muestra popups automáticos de candidatos.</p>
+                </div>
             </div>
-        </>
+
+            <button
+                onClick={handleToggle}
+                disabled={saving}
+                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${enabled ? 'bg-amber-500' : 'bg-slate-300'}`}
+            >
+                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-5' : 'translate-x-0'}`}>
+                    {saving && <Loader2 className="h-4 w-4 m-1 animate-spin text-amber-500" />}
+                </span>
+            </button>
+        </div>
+    );
+};
+
+// Componente de Gestión Listas (Compacto)
+const ConfiguracionGestionListas = () => {
+    const router = useRouter();
+    return (
+        <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white hover:border-slate-200 transition-colors">
+            <div className="flex items-center gap-4">
+                <div className="p-2.5 rounded-lg bg-teal-100 text-teal-600">
+                    <ClipboardList className="h-5 w-5" />
+                </div>
+                <div>
+                    <h3 className="text-sm font-bold text-slate-800">Operativa de Listas</h3>
+                    <p className="text-xs text-slate-500">Gestión global de candidatos y listas.</p>
+                </div>
+            </div>
+
+            <button
+                onClick={() => router.push("/gestion-listas")}
+                className="px-4 py-2 bg-teal-500 text-white text-xs font-bold rounded-lg hover:bg-teal-600 transition-colors"
+            >
+                Acceder
+            </button>
+        </div>
     );
 };
 
@@ -526,57 +442,29 @@ const ConfiguracionSoloVozVoto = () => {
 
     if (!loaded) return null;
 
+    // Layout Compacto Voz y Voto
     return (
-        <>
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 italic uppercase border-t border-slate-100 pt-6 mt-6">
-                <ShieldAlert className="h-5 w-5 text-emerald-500" />
-                Restricción de Asignaciones
-            </h2>
-
-            <div className={`rounded-2xl p-6 border transition-all ${enabled ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-xl transition-colors ${enabled ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
-                            <Check className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                Solo Voz y Voto
-                                {enabled && <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black uppercase rounded-full">ACTIVO</span>}
-                            </h3>
-                            <p className="text-sm text-slate-500 max-w-md">
-                                Cuando está activo, los usuarios <strong>solo podrán agregar a sus listas socios que cumplan todos los requisitos</strong> (Aporte, Solidaridad, Fondo, INCOOP y Crédito al día).
-                                Los socios que "Solo tienen Voz" serán rechazados con un mensaje profesional indicando qué requisitos les faltan.
-                            </p>
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={handleToggle}
-                        disabled={saving}
-                        className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 ${enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
-                    >
-                        <span className="sr-only">Activar Restricción</span>
-                        <span
-                            aria-hidden="true"
-                            className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-8' : 'translate-x-0'}`}
-                        >
-                            {saving && <Loader2 className="h-6 w-6 m-2.5 animate-spin text-emerald-500" />}
-                        </span>
-                    </button>
+        <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white hover:border-slate-200 transition-colors">
+            <div className="flex items-center gap-4">
+                <div className={`p-2.5 rounded-lg transition-colors ${enabled ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                    <Check className="h-5 w-5" />
                 </div>
-
-                {/* Info adicional cuando está activo */}
-                {enabled && (
-                    <div className="mt-4 pt-4 border-t border-emerald-200 flex items-start gap-3">
-                        <Info className="h-5 w-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-emerald-700 leading-relaxed">
-                            Los socios que no cumplan los requisitos verán un modal profesional explicando qué obligaciones tienen pendientes. Esto aplica tanto para asignaciones normales como administrativas.
-                        </p>
-                    </div>
-                )}
+                <div>
+                    <h3 className="text-sm font-bold text-slate-800">Restricción de Asignaciones</h3>
+                    <p className="text-xs text-slate-500">Solo permite asignar socios con Voz y Voto.</p>
+                </div>
             </div>
-        </>
+
+            <button
+                onClick={handleToggle}
+                disabled={saving}
+                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
+            >
+                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-5' : 'translate-x-0'}`}>
+                    {saving && <Loader2 className="h-4 w-4 m-1 animate-spin text-emerald-500" />}
+                </span>
+            </button>
+        </div>
     );
 };
 
@@ -768,7 +656,7 @@ const ConfiguracionFechaLimite = () => {
     );
 };
 
-// Componente para Modo de Prueba (Test Mode)
+// Componente para Modo de Prueba (Compacto)
 const ConfiguracionModoPrueba = () => {
     const { isTestMode, testModeInfo, activateTestMode, deactivateTestMode } = useConfig();
     const [saving, setSaving] = useState(false);
@@ -776,23 +664,11 @@ const ConfiguracionModoPrueba = () => {
     const handleActivate = async () => {
         const result = await Swal.fire({
             title: '¿Activar Modo de Prueba?',
-            html: `
-                <div class="text-left space-y-3">
-                    <p class="text-slate-600">Se creará una <strong>copia de seguridad</strong> de todos los datos actuales:</p>
-                    <ul class="text-sm text-slate-500 list-disc list-inside space-y-1">
-                        <li>Padrón de Socios</li>
-                        <li>Asignaciones a Listas</li>
-                        <li>Registros de Asistencia</li>
-                        <li>Usuarios del Sistema</li>
-                    </ul>
-                    <p class="text-violet-600 font-bold mt-4">🧪 Podrás usar el sistema normalmente. Los cambios NO serán permanentes.</p>
-                </div>
-            `,
+            text: 'Se creará una copia de seguridad. Los cambios que hagas NO serán permanentes.',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#8b5cf6',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Sí, Activar Modo Prueba',
+            confirmButtonText: 'Sí, Activar',
             cancelButtonText: 'Cancelar'
         });
 
@@ -803,43 +679,21 @@ const ConfiguracionModoPrueba = () => {
         setSaving(false);
 
         if (response.success) {
-            Swal.fire({
-                title: '🧪 Modo de Prueba ACTIVADO',
-                text: response.message || 'Ahora puedes usar el sistema libremente. Al desactivar, todo volverá a como estaba.',
-                icon: 'success',
-                confirmButtonColor: '#8b5cf6'
-            });
+            Swal.fire({ title: 'Modo Prueba Activado', icon: 'success' });
         } else {
-            Swal.fire({
-                title: 'Error',
-                text: response.error || 'No se pudo activar el modo de prueba',
-                icon: 'error',
-                confirmButtonColor: '#ef4444'
-            });
+            Swal.fire({ title: 'Error', text: response.error, icon: 'error' });
         }
     };
 
     const handleDeactivate = async () => {
         const result = await Swal.fire({
-            title: '⚠️ ¿Desactivar Modo de Prueba?',
-            html: `
-                <div class="text-left space-y-3">
-                    <p class="text-red-600 font-bold">ADVERTENCIA: Se perderán TODOS los cambios realizados durante la prueba:</p>
-                    <ul class="text-sm text-slate-500 list-disc list-inside space-y-1">
-                        <li>Nuevos socios importados</li>
-                        <li>Asignaciones realizadas</li>
-                        <li>Asistencias marcadas</li>
-                        <li>Usuarios creados</li>
-                    </ul>
-                    <p class="text-emerald-500 font-bold mt-4">✅ Los datos originales serán restaurados.</p>
-                </div>
-            `,
+            title: '¿Restaurar Sistema?',
+            text: 'Se perderán todos los cambios hechos durante la prueba.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Sí, Restaurar Datos Originales',
-            cancelButtonText: 'Seguir en Modo Prueba'
+            confirmButtonText: 'Sí, Restaurar',
+            cancelButtonText: 'Cancelar'
         });
 
         if (!result.isConfirmed) return;
@@ -849,73 +703,36 @@ const ConfiguracionModoPrueba = () => {
         setSaving(false);
 
         if (response.success) {
-            Swal.fire({
-                title: '✅ Datos Restaurados',
-                text: response.message || 'El sistema ha vuelto a su estado original.',
-                icon: 'success',
-                confirmButtonColor: '#10b981'
-            });
+            Swal.fire({ title: 'Sistema Restaurado', icon: 'success' });
         } else {
-            Swal.fire({
-                title: 'Error',
-                text: response.error || 'No se pudieron restaurar los datos',
-                icon: 'error',
-                confirmButtonColor: '#ef4444'
-            });
+            Swal.fire({ title: 'Error', text: response.error, icon: 'error' });
         }
     };
 
     return (
-        <>
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 italic uppercase border-t border-slate-100 pt-6 mt-6">
-                <Database className="h-5 w-5 text-violet-500" />
-                Modo de Prueba /Sandbox
-            </h2>
-
-            <div className={`rounded-2xl p-6 border flex flex-col md:flex-row items-center justify-between gap-6 transition-all ${isTestMode ? 'bg-violet-100 border-violet-300' : 'bg-violet-50 border-violet-100'}`}>
-                <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl transition-colors ${isTestMode ? 'bg-violet-600 text-white animate-pulse' : 'bg-slate-200 text-slate-400'}`}>
-                        <Database className="h-6 w-6" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                            Modo de Prueba
-                            {isTestMode && <span className="px-2 py-0.5 bg-violet-600 text-white text-[10px] font-black uppercase rounded-full animate-pulse">ACTIVO</span>}
-                        </h3>
-                        <p className="text-sm text-slate-500 max-w-md">
-                            {isTestMode ? (
-                                <>
-                                    <strong className="text-violet-700">Los cambios NO son permanentes.</strong> Al desactivar, todo volverá a como estaba antes.
-                                    {testModeInfo?.activatedBy && (
-                                        <span className="block mt-1 text-xs text-violet-600">
-                                            Activado por: {testModeInfo.activatedBy}
-                                        </span>
-                                    )}
-                                </>
-                            ) : (
-                                <>
-                                    Activa para probar el sistema sin afectar los datos reales. Se creará una copia de seguridad automática.
-                                </>
-                            )}
-                        </p>
-                    </div>
+        <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white hover:border-slate-200 transition-colors">
+            <div className="flex items-center gap-4">
+                <div className={`p-2.5 rounded-lg transition-colors ${isTestMode ? 'bg-violet-500 text-white animate-pulse' : 'bg-slate-100 text-slate-400'}`}>
+                    <Database className="h-5 w-5" />
                 </div>
-
-                <button
-                    onClick={isTestMode ? handleDeactivate : handleActivate}
-                    disabled={saving}
-                    className={`relative inline-flex h-12 w-20 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-offset-2 ${isTestMode ? 'bg-violet-600' : 'bg-slate-300'}`}
-                >
-                    <span className="sr-only">Activar Modo Prueba</span>
-                    <span
-                        aria-hidden="true"
-                        className={`pointer-events-none inline-block h-11 w-11 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isTestMode ? 'translate-x-8' : 'translate-x-0'}`}
-                    >
-                        {saving && <Loader2 className="h-6 w-6 m-2.5 animate-spin text-violet-600" />}
-                    </span>
-                </button>
+                <div>
+                    <h3 className="text-sm font-bold text-slate-800">Modo de Prueba /Sandbox</h3>
+                    <p className="text-xs text-slate-500">
+                        {isTestMode ? "Activo: Los cambios no son permanentes." : "Prueba el sistema sin riesgos."}
+                    </p>
+                </div>
             </div>
-        </>
+
+            <button
+                onClick={isTestMode ? handleDeactivate : handleActivate}
+                disabled={saving}
+                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 ${isTestMode ? 'bg-violet-500' : 'bg-slate-300'}`}
+            >
+                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isTestMode ? 'translate-x-5' : 'translate-x-0'}`}>
+                    {saving && <Loader2 className="h-4 w-4 m-1 animate-spin text-violet-500" />}
+                </span>
+            </button>
+        </div>
     );
 };
 
@@ -1518,6 +1335,11 @@ export default function ConfiguracionPage() {
                         Cerrar Todas las Sesiones
                     </button>
                 </div>
+            </div>
+
+            {/* Configuración de Spotlight - Disponible para todos */}
+            <div className="rounded-2xl bg-white p-8 shadow-sm border border-slate-100 space-y-6">
+                <ConfiguracionSpotlight />
             </div>
 
             {isSuperAdmin && (

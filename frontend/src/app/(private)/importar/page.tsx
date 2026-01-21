@@ -126,20 +126,20 @@ export default function ImportarPage() {
                         { step: 3, label: "Resultados", desc: "Resumen final", icon: CheckCircle2 }
                     ].map((s) => {
                         const isActive = s.step === currentStep;
-                        const isPast = s.step <currentStep;
+                        const isPast = s.step < currentStep;
                         return (
                             <div key={s.step}
                                 className={`relative overflow-hidden rounded-xl md:rounded-2xl p-4 md:p-5 transition-all duration-500 border-2 flex-shrink-0 snap-center
                                     ${isActive ? "border-emerald-500 bg-white shadow-lg shadow-emerald-500/10 min-w-[200px] md:min-w-0"
-                                       :isPast ? "border-transparent bg-emerald-500 text-white min-w-[160px] md:min-w-0"
-                                           :"border-transparent bg-white text-slate-400 opacity-60 min-w-[160px] md:min-w-0"}`}
+                                        : isPast ? "border-transparent bg-emerald-500 text-white min-w-[160px] md:min-w-0"
+                                            : "border-transparent bg-white text-slate-400 opacity-60 min-w-[160px] md:min-w-0"}`}
                             >
                                 <div className="flex items-center gap-3 relative z-10">
-                                    <div className={`p-3 rounded-xl shadow-sm ${isActive ? "bg-emerald-100 text-emerald-500":isPast ? "bg-white/20 text-white":"bg-slate-100"}`}>
-                                        <s.icon className={`h-5 w-5 ${isActive && s.step === 2 ? 'animate-spin':''}`} />
+                                    <div className={`p-3 rounded-xl shadow-sm ${isActive ? "bg-emerald-100 text-emerald-500" : isPast ? "bg-white/20 text-white" : "bg-slate-100"}`}>
+                                        <s.icon className={`h-5 w-5 ${isActive && s.step === 2 ? 'animate-spin' : ''}`} />
                                     </div>
                                     <div>
-                                        <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest ${isActive ? "text-emerald-500":isPast ? "text-emerald-200":"text-slate-300"}`}>
+                                        <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest ${isActive ? "text-emerald-500" : isPast ? "text-emerald-200" : "text-slate-300"}`}>
                                             Paso 0{s.step}
                                         </span>
                                         <h3 className="text-sm md:text-base font-bold">{s.label}</h3>
@@ -173,7 +173,7 @@ export default function ImportarPage() {
                                         onDragOver={handleDrag}
                                         onDrop={handleDrop}
                                         className={`relative flex flex-col items-center justify-center rounded-xl md:rounded-2xl border-3 md:border-4 border-dashed text-center transition-all duration-300 bg-white
-                                            ${dragActive ? "border-emerald-500 bg-emerald-50/50 scale-[0.99]":"border-slate-100 hover:border-emerald-300"}`}
+                                            ${dragActive ? "border-emerald-500 bg-emerald-50/50 scale-[0.99]" : "border-slate-100 hover:border-emerald-300"}`}
                                         style={{ padding: 'clamp(2rem, 6vw, 4rem)' }}
                                     >
                                         <div className="mb-6 relative">
@@ -230,8 +230,8 @@ export default function ImportarPage() {
                                             {/* Subtle Animated Background Pattern */}
                                             <div className="absolute inset-0 opacity-30"
                                                 style={{
-                                                    backgroundImage: `radial-gradient(circle at 20% 50%, ${`hsla(${Math.round((progress /100) * 120)}, 70%, 85%, 0.4)`} 0%, transparent 50%),
-                                                   radial-gradient(circle at 80% 80%, ${`hsla(${Math.round((progress /100) * 120)}, 70%, 90%, 0.3)`} 0%, transparent 50%)`
+                                                    backgroundImage: `radial-gradient(circle at 20% 50%, ${`hsla(${Math.round((progress / 100) * 120)}, 70%, 85%, 0.4)`} 0%, transparent 50%),
+                                                   radial-gradient(circle at 80% 80%, ${`hsla(${Math.round((progress / 100) * 120)}, 70%, 90%, 0.3)`} 0%, transparent 50%)`
                                                 }}
                                             />
 
@@ -255,16 +255,16 @@ export default function ImportarPage() {
                                                             cx="128"
                                                             cy="128"
                                                             r="120"
-                                                            stroke={`hsl(${Math.round((progress /100) * 120)}, 75%, 50%)`}
+                                                            stroke={`hsl(${Math.round((progress / 100) * 120)}, 75%, 50%)`}
                                                             strokeWidth="12"
                                                             fill="none"
                                                             strokeLinecap="round"
                                                             strokeDasharray="754"
                                                             initial={{ strokeDashoffset: 754 }}
-                                                            animate={{ strokeDashoffset: 754 - (754 * progress) /100 }}
+                                                            animate={{ strokeDashoffset: 754 - (754 * progress) / 100 }}
                                                             transition={{ duration: 0.8, ease: "easeInOut" }}
                                                             style={{
-                                                                filter: `drop-shadow(0 0 12px hsla(${Math.round((progress /100) * 120)}, 75%, 55%, 0.5))`
+                                                                filter: `drop-shadow(0 0 12px hsla(${Math.round((progress / 100) * 120)}, 75%, 55%, 0.5))`
                                                             }}
                                                         />
                                                     </svg>
@@ -280,7 +280,7 @@ export default function ImportarPage() {
                                                             <div
                                                                 className="text-7xl font-black mb-3 tracking-tight"
                                                                 style={{
-                                                                    color: `hsl(${Math.round((progress /100) * 120)}, 70%, 45%)`,
+                                                                    color: `hsl(${Math.round((progress / 100) * 120)}, 70%, 45%)`,
                                                                 }}
                                                             >
                                                                 {progress}%
@@ -288,12 +288,12 @@ export default function ImportarPage() {
                                                             <div
                                                                 className="px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest border-2"
                                                                 style={{
-                                                                    backgroundColor: `hsla(${Math.round((progress /100) * 120)}, 70%, 95%, 1)`,
-                                                                    color: `hsl(${Math.round((progress /100) * 120)}, 70%, 40%)`,
-                                                                    borderColor: `hsla(${Math.round((progress /100) * 120)}, 70%, 60%, 0.3)`
+                                                                    backgroundColor: `hsla(${Math.round((progress / 100) * 120)}, 70%, 95%, 1)`,
+                                                                    color: `hsl(${Math.round((progress / 100) * 120)}, 70%, 40%)`,
+                                                                    borderColor: `hsla(${Math.round((progress / 100) * 120)}, 70%, 60%, 0.3)`
                                                                 }}
                                                             >
-                                                                {progress === 100 ? 'Completado':'Procesando'}
+                                                                {progress === 100 ? 'Completado' : 'Procesando'}
                                                             </div>
                                                         </motion.div>
                                                     </div>
@@ -302,7 +302,7 @@ export default function ImportarPage() {
                                                     <motion.div
                                                         className="absolute w-5 h-5 rounded-full shadow-lg"
                                                         style={{
-                                                            backgroundColor: `hsl(${Math.round((progress /100) * 120)}, 75%, 55%)`,
+                                                            backgroundColor: `hsl(${Math.round((progress / 100) * 120)}, 75%, 55%)`,
                                                             top: '50%',
                                                             left: '50%',
                                                         }}
@@ -358,8 +358,8 @@ export default function ImportarPage() {
                                         <div className="grid grid-cols-2 gap-4 mb-8">
                                             {[
                                                 { label: "Total Filas", val: stats.totalRows ?? 0, color: "text-slate-800", bg: "bg-slate-50", border: "border-slate-100" },
-                                                { label: "Nuevos Socios", val: stats.imported ?? 0, color: "text-emerald-500", bg: "bg-emerald-50", border: "border-emerald-100" },
-                                                { label: "Actualizados", val: stats.updated ?? 0, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100" },
+                                                { label: "Nuevos Socios", val: stats.nuevos ?? 0, color: "text-emerald-500", bg: "bg-emerald-50", border: "border-emerald-100" },
+                                                { label: "Actualizados", val: stats.actualizados ?? 0, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100" },
                                                 { label: "Errores", val: stats.errors ?? 0, color: "text-red-500", bg: "bg-red-50", border: "border-red-100" }
                                             ].map((stat, i) => (
                                                 <div key={i} className={`p-6 rounded-2xl border ${stat.bg} ${stat.border} flex flex-col items-center justify-center`}>
@@ -369,8 +369,80 @@ export default function ImportarPage() {
                                             ))}
                                         </div>
 
+                                        {/* Análisis de Filas Excluidas */}
+                                        {((stats.duplicados ?? 0) > 0 || (stats.sinCedula ?? 0) > 0 || (stats.sinNombre ?? 0) > 0 || (stats.filasVacias ?? 0) > 0) && (
+                                            <div className="mb-8 p-6 bg-amber-50/50 rounded-2xl border border-amber-100/50">
+                                                <h3 className="text-sm font-black text-amber-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                    <AlertCircle className="h-4 w-4" />
+                                                    Análisis de Filas Excluidas ({(stats.duplicados ?? 0) + (stats.sinCedula ?? 0) + (stats.sinNombre ?? 0) + (stats.filasVacias ?? 0)} filas)
+                                                </h3>
+
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                                                    <div className="p-3 bg-white rounded-xl border border-orange-100 text-center">
+                                                        <div className="text-2xl font-black text-orange-500">{formatNumber(stats.duplicados ?? 0)}</div>
+                                                        <div className="text-[10px] font-bold text-orange-400 uppercase">Duplicados</div>
+                                                    </div>
+                                                    <div className="p-3 bg-white rounded-xl border border-red-100 text-center">
+                                                        <div className="text-2xl font-black text-red-500">{formatNumber(stats.sinCedula ?? 0)}</div>
+                                                        <div className="text-[10px] font-bold text-red-400 uppercase">Sin Cédula</div>
+                                                    </div>
+                                                    <div className="p-3 bg-white rounded-xl border border-pink-100 text-center">
+                                                        <div className="text-2xl font-black text-pink-500">{formatNumber(stats.sinNombre ?? 0)}</div>
+                                                        <div className="text-[10px] font-bold text-pink-400 uppercase">Sin Nombre</div>
+                                                    </div>
+                                                    <div className="p-3 bg-white rounded-xl border border-slate-100 text-center">
+                                                        <div className="text-2xl font-black text-slate-400">{formatNumber(stats.filasVacias ?? 0)}</div>
+                                                        <div className="text-[10px] font-bold text-slate-400 uppercase">Vacías</div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Detalle de Duplicados */}
+                                                {stats.duplicadosDetalle && stats.duplicadosDetalle.length > 0 && (
+                                                    <div className="mt-4">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <span className="text-xs font-bold text-amber-700">Cédulas duplicadas en el Excel:</span>
+                                                            <button
+                                                                onClick={() => {
+                                                                    // Generar CSV para descarga
+                                                                    const csv = "Fila,Cedula,Nombre\n" +
+                                                                        stats.duplicadosDetalle.map(d => `${d.row},"${d.cedula}","${d.nombre}"`).join("\n");
+                                                                    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                                                                    const url = URL.createObjectURL(blob);
+                                                                    const a = document.createElement("a");
+                                                                    a.href = url;
+                                                                    a.download = "duplicados_padron.csv";
+                                                                    a.click();
+                                                                }}
+                                                                className="text-xs font-bold text-amber-600 hover:text-amber-800 underline flex items-center gap-1"
+                                                            >
+                                                                <FileSpreadsheet className="h-3 w-3" />
+                                                                Descargar CSV
+                                                            </button>
+                                                        </div>
+                                                        <div className="max-h-40 overflow-y-auto pr-2 space-y-1 custom-scrollbar">
+                                                            {stats.duplicadosDetalle.slice(0, 50).map((dup, idx) => (
+                                                                <div key={idx} className="flex gap-3 p-2 bg-white rounded-lg border border-amber-50 text-xs">
+                                                                    <div className="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded h-fit">Fila {dup.row}</div>
+                                                                    <div className="flex-1">
+                                                                        <span className="font-bold text-slate-700">CI: {dup.cedula}</span>
+                                                                        <span className="text-slate-400 mx-2">•</span>
+                                                                        <span className="text-slate-500">{dup.nombre}</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        {stats.duplicadosDetalle.length > 50 && (
+                                                            <p className="mt-2 text-[10px] text-amber-500 font-bold italic text-center">
+                                                                Mostrando 50 de {stats.duplicadosDetalle.length} duplicados. Descarga el CSV para ver todos.
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
                                         {/* Detalle de Errores (Si existen) */}
-                                        {errorDetails && errorDetails.length> 0 && (
+                                        {errorDetails && errorDetails.length > 0 && (
                                             <div className="mb-8 p-6 bg-red-50/50 rounded-2xl border border-red-100/50">
                                                 <h3 className="text-sm font-black text-red-800 uppercase tracking-widest mb-4 flex items-center gap-2">
                                                     <AlertCircle className="h-4 w-4" />
@@ -387,7 +459,7 @@ export default function ImportarPage() {
                                                         </div>
                                                     ))}
                                                 </div>
-                                                {errorDetails.length>= 100 && (
+                                                {errorDetails.length >= 100 && (
                                                     <p className="mt-4 text-[10px] text-red-500 font-bold italic text-center">Solo se muestran los primeros 100 errores para optimizar el rendimiento.</p>
                                                 )}
                                             </div>
@@ -420,9 +492,9 @@ export default function ImportarPage() {
 
                             {loadingHistorial ? (
                                 <div className="flex justify-center py-12"><Loader2 className="animate-spin text-emerald-500 h-8 w-8" /></div>
-                            ):historial.length === 0 ? (
+                            ) : historial.length === 0 ? (
                                 <div className="text-center py-12 text-slate-400 text-sm italic">Sin actividad reciente</div>
-                            ):(
+                            ) : (
                                 <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                                     {historial.map((h) => (
                                         <div key={h.id} className="group relative p-4 rounded-2xl bg-white border border-slate-100 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/5 transition-all">

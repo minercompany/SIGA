@@ -35,6 +35,7 @@ public class SecurityConfiguration {
                                                 .requestMatchers("/public/**", "/api/auth/login", "/error").permitAll()
                                                 .requestMatchers("/api/public/**").permitAll() // Endpoints públicos
                                                                                                // para pantalla
+                                                .requestMatchers("/api/candidatos/publico").permitAll() // Candidatos público
                                                 .requestMatchers("/api/configuracion").permitAll()
                                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                                                 .requestMatchers("/api/socios/reset-padron").permitAll()

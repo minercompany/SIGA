@@ -69,8 +69,8 @@ export default function DashboardPage() {
                 setUser(parsedUser);
 
                 const headers = { Authorization: `Bearer ${token}` };
-                // Solo SUPER_ADMIN y DIRECTIVO ven el dashboard administrativo completo
-                const isAdmin = parsedUser.rol === "SUPER_ADMIN" || parsedUser.rol === "DIRECTIVO";
+                // Solo SUPER_ADMIN, SUPER_ADMIN_VISUAL y DIRECTIVO ven el dashboard administrativo completo
+                const isAdmin = parsedUser.rol === "SUPER_ADMIN" || parsedUser.rol === "SUPER_ADMIN_VISUAL" || parsedUser.rol === "DIRECTIVO";
                 const isSocioView = !isAdmin; // Todos los demás roles ven el SocioDashboard
 
                 if (isSocioView) {
@@ -102,7 +102,7 @@ export default function DashboardPage() {
                     setRankingOperadores(mappedRanking);
 
                     // Setear actividad de usuarios (SOLO si es ADMIN o DIRECTIVO)
-                    if (parsedUser.rol === "SUPER_ADMIN" || parsedUser.rol === "DIRECTIVO") {
+                    if (parsedUser.rol === "SUPER_ADMIN" || parsedUser.rol === "SUPER_ADMIN_VISUAL" || parsedUser.rol === "DIRECTIVO") {
 
                         const [activityRes, activeListRes, hourlyStatsRes] = await Promise.all([
                             axios.get("/api/usuarios/estadisticas", { headers }),
@@ -135,7 +135,7 @@ export default function DashboardPage() {
             });
             setDesempeno([]);
             setRankingOperadores([]);
-            if (user?.rol === "SUPER_ADMIN" || user?.rol === "DIRECTIVO") {
+            if (user?.rol === "SUPER_ADMIN" || user?.rol === "SUPER_ADMIN_VISUAL" || user?.rol === "DIRECTIVO") {
                 setUserActivity({
                     total: 0,
                     usuales: 0,
@@ -165,8 +165,8 @@ export default function DashboardPage() {
         );
     }
 
-    // Solo SUPER_ADMIN y DIRECTIVO ven el dashboard administrativo
-    const isAdminView = user?.rol === "SUPER_ADMIN" || user?.rol === "DIRECTIVO";
+    // Solo SUPER_ADMIN, SUPER_ADMIN_VISUAL y DIRECTIVO ven el dashboard administrativo
+    const isAdminView = user?.rol === "SUPER_ADMIN" || user?.rol === "SUPER_ADMIN_VISUAL" || user?.rol === "DIRECTIVO";
     const isSocioView = !isAdminView;
 
     return (

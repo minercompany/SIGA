@@ -62,8 +62,8 @@ export default function BackupsPage() {
       window.location.href = '/dashboard';
       return;
     }
-    cargarConfiguracion();
-    cargarUndoInfo();
+    // No cargar nada hasta que se verifique el código
+    setMostrarModalCodigo(true);
   }, []);
 
   const cargarUndoInfo = async () => {
@@ -131,7 +131,9 @@ export default function BackupsPage() {
       if (data.valido) {
         setCodigoVerificado(true);
         setMostrarModalCodigo(false);
+        cargarConfiguracion();
         cargarHistorial();
+        cargarUndoInfo();
       } else {
         setErrorCodigo('Código incorrecto');
       }
@@ -256,10 +258,56 @@ export default function BackupsPage() {
     return null;
   }
 
-  if (loading) {
+  if (loading && codigoVerificado) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  // Mostrar pantalla de acceso si no se ha verificado el código
+  if (!codigoVerificado) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+          <div className="text-center mb-6">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiLock className="w-10 h-10 text-green-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800">Backups y Recuperación</h1>
+            <p className="text-gray-500 mt-2">Ingrese el código de seguridad para acceder</p>
+          </div>
+
+          <input
+            type="password"
+            value={codigoAcceso}
+            onChange={(e) => setCodigoAcceso(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && verificarCodigo()}
+            placeholder="••••••••••••"
+            className="w-full p-4 text-center text-2xl tracking-widest border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent mb-4"
+            autoFocus
+          />
+
+          {errorCodigo && (
+            <p className="text-red-500 text-sm text-center mb-4">{errorCodigo}</p>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.back()}
+              className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={verificarCodigo}
+              className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors"
+            >
+              Acceder
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

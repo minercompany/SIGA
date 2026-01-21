@@ -11,6 +11,7 @@ import com.asamblea.repository.SocioRepository;
 import com.asamblea.repository.UsuarioRepository;
 import com.asamblea.repository.AsambleaRepository;
 import com.asamblea.service.LogAuditoriaService;
+import com.asamblea.service.MesaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -33,6 +34,7 @@ public class AsistenciaController {
     private final UsuarioRepository usuarioRepository;
     private final AsambleaRepository asambleaRepository;
     private final LogAuditoriaService auditService;
+    private final MesaService mesaService;
 
     @GetMapping("/hoy")
     public ResponseEntity<?> asistenciasHoy() {
@@ -120,11 +122,16 @@ public class AsistenciaController {
                     auth.getName(),
                     request.getRemoteAddr());
 
+            // Calcular mesa asignada
+            Map<String, Object> mesaInfo = mesaService.calcularMesa(socio);
+
             Map<String, Object> response = new HashMap<>();
             response.put("id", guardada.getId());
             response.put("mensaje", "Asistencia registrada exitosamente");
             response.put("socioNombre", socio.getNombreCompleto());
+            response.put("socioNumero", socio.getNumeroSocio());
             response.put("vozVoto", vozVoto);
+            response.put("mesa", mesaInfo);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -174,6 +181,114 @@ public class AsistenciaController {
                     "mensaje", "Asistencia eliminada correctamente",
                     "socioNombre", socio.getNombreCompleto(),
                     "socioNumero", socio.getNumeroSocio()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ===== ELIMINAR TODAS LAS ASISTENCIAS (Solo SUPER_ADMIN con código de seguridad) =====
+    @DeleteMapping("/eliminar-todas")
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<?> eliminarTodasAsistencias(@RequestBody Map<String, String> body, Authentication auth,
+            HttpServletRequest request) {
+        try {
+            // Verificar permisos - Solo SUPER_ADMIN puede eliminar
+            Usuario currentUser = usuarioRepository.findByUsername(auth.getName())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+            if (currentUser.getRol() != Usuario.Rol.SUPER_ADMIN) {
+                return ResponseEntity.status(403)
+                        .body(Map.of("error", "Solo el Super Administrador puede eliminar todos los registros de asistencia"));
+            }
+
+            // Verificar código de seguridad
+            String codigoSeguridad = body.get("codigoSeguridad");
+            if (codigoSeguridad == null || !codigoSeguridad.equals("ELIMINAR-TODO-2026")) {
+                return ResponseEntity.status(400)
+                        .body(Map.of("error", "Código de seguridad incorrecto"));
+            }
+
+            // Contar asistencias antes de eliminar
+            long totalAntes = asistenciaRepository.count();
+
+            // Eliminar todas las asistencias
+            asistenciaRepository.deleteAll();
+
+            // Registrar en auditoría
+            auditService.registrar(
+                    "ASISTENCIA",
+                    "ELIMINAR_TODAS_ASISTENCIAS",
+                    String.format("Eliminó TODAS las asistencias (%d registros)", totalAntes),
+                    auth.getName(),
+                    request.getRemoteAddr());
+
+            return ResponseEntity.ok(Map.of(
+                    "mensaje", "Todas las asistencias fueron eliminadas correctamente",
+                    "totalEliminados", totalAntes));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ===== LISTAR TODAS LAS ASISTENCIAS PARA GESTIÓN (Solo SUPER_ADMIN) =====
+    @GetMapping("/gestion")
+    public ResponseEntity<?> listarAsistenciasGestion(
+            @RequestParam(required = false) String busqueda,
+            Authentication auth) {
+        try {
+            // Verificar permisos - Solo SUPER_ADMIN
+            Usuario currentUser = usuarioRepository.findByUsername(auth.getName())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+            if (currentUser.getRol() != Usuario.Rol.SUPER_ADMIN) {
+                return ResponseEntity.status(403)
+                        .body(Map.of("error", "Solo el Super Administrador puede acceder a esta función"));
+            }
+
+            List<Asistencia> asistencias = asistenciaRepository.findAll();
+
+            List<Map<String, Object>> resultado = new ArrayList<>();
+            for (Asistencia a : asistencias) {
+                Socio socio = a.getSocio();
+                
+                // Filtrar por búsqueda si se proporciona
+                if (busqueda != null && !busqueda.isEmpty()) {
+                    String searchLower = busqueda.toLowerCase();
+                    boolean matches = 
+                        (socio.getNumeroSocio() != null && socio.getNumeroSocio().toLowerCase().contains(searchLower)) ||
+                        (socio.getNombreCompleto() != null && socio.getNombreCompleto().toLowerCase().contains(searchLower)) ||
+                        (socio.getCedula() != null && socio.getCedula().toLowerCase().contains(searchLower));
+                    if (!matches) continue;
+                }
+
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", a.getId());
+                item.put("socioId", socio.getId());
+                item.put("socioNombre", socio.getNombreCompleto());
+                item.put("socioNumero", socio.getNumeroSocio());
+                item.put("cedulaSocio", socio.getCedula());
+                item.put("vozVoto", a.getEstadoVozVoto() != null ? a.getEstadoVozVoto() : false);
+                item.put("fechaHora", a.getFechaHora());
+                item.put("sucursal", socio.getSucursal() != null ? socio.getSucursal().getNombre() : "Sin Sucursal");
+                item.put("operador", a.getOperador() != null ? a.getOperador().getNombreCompleto() : "Sistema");
+                item.put("operadorUsername", a.getOperador() != null ? a.getOperador().getUsername() : "-");
+                resultado.add(item);
+            }
+
+            // Ordenar por fecha más reciente primero
+            resultado.sort((a, b) -> {
+                LocalDateTime fa = (LocalDateTime) a.get("fechaHora");
+                LocalDateTime fb = (LocalDateTime) b.get("fechaHora");
+                if (fa == null) return 1;
+                if (fb == null) return -1;
+                return fb.compareTo(fa);
+            });
+
+            return ResponseEntity.ok(Map.of(
+                    "asistencias", resultado,
+                    "total", resultado.size()));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

@@ -669,7 +669,7 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                         <h3 className="font-black text-slate-800 uppercase tracking-wider text-sm">Asistencia en Vivo</h3>
                     </div>
 
-                    <div className="h-[220px] relative">
+                    <div className="h-[180px] relative">
                         <ResponsiveContainer width="100%" height="100%" minHeight={150}>
                             <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="95%" data={radialData} startAngle={90} endAngle={-270}>
                                 <RadialBar background dataKey="value" cornerRadius={10} />
@@ -707,7 +707,7 @@ export function AdminDashboard({ stats, desempeno, ranking, userActivity, onRefr
                         <h3 className="font-black text-slate-800 uppercase tracking-wider text-sm">Estado Habilitación</h3>
                     </div>
 
-                    <div className="h-[220px] relative">
+                    <div className="h-[180px] relative">
                         <ResponsiveContainer width="100%" height="100%" minHeight={150}>
                             <PieChart>
                                 <Pie

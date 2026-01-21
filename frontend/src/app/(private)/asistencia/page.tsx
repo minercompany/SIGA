@@ -4,7 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import {
     Search, User, Users, CheckCircle, XCircle, AlertCircle,
-    ChevronDown, Menu, Loader2, QrCode, CreditCard, Clock, Check, Trash2
+    ChevronDown, Menu, Loader2, QrCode, CreditCard, Clock, Check, Trash2,
+    X, MapPin, ChevronRight
 } from "lucide-react";
 import { Toaster, toast } from "sonner";
 
@@ -88,7 +89,7 @@ export default function AsistenciaPage() {
             clearTimeout(searchTimeoutRef.current);
         }
 
-        if (searchTerm.trim().length>= 1) {
+        if (searchTerm.trim().length >= 1) {
             searchTimeoutRef.current = setTimeout(() => {
                 buscarSocios(searchTerm);
             }, 600);
@@ -107,21 +108,15 @@ export default function AsistenciaPage() {
         setHasSearched(true);
         try {
             const token = localStorage.getItem("token");
-            // Usamos buscar-exacto o buscar general según prefieras. 
-            // 'buscar' devuelve lista, 'buscar-exacto' devuelve uno.
-            // Para UX premium, mejor una lista de coincidencias:
             const res = await axios.get(`/api/socios/buscar?term=${term}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             // Mapemos la respuesta para asegurar compatibilidad
-            const socios = res.data.map((s: any) => ({
+            const socios = res.data.map((s: FoundSocio) => ({
                 ...s,
-                // Si el backend no devuelve 'conVozYVoto' calculado, lo calculamos aquí
-                conVozYVoto: s.estadoVozVoto !== undefined ? s.estadoVozVoto:(s.aporteAlDia && s.solidaridadAlDia && s.fondoAlDia && s.incoopAlDia && s.creditoAlDia),
-
-                // Chequear si ya está en asistenciasHoy
-                asistenciaConfirmada: asistenciasHoy.some(a => a.socioNumero === s.numeroSocio)
+                conVozYVoto: s.conVozYVoto !== undefined ? s.conVozYVoto : (s.aporteAlDia && s.solidaridadAlDia && s.fondoAlDia && s.incoopAlDia && s.creditoAlDia),
+                asistenciaConfirmada: asistenciasHoy.some((a: AsistenciaItem) => a.socioNumero === s.numeroSocio)
             }));
 
             setFoundSocios(socios);
@@ -133,31 +128,56 @@ export default function AsistenciaPage() {
         }
     };
 
+    // Estado para el modal de éxito con mesa
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [checkinInfo, setCheckinInfo] = useState<{
+        nombre: string;
+        numeroSocio: string;
+        vozVoto: boolean;
+        mesa: {
+            numero: number;
+            mensaje: string;
+            rango: string;
+            responsables: string[];
+            ubicacion: string;
+        }
+    } | null>(null);
+
     const marcarAsistencia = async (socioId: number) => {
         setMarking(socioId);
         try {
             const token = localStorage.getItem("token");
-            await axios.post(
+            const res = await axios.post(
                 `/api/asistencia/marcar`,
                 { socioId },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
+            const data = res.data;
+
+            // Si el backend devolvió info de la mesa, la guardamos para el modal
+            if (data.mesa) {
+                setCheckinInfo({
+                    nombre: data.socioNombre,
+                    numeroSocio: data.socioNumero,
+                    vozVoto: data.vozVoto,
+                    mesa: data.mesa
+                });
+                setShowSuccessModal(true);
+            }
+
             // Actualizar estado local
             setFoundSocios(prev => prev.map(s =>
                 s.id === socioId
                     ? { ...s, asistenciaConfirmada: true, fechaAsistencia: new Date().toISOString() }
-                   :s
+                    : s
             ));
 
             toast.success("Asistencia registrada correctamente");
-
-            // Recargar lista
             fetchAsistenciasHoy();
 
         } catch (error: any) {
             console.error("Error marcando asistencia", error);
-            // El backend devuelve { error: "..." }
             const msg = error.response?.data?.error || "Error al marcar asistencia";
             toast.error(msg);
         } finally {
@@ -166,7 +186,6 @@ export default function AsistenciaPage() {
     };
 
     const eliminarAsistencia = async (socioId: number, nombreSocio: string) => {
-        // Confirmar eliminación
         if (!confirm(`¿Estás seguro de eliminar la asistencia de ${nombreSocio}?`)) {
             return;
         }
@@ -178,16 +197,13 @@ export default function AsistenciaPage() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            // Actualizar estado local
-            setFoundSocios(prev => prev.map(s =>
+            setFoundSocios((prev: FoundSocio[]) => prev.map((s: FoundSocio) =>
                 s.id === socioId
                     ? { ...s, asistenciaConfirmada: false, fechaAsistencia: undefined }
-                   :s
+                    : s
             ));
 
             toast.success("Asistencia eliminada correctamente");
-
-            // Recargar lista
             fetchAsistenciasHoy();
 
         } catch (error: any) {
@@ -206,243 +222,249 @@ export default function AsistenciaPage() {
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-20 px-4 min-h-screen relative">
-            {/* Fondo Vivido Premium */}
-            <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-violet-500/10 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[120px]" />
-                <div className="absolute top-[20%] right-[20%] w-[30%] h-[30%] bg-indigo-500/10 rounded-full blur-[100px]" />
-            </div>
-
             <Toaster position="top-center" richColors />
 
-            {/* Header Premium */}
-            <div className="text-center space-y-3 sm:space-y-4 pt-6 sm:pt-10">
-                <div className="inline-flex items-center gap-2 px-4 sm:px-6 py-1.5 sm:py-2 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full shadow-lg shadow-violet-500/30 animate-in fade-in slide-in-from-top-4 duration-700">
-                    <QrCode className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                    <span className="text-white font-bold text-[10px] sm:text-xs uppercase tracking-widest">Control de Acceso 2025</span>
-                </div>
-                <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-800 tracking-tight animate-in fade-in zoom-in duration-700 drop-shadow-sm">
-                    Registro de <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600">Asistencia</span>
+            {/* Header Premium - Compacto en móvil */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 sm:pt-10">
+                <h1 className="text-2xl sm:text-5xl font-black text-slate-800 tracking-tight text-center sm:text-left">
+                    Registro <span className="text-emerald-600">Asistencia</span>
                 </h1>
-                <p className="text-slate-500 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto font-medium animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100 px-4">
-                    Control en tiempo real de ingreso a la asamblea.
-                </p>
 
-                {/* KPI Cards Vividos */}
-                <div className="grid grid-cols-2 max-w-xs sm:max-w-lg mx-auto gap-3 sm:gap-4 pt-4 sm:pt-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-                    <div className="bg-white/80 backdrop-blur-sm p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-xl shadow-emerald-500/10 border border-emerald-100 hover:scale-105 transition-transform duration-300">
-                        <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
-                            <div className="p-1.5 sm:p-2 bg-emerald-100 rounded-lg">
-                                <Users className="w-4 h-4 sm:w-6 sm:h-6 text-emerald-500" />
-                            </div>
-                            <span className="text-slate-500 text-[9px] sm:text-xs font-black uppercase tracking-wider">Presentes</span>
-                        </div>
-                        <p className="text-2xl sm:text-4xl font-black text-emerald-500">{totalPresentes}</p>
+                <div className="flex gap-3 shrink-0">
+                    <div className="bg-white px-4 py-2 rounded-2xl shadow-lg border border-emerald-50 text-center min-w-[100px]">
+                        <p className="text-xl font-black text-emerald-500 leading-none">{totalPresentes}</p>
+                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mt-1">Presentes</p>
                     </div>
-                    <div className="bg-white/80 backdrop-blur-sm p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-xl shadow-blue-500/10 border border-blue-100 hover:scale-105 transition-transform duration-300">
-                        <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
-                            <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
-                                <CheckCircle className="w-4 h-4 sm:w-6 sm:h-6 text-blue-600" />
-                            </div>
-                            <span className="text-slate-500 text-[9px] sm:text-xs font-black uppercase tracking-wider">Votan</span>
-                        </div>
-                        <p className="text-2xl sm:text-4xl font-black text-blue-600">{conVoto}</p>
+                    <div className="bg-white px-4 py-2 rounded-2xl shadow-lg border border-blue-50 text-center min-w-[100px]">
+                        <p className="text-xl font-black text-blue-500 leading-none">{conVoto}</p>
+                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mt-1">Votan</p>
                     </div>
                 </div>
             </div>
 
-            {/* Buscador Flotante Vivido */}
-            <div className="sticky top-4 sm:top-6 z-40 max-w-3xl mx-auto">
-                <div className="bg-white p-1.5 sm:p-2 rounded-2xl sm:rounded-[2.5rem] shadow-2xl shadow-indigo-500/20 ring-2 sm:ring-4 ring-white/50 border border-indigo-100 transition-all focus-within:ring-violet-500/30 focus-within:shadow-violet-500/40 focus-within:scale-[1.02] sm:focus-within:scale-105 duration-300">
-                    <div className="relative group flex items-center bg-slate-50/50 rounded-xl sm:rounded-[2rem] hover:bg-white transition-colors">
-                        <div className="pl-4 sm:pl-6 pr-2 sm:pr-4 pointer-events-none">
-                            <Search className="h-5 w-5 sm:h-7 sm:w-7 text-slate-400 group-focus-within:text-violet-600 transition-colors" />
-                        </div>
-                        <input
-                            autoFocus
-                            type="text"
-                            className="w-full py-3 sm:py-5 bg-transparent text-base sm:text-xl font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none"
-                            placeholder="Buscar socio..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        {loading && (
-                            <div className="pr-4 sm:pr-6">
-                                <Loader2 className="h-5 w-5 sm:h-7 sm:w-7 text-violet-600 animate-spin" />
-                            </div>
-                        )}
+            {/* Buscador Superior - Compacto */}
+            <div className="sticky top-2 z-30">
+                <div className="bg-white p-3 md:p-5 rounded-[2rem] shadow-2xl border border-slate-100 flex items-center gap-3">
+                    <div className="bg-emerald-500 h-10 w-10 md:h-14 md:w-14 rounded-xl flex items-center justify-center shrink-0">
+                        <Search className="h-5 w-5 md:h-7 md:w-7 text-white" />
                     </div>
+                    <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Cédula o N° Socio..."
+                        className="w-full bg-transparent border-none text-lg md:text-2xl font-black text-slate-800 focus:ring-0 outline-none placeholder:text-slate-300"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        autoFocus
+                    />
                 </div>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-8 items-start pt-4">
-
-                {/* Columna Resultados (2/3) */}
-                <div className="lg:col-span-2 space-y-4">
-                    {foundSocios.map((socio) => (
-                        <div
-                            key={socio.id}
-                            className={`group relative bg-white border rounded-xl sm:rounded-[2rem] p-4 sm:p-6 shadow-sm hover:shadow-xl transition-all duration-300 ${socio.asistenciaConfirmada
-                                ? 'border-emerald-200 bg-emerald-50/20'
-                               :'border-slate-100 hover:border-violet-200'
-                                }`}
-                        >
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
-
-                                {/* Avatar /Estado */}
-                                <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-inner transition-colors ${socio.asistenciaConfirmada
-                                    ? 'bg-emerald-100 text-emerald-500'
-                                   :'bg-slate-50 text-slate-400 group-hover:bg-violet-50 group-hover:text-violet-500'
-                                    }`}>
-                                    {socio.asistenciaConfirmada
-                                        ? <CheckCircle className="w-7 h-7 sm:w-10 sm:h-10" />
-                                       :<User className="w-7 h-7 sm:w-10 sm:h-10" />
-                                    }
-                                </div>
-
-                                {/* Info */}
-                                <div className="flex-1 min-w-0 space-y-1 sm:space-y-2">
-                                    <div>
-                                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                                            <h3 className="text-base sm:text-xl font-black text-slate-800 truncate">
-                                                {socio.nombreCompleto}
-                                            </h3>
-                                            <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-black border border-slate-200">
-                                                N° {socio.numeroSocio}
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm font-medium text-slate-500 mt-1">
-                                            <span className="flex items-center gap-1">
-                                                <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                {socio.cedula}
-                                            </span>
-                                            {socio.sucursal && (
-                                                <span className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white border border-slate-200 shadow-sm">
-                                                    {socio.sucursal.nombre}
-                                                </span>
-                                            )}
-                                        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-2 space-y-4 md:space-y-6">
+                    {foundSocios.map((socio: FoundSocio) => (
+                        <div key={socio.id} className="bg-white rounded-[2rem] p-5 md:p-8 shadow-xl border border-slate-50 flex flex-col md:flex-row items-center gap-6 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden h-full">
+                            <div className="h-20 w-20 md:h-28 md:w-28 bg-slate-50 rounded-[1.5rem] flex items-center justify-center border border-white shadow-inner shrink-0 overflow-hidden">
+                                <User className="h-10 w-10 md:h-16 md:w-16 text-slate-200" />
+                            </div>
+                            <div className="flex-1 min-w-0 text-center md:text-left space-y-2">
+                                <h3 className="text-xl md:text-3xl font-black text-slate-900 leading-tight truncate uppercase tracking-tighter">{socio.nombreCompleto}</h3>
+                                <div className="flex items-center justify-center md:justify-start gap-4">
+                                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">#{socio.numeroSocio}</span>
+                                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border ${socio.conVozYVoto ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-amber-50 border-amber-100 text-amber-700'}`}>
+                                        <div className={`h-2 w-2 rounded-full ${socio.conVozYVoto ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">{socio.conVozYVoto ? 'Vota' : 'Solo Voz'}</span>
                                     </div>
+                                </div>
+                            </div>
 
-                                    {/* Badges Estado */}
-                                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                                        {socio.conVozYVoto ? (
-                                            <span className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-blue-100 text-blue-700 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
-                                                Voz y Voto
-                                            </span>
-                                        ):(
-                                            <span className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-amber-100 text-amber-700 text-[9px] sm:text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
-                                                <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Solo Voz
-                                            </span>
+                            <div className="w-full md:w-auto shrink-0 flex justify-center">
+                                {socio.asistenciaConfirmada ? (
+                                    <div className="flex flex-col items-center md:items-end gap-2">
+                                        <div className="bg-emerald-500 text-white font-black px-6 py-3 md:px-8 md:py-4 rounded-2xl flex items-center gap-3 shadow-xl">
+                                            <Check className="h-5 w-5 md:h-6 md:w-6" strokeWidth={4} />
+                                            <span className="text-xs md:text-base">REGISTRADO</span>
+                                        </div>
+                                        {userRole === 'ADMIN' && (
+                                            <button
+                                                onClick={() => eliminarAsistencia(socio.id, socio.nombreCompleto)}
+                                                className="text-red-500 font-black text-[9px] uppercase tracking-[0.2em] hover:opacity-70 transition-opacity"
+                                            >
+                                                ELIMINAR REGISTRO
+                                            </button>
                                         )}
                                     </div>
-                                </div>
-
-                                {/* Botón Acción */}
-                                <div className="w-full sm:w-auto mt-2 sm:mt-0">
-                                    {socio.asistenciaConfirmada ? (
-                                        <div className="flex flex-col items-center justify-center gap-2">
-                                            <span className="px-4 sm:px-6 py-2 sm:py-3 bg-emerald-500 text-white rounded-xl sm:rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-emerald-200 cursor-default text-sm sm:text-base">
-                                                <Check className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={3} />
-                                                Ingresó
-                                            </span>
-                                            <span className="text-[10px] font-bold text-emerald-500">
-                                                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                            {/* Botón eliminar solo para SUPER_ADMIN */}
-                                            {isSuperAdmin && (
-                                                <button
-                                                    onClick={() => eliminarAsistencia(socio.id, socio.nombreCompleto)}
-                                                    disabled={deleting === socio.id}
-                                                    className="mt-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-red-500 text-white rounded-lg sm:rounded-xl font-bold hover:bg-red-600 hover:scale-105 active:scale-95 transition-all shadow-md hover:shadow-red-500/20 disabled:opacity-50 flex items-center justify-center gap-1.5 text-xs sm:text-sm"
-                                                >
-                                                    {deleting === socio.id ? (
-                                                        <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
-                                                    ):(
-                                                        <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                    )}
-                                                    <span>Borrar Asistencia</span>
-                                                </button>
-                                            )}
-                                        </div>
-                                    ):(
-                                        <button
-                                            onClick={() => marcarAsistencia(socio.id)}
-                                            disabled={marking === socio.id}
-                                            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-slate-900 text-white rounded-xl sm:rounded-2xl font-bold hover:bg-violet-600 hover:scale-105 active:scale-95 transition-all shadow-xl hover:shadow-violet-500/20 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2 text-sm sm:text-base"
-                                        >
-                                            {marking === socio.id ? (
-                                                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                                            ):(
-                                                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                                            )}
-                                            <span>Registrar</span>
-                                        </button>
-                                    )}
-                                </div>
+                                ) : (
+                                    <button
+                                        onClick={() => marcarAsistencia(socio.id)}
+                                        disabled={marking === socio.id}
+                                        className="w-full md:w-auto bg-slate-900 border-b-6 border-black hover:bg-emerald-600 hover:border-emerald-800 text-white font-black px-8 py-5 md:px-12 md:py-6 rounded-2xl md:rounded-3xl transition-all active:translate-y-2 shadow-2xl uppercase tracking-widest text-xs md:text-lg disabled:bg-slate-300 disabled:border-slate-400"
+                                    >
+                                        {marking === socio.id ? "PROCESANDO..." : "REGISTRAR"}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
 
-                    {hasSearched && foundSocios.length === 0 && !loading && (
-                        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-slate-200">
-                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Search className="w-10 h-10 text-slate-300" />
-                            </div>
-                            <h3 className="text-xl font-bold text-slate-900">Sin resultados</h3>
-                            <p className="text-slate-500">No encontramos socios con ese criterio.</p>
-                        </div>
-                    )}
-
-                    {!hasSearched && (
-                        <div className="text-center py-20 opacity-40">
-                            <Users className="w-32 h-32 text-slate-300 mx-auto mb-4" />
-                            <p className="text-xl font-bold text-slate-400">Busca para comenzar...</p>
+                    {hasSearched && foundSocios.length === 0 && (
+                        <div className="text-center py-20 bg-white rounded-[3rem] border-4 border-dashed border-slate-100">
+                            <Search className="h-16 w-16 text-slate-100 mx-auto mb-4" />
+                            <h3 className="text-xl font-black text-slate-300 uppercase italic">Sin resultados</h3>
                         </div>
                     )}
                 </div>
 
-                {/* Columna Recientes (1/3) - Oculta en móvil pequeño */}
-                <div className="hidden lg:block bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100 sticky top-24">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="font-black text-slate-800 uppercase text-sm tracking-wider flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-violet-500" />
-                            Últimos Ingresos
-                        </h3>
-                        <span className="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-md">
-                            Hoy: {asistenciasHoy.length}
-                        </span>
+                <div className="bg-white rounded-[3rem] p-8 shadow-2xl border border-slate-50 sticky top-24 hidden lg:block">
+                    <h3 className="font-black text-slate-900 text-lg uppercase tracking-tight flex items-center gap-3 mb-6">
+                        <Clock className="h-6 w-6 text-emerald-500" />
+                        Últimos Ingresantes
+                    </h3>
+                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-4 custom-scrollbar">
+                        {asistenciasHoy.map((a) => (
+                            <div key={a.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-[1.5rem] border border-transparent hover:border-emerald-100 transition-all">
+                                <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center font-black text-slate-300 italic shadow-sm shrink-0">
+                                    {a.socioNombre.charAt(0)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-black text-slate-800 truncate">{a.socioNombre}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase">{a.socioNumero} • {new Date(a.fechaHora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}hs</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
+                </div>
+            </div>
+            {/* Modal de Éxito Premium con Mesa - RESPONSIVO */}
+            {showSuccessModal && checkinInfo && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 md:p-4">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+                        onClick={() => setShowSuccessModal(false)}
+                    />
 
-                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                        {asistenciasHoy.length === 0 ? (
-                            <p className="text-center text-slate-400 text-sm py-8">No hay ingresos registrados hoy.</p>
-                        ):(
-                            asistenciasHoy.slice(0, 10).map((a, i) => (
-                                <div key={a.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                                    <div className={`w-2 h-10 rounded-full ${a.vozVoto ? 'bg-blue-500':'bg-amber-500'}`} />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-bold text-slate-800 truncate">{a.socioNombre}</p>
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-xs text-slate-400 font-mono">#{a.socioNumero}</p>
-                                            <span className="text-[10px] text-slate-300">•</span>
-                                            <p className="text-xs text-slate-500 font-medium">
-                                                {new Date(a.fechaHora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </p>
+                    {/* VERSIÓN MÓVIL - Compacta */}
+                    <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 md:hidden">
+                        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-3 text-white flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <CheckCircle className="h-5 w-5" />
+                                <span className="font-black text-sm uppercase">¡Registro Exitoso!</span>
+                            </div>
+                            <button onClick={() => setShowSuccessModal(false)} className="p-1.5 bg-white/20 rounded-full">
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            <div className="text-center">
+                                <h3 className="text-base font-black text-slate-800 uppercase leading-tight truncate">{checkinInfo.nombre}</h3>
+                                <div className="flex justify-center gap-2 mt-1">
+                                    <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold">#{checkinInfo.numeroSocio}</span>
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${checkinInfo.vozVoto ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                        {checkinInfo.vozVoto ? 'VOZ Y VOTO' : 'SOLO VOZ'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="bg-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl p-4 text-center">
+                                <p className="text-emerald-600 text-[10px] font-black uppercase tracking-widest mb-1">Dirigirse a la</p>
+                                <h4 className="text-4xl font-black text-slate-900 tracking-tighter italic">MESA <span className="text-emerald-500">{checkinInfo.mesa.numero}</span></h4>
+                                <div className="inline-flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-emerald-100 mt-3">
+                                    <MapPin className="h-3 w-3 text-emerald-500" />
+                                    <p className="text-[10px] font-bold text-slate-600 uppercase">{checkinInfo.mesa.ubicacion}</p>
+                                </div>
+                                {checkinInfo.mesa.responsables && checkinInfo.mesa.responsables.length > 0 && (
+                                    <div className="mt-3 pt-3 border-t border-emerald-200">
+                                        <p className="text-slate-400 text-[9px] font-bold uppercase mb-2">Encargados:</p>
+                                        <div className="flex flex-wrap justify-center gap-1">
+                                            {checkinInfo.mesa.responsables.map((resp: string, idx: number) => (
+                                                <span key={idx} className="bg-white px-2 py-1 rounded text-[10px] font-bold text-slate-600 border border-slate-100">{resp}</span>
+                                            ))}
                                         </div>
                                     </div>
-                                </div>
-                            ))
-                        )}
-                        {asistenciasHoy.length> 10 && (
-                            <div className="text-center pt-2 border-t border-slate-100">
-                                <span className="text-xs font-bold text-violet-600 cursor-pointer hover:underline">Ver todos...</span>
+                                )}
                             </div>
-                        )}
+                            <button onClick={() => setShowSuccessModal(false)} className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-3 rounded-xl uppercase tracking-wider text-sm flex items-center justify-center gap-2">
+                                CONTINUAR <ChevronRight className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* VERSIÓN ESCRITORIO - Premium */}
+                    <div className="relative bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20 hidden md:block">
+                        {/* Header con gradiente premium */}
+                        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-8 text-white relative">
+                            <button
+                                onClick={() => setShowSuccessModal(false)}
+                                className="absolute top-6 right-6 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                            >
+                                <X className="h-6 w-6" />
+                            </button>
+                            <div className="flex items-center gap-4 mb-2">
+                                <div className="bg-white/20 p-3 rounded-2xl">
+                                    <CheckCircle className="h-8 w-8 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-3xl font-black uppercase tracking-tight">¡Registro Exitoso!</h2>
+                                    <p className="opacity-80 font-bold uppercase tracking-widest text-xs">Asamblea General de Socios</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-8 space-y-8">
+                            {/* Información del Socio */}
+                            <div className="text-center space-y-1">
+                                <p className="text-slate-400 text-xs font-black uppercase tracking-widest">Socio Registrado</p>
+                                <h3 className="text-2xl font-black text-slate-800 uppercase italic leading-tight">{checkinInfo.nombre}</h3>
+                                <div className="flex justify-center gap-4 mt-2">
+                                    <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-black italic">SOCIO #{checkinInfo.numeroSocio}</span>
+                                    <span className={`px-3 py-1 rounded-lg text-xs font-black italic ${checkinInfo.vozVoto ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                        {checkinInfo.vozVoto ? 'VOZ Y VOTO' : 'SOLO VOZ'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* TARJETA DE MESA - Premium */}
+                            <div className="bg-slate-50 border-2 border-dashed border-emerald-200 rounded-[2rem] p-8 relative overflow-hidden">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl" />
+                                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl" />
+                                <div className="relative text-center">
+                                    <p className="text-emerald-600 text-xs font-black uppercase tracking-[0.3em] mb-2">Dirigirse a la</p>
+                                    <h4 className="text-8xl font-black text-slate-900 tracking-tighter mb-4 italic">
+                                        MESA <span className="text-emerald-500">{checkinInfo.mesa.numero}</span>
+                                    </h4>
+                                    <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-emerald-100 mb-6">
+                                        <MapPin className="h-4 w-4 text-emerald-500" />
+                                        <p className="text-xs font-black text-slate-600 uppercase tracking-widest">{checkinInfo.mesa.ubicacion}</p>
+                                    </div>
+                                    {checkinInfo.mesa.responsables && checkinInfo.mesa.responsables.length > 0 && (
+                                        <div className="space-y-3 pt-4 border-t border-slate-200">
+                                            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Encargados de Mesa:</p>
+                                            <div className="flex flex-wrap justify-center gap-2">
+                                                {checkinInfo.mesa.responsables.map((resp: string, idx: number) => (
+                                                    <div key={idx} className="bg-white px-3 py-1.5 rounded-lg border border-slate-100 shadow-sm flex items-center gap-2">
+                                                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                                        <span className="text-xs font-bold text-slate-700 uppercase tracking-tight">{resp}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Botón de cierre Premium */}
+                            <button
+                                onClick={() => setShowSuccessModal(false)}
+                                className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-6 rounded-3xl transition-all shadow-xl uppercase tracking-widest text-lg group"
+                            >
+                                <span className="flex items-center justify-center gap-3">
+                                    CONTINUAR REGISTRO <ChevronRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-            </div>
+            )}
         </div>
     );
 }

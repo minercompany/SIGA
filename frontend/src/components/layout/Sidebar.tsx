@@ -36,6 +36,7 @@ import {
     Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCooperativa } from "@/context/CooperativaContext";
 
 const menuItems = [
     {
@@ -78,6 +79,8 @@ const menuItems = [
         submenu: [
             { id: "asistencia", name: "Asistencia", href: "/asistencia", icon: ClipboardCheck },
             { id: "checkin", name: "Check-in", href: "/checkin", icon: CheckSquare },
+            { id: "consulta", name: "Consulta", href: "/asistencia/consulta", icon: Users },
+            { id: "gestion-asistencia", name: "Gestión", href: "/asistencia/gestion", icon: ShieldAlert },
         ]
     },
     {
@@ -97,9 +100,9 @@ const menuItems = [
         ]
     },
     {
-        id: "mi-reporte",
-        name: "Mi Reporte",
-        href: "/mi-reporte",
+        id: "candidatos",
+        name: "Candidatos",
+        href: "/candidatos",
         icon: Award
     },
     {
@@ -108,6 +111,7 @@ const menuItems = [
         href: "#",
         icon: MessageSquare,
         submenu: [
+            { id: "exportar-vyv", name: "Exportar VyV", href: "/mensajeria", icon: Send },
             { id: "mensajes-chat", name: "Mensajería", href: "/mensajes/chat", icon: MessageSquare },
             { id: "mensajes-avisos", name: "Notificaciones", href: "/mensajes/avisos", icon: Bell },
         ]
@@ -118,10 +122,12 @@ const menuItems = [
         href: "#",
         icon: Settings,
         submenu: [
+            { id: "datos-cooperativa", name: "Datos Cooperativa", href: "/admin/cooperativa", icon: Building2 },
             { id: "usuarios", name: "Usuarios y Roles", href: "/usuarios", icon: Shield },
             { id: "gestion-listas", name: "Gestión de Listas", href: "/gestion-listas", icon: ClipboardList },
             { id: "auditoria", name: "Auditoría", href: "/auditoria", icon: History },
             { id: "configuracion", name: "Configuración", href: "/configuracion", icon: Settings },
+            { id: "config-candidatos", name: "Gestión Candidatos", href: "/configuracion/candidatos", icon: UserCheck },
             { id: "backups", name: "Backups", href: "/admin/backups", icon: Database },
         ]
     }
@@ -130,6 +136,7 @@ const menuItems = [
 export function Sidebar() {
     const pathname = usePathname();
     const router = useRouter();
+    const { cooperativa } = useCooperativa();
     const [collapsed, setCollapsed] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -159,7 +166,22 @@ export function Sidebar() {
 
     const hasPermission = (itemId: string): boolean => {
         if (!user) return false;
+        // SUPER_ADMIN tiene acceso total
         if (user.rol === "SUPER_ADMIN") return true;
+        // SUPER_ADMIN_VISUAL tiene acceso de lectura a todo excepto acciones críticas
+        if (user.rol === "SUPER_ADMIN_VISUAL") {
+            // Items que el SUPER_ADMIN_VISUAL NO puede ver (acciones de modificación/configuración)
+            const blockedForVisual = [
+                // Carga de datos
+                "importar", "importar-funcionarios",
+                // Asignaciones masivas
+                "asignacion-rapida", "asignaciones-admin",
+                // Administración del sistema (todo el grupo)
+                "admin", "usuarios", "gestion-listas", "auditoria", "configuracion", "backups"
+            ];
+            if (blockedForVisual.includes(itemId)) return false;
+            return true; // Puede ver todo lo demás (dashboard, reportes, asistencia, etc.)
+        }
 
         // Permisos especiales (Granulares)
         if (user.permisosEspeciales) {
@@ -176,13 +198,13 @@ export function Sidebar() {
             return hasPermission("asignacion-rapida") || hasPermission("asignaciones") || hasPermission("asignaciones-admin");
         }
         if (itemId === "asistencia-group") {
-            return hasPermission("asistencia") || hasPermission("checkin");
+            return hasPermission("asistencia") || hasPermission("checkin") || hasPermission("consulta") || hasPermission("gestion-asistencia");
         }
         if (itemId === "reportes") {
             return hasPermission("reportes-general") || hasPermission("ranking-gestion") || hasPermission("reportes-asesores") || hasPermission("reportes-sucursal") || hasPermission("reportes-funcionarios") || hasPermission("reportes-asistencia") || hasPermission("auditoria-usuarios");
         }
         if (itemId === "comunicacion") {
-            return hasPermission("mensajes-chat") || hasPermission("mensajes-avisos");
+            return hasPermission("exportar-vyv") || hasPermission("mensajes-chat") || hasPermission("mensajes-avisos");
         }
         if (itemId === "admin") {
             return hasPermission("usuarios") || hasPermission("gestion-listas") || hasPermission("auditoria") || hasPermission("configuracion");
@@ -214,7 +236,10 @@ export function Sidebar() {
             // Asistencia
             case "asistencia":
             case "checkin":
+            case "consulta":
                 return user.rol === "OPERADOR" || user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
+            case "gestion-asistencia":
+                return user.rol === "SUPER_ADMIN"; // Solo SUPER_ADMIN puede gestionar/eliminar asistencias
 
             // Reportes
             case "reportes-rankings-vyv":
@@ -239,16 +264,20 @@ export function Sidebar() {
                 return true; // Todos los usuarios autenticados pueden ver su reporte
 
             // Comunicacion
+            case "exportar-vyv":
             case "mensajes-chat":
             case "mensajes-avisos":
                 return user.rol === "DIRECTIVO" || user.rol === "SUPER_ADMIN";
 
-            // Admin
             case "usuarios":
             case "gestion-listas":
             case "auditoria":
             case "backups":
+            case "config-candidatos":
+            case "datos-cooperativa":
                 return user.rol === "SUPER_ADMIN";
+            case "candidatos":
+                return true; // Todos pueden ver candidatos
             case "configuracion":
                 return true; // Todos los usuarios pueden ver su propia configuración
 
@@ -264,7 +293,7 @@ export function Sidebar() {
 
     // Escuchar evento para abrir menú desde TopBar
     useEffect(() => {
-        const handleToggle = () => setMobileOpen((prev) => !prev);
+        const handleToggle = () => setMobileOpen((prev: boolean) => !prev);
         window.addEventListener('toggle-sidebar', handleToggle);
         return () => window.removeEventListener('toggle-sidebar', handleToggle);
     }, []);
@@ -280,7 +309,7 @@ export function Sidebar() {
             )}>
                 <div className="flex-shrink-0">
                     <img
-                        src="/logo.png"
+                        src={cooperativa.logo || "/logo.png"}
                         alt="Logo"
                         className={cn(
                             "object-contain rounded-full bg-white shadow-lg transition-all duration-300",
@@ -290,8 +319,8 @@ export function Sidebar() {
                 </div>
                 {!effectiveCollapsed && (
                     <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-bold text-white truncate">Cooperativa Reducto</span>
-                        <span className="text-xs text-emerald-200/80">Sistema de Asambleas</span>
+                        <span className="text-sm font-bold text-white truncate">{cooperativa.nombreCorto || cooperativa.nombre || "Cooperativa"}</span>
+                        <span className="text-xs text-emerald-200/80">{cooperativa.eslogan || "Sistema de Asambleas"}</span>
                     </div>
                 )}
             </div>
@@ -299,7 +328,7 @@ export function Sidebar() {
             {/* Navegación */}
             <nav data-tour={isMobile && !mobileOpen ? undefined : "sidebar-panel"} className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
                 {(() => {
-                    const isPowerUser = user?.rol === "SUPER_ADMIN" || user?.rol === "DIRECTIVO";
+                    const isPowerUser = user?.rol === "SUPER_ADMIN" || user?.rol === "SUPER_ADMIN_VISUAL" || user?.rol === "DIRECTIVO";
 
                     // Si no es admin, aplanamos los submenús para que vea iconos directos
                     let itemsToRender: any[] = [];
@@ -595,7 +624,7 @@ export function Sidebar() {
                 )}>
                     <div className="flex-shrink-0">
                         <img
-                            src="/logo.png"
+                            src={cooperativa.logo || "/logo.png"}
                             alt="Logo"
                             className={cn(
                                 "object-contain rounded-full bg-white shadow-lg transition-all duration-300",
@@ -605,8 +634,8 @@ export function Sidebar() {
                     </div>
                     {!effectiveCollapsed && (
                         <div className="flex flex-col min-w-0">
-                            <span className="text-sm font-bold text-white truncate">Cooperativa Reducto</span>
-                            <span className="text-xs text-emerald-200/80">Sistema de Asambleas</span>
+                            <span className="text-sm font-bold text-white truncate">{cooperativa.nombreCorto || cooperativa.nombre || "Cooperativa"}</span>
+                            <span className="text-xs text-emerald-200/80">{cooperativa.eslogan || "Sistema de Asambleas"}</span>
                         </div>
                     )}
                 </div>
@@ -614,7 +643,7 @@ export function Sidebar() {
                 {/* Navegación */}
                 <nav data-tour={isMobile && !mobileOpen ? undefined : "sidebar-panel"} className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
                     {(() => {
-                        const isPowerUser = user?.rol === "SUPER_ADMIN" || user?.rol === "DIRECTIVO";
+                        const isPowerUser = user?.rol === "SUPER_ADMIN" || user?.rol === "SUPER_ADMIN_VISUAL" || user?.rol === "DIRECTIVO";
 
                         // Si no es admin, aplanamos los submenús para que vea iconos directos
                         let itemsToRender: any[] = [];

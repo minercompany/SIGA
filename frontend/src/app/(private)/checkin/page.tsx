@@ -62,6 +62,21 @@ export default function CheckInPage() {
         operadorRegistro: string;
     } | null>(null);
 
+    // Estado para modal de mesa (check-in exitoso)
+    const [showMesaModal, setShowMesaModal] = useState(false);
+    const [mesaInfo, setMesaInfo] = useState<{
+        nombre: string;
+        numeroSocio: string;
+        vozVoto: boolean;
+        mesa: {
+            numero: number;
+            mensaje: string;
+            rango: string;
+            responsables: string[];
+            ubicacion: string;
+        }
+    } | null>(null);
+
     const fetchStats = useCallback(async () => {
         try {
             const token = localStorage.getItem("token");
@@ -108,7 +123,7 @@ export default function CheckInPage() {
                 { headers }
             );
 
-            if (response.data && response.data.length> 0) {
+            if (response.data && response.data.length > 0) {
                 // Si la búsqueda es exacta (ej. cédula completa o nro socio), el backend lo pone primero
                 setSocioEncontrado(response.data[0]);
             } else {
@@ -126,7 +141,7 @@ export default function CheckInPage() {
     // Effect para búsqueda automática (Debounce)
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (query.trim().length>= 1) {
+            if (query.trim().length >= 1) {
                 performSearch(query);
             } else if (query.trim().length === 0) {
                 setSocioEncontrado(null);
@@ -148,12 +163,24 @@ export default function CheckInPage() {
         setCheckinLoading(true);
         try {
             const token = localStorage.getItem("token");
-            await axios.post("/api/asistencia/marcar",
+            const response = await axios.post("/api/asistencia/marcar",
                 { socioId: socioEncontrado.id },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            setCheckinSuccess(true);
+            const data = response.data;
+
+            // Mostrar modal de mesa si viene la información
+            if (data.mesa) {
+                setMesaInfo({
+                    nombre: data.socioNombre,
+                    numeroSocio: data.socioNumero,
+                    vozVoto: data.vozVoto,
+                    mesa: data.mesa
+                });
+                setShowMesaModal(true);
+            }
+
             setUltimosCheckins(prev => [
                 { ...socioEncontrado, horaIngreso: new Date().toLocaleTimeString() },
                 ...prev.slice(0, 4)
@@ -162,13 +189,10 @@ export default function CheckInPage() {
             // Actualizar estadísticas inmediatamente
             fetchStats();
 
-            // Limpiar para nuevo check-in
-            setTimeout(() => {
-                setQuery("");
-                setSocioEncontrado(null);
-                setCheckinSuccess(false);
-                inputRef.current?.focus();
-            }, 2000);
+            // Limpiar búsqueda pero NO cerrar modal automáticamente
+            setQuery("");
+            setSocioEncontrado(null);
+
         } catch (error: any) {
             // Manejar error de socio ya ingresado
             if (error.response?.status === 409 && error.response?.data?.error === 'SOCIO_YA_INGRESO') {
@@ -268,43 +292,44 @@ export default function CheckInPage() {
 
     return (
         <div className="mx-auto space-y-6" style={{ maxWidth: 'clamp(320px, 95vw, 900px)', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
-            {/* Header con stats */}
-            <div className="flex flex-col gap-4">
-                <div className="text-center">
-                    <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)' }} className="font-extrabold text-slate-800 tracking-tight">Registro de Asistencia</h1>
-                    <p className="text-slate-500 text-sm">Busca al socio para confirmar su ingreso</p>
+            {/* Header con stats - Compacto en móvil */}
+            <div className="flex flex-row items-center justify-between gap-4 bg-white/50 backdrop-blur-sm p-3 rounded-3xl border border-white md:bg-transparent md:p-0 md:rounded-none md:border-none">
+                <div className="flex-1 md:text-center">
+                    <h1 className="text-lg md:text-3xl font-black text-slate-800 tracking-tight leading-none">Registro</h1>
+                    <p className="text-slate-500 text-[10px] md:text-sm">Asistencia</p>
                 </div>
-                <div className="flex gap-2 justify-center">
-                    <div className="bg-white rounded-xl px-4 py-3 border border-slate-100 text-center flex-1 max-w-[140px]">
-                        <p className="text-xl md:text-2xl font-bold text-slate-800">{stats.total.toLocaleString()}</p>
-                        <p className="text-[9px] md:text-xs text-slate-500 uppercase tracking-wide">Padrón Total</p>
+                <div className="flex gap-2 shrink-0">
+                    <div className="bg-white rounded-2xl px-3 py-2 border border-slate-100 text-center min-w-[80px] md:min-w-[120px] shadow-sm">
+                        <p className="text-sm md:text-2xl font-black text-slate-800 leading-none">{stats.total.toLocaleString()}</p>
+                        <p className="text-[8px] md:text-xs text-slate-400 uppercase font-bold mt-0.5">Padrón</p>
                     </div>
-                    <div className="bg-emerald-50 rounded-xl px-4 py-3 border border-emerald-200 text-center flex-1 max-w-[140px]">
-                        <p className="text-xl md:text-2xl font-bold text-emerald-500">{stats.presentes}</p>
-                        <p className="text-[9px] md:text-xs text-emerald-500 uppercase tracking-wide">Presentes</p>
+                    <div className="bg-emerald-500 rounded-2xl px-3 py-2 border border-emerald-400 text-center min-w-[80px] md:min-w-[120px] shadow-lg shadow-emerald-200">
+                        <p className="text-sm md:text-2xl font-black text-white leading-none">{stats.presentes}</p>
+                        <p className="text-[8px] md:text-xs text-emerald-100 uppercase font-bold mt-0.5">Presentes</p>
                     </div>
                 </div>
             </div>
 
-            {/* Buscador Central - Responsivo */}
-            <div className="bg-white rounded-2xl md:rounded-3xl shadow-xl shadow-emerald-900/5 p-4 md:p-6 border border-emerald-100">
-                <form onSubmit={handleSearch} className="relative group">
+            {/* Buscador Central - Compacto en móvil */}
+            <div className="bg-white rounded-[2rem] shadow-xl md:shadow-2xl md:p-8 p-4 border border-slate-100 relative overflow-hidden">
+                <form onSubmit={handleSearch} className="relative z-10">
                     <div className="flex flex-col md:flex-row gap-3">
                         <div className="relative flex-1">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2">
                                 {searching ? (
                                     <Loader2 className="h-5 w-5 text-emerald-500 animate-spin" />
-                                ):(
-                                    <Search className="h-5 w-5 text-emerald-500 group-focus-within:text-emerald-500 transition-colors" />
+                                ) : (
+                                    <Search className="h-5 w-5 text-emerald-300 transition-colors" />
                                 )}
                             </div>
                             <input
                                 ref={inputRef}
                                 type="text"
-                                placeholder="Introduce Cédula o N° Socio..."
+                                inputMode="numeric"
+                                placeholder="Cédula o N° Socio..."
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl py-3 md:py-4 pl-12 pr-4 text-base md:text-lg font-bold text-slate-700 outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                                className="w-full bg-slate-50 border-2 border-transparent rounded-2xl py-3 md:py-6 pl-12 md:pl-14 pr-6 text-base md:text-2xl font-black text-slate-700 outline-none focus:bg-white focus:border-emerald-500/20 transition-all placeholder:text-slate-300"
                                 autoFocus
                                 disabled={searching}
                             />
@@ -312,9 +337,9 @@ export default function CheckInPage() {
                         <button
                             type="submit"
                             disabled={searching || !query.trim()}
-                            className="bg-emerald-500 hover:bg-teal-500 disabled:bg-emerald-400 text-white font-bold py-3 md:py-4 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-200 text-sm md:text-base"
+                            className="bg-slate-900 border-b-4 border-black hover:bg-emerald-600 hover:border-emerald-800 disabled:bg-slate-200 disabled:border-slate-300 text-white font-black py-3 md:py-6 px-8 rounded-2xl transition-all active:translate-y-1 shadow-lg text-xs md:text-lg uppercase tracking-widest shrink-0"
                         >
-                            {searching ? "Buscando...":"Buscar Socio"}
+                            {searching ? "..." : "Buscar"}
                         </button>
                     </div>
                 </form>
@@ -334,34 +359,25 @@ export default function CheckInPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Ficha del Socio */}
                     <div className="lg:col-span-2 space-y-6">
-                        <div className={`rounded-3xl p-8 border ${tieneVozYVoto(socioEncontrado) ? 'bg-emerald-50 border-emerald-200':'bg-amber-50 border-amber-200'} shadow-sm relative overflow-hidden`}>
-                            <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-                                <div className={`h-32 w-32 rounded-3xl flex items-center justify-center font-black text-4xl shadow-inner ${tieneVozYVoto(socioEncontrado) ? 'bg-emerald-500 text-white':'bg-amber-500 text-white'}`}>
+                        <div className={`rounded-[2rem] p-4 md:p-8 border ${tieneVozYVoto(socioEncontrado) ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'} shadow-sm relative overflow-hidden`}>
+                            <div className="relative z-10 flex flex-row gap-4 md:gap-8 items-center">
+                                <div className={`h-16 w-16 md:h-32 md:w-32 rounded-2xl md:rounded-3xl flex items-center justify-center font-black text-xl md:text-4xl shadow-inner shrink-0 ${tieneVozYVoto(socioEncontrado) ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
                                     {socioEncontrado.numeroSocio.slice(-2)}
                                 </div>
-                                <div className="flex-1 space-y-4">
-                                    <div>
-                                        <h2 className="text-3xl font-black text-slate-800 leading-tight">{socioEncontrado.nombreCompleto}</h2>
-                                        <p className="text-slate-500 font-medium flex items-center justify-center md:justify-start gap-2 mt-1">
-                                            Socio #{socioEncontrado.numeroSocio} • CI {socioEncontrado.cedula}
-                                        </p>
-                                    </div>
-
-                                    <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-                                        <div className="bg-white/80 backdrop-blur px-4 py-2 rounded-xl border border-slate-100 flex items-center gap-2">
-                                            <MapPin className="h-4 w-4 text-slate-400" />
-                                            <span className="text-sm font-bold text-slate-600">
-                                                {socioEncontrado.sucursal?.nombre || "Sin sucursal"}
-                                            </span>
-                                        </div>
+                                <div className="flex-1 min-w-0">
+                                    <h2 className="text-lg md:text-3xl font-black text-slate-800 leading-tight truncate uppercase">{socioEncontrado.nombreCompleto}</h2>
+                                    <p className="text-[10px] md:text-sm text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                                        #{socioEncontrado.numeroSocio} • CI {socioEncontrado.cedula}
+                                    </p>
+                                    <div className="flex mt-2">
                                         {tieneVozYVoto(socioEncontrado) ? (
-                                            <div className="bg-emerald-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm font-bold">
-                                                <ShieldCheck className="h-4 w-4" />
+                                            <div className="bg-emerald-600 text-white px-3 py-1 rounded-lg flex items-center gap-1.5 shadow-sm font-black text-[9px] uppercase">
+                                                <ShieldCheck className="h-3 w-3" />
                                                 VOZ Y VOTO
                                             </div>
-                                        ):(
-                                            <div className="bg-amber-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm font-bold">
-                                                <AlertCircle className="h-4 w-4" />
+                                        ) : (
+                                            <div className="bg-amber-500 text-white px-3 py-1 rounded-lg flex items-center gap-1.5 shadow-sm font-black text-[9px] uppercase">
+                                                <AlertCircle className="h-3 w-3" />
                                                 SOLO VOZ
                                             </div>
                                         )}
@@ -370,38 +386,25 @@ export default function CheckInPage() {
                             </div>
                         </div>
 
-                        {/* Estado de pagos - Responsivo */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                            <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
-                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Aporte</p>
-                                <p className={`font-bold ${socioEncontrado.aporteAlDia ? 'text-emerald-500':'text-red-600'}`}>
-                                    {socioEncontrado.aporteAlDia ? 'AL DÍA':'PENDIENTE'}
-                                </p>
-                            </div>
-                            <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
-                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Solidaridad</p>
-                                <p className={`font-bold ${socioEncontrado.solidaridadAlDia ? 'text-emerald-500':'text-red-600'}`}>
-                                    {socioEncontrado.solidaridadAlDia ? 'AL DÍA':'PENDIENTE'}
-                                </p>
-                            </div>
-                            <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
-                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Fondo</p>
-                                <p className={`font-bold ${socioEncontrado.fondoAlDia ? 'text-emerald-500':'text-red-600'}`}>
-                                    {socioEncontrado.fondoAlDia ? 'AL DÍA':'PENDIENTE'}
-                                </p>
-                            </div>
-                            <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
-                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Incoop</p>
-                                <p className={`font-bold ${socioEncontrado.incoopAlDia ? 'text-emerald-500':'text-red-600'}`}>
-                                    {socioEncontrado.incoopAlDia ? 'AL DÍA':'PENDIENTE'}
-                                </p>
-                            </div>
-                            <div className="bg-white p-4 rounded-xl border border-slate-100 text-center">
-                                <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Crédito</p>
-                                <p className={`font-bold ${socioEncontrado.creditoAlDia ? 'text-emerald-500':'text-red-600'}`}>
-                                    {socioEncontrado.creditoAlDia ? 'AL DÍA':'PENDIENTE'}
-                                </p>
-                            </div>
+                        {/* Estado de pagos - Grid Optimizado para Móvil */}
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            {[
+                                { label: 'Aporte', value: socioEncontrado.aporteAlDia },
+                                { label: 'Solidar.', value: socioEncontrado.solidaridadAlDia },
+                                { label: 'Fondo', value: socioEncontrado.fondoAlDia },
+                                { label: 'Incoop', value: socioEncontrado.incoopAlDia },
+                                { label: 'Crédito', value: socioEncontrado.creditoAlDia },
+                            ].map((item, i) => (
+                                <div key={i} className="bg-white p-4 rounded-2xl border border-slate-100 text-center shadow-sm">
+                                    <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-1">{item.label}</p>
+                                    <div className="flex items-center justify-center gap-1.5 leading-none">
+                                        <div className={`h-1.5 w-1.5 rounded-full ${item.value ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+                                        <p className={`text-[11px] font-black uppercase ${item.value ? 'text-emerald-600' : 'text-red-600'}`}>
+                                            {item.value ? 'OK' : 'PEND.'}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
@@ -414,10 +417,10 @@ export default function CheckInPage() {
                         >
                             {checkinLoading ? (
                                 <Loader2 className="h-8 w-8 animate-spin" />
-                            ):(
+                            ) : (
                                 <UserCheck className="h-8 w-8" />
                             )}
-                            {checkinLoading ? "PROCESANDO...":"CONFIRMAR INGRESO"}
+                            {checkinLoading ? "PROCESANDO..." : "CONFIRMAR INGRESO"}
                         </button>
 
                         <button
@@ -453,7 +456,7 @@ export default function CheckInPage() {
             )}
 
             {/* Últimos Check-ins */}
-            {ultimosCheckins.length> 0 && (
+            {ultimosCheckins.length > 0 && (
                 <div className="bg-white rounded-2xl p-6 border border-slate-100">
                     <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
                         <Clock className="h-5 w-5 text-emerald-500" />
@@ -543,6 +546,126 @@ export default function CheckInPage() {
                         >
                             Entendido
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Mesa (Check-in) - RESPONSIVO */}
+            {showMesaModal && mesaInfo && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-2 md:p-4">
+
+                    {/* VERSIÓN MÓVIL - Compacta */}
+                    <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 md:hidden">
+                        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-3 text-white flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <CheckCircle2 className="h-5 w-5" />
+                                <span className="font-black text-sm uppercase">¡Check-in Exitoso!</span>
+                            </div>
+                            <button onClick={() => { setShowMesaModal(false); setMesaInfo(null); inputRef.current?.focus(); }} className="p-1.5 bg-white/20 rounded-full">
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            <div className="text-center">
+                                <h3 className="text-base font-black text-slate-800 uppercase leading-tight truncate">{mesaInfo.nombre}</h3>
+                                <div className="flex justify-center gap-2 mt-1">
+                                    <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold">#{mesaInfo.numeroSocio}</span>
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${mesaInfo.vozVoto ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                        {mesaInfo.vozVoto ? 'VOZ Y VOTO' : 'SOLO VOZ'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="bg-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl p-4 text-center">
+                                <p className="text-emerald-600 text-[10px] font-black uppercase tracking-widest mb-1">Dirigirse a la</p>
+                                <h4 className="text-4xl font-black text-slate-900 tracking-tighter italic">MESA <span className="text-emerald-500">{mesaInfo.mesa.numero}</span></h4>
+                                <div className="inline-flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-emerald-100 mt-3">
+                                    <MapPin className="h-3 w-3 text-emerald-500" />
+                                    <p className="text-[10px] font-bold text-slate-600 uppercase">{mesaInfo.mesa.ubicacion}</p>
+                                </div>
+                                {mesaInfo.mesa.responsables && mesaInfo.mesa.responsables.length > 0 && (
+                                    <div className="mt-3 pt-3 border-t border-emerald-200">
+                                        <p className="text-slate-400 text-[9px] font-bold uppercase mb-2">Encargados:</p>
+                                        <div className="flex flex-wrap justify-center gap-1">
+                                            {mesaInfo.mesa.responsables.map((resp: string, idx: number) => (
+                                                <span key={idx} className="bg-white px-2 py-1 rounded text-[10px] font-bold text-slate-600 border border-slate-100">{resp}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <button onClick={() => { setShowMesaModal(false); setMesaInfo(null); inputRef.current?.focus(); }} className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-3 rounded-xl uppercase tracking-wider text-sm">
+                                SIGUIENTE SOCIO
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* VERSIÓN ESCRITORIO - Premium */}
+                    <div className="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 hidden md:block">
+                        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-8 text-white relative">
+                            <button
+                                onClick={() => { setShowMesaModal(false); setMesaInfo(null); inputRef.current?.focus(); }}
+                                className="absolute top-6 right-6 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                            >
+                                <X className="h-6 w-6" />
+                            </button>
+                            <div className="flex items-center gap-4 mb-2">
+                                <div className="bg-white/20 p-3 rounded-2xl">
+                                    <CheckCircle2 className="h-8 w-8 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-3xl font-black uppercase tracking-tight">¡Check-in Exitoso!</h2>
+                                    <p className="opacity-80 font-bold uppercase tracking-widest text-xs">Asamblea General de Socios</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-8 space-y-8">
+                            <div className="text-center space-y-1">
+                                <p className="text-slate-400 text-xs font-black uppercase tracking-widest">Socio Registrado</p>
+                                <h3 className="text-2xl font-black text-slate-800 uppercase italic leading-tight">{mesaInfo.nombre}</h3>
+                                <div className="flex justify-center gap-4 mt-2">
+                                    <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-black italic">SOCIO #{mesaInfo.numeroSocio}</span>
+                                    <span className={`px-3 py-1 rounded-lg text-xs font-black italic ${mesaInfo.vozVoto ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                        {mesaInfo.vozVoto ? 'VOZ Y VOTO' : 'SOLO VOZ'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-50 border-2 border-dashed border-emerald-200 rounded-[2rem] p-8 relative overflow-hidden">
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl" />
+                                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl" />
+                                <div className="relative text-center">
+                                    <p className="text-emerald-600 text-xs font-black uppercase tracking-[0.3em] mb-2">Dirigirse a la</p>
+                                    <h4 className="text-8xl font-black text-slate-900 tracking-tighter mb-4 italic">
+                                        MESA <span className="text-emerald-500">{mesaInfo.mesa.numero}</span>
+                                    </h4>
+                                    <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-emerald-100 mb-6">
+                                        <MapPin className="h-4 w-4 text-emerald-500" />
+                                        <p className="text-xs font-black text-slate-600 uppercase tracking-widest">{mesaInfo.mesa.ubicacion}</p>
+                                    </div>
+                                    {mesaInfo.mesa.responsables && mesaInfo.mesa.responsables.length > 0 && (
+                                        <div className="space-y-3 pt-4 border-t border-slate-200">
+                                            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Encargados de Mesa:</p>
+                                            <div className="flex flex-wrap justify-center gap-2">
+                                                {mesaInfo.mesa.responsables.map((resp: string, idx: number) => (
+                                                    <div key={idx} className="bg-white px-3 py-1.5 rounded-lg border border-slate-100 shadow-sm flex items-center gap-2">
+                                                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                                        <span className="text-xs font-bold text-slate-700 uppercase tracking-tight">{resp}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => { setShowMesaModal(false); setMesaInfo(null); inputRef.current?.focus(); }}
+                                className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-6 rounded-3xl transition-all shadow-xl uppercase tracking-widest text-lg"
+                            >
+                                SIGUIENTE SOCIO
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
