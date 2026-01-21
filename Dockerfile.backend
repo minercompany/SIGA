@@ -1,4 +1,4 @@
-# Build stage
+# Build stage (Optimized with caching)
 FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /app
@@ -10,20 +10,20 @@ COPY backend/pom.xml backend/pom.xml
 
 # Download dependencies (cached layer)
 WORKDIR /app/backend
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+RUN --mount=type=cache,target=/root/.m2 chmod +x mvnw && ./mvnw dependency:go-offline -B
 
 # Copy source code
 COPY backend/src src
 
 # Build the application
-RUN ./mvnw package -DskipTests -B
+RUN --mount=type=cache,target=/root/.m2 ./mvnw package -DskipTests -B
 
 # Runtime stage (minimal JRE image)
 FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# Install tzdata for timezone support and fonts for PDF generation
+# Install dependencies
 RUN apk add --no-cache tzdata fontconfig ttf-dejavu mysql-client
 ENV TZ=America/Asuncion
 
@@ -31,7 +31,7 @@ ENV TZ=America/Asuncion
 RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup
 
-# Copy the built JAR
+# Copy the built JAR from builder
 COPY --from=builder /app/backend/target/*.jar app.jar
 
 # Set ownership
@@ -46,7 +46,6 @@ EXPOSE 8081
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1
 
-# Run the application with optimized JVM settings
 ENTRYPOINT ["java", \
     "-Xms256m", \
     "-Xmx512m", \
